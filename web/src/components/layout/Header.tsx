@@ -4,41 +4,41 @@ import Image from "next/image"
 export function Header() {
   return (
     <header className="border-b bg-card">
-      <div className="container mx-auto px-4 max-w-6xl flex items-center justify-between h-16">
-        <Link href="/" className="flex items-center gap-3 group">
+      <div className="mx-auto px-4 max-w-6xl flex items-center justify-between h-14 sm:h-16">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
           <Image
             src="/logo.svg"
             alt="Acción Humana"
-            width={36}
-            height={36}
-            className="dark:invert"
+            width={28}
+            height={28}
+            className="dark:invert sm:w-9 sm:h-9"
           />
-          <span className="font-bold text-lg tracking-tight">
+          <span className="font-bold text-base sm:text-lg tracking-tight">
             Acción Humana
           </span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-          <Link href="/diputados" className="hover:text-foreground transition-colors">
+        <nav className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-muted-foreground">
+          <Link href="/diputados" className="hover:text-foreground transition-colors shrink-0">
             Diputados
           </Link>
-          <Link href="/votaciones" className="hover:text-foreground transition-colors">
+          <Link href="/votaciones" className="hover:text-foreground transition-colors shrink-0">
             Votaciones
           </Link>
-          <Link href="/partidos" className="hover:text-foreground transition-colors">
+          <Link href="/partidos" className="hover:text-foreground transition-colors shrink-0">
             Partidos
           </Link>
-          <Link href="/distorsion" className="hover:text-foreground transition-colors">
+          <Link href="/distorsion" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
             Distorsión
           </Link>
-          <Link href="/puertas-giratorias" className="hover:text-foreground transition-colors">
-            Puertas giratorias
+          <Link href="/puertas-giratorias" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
+            Puertas
           </Link>
           <Link
             href="https://github.com/Arzuparreta/accion-humana"
             target="_blank"
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground transition-colors shrink-0"
           >
-            GitHub
+            GH
           </Link>
         </nav>
       </div>

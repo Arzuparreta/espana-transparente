@@ -4,6 +4,12 @@ import { cn } from "@/lib/utils"
 import { Header } from "@/components/layout/Header"
 import "./globals.css"
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -48,10 +54,10 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn("font-sans", geistSans.variable)}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <Header />
-        <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <main className="mx-auto px-4 py-6 max-w-6xl">
           {children}
         </main>
       </body>
