@@ -1,4 +1,4 @@
-import type { PoliticianMembership, Vote, EconomicDeclaration } from "@/types"
+import type { PoliticianMembership, Vote } from "@/types"
 import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
@@ -6,9 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PoliticianTimeline } from "@/components/politicians/PoliticianTimeline"
 import { VotingHistory } from "@/components/politicians/VotingHistory"
-import { EconomicDeclarationView } from "@/components/politicians/EconomicDeclaration"
 import { VoteStats } from "@/components/politicians/VoteStats"
+import { PowerChain } from "@/components/politicians/PowerChain"
+import { RevolvingDoorList } from "@/components/politicians/RevolvingDoorList"
+import { EconomicDeclarationView } from "@/components/politicians/EconomicDeclaration"
 import { AnnotationPanel } from "@/components/annotations/AnnotationPanel"
+import type { EconomicDeclaration } from "@/types"
 
 export const revalidate = 3600
 
@@ -41,8 +44,8 @@ export default async function PoliticianPage({ params }: PageProps) {
 
   if (!pol) notFound()
 
-  const currentMembership = pol.politician_memberships?.find(
-    (m: PoliticianMembership) => m.legislature?.is_active
+  const currentMembership = (pol.politician_memberships as PoliticianMembership[] | undefined)?.find(
+    (m) => m.legislature?.is_active
   )
 
   const { data: votes } = await supabase
@@ -105,9 +108,9 @@ export default async function PoliticianPage({ params }: PageProps) {
 
       <VoteStats politicianId={id} />
 
-      <Tabs defaultValue="info" className="w-full">
-        <TabsList>
-          <TabsTrigger value="info">Información</TabsTrigger>
+      <Tabs defaultValue="power" className="w-full">
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="power">Cadena de mando</TabsTrigger>
           <TabsTrigger value="votes">
             Historial de voto
             {totalVotes && totalVotes > 0 && (
@@ -116,6 +119,7 @@ export default async function PoliticianPage({ params }: PageProps) {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="info">Trayectoria</TabsTrigger>
           {pol.economic_declarations?.length > 0 && (
             <TabsTrigger value="declarations">
               Declaraciones ({pol.economic_declarations.length})
@@ -124,8 +128,17 @@ export default async function PoliticianPage({ params }: PageProps) {
           <TabsTrigger value="annotations">Anotaciones</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="power" className="space-y-4 mt-4">
+          <PowerChain politicianId={id} />
+          <RevolvingDoorList politicianId={id} />
+        </TabsContent>
+
+        <TabsContent value="votes" className="mt-4">
+          <VotingHistory votes={(votes as unknown as Vote[]) || []} politicianId={id} />
+        </TabsContent>
+
         <TabsContent value="info" className="space-y-4 mt-4">
-          <PoliticianTimeline memberships={pol.politician_memberships || []} />
+          <PoliticianTimeline memberships={(pol.politician_memberships as PoliticianMembership[]) || []} />
           {pol.raw_data?.biografia && (
             <Card>
               <CardContent className="pt-6">
@@ -138,12 +151,8 @@ export default async function PoliticianPage({ params }: PageProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="votes" className="mt-4">
-          <VotingHistory votes={(votes as unknown as Vote[]) || []} politicianId={id} />
-        </TabsContent>
-
         <TabsContent value="declarations" className="mt-4">
-          {pol.economic_declarations?.map((d: EconomicDeclaration) => (
+          {(pol.economic_declarations as EconomicDeclaration[])?.map((d) => (
             <EconomicDeclarationView key={d.id} declaration={d} />
           ))}
         </TabsContent>
