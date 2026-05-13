@@ -6,3 +6,4 @@ python-dotenv
 thefuzz[speedup]
 tenacity
 pydantic
+psycopg2-binary
