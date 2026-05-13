@@ -109,35 +109,36 @@ export default async function PoliticianPage({ params }: PageProps) {
       <VoteStats politicianId={id} />
 
       <Tabs defaultValue="power" className="w-full">
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="power">Cadena de mando</TabsTrigger>
-          <TabsTrigger value="votes">
-            Historial de voto
+        <TabsList className="inline-flex h-9 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground w-auto">
+          <TabsTrigger value="power" className="px-3 py-1 text-sm">Cadena de mando</TabsTrigger>
+          <TabsTrigger value="votes" className="px-3 py-1 text-sm">
+            Votos
             {totalVotes && totalVotes > 0 && (
-              <span className="ml-1.5 text-xs text-muted-foreground">
+              <span className="ml-1 text-xs text-muted-foreground">
                 ({totalVotes})
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="info">Trayectoria</TabsTrigger>
+          <TabsTrigger value="info" className="px-3 py-1 text-sm">Trayectoria</TabsTrigger>
           {pol.economic_declarations?.length > 0 && (
-            <TabsTrigger value="declarations">
-              Declaraciones ({pol.economic_declarations.length})
+            <TabsTrigger value="declarations" className="px-3 py-1 text-sm">
+              Declaraciones
             </TabsTrigger>
           )}
-          <TabsTrigger value="annotations">Anotaciones</TabsTrigger>
+          <TabsTrigger value="annotations" className="px-3 py-1 text-sm">Anotaciones</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="power" className="space-y-4 mt-4">
+        <div className="min-h-[350px] mt-3">
+        <TabsContent value="power" className="space-y-4 mt-0">
           <PowerChain politicianId={id} />
           <RevolvingDoorList politicianId={id} />
         </TabsContent>
 
-        <TabsContent value="votes" className="mt-4">
+        <TabsContent value="votes" className="mt-0">
           <VotingHistory votes={(votes as unknown as Vote[]) || []} politicianId={id} />
         </TabsContent>
 
-        <TabsContent value="info" className="space-y-4 mt-4">
+        <TabsContent value="info" className="space-y-4 mt-0">
           <PoliticianTimeline memberships={(pol.politician_memberships as PoliticianMembership[]) || []} />
           {pol.raw_data?.biografia && (
             <Card>
@@ -151,15 +152,16 @@ export default async function PoliticianPage({ params }: PageProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="declarations" className="mt-4">
+        <TabsContent value="declarations" className="mt-0">
           {(pol.economic_declarations as EconomicDeclaration[])?.map((d) => (
             <EconomicDeclarationView key={d.id} declaration={d} />
           ))}
         </TabsContent>
 
-        <TabsContent value="annotations" className="mt-4">
+        <TabsContent value="annotations" className="mt-0">
           <AnnotationPanel entityType="politician" entityId={id} />
         </TabsContent>
+        </div>
       </Tabs>
     </div>
   )

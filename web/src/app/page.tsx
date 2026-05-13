@@ -3,7 +3,6 @@ import { supabase } from "@/lib/supabase/client"
 import { SearchBox } from "@/components/search/SearchBox"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { LogoHero } from "@/components/layout/LogoHero"
-import { DivergenceFeed } from "@/components/votes/DivergenceFeed"
 
 export const revalidate = 3600
 
@@ -53,8 +52,6 @@ export default async function HomePage() {
       </section>
 
       <SearchBox />
-
-      <DivergenceFeed />
 
       <section>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
