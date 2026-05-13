@@ -1,11 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { PageHeader } from "@/components/domain/PageHeader"
+import { SectionTabs } from "@/components/domain/SectionTabs"
 
 const ELECTION_2023 = {
-  date: "23 de julio de 2023", totalVotes: 24413509, totalSeats: 350, census: 37446646, participation: 66.0,
+  date: "23 de julio de 2023",
+  totalVotes: 24413509,
+  totalSeats: 350,
+  census: 37446646,
+  participation: 66.0,
   results: [
     { party: "PP", votes: 8094840, seats: 137, color: "#0055A7", pctVote: 33.1 },
     { party: "PSOE", votes: 7821979, seats: 121, color: "#E01021", pctVote: 32.0 },
@@ -31,16 +35,18 @@ const ELECTION_2023 = {
 }
 
 export default function DistorsionElectoralPage() {
-  const [active, setActive] = useState("votes-per-seat")
-
   const { results, provinces } = ELECTION_2023
 
-  const withVps = results.map(r => ({
-    ...r, votesPerSeat: Math.round(r.votes / r.seats), pctSeats: (r.seats / 350) * 100,
-  })).sort((a, b) => a.votesPerSeat - b.votesPerSeat)
+  const withVotesPerSeat = results
+    .map((result) => ({
+      ...result,
+      votesPerSeat: Math.round(result.votes / result.seats),
+      pctSeats: (result.seats / 350) * 100,
+    }))
+    .sort((a, b) => a.votesPerSeat - b.votesPerSeat)
 
-  const maxVps = Math.max(...withVps.map(r => r.votesPerSeat))
-  const minVps = Math.min(...withVps.map(r => r.votesPerSeat))
+  const maxVotesPerSeat = Math.max(...withVotesPerSeat.map((result) => result.votesPerSeat))
+  const minVotesPerSeat = Math.min(...withVotesPerSeat.map((result) => result.votesPerSeat))
 
   const tabs = [
     { value: "votes-per-seat", label: "Votos por escaño" },
@@ -49,102 +55,122 @@ export default function DistorsionElectoralPage() {
   ]
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Distorsión electoral</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Elecciones generales del {ELECTION_2023.date} · {ELECTION_2023.totalSeats} escaños · Participación {ELECTION_2023.participation}%
-        </p>
-      </div>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <PageHeader
+        title="Distorsión electoral"
+        description={`Elecciones generales del ${ELECTION_2023.date} · ${ELECTION_2023.totalSeats} escaños · participación ${ELECTION_2023.participation}%`}
+      />
 
-      <div className="flex border-b border-border overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-        {tabs.map((t) => (
-          <button key={t.value} onClick={() => setActive(t.value)}
-            className={cn("relative shrink-0 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
-              active === t.value ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-            {t.label}
-            {active === t.value && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground rounded-full" />}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-6">
-        {/* TAB: Votes per seat */}
-        {active === "votes-per-seat" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">¿Cuántos votos cuesta cada escaño?</CardTitle>
-              <CardDescription>La ley D&apos;Hondt combinada con provincias pequeñas distorsiona la representación.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {withVps.map((r) => (
-                <div key={r.party} className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                  <div className="w-10 sm:w-16 text-right font-medium shrink-0" style={{ color: r.color }}>{r.party}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <div className="h-5 sm:h-6 rounded" style={{ width: `${Math.max((r.votesPerSeat / maxVps) * 100, 4)}%`, backgroundColor: r.color + "30", borderLeft: `3px solid ${r.color}` }} />
-                      <span className="text-[10px] sm:text-xs shrink-0 sm:w-16 text-right tabular-nums">{r.votesPerSeat.toLocaleString()}</span>
+      <SectionTabs tabs={tabs} defaultTab="votes-per-seat">
+        {(active) => (
+          <>
+            {active === "votes-per-seat" ? (
+              <Card className="bg-card/85">
+                <CardHeader>
+                  <CardTitle className="text-lg">¿Cuántos votos cuesta cada escaño?</CardTitle>
+                  <CardDescription>
+                    La ley D&apos;Hondt combinada con provincias pequeñas distorsiona la representación.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {withVotesPerSeat.map((result) => (
+                    <div key={result.party} className="flex items-center gap-2 text-xs sm:gap-3 sm:text-sm">
+                      <div className="w-10 shrink-0 text-right font-medium sm:w-16" style={{ color: result.color }}>
+                        {result.party}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <div
+                            className="h-5 rounded sm:h-6"
+                            style={{
+                              width: `${Math.max((result.votesPerSeat / maxVotesPerSeat) * 100, 4)}%`,
+                              backgroundColor: `${result.color}30`,
+                              borderLeft: `3px solid ${result.color}`,
+                            }}
+                          />
+                          <span className="shrink-0 text-right text-[10px] tabular-nums sm:w-16 sm:text-xs">
+                            {result.votesPerSeat.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="w-8 shrink-0 text-right text-[10px] text-muted-foreground sm:w-12 sm:text-xs">
+                        {result.seats} esc.
+                      </span>
                     </div>
+                  ))}
+                  <div className="mt-4 border-t pt-2 text-xs text-muted-foreground">
+                    Un escaño de {withVotesPerSeat[0]?.party} (&quot;cuesta&quot;{" "}
+                    {withVotesPerSeat[0]?.votesPerSeat.toLocaleString()} votos) vale igual que uno
+                    de {withVotesPerSeat[withVotesPerSeat.length - 1]?.party} (
+                    {withVotesPerSeat[withVotesPerSeat.length - 1]?.votesPerSeat.toLocaleString()} votos).
+                    Diferencia: {(maxVotesPerSeat / minVotesPerSeat).toFixed(1)}x.
                   </div>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0 w-8 sm:w-12 text-right">{r.seats} esc.</span>
-                </div>
-              ))}
-              <div className="text-xs text-muted-foreground pt-2 border-t mt-4">
-                Un escaño de {withVps[0]?.party} (&quot;cuesta&quot; {withVps[0]?.votesPerSeat.toLocaleString()} votos) vale igual que uno de{" "}
-                {withVps[withVps.length - 1]?.party} ({withVps[withVps.length - 1]?.votesPerSeat.toLocaleString()} votos). Diferencia: {(maxVps / minVps).toFixed(1)}x.
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardContent>
+              </Card>
+            ) : null}
 
-        {/* TAB: % Votes vs % Seats */}
-        {active === "pct-votes" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">% de votos vs % de escaños</CardTitle>
-              <CardDescription>Ningún partido recibe el mismo porcentaje de escaños que de votos.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {withVps.map((r) => {
-                const diff = (r.seats / 350) * 100 - r.pctVote
-                const cls = diff > 1 ? "text-green-600" : diff < -0.5 ? "text-red-600" : "text-muted-foreground"
-                return (
-                  <div key={r.party} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-wrap">
-                    <span className="w-10 sm:w-12 text-right font-medium" style={{ color: r.color }}>{r.party}</span>
-                    <span className="w-14 sm:w-16 text-right">{r.pctVote.toFixed(1)}% votos</span>
-                    <span className="text-[10px]">→</span>
-                    <span className="w-14 sm:w-16 font-medium">{(r.seats / 350 * 100).toFixed(1)}% esc.</span>
-                    <span className={`text-[10px] sm:text-xs ml-1 ${cls}`}>{diff > 0 ? "+" : ""}{diff.toFixed(1)}%</span>
+            {active === "pct-votes" ? (
+              <Card className="bg-card/85">
+                <CardHeader>
+                  <CardTitle className="text-lg">% de votos vs % de escaños</CardTitle>
+                  <CardDescription>
+                    Ningún partido recibe el mismo porcentaje de escaños que de votos.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {withVotesPerSeat.map((result) => {
+                    const diff = (result.seats / 350) * 100 - result.pctVote
+                    const cls =
+                      diff > 1 ? "text-green-600" : diff < -0.5 ? "text-red-600" : "text-muted-foreground"
+                    return (
+                      <div key={result.party} className="flex flex-wrap items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
+                        <span className="w-10 text-right font-medium sm:w-12" style={{ color: result.color }}>
+                          {result.party}
+                        </span>
+                        <span className="w-14 text-right sm:w-16">{result.pctVote.toFixed(1)}% votos</span>
+                        <span className="text-[10px]">→</span>
+                        <span className="w-14 font-medium sm:w-16">{((result.seats / 350) * 100).toFixed(1)}% esc.</span>
+                        <span className={`ml-1 text-[10px] sm:text-xs ${cls}`}>
+                          {diff > 0 ? "+" : ""}
+                          {diff.toFixed(1)}%
+                        </span>
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {active === "threshold" ? (
+              <Card className="bg-card/85">
+                <CardHeader>
+                  <CardTitle className="text-lg">El umbral real por provincia</CardTitle>
+                  <CardDescription>
+                    La ley dice 3%, pero en provincias pequeñas el umbral efectivo es mucho mayor.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {provinces.map((province) => (
+                    <div key={province.name} className="border-l-2 border-muted pl-3 text-sm">
+                      <div className="font-medium">
+                        {province.name} — {province.seats} escaños
+                      </div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        Umbral efectivo: ~{province.effectiveThreshold}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">{province.description}</div>
+                    </div>
+                  ))}
+                  <div className="border-t pt-2 text-xs text-muted-foreground">
+                    En las 27 provincias con 5 o menos escaños (54% del Congreso), el umbral efectivo supera el 10%.
+                    Partidos como IU en 2008 (970K votos, 1 escaño) quedan fuera porque sus votos se dispersan.
                   </div>
-                )
-              })}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
         )}
-
-        {/* TAB: Provincial threshold */}
-        {active === "threshold" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">El umbral real por provincia</CardTitle>
-              <CardDescription>La ley dice 3%, pero en provincias pequeñas el umbral efectivo es mucho mayor.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {provinces.map((p) => (
-                <div key={p.name} className="text-sm border-l-2 border-muted pl-3">
-                  <div className="font-medium">{p.name} — {p.seats} escaños</div>
-                  <div className="text-muted-foreground text-xs mt-0.5">Umbral efectivo: ~{p.effectiveThreshold}%</div>
-                  <div className="text-muted-foreground text-xs">{p.description}</div>
-                </div>
-              ))}
-              <div className="text-xs text-muted-foreground pt-2 border-t">
-                En las 27 provincias con 5 o menos escaños (54% del Congreso), el umbral efectivo supera el 10%.
-                Partidos como IU en 2008 (970K votos, 1 escaño) quedan fuera porque sus votos se dispersan.
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      </SectionTabs>
     </div>
   )
 }

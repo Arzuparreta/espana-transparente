@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeader } from "@/components/domain/PageHeader"
 import type { Party } from "@/types"
 
 export const revalidate = 3600
@@ -13,25 +14,23 @@ export default async function PartidosPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Partidos</h1>
-        <p className="text-muted-foreground mt-1">
-          Grupos parlamentarios y formaciones políticas
-        </p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <PageHeader
+        title="Partidos"
+        description="Los partidos aparecen aquí como agrupaciones de personas concretas, no como sujetos con voluntad propia."
+      />
+      <div className="ui-grid-cards">
         {(parties as Party[])?.map((p) => (
           <Link key={p.id} href={`/partidos/${p.id}`}>
-            <Card className="hover:border-primary/30 transition-all hover:shadow-sm cursor-pointer h-full">
-              <CardHeader>
-                <div className="flex items-center gap-3">
+            <Card className="ui-card-link h-full cursor-pointer bg-card/85">
+              <CardHeader className="space-y-3">
+                <div className="flex items-start gap-3">
                   <div
-                    className="w-8 h-8 rounded-full shrink-0"
+                    className="h-10 w-10 shrink-0 rounded-full border border-border/60 shadow-sm"
                     style={{ backgroundColor: p.color }}
                   />
-                  <div>
+                  <div className="min-w-0 space-y-1">
                     <CardTitle className="text-lg">{p.acronym}</CardTitle>
-                    <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                    <p className="text-sm text-muted-foreground text-balance">
                       {p.name}
                     </p>
                   </div>

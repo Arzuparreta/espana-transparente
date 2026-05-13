@@ -1,11 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-
-const VOTE_COLORS: Record<string, string> = {
-  Sí: "#22c55e",
-  No: "#ef4444",
-  Abstención: "#f59e0b",
-  "No vota": "#9ca3af",
-}
+import { getVoteColor } from "@/lib/domain-style"
 
 interface VoteStatsProps {
   politicianId: string
@@ -32,7 +26,7 @@ export async function VoteStats({ politicianId }: VoteStatsProps) {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {sorted.map(([vote, count]) => {
           const pct = Math.round((count / total) * 100)
-          const color = VOTE_COLORS[vote] || "#9ca3af"
+          const color = getVoteColor(vote)
           return (
             <div key={vote} className="flex items-center gap-1.5">
               <span
@@ -50,7 +44,7 @@ export async function VoteStats({ politicianId }: VoteStatsProps) {
       <div className="flex h-2 rounded-full overflow-hidden bg-muted">
         {sorted.map(([vote, count]) => {
           const pct = (count / total) * 100
-          const color = VOTE_COLORS[vote] || "#9ca3af"
+          const color = getVoteColor(vote)
           return (
             <div
               key={vote}

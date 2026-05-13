@@ -2,6 +2,8 @@ import { supabase } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { InfoPanel } from "@/components/domain/InfoPanel"
+import { PageHeader } from "@/components/domain/PageHeader"
 
 export const revalidate = 3600
 
@@ -43,27 +45,28 @@ export default async function IndicadoresPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Indicadores económicos</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Datos del INE. Sin marco ideológico. Cada número explicado para que entiendas qué mide realmente.
-        </p>
-      </div>
+      <PageHeader
+        title="Indicadores económicos"
+        description="Series del INE presentadas como contexto empírico. Aquí los números no explican ideologías: ayudan a leer decisiones y resultados."
+        className="mb-6"
+      />
 
       {entries.length === 0 ? (
         <Card><CardContent className="py-8 text-center text-muted-foreground">Sin datos todavía. Ejecuta el ETL del INE.</CardContent></Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {entries.map(([code, info]) => (
             <Link key={code} href={`/indicadores/${code}`}>
-              <Card className="hover:border-primary/30 transition-all cursor-pointer h-full">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{info.name}</CardTitle>
+              <Card className="ui-card-link h-full cursor-pointer bg-card/85">
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <CardTitle className="min-w-0 flex-1 text-base leading-6 text-balance">{info.name}</CardTitle>
                     <Badge variant="outline" className="text-[10px]">{code}</Badge>
                   </div>
-                  <CardDescription className="flex items-center gap-2">
-                    <span className="text-xl font-bold">{info.value.toFixed(1)}</span>
+                  <CardDescription className="flex flex-wrap items-end gap-2">
+                    <span className="text-2xl font-semibold tracking-tight text-foreground">
+                      {info.value.toFixed(1)}
+                    </span>
                     <span className="text-xs text-muted-foreground">{info.unit}</span>
                   </CardDescription>
                   <CardDescription className="text-xs">
@@ -76,11 +79,11 @@ export default async function IndicadoresPage() {
         </div>
       )}
 
-      <Card className="mt-6">
-        <CardContent className="py-4 text-xs text-muted-foreground">
+      <div className="mt-6">
+        <InfoPanel title="Fuente">
           Fuente: INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
-        </CardContent>
-      </Card>
+        </InfoPanel>
+      </div>
     </div>
   )
 }

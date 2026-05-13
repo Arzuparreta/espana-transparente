@@ -2,15 +2,23 @@ import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
+import { PageHeader } from "@/components/domain/PageHeader"
+import { PartyBadge } from "@/components/domain/PartyBadge"
+import { VoteBadge } from "@/components/domain/VoteBadge"
+import { getVoteColor } from "@/lib/domain-style"
 
 export const revalidate = 3600
 
-interface PageProps { params: Promise<{ id: string }> }
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
-const VC: Record<string, string> = { Sí: "#22c55e", No: "#ef4444", Abstención: "#f59e0b", "No vota": "#9ca3af" }
-const PC: Record<string, string> = { PP: "#0055A7", PSOE: "#E01021", VOX: "#63BE21", SUMAR: "#E01065", ERC: "#FFB232", JUNTS: "#20C0C2", "EH Bildu": "#00D4AA", "EAJ-PNV": "#008000" }
-
-interface VoteRow { vote: string; politician: { full_name: string } | null; membership: { party: { acronym: string; color: string } } | null }
+interface VoteRow {
+  vote: string
+  politician: { full_name: string } | null
+  membership: { party: { acronym: string; color: string } } | null
+}
 
 export default async function VotacionPage({ params }: PageProps) {
   const { id } = await params
@@ -20,75 +28,150 @@ export default async function VotacionPage({ params }: PageProps) {
   const { data: votes } = await supabase
     .from("votes")
     .select("vote, politician:politicians(full_name), membership:politician_memberships!inner(party:parties(acronym, color))")
-    .eq("voting_session_id", id).eq("membership.is_active", true)
+    .eq("voting_session_id", id)
+    .eq("membership.is_active", true)
 
-  const partyGroups: Record<string, { acronym: string; color: string; votes: Record<string, number>; total: number; deputies: Array<{ name: string; vote: string }> }> = {}
-  for (const v of (votes as unknown as VoteRow[]) || []) {
-    const p = v.membership?.party
-    if (!p) continue
-    const k = p.acronym
-    if (!partyGroups[k]) partyGroups[k] = { acronym: k, color: p.color || "#718096", votes: {}, total: 0, deputies: [] }
-    partyGroups[k].votes[v.vote] = (partyGroups[k].votes[v.vote] || 0) + 1
-    partyGroups[k].total++
-    partyGroups[k].deputies.push({ name: v.politician?.full_name || "", vote: v.vote })
+  const partyGroups: Record<
+    string,
+    {
+      acronym: string
+      color: string
+      votes: Record<string, number>
+      total: number
+      deputies: Array<{ name: string; vote: string }>
+    }
+  > = {}
+
+  for (const vote of (votes as unknown as VoteRow[]) || []) {
+    const party = vote.membership?.party
+    if (!party) continue
+    const key = party.acronym
+    if (!partyGroups[key]) {
+      partyGroups[key] = {
+        acronym: key,
+        color: party.color || "#718096",
+        votes: {},
+        total: 0,
+        deputies: [],
+      }
+    }
+    partyGroups[key].votes[vote.vote] = (partyGroups[key].votes[vote.vote] || 0) + 1
+    partyGroups[key].total++
+    partyGroups[key].deputies.push({
+      name: vote.politician?.full_name || "",
+      vote: vote.vote,
+    })
   }
 
   const divergences: Array<{ name: string; party: string; voted: string; partyVoted: string }> = []
-  for (const [acr, g] of Object.entries(partyGroups)) {
-    const maj = Object.entries(g.votes).sort((a, b) => b[1] - a[1])[0]?.[0]
-    if (!maj) continue
-    for (const d of g.deputies) { if (d.vote !== maj && d.vote !== "No vota") divergences.push({ name: d.name, party: acr, voted: d.vote, partyVoted: maj }) }
+  for (const [party, group] of Object.entries(partyGroups)) {
+    const majorityVote = Object.entries(group.votes).sort((a, b) => b[1] - a[1])[0]?.[0]
+    if (!majorityVote) continue
+    for (const deputy of group.deputies) {
+      if (deputy.vote !== majorityVote && deputy.vote !== "No vota") {
+        divergences.push({
+          name: deputy.name,
+          party,
+          voted: deputy.vote,
+          partyVoted: majorityVote,
+        })
+      }
+    }
   }
 
   const order = ["PP", "PSOE", "VOX", "SUMAR", "ERC", "JUNTS", "EH Bildu", "EAJ-PNV"]
   const sorted = Object.entries(partyGroups).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-  const dateStr = session.date ? new Date(session.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : ""
+  const dateStr = session.date
+    ? new Date(session.date).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : ""
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Badge variant="outline" className="text-xs">Sesión {session.session_number}</Badge>
-          <span className="text-sm text-muted-foreground">{dateStr}</span>
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight">{session.title}</h1>
-        {session.initiative_number && <p className="text-sm text-muted-foreground mt-1">Exp. {session.initiative_number}</p>}
-      </div>
+      <PageHeader
+        title={session.title}
+        description={
+          session.initiative_number
+            ? `Exp. ${session.initiative_number}`
+            : "Detalle de la votación y sus divergencias internas."
+        }
+        eyebrow={
+          <>
+            <Badge variant="outline" className="text-xs">
+              Sesión {session.session_number}
+            </Badge>
+            <span className="text-sm text-muted-foreground">{dateStr}</span>
+          </>
+        }
+      />
 
-      {divergences.length > 0 && (
-        <Card className="border-orange-200 dark:border-orange-800">
-          <CardHeader className="pb-2"><CardTitle className="text-base">⚠️ {divergences.length} divergencias</CardTitle></CardHeader>
+      {divergences.length > 0 ? (
+        <Card className="border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/20">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-base">Divergencias relevantes</CardTitle>
+              <ExceptionBadge count={divergences.length} />
+            </div>
+          </CardHeader>
           <CardContent className="space-y-2">
-            {divergences.map((d, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm border-l-2 border-orange-300 pl-3">
-                <span className="font-medium">{d.name}</span>
-                <span className="text-xs px-1.5 py-0 rounded" style={{ backgroundColor: (PC[d.party] || "#718096") + "20", color: PC[d.party] }}>{d.party}</span>
-                <span className="text-xs">votó <b style={{ color: VC[d.voted] }}>{d.voted}</b> ≠ <b style={{ color: VC[d.partyVoted] }}>{d.partyVoted}</b> (su grupo)</span>
+            {divergences.map((divergence, index) => (
+              <div
+                key={index}
+                className="flex flex-wrap items-center gap-2 border-l-2 border-amber-300 pl-3 text-sm"
+              >
+                <span className="font-medium">{divergence.name}</span>
+                <PartyBadge acronym={divergence.party} className="text-[11px]" />
+                <span className="text-xs">
+                  votó <b style={{ color: getVoteColor(divergence.voted) }}>{divergence.voted}</b> ≠{" "}
+                  <b style={{ color: getVoteColor(divergence.partyVoted) }}>
+                    {divergence.partyVoted}
+                  </b>{" "}
+                  (su grupo)
+                </span>
               </div>
             ))}
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       <div className="space-y-2">
-        {sorted.map(([acr, g]) => (
-          <Card key={acr}>
-            <CardContent className="py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <div className="flex items-center justify-between sm:w-20 sm:shrink-0 sm:text-right sm:block">
-                <span className="text-sm font-bold" style={{ color: g.color }}>{acr}</span>
-                <span className="text-xs text-muted-foreground sm:hidden">{g.total} votos</span>
+        {sorted.map(([acronym, group]) => (
+          <Card key={acronym} className="bg-card/85">
+            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex items-center justify-between gap-3 sm:w-24 sm:shrink-0 sm:flex-col sm:items-start">
+                <PartyBadge acronym={acronym} color={group.color} />
+                <span className="text-xs text-muted-foreground sm:hidden">{group.total} votos</span>
               </div>
               <div className="flex-1">
-                <div className="flex h-5 rounded-full overflow-hidden bg-muted">
-                  {Object.entries(g.votes).sort((a, b) => b[1] - a[1]).map(([vote, count]) => (
-                    <div key={vote} style={{ width: `${(count / g.total) * 100}%`, backgroundColor: VC[vote] || "#9ca3af" }} />
-                  ))}
+                <div className="flex h-5 overflow-hidden rounded-full bg-muted">
+                  {Object.entries(group.votes)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([vote, count]) => (
+                      <div
+                        key={vote}
+                        style={{
+                          width: `${(count / group.total) * 100}%`,
+                          backgroundColor: getVoteColor(vote),
+                        }}
+                      />
+                    ))}
                 </div>
               </div>
-              <div className="flex gap-2 text-xs shrink-0 hidden sm:flex">
-                {Object.entries(g.votes).sort((a, b) => b[1] - a[1]).map(([vote, count]) => (
-                  <span key={vote} className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: VC[vote] }} />{count}</span>
-                ))}
+              <div className="hidden shrink-0 gap-2 text-xs sm:flex">
+                {Object.entries(group.votes)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([vote, count]) => (
+                    <span key={vote} className="flex items-center gap-1">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: getVoteColor(vote) }}
+                      />
+                      {count}
+                    </span>
+                  ))}
               </div>
             </CardContent>
           </Card>
@@ -96,15 +179,22 @@ export default async function VotacionPage({ params }: PageProps) {
       </div>
 
       <details className="text-sm">
-        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Ver voto individual de cada diputado</summary>
-        <div className="mt-3 space-y-1 max-h-96 overflow-y-auto border rounded-lg p-3">
-          {sorted.map(([acr, g]) => (
-            <div key={acr} className="mb-2">
-              <div className="text-[11px] font-semibold text-muted-foreground mb-1" style={{ color: g.color }}>{acr}</div>
-              {g.deputies.map((d, i) => (
-                <div key={i} className="flex items-center justify-between text-xs py-0.5 border-b border-muted/30 last:border-0">
-                  <span className="truncate flex-1 mr-2">{d.name}</span>
-                  <span className="font-medium" style={{ color: VC[d.vote] || "#9ca3af" }}>{d.vote}</span>
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+          Ver voto individual de cada diputado
+        </summary>
+        <div className="mt-3 max-h-96 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/70 p-3">
+          {sorted.map(([acronym, group]) => (
+            <div key={acronym}>
+              <div className="mb-2">
+                <PartyBadge acronym={acronym} color={group.color} className="text-[11px]" />
+              </div>
+              {group.deputies.map((deputy, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between gap-3 border-b border-muted/30 py-1 last:border-0"
+                >
+                  <span className="min-w-0 flex-1 truncate text-xs">{deputy.name}</span>
+                  <VoteBadge vote={deputy.vote} className="text-[11px]" />
                 </div>
               ))}
             </div>

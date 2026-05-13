@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
+import { PageHeader } from "@/components/domain/PageHeader"
 import type { PoliticianWithMemberships } from "@/types"
 
 export const revalidate = 3600
@@ -30,20 +31,18 @@ export default async function PartyPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <div
-          className="w-12 h-12 rounded-full shrink-0"
-          style={{ backgroundColor: party.color }}
-        />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {party.acronym}
-          </h1>
-          <p className="text-muted-foreground">{party.name}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={party.acronym}
+        description={party.name}
+        eyebrow={
+          <div
+            className="h-3 w-3 rounded-full border border-border/60"
+            style={{ backgroundColor: party.color }}
+          />
+        }
+      />
 
-      <Card>
+      <Card className="bg-card/80">
         <CardHeader>
           <CardTitle className="text-lg">
             {memberships?.length || 0} diputados activos
@@ -51,7 +50,7 @@ export default async function PartyPage({ params }: PageProps) {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="ui-grid-cards">
         {memberships?.map((m) => {
           const pol = m.politician as unknown as Record<string, unknown>
           return (

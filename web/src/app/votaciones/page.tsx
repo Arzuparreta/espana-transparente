@@ -2,6 +2,8 @@ import { supabase } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
+import { PageHeader } from "@/components/domain/PageHeader"
 
 export const revalidate = 3600
 
@@ -64,12 +66,10 @@ export default async function VotacionesPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Votaciones</h1>
-        <p className="text-muted-foreground mt-1">
-          Sesiones de votación de la XV Legislatura. Cada voto, enlazado a la persona.
-        </p>
-      </div>
+      <PageHeader
+        title="Votaciones"
+        description="Sesiones de la XV Legislatura leídas desde el voto individual. Lo relevante no es el bloque uniforme, sino la persona que rompe la disciplina."
+      />
 
       <div className="space-y-3">
         {(sessions as unknown as SessionRow[])?.map((s) => {
@@ -80,23 +80,21 @@ export default async function VotacionesPage() {
 
           return (
             <Link key={s.id} href={`/votaciones/${s.id}`}>
-              <Card className="hover:border-primary/30 transition-all cursor-pointer">
-                <CardContent className="py-3 sm:py-4 flex items-start justify-between gap-2 sm:gap-4">
+              <Card className="ui-card-link cursor-pointer bg-card/85">
+                <CardContent className="flex items-start gap-3 py-4 sm:gap-4">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm truncate">{s.title}</div>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs text-muted-foreground shrink-0">
+                    <div className="text-base font-medium leading-6 text-balance">{s.title}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="shrink-0 text-xs text-muted-foreground">
                         Sesión {s.session_number} · {dateStr}
                       </span>
-                      <Badge variant="outline" className="text-[10px] h-4 shrink-0">
+                      <Badge variant="outline" className="h-5 shrink-0 text-[10px]">
                         {s.votes?.[0]?.count || 0} votos
                       </Badge>
                     </div>
                   </div>
                   {divCount > 0 && (
-                    <Badge className="text-[10px] h-5 shrink-0 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-300 dark:border-orange-700">
-                      ⚠️ {divCount}
-                    </Badge>
+                    <ExceptionBadge count={divCount} />
                   )}
                 </CardContent>
               </Card>

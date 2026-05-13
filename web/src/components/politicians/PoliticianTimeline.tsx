@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { PartyBadge } from "@/components/domain/PartyBadge"
 
 interface TimelineProps {
   memberships: Array<{
@@ -40,12 +41,12 @@ export function PoliticianTimeline({ memberships }: TimelineProps) {
           {sorted.map((m) => (
             <div
               key={m.id}
-              className="flex items-center gap-3 text-sm border-l-2 pl-3"
+              className="flex flex-wrap items-start gap-3 text-sm border-l-2 pl-3"
               style={{
                 borderLeftColor: m.party?.color || "#718096",
                 opacity: m.is_active ? 1 : 0.6,
               }}
-            >
+              >
               <div className="flex-1 min-w-0">
                 <div className="font-medium">
                   {m.legislature?.name || `Legislatura ${m.legislature?.number}`}
@@ -56,19 +57,7 @@ export function PoliticianTimeline({ memberships }: TimelineProps) {
                   {m.end_date && ` hasta ${m.end_date}`}
                 </div>
               </div>
-              {m.party && (
-                <Badge
-                  variant="outline"
-                  className="text-xs shrink-0"
-                  style={{
-                    borderColor: m.party.color,
-                    color: m.party.color,
-                    backgroundColor: m.party.color + "10",
-                  }}
-                >
-                  {m.party.acronym}
-                </Badge>
-              )}
+              {m.party ? <PartyBadge acronym={m.party.acronym} color={m.party.color} className="text-[11px]" /> : null}
               {m.is_active && (
                 <Badge
                   variant="outline"

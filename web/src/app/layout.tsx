@@ -56,7 +56,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <Header />
-        <main className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 overflow-x-hidden">
+        <main className="ui-shell overflow-x-hidden py-5 sm:py-8">
           {children}
         </main>
       </body>

@@ -3,35 +3,44 @@ import Image from "next/image"
 
 export function Header() {
   return (
-    <header className="border-b bg-card sticky top-0 z-50">
-      <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 flex items-center justify-between h-12 sm:h-14">
-        <Link href="/" className="flex items-center gap-2 group shrink-0">
-          <Image src="/logo.svg" alt="Acción Humana" width={24} height={24} className="dark:invert sm:w-7 sm:h-7" />
-          <span className="font-bold text-sm sm:text-base tracking-tight truncate">Acción Humana</span>
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92 backdrop-blur">
+      <div className="ui-shell flex min-h-14 flex-col gap-3 py-3 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between">
+        <Link href="/" className="flex min-w-0 items-center gap-3 group">
+          <div className="rounded-full border border-border/60 bg-card p-1.5 shadow-sm">
+            <Image src="/logo.svg" alt="Acción Humana" width={24} height={24} className="dark:invert sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
+              Acción Humana
+            </div>
+            <div className="truncate text-[11px] text-muted-foreground sm:text-xs">
+              Personas, poder y trazabilidad
+            </div>
+          </div>
         </Link>
-        <nav className="flex items-center gap-2.5 sm:gap-4 text-[11px] sm:text-sm text-muted-foreground overflow-x-auto">
-          <Link href="/diputados" className="hover:text-foreground transition-colors shrink-0">
+        <nav className="grid grid-cols-4 gap-2 text-xs text-muted-foreground sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
+          <Link href="/diputados" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             Diputados
           </Link>
-          <Link href="/votaciones" className="hover:text-foreground transition-colors shrink-0">
+          <Link href="/votaciones" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             Votaciones
           </Link>
-          <Link href="/partidos" className="hover:text-foreground transition-colors shrink-0">
+          <Link href="/partidos" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             Partidos
           </Link>
-          <Link href="/indicadores" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
+          <Link href="/indicadores" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             IPC
           </Link>
-          <Link href="/distorsion" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
+          <Link href="/distorsion" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             Distorsión
           </Link>
-          <Link href="/puertas-giratorias" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
+          <Link href="/puertas-giratorias" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
             Puertas
           </Link>
           <Link
             href="https://github.com/Arzuparreta/accion-humana"
             target="_blank"
-            className="hover:text-foreground transition-colors shrink-0"
+            className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground"
           >
             GH
           </Link>

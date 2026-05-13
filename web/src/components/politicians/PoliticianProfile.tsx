@@ -1,13 +1,21 @@
 "use client"
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AnnotationPanel } from "@/components/annotations/AnnotationPanel"
+import { PageHeader } from "@/components/domain/PageHeader"
+import { PartyBadge } from "@/components/domain/PartyBadge"
+import { SectionTabs } from "@/components/domain/SectionTabs"
+import { StatGrid } from "@/components/domain/StatGrid"
+import { VoteBadge } from "@/components/domain/VoteBadge"
+import { getVoteColor } from "@/lib/domain-style"
 
-const VC: Record<string, string> = { Sí: "#22c55e", No: "#ef4444", Abstención: "#f59e0b", "No vota": "#9ca3af" }
-const RL: Record<string, string> = { party_leader: "Responde ante", spokesperson: "Coordinado por", list_placement: "En lista por decisión de", appointed_by: "Nombrado por" }
+const RELATION_LABELS: Record<string, string> = {
+  party_leader: "Responde ante",
+  spokesperson: "Coordinado por",
+  list_placement: "En lista por decisión de",
+  appointed_by: "Nombrado por",
+}
 
 interface Props {
   pol: Record<string, unknown>
@@ -17,14 +25,21 @@ interface Props {
   revolvingDoors: Record<string, unknown>[]
 }
 
-export function PoliticianProfile({ pol: p, votes: v, totalVotes, powerRels: pr, revolvingDoors: rd }: Props) {
-  const [active, setActive] = useState("power")
-
+export function PoliticianProfile({
+  pol: p,
+  votes: v,
+  totalVotes,
+  powerRels: pr,
+  revolvingDoors: rd,
+}: Props) {
   const fullName = String(p.full_name || "")
   const bio = (p.raw_data as Record<string, unknown> | undefined)?.biografia as string | undefined
   const memberships = (p.politician_memberships || []) as Array<Record<string, unknown>>
   const econDecls = (p.economic_declarations || []) as Array<Record<string, unknown>>
-  const current = memberships.find((m: Record<string, unknown>) => (m.legislature as Record<string, unknown> | undefined)?.is_active)
+  const current = memberships.find(
+    (m: Record<string, unknown>) =>
+      (m.legislature as Record<string, unknown> | undefined)?.is_active
+  )
   const curParty = current?.party as Record<string, string> | undefined
   const curConstituency = String(current?.constituency || "")
   const curGroup = String(current?.group_parliamentary || "")
@@ -33,183 +48,296 @@ export function PoliticianProfile({ pol: p, votes: v, totalVotes, powerRels: pr,
     { value: "power", label: "Poder" },
     { value: "votes", label: "Votos", count: totalVotes ?? 0 },
     { value: "trajectory", label: "Trayectoria" },
-    ...(bio ? [{ value: "bio" as const, label: "Biografía" }] : []),
-    ...(econDecls.length ? [{ value: "declarations" as const, label: "Declaraciones" }] : []),
+    ...(bio ? [{ value: "bio", label: "Biografía" }] : []),
+    ...(econDecls.length ? [{ value: "declarations", label: "Declaraciones" }] : []),
     { value: "annotations", label: "Anotaciones" },
   ]
 
+  const voteDistribution = (() => {
+    const counts: Record<string, number> = {}
+    for (const vote of v) {
+      const key = String(vote.vote || "")
+      counts[key] = (counts[key] || 0) + 1
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])
+  })()
+
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Hero */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          {curParty && (
-            <Badge style={{ backgroundColor: (curParty.color || "#888") + "18", color: curParty.color, borderColor: (curParty.color || "#888") + "40" }} variant="outline" className="font-semibold text-sm px-3 py-1">
-              {curParty.acronym}
-            </Badge>
-          )}
-          {curConstituency && <span className="text-sm text-muted-foreground">{curConstituency}</span>}
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{fullName}</h1>
-        {curGroup && <p className="text-sm text-muted-foreground mt-1">{curGroup}</p>}
-      </div>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <PageHeader
+        title={fullName}
+        description={
+          curGroup || "Ficha individual con su cadena de mando, historial de voto y trayectoria."
+        }
+        eyebrow={
+          <>
+            {curParty ? (
+              <PartyBadge acronym={curParty.acronym} color={curParty.color} className="text-sm" />
+            ) : null}
+            {curConstituency ? (
+              <span className="text-sm text-muted-foreground">{curConstituency}</span>
+            ) : null}
+          </>
+        }
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        <Card><CardContent className="py-3 px-3 text-center"><div className="text-xl font-bold">{totalVotes ?? 0}</div><div className="text-[11px] text-muted-foreground">votos</div></CardContent></Card>
-        <Card><CardContent className="py-3 px-3 text-center"><div className="text-xl font-bold">{memberships.length}</div><div className="text-[11px] text-muted-foreground">legislaturas</div></CardContent></Card>
-        <Card><CardContent className="py-3 px-3 text-center"><div className="text-xl font-bold">{econDecls.length}</div><div className="text-[11px] text-muted-foreground">declaraciones</div></CardContent></Card>
-      </div>
+      <StatGrid
+        items={[
+          {
+            label: "Votos registrados",
+            value: totalVotes ?? 0,
+            hint: "Histórico individual capturado en votaciones nominales.",
+          },
+          {
+            label: "Legislaturas",
+            value: memberships.length,
+            hint: "Etapas parlamentarias trazadas en la base de datos.",
+          },
+          {
+            label: "Declaraciones",
+            value: econDecls.length,
+            hint: "Declaraciones económicas asociadas a esta persona.",
+          },
+        ]}
+      />
 
-      {/* Vote distribution bar */}
-      {v.length > 0 && (
-        <div className="mb-5 space-y-1.5">
-          {(() => {
-            const counts: Record<string, number> = {}
-            for (const vt of v) { const vo = String(vt.vote || ""); counts[vo] = (counts[vo] || 0) + 1 }
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
-            return (
-              <>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {sorted.map(([vote, count]) => (
-                    <div key={vote} className="flex items-center gap-1.5 text-sm">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: VC[vote] || "#9ca3af" }} />
-                      <span className="font-medium">{vote}</span>
-                      <span className="text-muted-foreground">{Math.round((count / v.length) * 100)}%</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex h-2 rounded-full overflow-hidden bg-muted">
-                  {sorted.map(([vote, count]) => (
-                    <div key={vote} style={{ width: `${(count / v.length) * 100}%`, backgroundColor: VC[vote] || "#9ca3af" }} />
-                  ))}
-                </div>
-              </>
-            )
-          })()}
-        </div>
-      )}
-
-      {/* Tab bar */}
-      <div className="mt-5">
-        <div className="flex border-b border-border overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-          {tabs.map((t) => (
-            <button key={t.value} onClick={() => setActive(t.value)}
-              className={cn("relative shrink-0 px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
-                active === t.value ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
-              {t.label}{t.count !== undefined && <span className="ml-1 opacity-60 text-xs">{t.count}</span>}
-              {active === t.value && <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground rounded-full" />}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-6">
-          {/* POWER TAB */}
-          {active === "power" && (
-            <div className="space-y-4">
-              {pr.length > 0 ? (
-                <div className="space-y-2">
-                  {pr.map((r: Record<string, unknown>, i: number) => {
-                    const pty = r.party as Record<string, string> | undefined
-                    const sup = r.superior as Record<string, string> | undefined
-                    const relType = String(r.relationship_type || "")
-                    return (
-                      <div key={i} className="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg bg-muted/50">
-                        {pty && <span className="text-xs font-medium px-1.5 py-0.5 rounded" style={{ backgroundColor: pty.color + "20", color: pty.color }}>{pty.acronym}</span>}
-                        <span className="text-muted-foreground text-xs">{RL[relType] || relType}</span>
-                        <span className="font-medium">{sup?.full_name || "—"}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : <p className="text-sm text-muted-foreground italic">Sin datos de cadena de mando.</p>}
-
-              {rd.length > 0 && (
-                <Card>
-                  <CardContent className="p-4 space-y-2">
-                    <h3 className="text-sm font-semibold">Puertas giratorias</h3>
-                    {rd.map((e: Record<string, unknown>, i: number) => (
-                      <div key={i} className="text-xs border-l-2 border-muted pl-3 py-1">
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span>{String(e.public_role || "")}</span><span className="text-muted-foreground">→</span>
-                          <span className="font-medium">{String(e.private_role || "")}</span>
-                          <span className="text-muted-foreground">en {String(e.private_organization || "")}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+      {voteDistribution.length > 0 ? (
+        <Card className="bg-card/80">
+          <CardContent className="space-y-3 px-4 py-4">
+            <div>
+              <div className="text-sm font-semibold">Distribución reciente del voto</div>
+              <div className="text-xs text-muted-foreground">
+                Un vistazo rápido al patrón visible antes de entrar al detalle.
+              </div>
             </div>
-          )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {voteDistribution.map(([vote, count]) => (
+                <div key={vote} className="flex items-center gap-1.5 text-sm">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: getVoteColor(vote) }}
+                  />
+                  <span className="font-medium">{vote}</span>
+                  <span className="text-muted-foreground">
+                    {Math.round((count / v.length) * 100)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
+              {voteDistribution.map(([vote, count]) => (
+                <div
+                  key={vote}
+                  style={{
+                    width: `${(count / v.length) * 100}%`,
+                    backgroundColor: getVoteColor(vote),
+                  }}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-          {/* VOTES TAB */}
-          {active === "votes" && (
-            <div className="space-y-3">
-              {v.length === 0 ? (
-                <Card><CardContent className="py-8 text-center text-muted-foreground">No hay votaciones registradas.</CardContent></Card>
-              ) : v.slice(0, 30).map((vt: Record<string, unknown>, i: number) => {
-                const ses = vt.voting_sessions as Record<string, string> | undefined
-                const voteVal = String(vt.vote || "")
-                const dateStr = ses?.date ? new Date(ses.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : ""
-                return (
-                  <Card key={i}>
-                    <CardContent className="py-3 px-4 flex items-start gap-3">
-                      <Badge variant="outline" className="font-bold shrink-0 mt-0.5" style={{ color: VC[voteVal] || "#9ca3af", borderColor: VC[voteVal] || "#9ca3af", backgroundColor: (VC[voteVal] || "#9ca3af") + "10" }}>{voteVal}</Badge>
-                      <div className="min-w-0"><div className="text-sm font-medium">{ses?.title}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">{dateStr}{ses?.initiative_number && ` · Exp. ${ses.initiative_number}`}</div>
-                      </div>
+      <SectionTabs tabs={tabs} defaultTab="power">
+        {(active) => (
+          <>
+            {active === "power" ? (
+              <div className="space-y-4">
+                {pr.length > 0 ? (
+                  <div className="space-y-2">
+                    {pr.map((relation: Record<string, unknown>, index: number) => {
+                      const party = relation.party as Record<string, string> | undefined
+                      const superior = relation.superior as Record<string, string> | undefined
+                      const relType = String(relation.relationship_type || "")
+
+                      return (
+                        <div
+                          key={index}
+                          className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3 text-sm shadow-sm"
+                        >
+                          {party ? (
+                            <PartyBadge
+                              acronym={party.acronym}
+                              color={party.color}
+                              className="text-[11px]"
+                            />
+                          ) : null}
+                          <span className="text-xs text-muted-foreground">
+                            {RELATION_LABELS[relType] || relType}
+                          </span>
+                          <span className="font-medium">{superior?.full_name || "—"}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm italic text-muted-foreground">
+                    Sin datos de cadena de mando.
+                  </p>
+                )}
+
+                {rd.length > 0 ? (
+                  <Card className="bg-card/80">
+                    <CardContent className="space-y-2 p-4">
+                      <h3 className="text-sm font-semibold">Puertas giratorias</h3>
+                      {rd.map((entry: Record<string, unknown>, index: number) => (
+                        <div
+                          key={index}
+                          className="border-l-2 border-border/80 py-1 pl-3 text-xs"
+                        >
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span>{String(entry.public_role || "")}</span>
+                            <span className="text-muted-foreground">→</span>
+                            <span className="font-medium">{String(entry.private_role || "")}</span>
+                            <span className="text-muted-foreground">
+                              en {String(entry.private_organization || "")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </CardContent>
                   </Card>
-                )
-              })}
-            </div>
-          )}
+                ) : null}
+              </div>
+            ) : null}
 
-          {/* TRAJECTORY TAB */}
-          {active === "trajectory" && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {[...memberships].sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-                    const na = (a.legislature as Record<string, number> | undefined)?.number ?? 0
-                    const nb = (b.legislature as Record<string, number> | undefined)?.number ?? 0
-                    return nb - na
-                  }).map((m: Record<string, unknown>) => {
-                    const leg = m.legislature as Record<string, unknown> | undefined
-                    const pty = m.party as Record<string, string> | undefined
+            {active === "votes" ? (
+              <div className="space-y-3">
+                {v.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                      No hay votaciones registradas.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  v.slice(0, 30).map((vote: Record<string, unknown>, index: number) => {
+                    const session = vote.voting_sessions as Record<string, string> | undefined
+                    const voteValue = String(vote.vote || "")
+                    const dateStr = session?.date
+                      ? new Date(session.date).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : ""
+
                     return (
-                      <div key={String(m.id)} className="flex items-center gap-3 text-sm border-l-2 pl-3" style={{ borderLeftColor: pty?.color || "#718096", opacity: !!m.is_active ? 1 : 0.6 }}>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium">{String(leg?.name || `Legislatura ${leg?.number}`)}</div>
-                          <div className="text-muted-foreground text-xs">{m.constituency ? `Circ. ${String(m.constituency)}` : ""}{m.start_date ? ` · Desde ${String(m.start_date)}` : ""}{m.end_date ? ` hasta ${String(m.end_date)}` : ""}</div>
-                        </div>
-                        {pty && <Badge variant="outline" className="text-xs shrink-0" style={{ borderColor: pty.color, color: pty.color, backgroundColor: pty.color + "10" }}>{pty.acronym}</Badge>}
-                        {!!m.is_active && <Badge variant="outline" className="text-xs shrink-0 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">Activo</Badge>}
-                      </div>
+                      <Card key={index} className="bg-card/80">
+                        <CardContent className="flex items-start gap-3 px-4 py-4">
+                          <VoteBadge vote={voteValue} className="mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-balance">
+                              {session?.title}
+                            </div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              {dateStr}
+                              {session?.initiative_number
+                                ? ` · Exp. ${session.initiative_number}`
+                                : ""}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  })
+                )}
+              </div>
+            ) : null}
 
-          {/* BIO TAB */}
-          {active === "bio" && bio && (
-            <Card><CardContent className="p-4 sm:p-6"><p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{bio}</p></CardContent></Card>
-          )}
+            {active === "trajectory" ? (
+              <Card className="bg-card/80">
+                <CardContent className="space-y-3 p-4">
+                  {[...memberships]
+                    .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+                      const left =
+                        (a.legislature as Record<string, number> | undefined)?.number ?? 0
+                      const right =
+                        (b.legislature as Record<string, number> | undefined)?.number ?? 0
+                      return right - left
+                    })
+                    .map((membership: Record<string, unknown>) => {
+                      const legislature = membership.legislature as
+                        | Record<string, unknown>
+                        | undefined
+                      const party = membership.party as Record<string, string> | undefined
+                      return (
+                        <div
+                          key={String(membership.id)}
+                          className="flex flex-wrap items-start gap-3 border-l-2 pl-3 text-sm"
+                          style={{
+                            borderLeftColor: party?.color || "#718096",
+                            opacity: membership.is_active ? 1 : 0.7,
+                          }}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium">
+                              {String(
+                                legislature?.name || `Legislatura ${legislature?.number}`
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {membership.constituency
+                                ? `Circ. ${String(membership.constituency)}`
+                                : ""}
+                              {membership.start_date
+                                ? ` · Desde ${String(membership.start_date)}`
+                                : ""}
+                              {membership.end_date
+                                ? ` hasta ${String(membership.end_date)}`
+                                : ""}
+                            </div>
+                          </div>
+                          {party ? (
+                            <PartyBadge
+                              acronym={party.acronym}
+                              color={party.color}
+                              className="text-[11px]"
+                            />
+                          ) : null}
+                          {membership.is_active ? (
+                            <Badge
+                              variant="outline"
+                              className="shrink-0 border-green-300 bg-green-100 text-[11px] text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
+                            >
+                              Activo
+                            </Badge>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                </CardContent>
+              </Card>
+            ) : null}
 
-          {/* DECLARATIONS TAB */}
-          {active === "declarations" && econDecls.length > 0 && econDecls.map((d: Record<string, unknown>) => (
-            <Card key={String(d.id)}>
-              <CardContent className="p-4"><p className="text-xs text-muted-foreground whitespace-pre-wrap overflow-auto max-h-96">{JSON.stringify(d.raw_data, null, 2)}</p></CardContent>
-            </Card>
-          ))}
+            {active === "bio" && bio ? (
+              <Card className="bg-card/80">
+                <CardContent className="p-4 sm:p-6">
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                    {bio}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : null}
 
-          {/* ANNOTATIONS TAB */}
-          {active === "annotations" && <AnnotationPanel entityType="politician" entityId={String(p.id)} />}
-        </div>
-      </div>
+            {active === "declarations" && econDecls.length > 0
+              ? econDecls.map((declaration: Record<string, unknown>) => (
+                  <Card key={String(declaration.id)} className="bg-card/80">
+                    <CardContent className="p-4">
+                      <p className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
+                        {JSON.stringify(declaration.raw_data, null, 2)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))
+              : null}
+
+            {active === "annotations" ? (
+              <AnnotationPanel entityType="politician" entityId={String(p.id)} />
+            ) : null}
+          </>
+        )}
+      </SectionTabs>
     </div>
   )
 }

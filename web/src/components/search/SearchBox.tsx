@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
+import { PartyBadge } from "@/components/domain/PartyBadge"
 import type { PoliticianWithMemberships } from "@/types"
 
 interface PartyResult {
@@ -87,10 +88,10 @@ export function SearchBox() {
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
-        className="h-12 text-base sm:text-lg"
+        className="h-12 rounded-2xl border-border/70 bg-card px-4 text-base shadow-sm sm:text-lg"
       />
       {open && query.length >= 2 && hasResults && (
-        <div className="absolute top-full mt-2 w-full bg-card border rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl">
           {results.length > 0 && (
             <div className="border-b last:border-b-0">
               <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -107,19 +108,18 @@ export function SearchBox() {
                       setOpen(false)
                       setQuery("")
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-center justify-between"
+                    className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
                   >
-                    <span className="font-medium">{r.full_name}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{r.full_name}</span>
+                      {membership?.constituency ? (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {membership.constituency}
+                        </span>
+                      ) : null}
+                    </span>
                     {party && (
-                      <span
-                        className="text-xs px-2 py-0.5 rounded"
-                        style={{
-                          backgroundColor: party.color + "20",
-                          color: party.color,
-                        }}
-                      >
-                        {party.acronym}
-                      </span>
+                      <PartyBadge acronym={party.acronym} color={party.color} />
                     )}
                   </button>
                 )
@@ -140,18 +140,10 @@ export function SearchBox() {
                     setOpen(false)
                     setQuery("")
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-center justify-between"
+                  className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
                 >
-                  <span className="font-medium">{party.name}</span>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded"
-                    style={{
-                      backgroundColor: (party.color || "#718096") + "20",
-                      color: party.color || "#718096",
-                    }}
-                  >
-                    {party.acronym}
-                  </span>
+                  <span className="min-w-0 flex-1 truncate font-medium">{party.name}</span>
+                  <PartyBadge acronym={party.acronym} color={party.color} />
                 </button>
               ))}
             </div>
@@ -170,7 +162,7 @@ export function SearchBox() {
                     setOpen(false)
                     setQuery("")
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-muted transition-colors"
+                  className="w-full px-4 py-3 text-left transition-colors hover:bg-muted"
                 >
                   <div className="font-medium line-clamp-1">{session.title}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">

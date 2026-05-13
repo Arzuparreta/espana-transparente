@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { PartyBadge } from "@/components/domain/PartyBadge"
 import type { PoliticianWithMemberships } from "@/types"
 
 interface PoliticianCardProps {
@@ -13,28 +13,28 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
 
   return (
     <Link href={`/diputados/${politician.id}`}>
-      <Card className="hover:border-primary/30 transition-all hover:shadow-sm cursor-pointer h-full">
-        <CardHeader>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <CardTitle className="text-sm sm:text-base truncate">{politician.full_name}</CardTitle>
+      <Card className="ui-card-link h-full cursor-pointer bg-card/85">
+        <CardHeader className="space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1 space-y-1">
+              <CardTitle className="text-base text-balance sm:text-lg">{politician.full_name}</CardTitle>
               {membership?.constituency && (
-                <CardDescription>{membership.constituency}</CardDescription>
+                <CardDescription className="text-sm">{membership.constituency}</CardDescription>
               )}
             </div>
             {party && (
-              <Badge
-                variant="outline"
-                style={{
-                  borderColor: party.color,
-                  color: party.color,
-                  backgroundColor: party.color + "10",
-                }}
-              >
-                {party.acronym}
-              </Badge>
+              <PartyBadge
+                acronym={party.acronym}
+                color={party.color}
+                className="mt-0.5 max-w-full"
+              />
             )}
           </div>
+          {membership?.group_parliamentary ? (
+            <div className="rounded-xl bg-muted/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
+              Grupo parlamentario: {membership.group_parliamentary}
+            </div>
+          ) : null}
         </CardHeader>
       </Card>
     </Link>
