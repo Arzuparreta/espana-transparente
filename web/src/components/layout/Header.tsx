@@ -27,6 +27,9 @@ export function Header() {
           <Link href="/distorsion" className="hover:text-foreground transition-colors">
             Distorsión
           </Link>
+          <Link href="/puertas-giratorias" className="hover:text-foreground transition-colors">
+            Puertas giratorias
+          </Link>
           <Link
             href="https://github.com/Arzuparreta/accion-humana"
             target="_blank"
