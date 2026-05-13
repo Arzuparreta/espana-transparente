@@ -22,12 +22,14 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://web-pi-two-62.vercel.app"),
+  applicationName: "Acción Humana",
   title: {
     default: "Acción Humana",
     template: "%s | Acción Humana",
   },
   description:
-    "Transparencia radical sobre la política española. Datos objetivos, sin filtros ideológicos.",
+    "Datos públicos para seguir quién decidió qué en la política española. Personas, poder y trazabilidad.",
   keywords: [
     "transparencia",
     "política",
@@ -36,12 +38,38 @@ export const metadata: Metadata = {
     "congreso",
     "datos abiertos",
   ],
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [{ rel: "mask-icon", url: "/brand/accion-humana-mark.svg", color: "#0a2a53" }],
+  },
   openGraph: {
     title: "Acción Humana",
     description:
-      "Transparencia radical sobre la política española. Datos objetivos, sin filtros ideológicos.",
+      "Datos públicos para seguir quién decidió qué en la política española. Personas, poder y trazabilidad.",
     type: "website",
     locale: "es_ES",
+    images: [
+      {
+        url: "/brand/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Acción Humana — personas, poder y trazabilidad",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Acción Humana",
+    description:
+      "Datos públicos para seguir quién decidió qué en la política española.",
+    images: ["/brand/og-image.png"],
   },
 }
 

@@ -3,6 +3,12 @@
 ## Propósito
 La UI de Acción Humana no presenta instituciones como actores. Presenta personas, cadenas de poder y excepciones relevantes. El sistema visual debe reforzar eso en cada pantalla nueva.
 
+## Marca
+- La identidad visual vive en `BRAND.md`.
+- El símbolo oficial es una fachada abierta que revela una cadena de personas.
+- En UI usar `LogoMark`; no incrustar versiones copiadas del SVG dentro de componentes nuevos.
+- El acento dorado se reserva para personas, excepciones y puntos de trazabilidad.
+
 ## Reglas obligatorias
 - Las personas son la unidad primaria de lectura. Nombre, cargo, circunscripción y relación deben tener prioridad sobre la sigla.
 - La excepción manda sobre el agregado. Divergencias y rupturas de disciplina deben destacar sin convertir la interfaz en un panel de alertas histérico.

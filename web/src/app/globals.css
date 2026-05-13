@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    --brand-ink: 214 79% 18%;
+    --brand-reveal: 30 76% 45%;
+    --brand-paper: 36 33% 98%;
     --background: 36 33% 98%;
     --foreground: 215 28% 17%;
     --card: 0 0% 100%;
@@ -27,6 +30,9 @@
   }
 
   .dark {
+    --brand-ink: 42 60% 92%;
+    --brand-reveal: 34 86% 58%;
+    --brand-paper: 218 31% 9%;
     --background: 218 31% 9%;
     --foreground: 36 24% 94%;
     --card: 220 24% 12%;

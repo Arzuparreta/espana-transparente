@@ -1,14 +1,14 @@
 import Link from "next/link"
-import Image from "next/image"
+import { LogoMark } from "@/components/brand/LogoMark"
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92 backdrop-blur">
       <div className="ui-shell flex min-h-14 flex-col gap-3 py-3 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/" className="flex min-w-0 items-center gap-3 group">
-          <div className="rounded-full border border-border/60 bg-card p-1.5 shadow-sm">
-            <Image src="/logo.svg" alt="Acción Humana" width={24} height={24} className="dark:invert sm:h-7 sm:w-7" />
-          </div>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[1rem] border border-primary/15 bg-primary text-primary-foreground shadow-sm transition-transform group-hover:-rotate-3 sm:h-11 sm:w-11">
+            <LogoMark className="h-7 w-7" />
+          </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
               Acción Humana

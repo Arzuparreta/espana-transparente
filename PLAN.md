@@ -83,7 +83,7 @@
 - [x] Puertas giratorias: 20 casos documentados (Wikipedia)
 - [x] Página de distorsión electoral (D'Hondt, votos por escaño, umbral provincial)
 - [x] Sistema de anotaciones propio en Supabase
-- [x] Logo SVG (🜁 A+H fusionadas)
+- [x] Sistema de marca SVG: símbolo, favicon, iconos app, Open Graph y banner GitHub
 - [x] CI/CD con GitHub Actions (lint + build + ETL en cron)
 
 ### ✅ Fase 4 — Votaciones (COMPLETADO)

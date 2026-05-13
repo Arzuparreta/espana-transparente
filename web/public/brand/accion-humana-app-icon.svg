@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Acción Humana app icon</title>
+  <rect width="64" height="64" rx="14" fill="#0a2a53"/>
+  <path d="M14 51V17c0-2.2 1.8-4 4-4h32v38H14Z" stroke="#fbfaf7" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M45 13C39 24 33 38 22 51" stroke="#fbfaf7" stroke-width="3" stroke-linecap="round"/>
+  <path d="M24 24 36 33 27 43" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="4.1" fill="#d1872a"/>
+  <circle cx="36" cy="33" r="4.1" fill="#d1872a"/>
+  <circle cx="27" cy="43" r="4.1" fill="#d1872a"/>
+</svg>

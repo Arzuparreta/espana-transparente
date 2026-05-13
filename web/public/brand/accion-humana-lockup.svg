@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="180" viewBox="0 0 720 180" fill="none">
+  <title>Acción Humana logo</title>
+  <rect x="24" y="24" width="132" height="132" rx="34" fill="#0a2a53"/>
+  <g transform="translate(58 58)">
+    <path d="M14 51V17c0-2.2 1.8-4 4-4h32v38H14Z" stroke="#fbfaf7" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M45 13C39 24 33 38 22 51" stroke="#fbfaf7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 24 36 33 27 43" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="24" cy="24" r="4.1" fill="#d1872a"/>
+    <circle cx="36" cy="33" r="4.1" fill="#d1872a"/>
+    <circle cx="27" cy="43" r="4.1" fill="#d1872a"/>
+  </g>
+  <text x="190" y="78" fill="#0a2a53" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="700" letter-spacing="-1.4">Acción Humana</text>
+  <text x="193" y="115" fill="#516171" font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing="1.8">PERSONAS, PODER Y TRAZABILIDAD</text>
+  <path d="M194 134H600" stroke="#d1872a" stroke-width="3" stroke-linecap="round"/>
+</svg>

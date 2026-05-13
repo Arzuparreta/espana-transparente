@@ -1,4 +1,6 @@
-# 🜁 Acción Humana
+![Acción Humana — personas, poder y trazabilidad](web/public/brand/github-banner.svg)
+
+# Acción Humana
 
 > *"El Estado no existe fuera de las personas que lo conforman."*
 
