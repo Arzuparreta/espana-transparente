@@ -19,6 +19,9 @@ export function Header() {
           <Link href="/partidos" className="hover:text-foreground transition-colors shrink-0">
             Partidos
           </Link>
+          <Link href="/indicadores" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
+            IPC
+          </Link>
           <Link href="/distorsion" className="hover:text-foreground transition-colors shrink-0 hidden sm:inline">
             Distorsión
           </Link>
