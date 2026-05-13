@@ -2,7 +2,7 @@
 
 ## Concepto
 
-El símbolo representa una fachada institucional abierta por una grieta. Dentro aparece una cadena de personas conectadas. La idea es directa: desvelar la política y seguir la acción humana concreta detrás de la abstracción estatal.
+El símbolo representa una fachada institucional abierta como un velo. En el centro aparece una persona concreta. La idea es directa: desvelar la política y devolver cada acción estatal al individuo que la ejecuta.
 
 ## Sistema
 
@@ -27,7 +27,7 @@ El símbolo representa una fachada institucional abierta por una grieta. Dentro 
 
 ## Reglas de uso
 
-- Mantener el símbolo simple: marco, corte y tres nodos. No añadir siglas ni escudos.
+- Mantener el símbolo simple: marco, velo abierto y persona. No añadir siglas ni escudos.
 - Usar el icono sólido para favicons, PWA y superficies pequeñas.
 - Usar el símbolo transparente solo sobre fondos claros y calmados.
 - Reservar el color `Reveal` para personas, excepciones o puntos de trazabilidad.

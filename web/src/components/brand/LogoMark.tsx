@@ -14,27 +14,30 @@ export function LogoMark({ className }: LogoMarkProps) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M14 51V17c0-2.2 1.8-4 4-4h32v38H14Z"
+        d="M16 50V14h32v36H16Z"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="2.8"
         strokeLinejoin="round"
       />
       <path
-        d="M45 13C39 24 33 38 22 51"
+        d="M27 16c-6 8-8 18-6 30"
         stroke="currentColor"
         strokeLinecap="round"
-        strokeWidth="3"
+        strokeWidth="2.4"
       />
       <path
-        d="M24 24 36 33 27 43"
+        d="M37 16c6 8 8 18 6 30"
         stroke="currentColor"
         strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.7"
+        strokeWidth="2.4"
       />
-      <circle cx="24" cy="24" r="4.1" fill="hsl(var(--brand-reveal))" />
-      <circle cx="36" cy="33" r="4.1" fill="hsl(var(--brand-reveal))" />
-      <circle cx="27" cy="43" r="4.1" fill="hsl(var(--brand-reveal))" />
+      <circle cx="32" cy="27.5" r="4.4" fill="hsl(var(--brand-reveal))" />
+      <path
+        d="M32 35v9"
+        stroke="hsl(var(--brand-reveal))"
+        strokeLinecap="round"
+        strokeWidth="3.4"
+      />
     </svg>
   )
 }

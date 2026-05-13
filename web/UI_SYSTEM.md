@@ -5,7 +5,7 @@ La UI de Acción Humana no presenta instituciones como actores. Presenta persona
 
 ## Marca
 - La identidad visual vive en `BRAND.md`.
-- El símbolo oficial es una fachada abierta que revela una cadena de personas.
+- El símbolo oficial es una fachada abierta que revela una persona concreta.
 - En UI usar `LogoMark`; no incrustar versiones copiadas del SVG dentro de componentes nuevos.
 - El acento dorado se reserva para personas, excepciones y puntos de trazabilidad.
 

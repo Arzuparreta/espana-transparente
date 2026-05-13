@@ -1,50 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
   <title>Acción Humana — personas, poder y trazabilidad</title>
   <defs>
-    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1010 92) rotate(139) scale(600 460)">
-      <stop stop-color="#f1c27d" stop-opacity=".42"/>
-      <stop offset=".55" stop-color="#f1c27d" stop-opacity=".08"/>
-      <stop offset="1" stop-color="#f1c27d" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="veil" x1="693" y1="102" x2="1110" y2="520" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0a2a53" stop-opacity=".12"/>
-      <stop offset="1" stop-color="#0a2a53" stop-opacity=".02"/>
+    <linearGradient id="paper" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbfaf7"/>
+      <stop offset=".58" stop-color="#f7f1e8"/>
+      <stop offset="1" stop-color="#fbfaf7"/>
     </linearGradient>
-    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
-      <path d="M44 0H0V44" stroke="#0a2a53" stroke-opacity=".055"/>
+    <radialGradient id="warm" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(925 198) rotate(126) scale(520 390)">
+      <stop stop-color="#d1872a" stop-opacity=".2"/>
+      <stop offset=".65" stop-color="#d1872a" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#d1872a" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="fine-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#0a2a53" stroke-opacity=".045"/>
     </pattern>
   </defs>
-  <rect width="1280" height="640" fill="#fbfaf7"/>
-  <rect width="1280" height="640" fill="url(#grid)"/>
-  <rect width="1280" height="640" fill="url(#glow)"/>
-  <path d="M70 522C183 468 310 482 429 514C539 544 649 587 760 559C863 533 916 454 1014 422C1089 397 1165 410 1212 430" stroke="#0a2a53" stroke-opacity=".08" stroke-width="2"/>
 
-  <g transform="translate(88 90)">
-    <rect width="104" height="104" rx="28" fill="#0a2a53"/>
-    <g transform="translate(20 20)">
-      <path d="M14 51V17c0-2.2 1.8-4 4-4h32v38H14Z" stroke="#fbfaf7" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M45 13C39 24 33 38 22 51" stroke="#fbfaf7" stroke-width="3" stroke-linecap="round"/>
-      <path d="M24 24 36 33 27 43" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="24" cy="24" r="4.1" fill="#d1872a"/>
-      <circle cx="36" cy="33" r="4.1" fill="#d1872a"/>
-      <circle cx="27" cy="43" r="4.1" fill="#d1872a"/>
+  <rect width="1280" height="640" fill="url(#paper)"/>
+  <rect width="1280" height="640" fill="url(#fine-grid)"/>
+  <rect width="1280" height="640" fill="url(#warm)"/>
+
+  <g transform="translate(96 96)">
+    <rect width="108" height="108" rx="30" fill="#0a2a53"/>
+    <g transform="translate(22 22)">
+      <path d="M16 50V14h32v36H16Z" stroke="#fbfaf7" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M27 16c-6 8-8 18-6 30" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round"/>
+      <path d="M37 16c6 8 8 18 6 30" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round"/>
+      <circle cx="32" cy="28" r="4.6" fill="#d1872a"/>
+      <path d="M24 43c1.8-5.4 5-8.1 8-8.1s6.2 2.7 8 8.1" stroke="#d1872a" stroke-width="3.2" stroke-linecap="round"/>
     </g>
   </g>
 
-  <text x="88" y="270" fill="#0a2a53" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="700" letter-spacing="-2.4">Acción Humana</text>
-  <text x="93" y="324" fill="#516171" font-family="Arial, Helvetica, sans-serif" font-size="24" letter-spacing="2.6">PERSONAS, PODER Y TRAZABILIDAD</text>
-  <path d="M94 352H512" stroke="#d1872a" stroke-width="4" stroke-linecap="round"/>
-  <text x="92" y="430" fill="#0a2a53" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-style="italic">El Estado no existe fuera de las personas que lo conforman.</text>
-  <text x="94" y="484" fill="#516171" font-family="Arial, Helvetica, sans-serif" font-size="22">Datos públicos para seguir quién decidió qué.</text>
+  <text x="96" y="296" fill="#0a2a53" font-family="Georgia, 'Times New Roman', serif" font-size="86" font-weight="700" letter-spacing="-2.6">Acción Humana</text>
+  <text x="101" y="354" fill="#516171" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="2.8">PERSONAS, PODER Y TRAZABILIDAD</text>
+  <path d="M102 386H542" stroke="#d1872a" stroke-width="4" stroke-linecap="round"/>
 
-  <g transform="translate(706 104)">
-    <path d="M54 420V54c0-18 14-32 32-32h348v398H54Z" fill="url(#veil)" stroke="#0a2a53" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M389 22C327 128 262 282 144 420" stroke="#0a2a53" stroke-width="6" stroke-linecap="round"/>
-    <path d="M120 145 258 244 165 340" stroke="#0a2a53" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="120" cy="145" r="26" fill="#fbfaf7" stroke="#d1872a" stroke-width="8"/>
-    <circle cx="258" cy="244" r="26" fill="#fbfaf7" stroke="#d1872a" stroke-width="8"/>
-    <circle cx="165" cy="340" r="26" fill="#fbfaf7" stroke="#d1872a" stroke-width="8"/>
-    <path d="M84 80H398M84 386H398" stroke="#0a2a53" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>
-    <path d="M330 120H392M300 170H392M346 220H392" stroke="#0a2a53" stroke-opacity=".22" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(744 112)">
+    <rect x="78" y="18" width="316" height="396" rx="18" fill="#fbfaf7" fill-opacity=".72" stroke="#0a2a53" stroke-opacity=".2" stroke-width="2"/>
+    <path d="M104 88H366M104 144H366M104 200H366M104 312H366" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
+    <path d="M104 256H244" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
+    <path d="M236 44c-72 74-100 193-73 334" stroke="#0a2a53" stroke-width="6" stroke-linecap="round"/>
+    <path d="M236 44c72 74 100 193 73 334" stroke="#0a2a53" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="236" cy="188" r="28" fill="#d1872a"/>
+    <path d="M236 232v76" stroke="#d1872a" stroke-width="14" stroke-linecap="round"/>
+    <path d="M28 50c82 61 118 158 107 291" stroke="#0a2a53" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>
+    <path d="M444 50c-82 61-118 158-107 291" stroke="#0a2a53" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>
