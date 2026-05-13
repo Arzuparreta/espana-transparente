@@ -15,6 +15,9 @@ jobs:
     defaults:
       run:
         working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
