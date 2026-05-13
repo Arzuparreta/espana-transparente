@@ -23,6 +23,7 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
   const [annotations, setAnnotations] = useState<Annotation[]>([])
   const [newBody, setNewBody] = useState("")
   const [loading, setLoading] = useState(false)
+  const [authMessage, setAuthMessage] = useState("")
 
   useEffect(() => {
     supabase
@@ -40,11 +41,13 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
   async function handleSubmit() {
     if (!newBody.trim()) return
     setLoading(true)
+    setAuthMessage("")
     const {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
       setLoading(false)
+      setAuthMessage("Necesitas iniciar sesión para publicar una anotación.")
       return
     }
     await supabase.from("annotations").insert({
@@ -84,6 +87,9 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
           <Button onClick={handleSubmit} disabled={loading || !newBody.trim()} size="sm">
             Publicar anotación
           </Button>
+          {authMessage && (
+            <p className="text-sm text-muted-foreground">{authMessage}</p>
+          )}
         </div>
 
         <Separator />

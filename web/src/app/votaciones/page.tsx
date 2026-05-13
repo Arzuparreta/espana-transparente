@@ -14,8 +14,12 @@ interface SessionRow {
   votes: Array<{ count: number }>
 }
 
-interface DivRow {
-  initiative: string
+interface VoteWithPartyRow {
+  voting_session_id: string
+  vote: string
+  membership: {
+    party_id: string | null
+  } | null
 }
 
 export default async function VotacionesPage() {
@@ -24,16 +28,38 @@ export default async function VotacionesPage() {
     .select("*, votes(count)")
     .order("date", { ascending: false })
 
-  // Get divergences for highlights
-  const { data: divergences } = await supabase.rpc("get_divergences")
+  const { data: voteRows } = await supabase
+    .from("votes")
+    .select("voting_session_id, vote, membership:politician_memberships!inner(party_id)")
+    .eq("membership.is_active", true)
 
-  // Index divergences by session title
-  const divByTitle: Record<string, number> = {}
-  if (divergences) {
-    for (const d of (divergences as unknown as DivRow[])) {
-      const key = d.initiative?.substring(0, 60) || ""
-      divByTitle[key] = (divByTitle[key] || 0) + 1
+  const groupedVotes: Record<string, Record<string, string[]>> = {}
+  for (const row of (voteRows as VoteWithPartyRow[] | null) || []) {
+    const partyId = row.membership?.party_id
+    if (!partyId) continue
+    if (!groupedVotes[row.voting_session_id]) groupedVotes[row.voting_session_id] = {}
+    if (!groupedVotes[row.voting_session_id][partyId]) groupedVotes[row.voting_session_id][partyId] = []
+    groupedVotes[row.voting_session_id][partyId].push(row.vote)
+  }
+
+  const divBySessionId: Record<string, number> = {}
+  for (const [sessionId, partyVotes] of Object.entries(groupedVotes)) {
+    let divergences = 0
+    for (const votes of Object.values(partyVotes)) {
+      const voteCounts = votes.reduce<Record<string, number>>((acc, vote) => {
+        if (vote === "No vota") return acc
+        acc[vote] = (acc[vote] || 0) + 1
+        return acc
+      }, {})
+
+      const majorityVote = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
+      if (!majorityVote) continue
+
+      for (const vote of votes) {
+        if (vote !== "No vota" && vote !== majorityVote) divergences++
+      }
     }
+    divBySessionId[sessionId] = divergences
   }
 
   return (
@@ -47,11 +73,10 @@ export default async function VotacionesPage() {
 
       <div className="space-y-3">
         {(sessions as unknown as SessionRow[])?.map((s) => {
-          const titleShort = s.title?.substring(0, 100) || ""
           const dateStr = s.date
             ? new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
             : ""
-          const divCount = divByTitle[titleShort] || 0
+          const divCount = divBySessionId[s.id] || 0
 
           return (
             <Link key={s.id} href={`/votaciones/${s.id}`}>

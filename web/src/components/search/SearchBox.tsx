@@ -6,9 +6,25 @@ import { supabase } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
 import type { PoliticianWithMemberships } from "@/types"
 
+interface PartyResult {
+  id: string
+  acronym: string
+  name: string
+  color: string | null
+}
+
+interface VotingSessionResult {
+  id: string
+  title: string
+  session_number: number
+  date: string
+}
+
 export function SearchBox() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PoliticianWithMemberships[]>([])
+  const [partyResults, setPartyResults] = useState<PartyResult[]>([])
+  const [sessionResults, setSessionResults] = useState<VotingSessionResult[]>([])
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
@@ -16,15 +32,34 @@ export function SearchBox() {
   useEffect(() => {
     if (query.length < 2) {
       setResults([])
+      setPartyResults([])
+      setSessionResults([])
       return
     }
     const timer = setTimeout(async () => {
-      const { data } = await supabase
-        .from("politicians")
-        .select("id, full_name, politician_memberships(*, party:parties(*))")
-        .ilike("full_name", `%${query}%`)
-        .limit(8)
-      setResults((data as PoliticianWithMemberships[]) || [])
+      const [politiciansResponse, partiesResponse, sessionsResponse] = await Promise.all([
+        supabase
+          .from("politicians")
+          .select("id, full_name, politician_memberships!inner(*, party:parties(*))")
+          .eq("politician_memberships.is_active", true)
+          .ilike("full_name", `%${query}%`)
+          .limit(6),
+        supabase
+          .from("parties")
+          .select("id, acronym, name, color")
+          .or(`name.ilike.%${query}%,acronym.ilike.%${query}%`)
+          .limit(4),
+        supabase
+          .from("voting_sessions")
+          .select("id, title, session_number, date")
+          .ilike("title", `%${query}%`)
+          .order("date", { ascending: false })
+          .limit(4),
+      ])
+
+      setResults((politiciansResponse.data as PoliticianWithMemberships[]) || [])
+      setPartyResults((partiesResponse.data as PartyResult[]) || [])
+      setSessionResults((sessionsResponse.data as VotingSessionResult[]) || [])
     }, 200)
     return () => clearTimeout(timer)
   }, [query])
@@ -39,11 +74,13 @@ export function SearchBox() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
+  const hasResults = results.length > 0 || partyResults.length > 0 || sessionResults.length > 0
+
   return (
     <div ref={ref} className="relative max-w-xl mx-auto w-full">
       <Input
         type="search"
-        placeholder="Busca un diputado o diputada..."
+        placeholder="Busca personas, partidos o votaciones..."
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
@@ -52,36 +89,102 @@ export function SearchBox() {
         onFocus={() => setOpen(true)}
         className="h-12 text-base sm:text-lg"
       />
-      {open && results.length > 0 && (
+      {open && query.length >= 2 && hasResults && (
         <div className="absolute top-full mt-2 w-full bg-card border rounded-lg shadow-lg z-50 overflow-hidden">
-          {results.map((r) => {
-            const membership = r.politician_memberships?.[0]
-            const party = membership?.party
-            return (
-              <button
-                key={r.id}
-                onClick={() => {
-                  router.push(`/diputados/${r.id}`)
-                  setOpen(false)
-                  setQuery("")
-                }}
-                className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-center justify-between"
-              >
-                <span className="font-medium">{r.full_name}</span>
-                {party && (
+          {results.length > 0 && (
+            <div className="border-b last:border-b-0">
+              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Personas
+              </div>
+              {results.map((r) => {
+                const membership = r.politician_memberships?.[0]
+                const party = membership?.party
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      router.push(`/diputados/${r.id}`)
+                      setOpen(false)
+                      setQuery("")
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-center justify-between"
+                  >
+                    <span className="font-medium">{r.full_name}</span>
+                    {party && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded"
+                        style={{
+                          backgroundColor: party.color + "20",
+                          color: party.color,
+                        }}
+                      >
+                        {party.acronym}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {partyResults.length > 0 && (
+            <div className="border-b last:border-b-0">
+              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Partidos
+              </div>
+              {partyResults.map((party) => (
+                <button
+                  key={party.id}
+                  onClick={() => {
+                    router.push(`/partidos/${party.id}`)
+                    setOpen(false)
+                    setQuery("")
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-center justify-between"
+                >
+                  <span className="font-medium">{party.name}</span>
                   <span
                     className="text-xs px-2 py-0.5 rounded"
                     style={{
-                      backgroundColor: party.color + "20",
-                      color: party.color,
+                      backgroundColor: (party.color || "#718096") + "20",
+                      color: party.color || "#718096",
                     }}
                   >
                     {party.acronym}
                   </span>
-                )}
-              </button>
-            )
-          })}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {sessionResults.length > 0 && (
+            <div>
+              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Votaciones
+              </div>
+              {sessionResults.map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => {
+                    router.push(`/votaciones/${session.id}`)
+                    setOpen(false)
+                    setQuery("")
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-muted transition-colors"
+                >
+                  <div className="font-medium line-clamp-1">{session.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Sesión {session.session_number} ·{" "}
+                    {new Date(session.date).toLocaleDateString("es-ES", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

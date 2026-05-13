@@ -9,7 +9,8 @@ export const revalidate = 3600
 export default async function HomePage() {
   const { data: politicians } = await supabase
     .from("politicians")
-    .select("*, politician_memberships(*, party:parties(*))")
+    .select("*, politician_memberships!inner(*, party:parties(*))")
+    .eq("politician_memberships.is_active", true)
     .order("full_name")
     .limit(24)
 
