@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PoliticianTimeline } from "@/components/politicians/PoliticianTimeline"
 import { VotingHistory } from "@/components/politicians/VotingHistory"
 import { EconomicDeclarationView } from "@/components/politicians/EconomicDeclaration"
+import { VoteStats } from "@/components/politicians/VoteStats"
 import { AnnotationPanel } from "@/components/annotations/AnnotationPanel"
 
 export const revalidate = 3600
@@ -101,6 +102,8 @@ export default async function PoliticianPage({ params }: PageProps) {
           </Card>
         )}
       </div>
+
+      <VoteStats politicianId={id} />
 
       <Tabs defaultValue="info" className="w-full">
         <TabsList>
