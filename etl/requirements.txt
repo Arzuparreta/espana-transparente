@@ -1,0 +1,8 @@
+httpx
+beautifulsoup4
+pandas
+supabase>=2.0.0
+python-dotenv
+thefuzz[speedup]
+tenacity
+pydantic

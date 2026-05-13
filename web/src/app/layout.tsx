@@ -1,0 +1,60 @@
+import type { Metadata } from "next"
+import localFont from "next/font/local"
+import { cn } from "@/lib/utils"
+import { Header } from "@/components/layout/Header"
+import "./globals.css"
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+})
+
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+})
+
+export const metadata: Metadata = {
+  title: {
+    default: "Acción Humana",
+    template: "%s | Acción Humana",
+  },
+  description:
+    "Transparencia radical sobre la política española. Datos objetivos, sin filtros ideológicos.",
+  keywords: [
+    "transparencia",
+    "política",
+    "España",
+    "diputados",
+    "congreso",
+    "datos abiertos",
+  ],
+  openGraph: {
+    title: "Acción Humana",
+    description:
+      "Transparencia radical sobre la política española. Datos objetivos, sin filtros ideológicos.",
+    type: "website",
+    locale: "es_ES",
+  },
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="es" className={cn("font-sans", geistSans.variable)}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+      >
+        <Header />
+        <main className="container mx-auto px-4 py-8 max-w-6xl">
+          {children}
+        </main>
+      </body>
+    </html>
+  )
+}
