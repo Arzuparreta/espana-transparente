@@ -7,7 +7,6 @@ import "./globals.css"
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 }
 
 const geistSans = localFont({
@@ -57,7 +56,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <Header />
-        <main className="mx-auto px-4 py-6 max-w-6xl">
+        <main className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 overflow-x-hidden">
           {children}
         </main>
       </body>

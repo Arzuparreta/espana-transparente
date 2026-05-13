@@ -3,21 +3,13 @@ import Image from "next/image"
 
 export function Header() {
   return (
-    <header className="border-b bg-card">
-      <div className="mx-auto px-4 max-w-6xl flex items-center justify-between h-14 sm:h-16">
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-          <Image
-            src="/logo.svg"
-            alt="Acción Humana"
-            width={28}
-            height={28}
-            className="dark:invert sm:w-9 sm:h-9"
-          />
-          <span className="font-bold text-base sm:text-lg tracking-tight">
-            Acción Humana
-          </span>
+    <header className="border-b bg-card sticky top-0 z-50">
+      <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 flex items-center justify-between h-12 sm:h-14">
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <Image src="/logo.svg" alt="Acción Humana" width={24} height={24} className="dark:invert sm:w-7 sm:h-7" />
+          <span className="font-bold text-sm sm:text-base tracking-tight truncate">Acción Humana</span>
         </Link>
-        <nav className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-muted-foreground">
+        <nav className="flex items-center gap-2.5 sm:gap-4 text-[11px] sm:text-sm text-muted-foreground overflow-x-auto">
           <Link href="/diputados" className="hover:text-foreground transition-colors shrink-0">
             Diputados
           </Link>
