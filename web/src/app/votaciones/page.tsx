@@ -68,7 +68,7 @@ export default async function VotacionesPage() {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Votaciones"
-        description="Sesiones de la XV Legislatura leídas desde el voto individual. Lo relevante no es el bloque uniforme, sino la persona que rompe la disciplina."
+        description="Sesiones de votación de la XV Legislatura. Cada sesión incluye el voto individual de cada diputado y las divergencias detectadas respecto a la mayoría de su grupo parlamentario."
       />
 
       <div className="space-y-3">

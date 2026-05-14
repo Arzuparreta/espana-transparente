@@ -47,7 +47,7 @@ export default async function IndicadoresPage() {
     <div className="max-w-4xl mx-auto">
       <PageHeader
         title="Indicadores económicos"
-        description="Series del INE presentadas como contexto empírico. Aquí los números no explican ideologías: ayudan a leer decisiones y resultados."
+        description="Series históricas del Instituto Nacional de Estadística (INE). IPC, PIB, EPA, deuda pública y otros indicadores económicos."
         className="mb-6"
       />
 

@@ -1,6 +1,34 @@
 # Acción Humana — Manifiesto para agentes
 
-## La tesis
+## REGLA DE ORO: Separación metodología / contenido
+
+**La web es un portal de DATOS, no un manifiesto.** Los principios de abajo
+son el LENTE INTERNO con el que diseñas el producto. Determinan QUÉ datos
+recogemos, CÓMO los estructuramos y QUÉ resaltamos. Pero el ciudadano que
+entra en la web ve datos crudos, no nuestra metodología.
+
+**NUNCA** pongas en la interfaz de usuario:
+
+- Frases como "Unidad de lectura: la persona", "Señal prioritaria: la excepción"
+- Citas de Mises, Hayek, Rothbard o cualquier referencia a la Escuela Austríaca
+- Explicaciones de la metodología del proyecto ("descomponemos el Estado", etc.)
+- Juicios de valor, ironía o editorialización de ningún tipo
+- La palabra "anarcocapitalista" ni derivados
+
+**SIEMPRE**:
+
+- Muestra datos. Solo datos. El usuario saca sus propias conclusiones.
+- Usa etiquetas factuales: "Diputados", "Votaciones", "Partidos", "Divergencias detectadas"
+- Describe qué datos hay disponibles, no por qué los recogemos así
+- Deja que los números y las relaciones hablen solos
+
+**Lógica:** Un portal de transparencia pierde toda credibilidad si editorializa.
+La visión ancap se demuestra dejando que los datos expongan las estructuras de poder
+por sí mismos — no explicándole al usuario lo que tiene que pensar.
+
+---
+
+## La tesis (guía interna de producto)
 
 El Estado no existe. Solo existen personas.
 
@@ -9,7 +37,7 @@ Pero los datos públicos se presentan como si "el Gobierno", "el Congreso",
 descomponer cada acción estatal en las personas concretas que la ejecutan
 y mostrar las relaciones de poder entre ellas.
 
-## El lente
+## El lente (guía interna de producto)
 
 Tres principios que guían TODA decisión de producto y de datos:
 
@@ -37,6 +65,9 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 - Tratar partidos, gobiernos o instituciones como agentes con voluntad propia
 - Editorializar o decir "esto está mal" — los datos hablan solos
 - Mostrar datos sin contexto de poder (quién controla a quién)
+- **Poner la metodología del proyecto en la interfaz de usuario** — los principios
+  "personas, no abstracciones", "la excepción es la información" y "trazabilidad
+  sobre estadística" guían el DISEÑO del producto, NUNCA aparecen como texto en la web
 
 ## Referencias conceptuales
 

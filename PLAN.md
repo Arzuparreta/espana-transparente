@@ -5,7 +5,11 @@
 
 ---
 
-## 🧭 Visión y principios
+## 🧭 Visión y principios (guía interna de producto)
+
+Estos principios determinan QUÉ datos recogemos y CÓMO los estructuramos.
+**NUNCA aparecen como texto en la web.** El ciudadano ve datos crudos;
+la metodología es invisible.
 
 - **Individualismo metodológico**: El Estado, el Gobierno, los partidos no actúan. Actúan PERSONAS. Cada voto, cada contrato, cada decisión se enlaza a individuos concretos.
 - **La excepción es la información**: 349 diputados votando en bloque no es noticia. 1 diputado votando contra su grupo SÍ lo es. La UI debe resaltar divergencias, no listar uniformidades.

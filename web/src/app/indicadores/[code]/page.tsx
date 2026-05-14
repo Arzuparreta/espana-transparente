@@ -43,7 +43,7 @@ export default async function IndicadorPage({ params }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title={name}
-        description="Serie histórica del INE usada como contexto económico para interpretar decisiones y resultados."
+        description="Serie histórica del Instituto Nacional de Estadística (INE)."
         eyebrow={
           <>
             <Badge variant="outline" className="text-xs">

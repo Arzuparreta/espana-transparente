@@ -1,5 +1,8 @@
 # UI System
 
+## ⚠️ Importante
+Este documento describe el SISTEMA INTERNO de diseño. Sus reglas ("las personas son la unidad primaria de lectura", "la excepción manda sobre el agregado") guían CÓMO construimos componentes, pero NUNCA aparecen como texto en la interfaz de usuario. La web muestra datos, no metodología.
+
 ## Propósito
 La UI de Acción Humana no presenta instituciones como actores. Presenta personas, cadenas de poder y excepciones relevantes. El sistema visual debe reforzar eso en cada pantalla nueva.
 

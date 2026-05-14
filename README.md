@@ -2,9 +2,7 @@
 
 # Acción Humana
 
-> *"El Estado no existe fuera de las personas que lo conforman."*
-
-**Acción Humana** es una máquina de transparencia radical sobre la política española. Traduce datos públicos al lenguaje del ciudadano sin filtros ideológicos.
+**Acción Humana** es un portal de datos de la política española. Traduce datos públicos al lenguaje del ciudadano sin filtros ideológicos. Cada voto, cada contrato, cada decisión — enlazada a la persona que la ejecuta.
 
 🌐 **[web-pi-two-62.vercel.app](https://web-pi-two-62.vercel.app)**
 

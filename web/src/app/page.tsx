@@ -1,9 +1,7 @@
 import type { PoliticianWithMemberships } from "@/types"
 import { supabase } from "@/lib/supabase/client"
-import { SearchBox } from "@/components/search/SearchBox"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { LogoHero } from "@/components/layout/LogoHero"
-import { PartyBadge } from "@/components/domain/PartyBadge"
 import { StatGrid } from "@/components/domain/StatGrid"
 
 export const revalidate = 3600
@@ -16,7 +14,7 @@ export default async function HomePage() {
     .order("full_name")
     .limit(24)
 
-  const { count } = await supabase
+  const { count: politicianCount } = await supabase
     .from("politicians")
     .select("*", { count: "exact", head: true })
 
@@ -25,43 +23,30 @@ export default async function HomePage() {
     .select("acronym, color, name")
     .order("acronym")
 
+  const { count: sessionsCount } = await supabase
+    .from("voting_sessions")
+    .select("*", { count: "exact", head: true })
+
   return (
     <div className="space-y-8 sm:space-y-12">
-      <LogoHero />
-
-      <section className="space-y-5 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          {count} personas bajo la lupa
-        </h2>
-        <p className="mx-auto max-w-3xl text-balance text-base leading-7 text-muted-foreground">
-          Datos objetivos del Congreso de los Diputados. Sin filtros. Sin editoriales.
-          Cada voto, cada declaración, cada contrato, enlazado a la persona que lo decide.
-        </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          {parties?.map((p) => (
-            <PartyBadge key={p.acronym} acronym={p.acronym} color={p.color} />
-          ))}
-        </div>
-      </section>
-
-      <SearchBox />
+      <LogoHero parties={parties ?? []} />
 
       <StatGrid
         items={[
           {
-            label: "Entidad de análisis",
-            value: `${count ?? 0}`,
-            hint: "Políticos indexados con ficha propia y relaciones trazables.",
+            label: "Diputados",
+            value: `${politicianCount ?? 0}`,
+            hint: "Con ficha individual, trayectoria y cadena de mando.",
           },
           {
-            label: "Unidad de lectura",
-            value: "La persona",
-            hint: "Nunca el partido como actor abstracto.",
+            label: "Partidos",
+            value: `${parties?.length ?? 0}`,
+            hint: "Con representación en la XV Legislatura.",
           },
           {
-            label: "Señal prioritaria",
-            value: "La excepción",
-            hint: "La divergencia frente al bloque uniforme.",
+            label: "Votaciones",
+            value: `${sessionsCount ?? 0}`,
+            hint: "Sesiones con voto individual desglosado por diputado.",
           },
         ]}
       />

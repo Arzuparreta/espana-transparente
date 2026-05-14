@@ -16,7 +16,7 @@ export default async function DiputadosPage() {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Diputados"
-        description="Todos los diputados y diputadas activos de la XV Legislatura, presentados como individuos concretos dentro de una cadena real de poder."
+        description="Diputados y diputadas en activo de la XV Legislatura. Cada ficha incluye partido, circunscripción, trayectoria, historial de voto y cadena de mando."
       />
       <div className="ui-grid-cards">
         {(politicians as PoliticianWithMemberships[])?.map((p) => (

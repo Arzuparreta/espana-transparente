@@ -35,14 +35,13 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                 <CardHeader>
                   <CardTitle className="text-lg">¿Qué son las puertas giratorias?</CardTitle>
                   <CardDescription>
-                    El movimiento de altos cargos entre el sector público y el privado. Un ex-ministro regula un sector,
-                    luego ficha por una empresa de ese mismo sector. La información y los contactos obtenidos en el cargo
-                    público se monetizan en el privado.
+                    El movimiento de altos cargos entre el sector público y el privado tras finalizar su responsabilidad pública.
+                    La Ley 3/2015 regula el régimen de incompatibilidades de los altos cargos de la Administración General del Estado.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-xs text-muted-foreground">
-                  Fuente: Wikipedia, Civio. La Ley 5/2006 establece un periodo de incompatibilidad de 2 años para altos
-                  cargos que pasan al sector privado, pero no impide el movimiento en sí.
+                  Fuente: Wikipedia, Civio. La Ley 3/2015 establece un periodo de incompatibilidad de 2 años para altos
+                  cargos que pasan al sector privado.
                 </CardContent>
               </Card>
             )

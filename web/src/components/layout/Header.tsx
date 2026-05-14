@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { LogoMark } from "@/components/brand/LogoMark"
+import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 
 export function Header() {
   return (
@@ -18,33 +19,36 @@ export function Header() {
             </div>
           </div>
         </Link>
-        <nav className="grid grid-cols-4 gap-2 text-xs text-muted-foreground sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
-          <Link href="/diputados" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            Diputados
-          </Link>
-          <Link href="/votaciones" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            Votaciones
-          </Link>
-          <Link href="/partidos" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            Partidos
-          </Link>
-          <Link href="/indicadores" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            IPC
-          </Link>
-          <Link href="/distorsion" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            Distorsión
-          </Link>
-          <Link href="/puertas-giratorias" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground">
-            Puertas
-          </Link>
-          <Link
-            href="https://github.com/Arzuparreta/accion-humana"
-            target="_blank"
-            className="rounded-full border border-border/60 bg-card px-3 py-2 text-center transition-colors hover:text-foreground"
-          >
-            GH
-          </Link>
-        </nav>
+        <div className="flex w-full items-center justify-end sm:w-auto">
+          <MobileNavDropdown />
+          <nav className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
+            <Link href="/diputados" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Diputados
+            </Link>
+            <Link href="/votaciones" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Votaciones
+            </Link>
+            <Link href="/partidos" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Partidos
+            </Link>
+            <Link href="/indicadores" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              IPC
+            </Link>
+            <Link href="/distorsion" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Distorsión
+            </Link>
+            <Link href="/puertas-giratorias" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Puertas
+            </Link>
+            <Link
+              href="https://github.com/Arzuparreta/accion-humana"
+              target="_blank"
+              className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              GH
+            </Link>
+          </nav>
+        </div>
       </div>
     </header>
   )

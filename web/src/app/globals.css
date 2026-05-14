@@ -75,6 +75,15 @@
   }
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -90,5 +99,13 @@
 
   .ui-card-link {
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .animate-marquee:hover {
+    animation-play-state: paused;
   }
 }

@@ -16,7 +16,7 @@ export default async function PartidosPage() {
     <div className="space-y-8">
       <PageHeader
         title="Partidos"
-        description="Los partidos aparecen aquí como agrupaciones de personas concretas, no como sujetos con voluntad propia."
+        description="Partidos con representación en el Congreso. Cada partido incluye sus diputados activos, grupo parlamentario y cadena de mando."
       />
       <div className="ui-grid-cards">
         {(parties as Party[])?.map((p) => (
