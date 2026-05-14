@@ -23,11 +23,8 @@
   <g transform="translate(96 96)">
     <rect width="108" height="108" rx="30" fill="#0a2a53"/>
     <g transform="translate(22 22)">
-      <path d="M16 50V14h32v36H16Z" stroke="#fbfaf7" stroke-width="3" stroke-linejoin="round"/>
-      <path d="M27 16c-6 8-8 18-6 30" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round"/>
-      <path d="M37 16c6 8 8 18 6 30" stroke="#fbfaf7" stroke-width="2.7" stroke-linecap="round"/>
-      <circle cx="32" cy="28" r="4.6" fill="#d1872a"/>
-      <path d="M24 43c1.8-5.4 5-8.1 8-8.1s6.2 2.7 8 8.1" stroke="#d1872a" stroke-width="3.2" stroke-linecap="round"/>
+      <circle cx="32" cy="21" r="7.5" fill="#d1872a"/>
+      <path d="M32 31v20" stroke="#d1872a" stroke-width="8" stroke-linecap="round"/>
     </g>
   </g>
 
@@ -39,11 +36,7 @@
     <rect x="78" y="18" width="316" height="396" rx="18" fill="#fbfaf7" fill-opacity=".72" stroke="#0a2a53" stroke-opacity=".2" stroke-width="2"/>
     <path d="M104 88H366M104 144H366M104 200H366M104 312H366" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
     <path d="M104 256H244" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
-    <path d="M236 44c-72 74-100 193-73 334" stroke="#0a2a53" stroke-width="6" stroke-linecap="round"/>
-    <path d="M236 44c72 74 100 193 73 334" stroke="#0a2a53" stroke-width="6" stroke-linecap="round"/>
     <circle cx="236" cy="188" r="28" fill="#d1872a"/>
     <path d="M236 232v76" stroke="#d1872a" stroke-width="14" stroke-linecap="round"/>
-    <path d="M28 50c82 61 118 158 107 291" stroke="#0a2a53" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>
-    <path d="M444 50c-82 61-118 158-107 291" stroke="#0a2a53" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>

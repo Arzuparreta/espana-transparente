@@ -1,8 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <title>Acción Humana mark</title>
-  <path d="M16 50V14h32v36H16Z" stroke="#0a2a53" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M27 16c-6 8-8 18-6 30" stroke="#0a2a53" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M37 16c6 8 8 18 6 30" stroke="#0a2a53" stroke-width="2.4" stroke-linecap="round"/>
-  <circle cx="32" cy="27.5" r="4.4" fill="#b86916"/>
-  <path d="M32 35v9" stroke="#b86916" stroke-width="3.4" stroke-linecap="round"/>
+  <circle cx="32" cy="21" r="7.5" fill="#b86916"/>
+  <path d="M32 31v20" stroke="#b86916" stroke-width="8" stroke-linecap="round"/>
 </svg>
