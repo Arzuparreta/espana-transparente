@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Acción Humana",
-    short_name: "Acción Humana",
+    name: "España Transparente",
+    short_name: "España Transparente",
     description:
       "Datos públicos para seguir quién decidió qué en la política española.",
     lang: "es",

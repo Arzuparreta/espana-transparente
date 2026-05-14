@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
   { href: "/contratos", label: "Contratos públicos" },
   { href: "/subvenciones", label: "Subvenciones" },
   { href: "/puertas-giratorias", label: "Puertas Giratorias" },
-  { href: "https://github.com/Arzuparreta/accion-humana", label: "GitHub" },
+  { href: "https://github.com/Arzuparreta/espana-transparente", label: "GitHub" },
 ]
 
 export function MobileNavDropdown() {

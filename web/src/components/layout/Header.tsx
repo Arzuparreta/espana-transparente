@@ -12,10 +12,10 @@ export function Header() {
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
-              Acción Humana
+              España Transparente
             </div>
             <div className="truncate text-[11px] text-muted-foreground sm:text-xs">
-              Personas, poder y trazabilidad
+              Datos públicos de la política española
             </div>
           </div>
         </ResponsiveLink>
@@ -50,7 +50,7 @@ export function Header() {
               Puertas
             </ResponsiveLink>
             <ResponsiveLink
-              href="https://github.com/Arzuparreta/accion-humana"
+              href="https://github.com/Arzuparreta/espana-transparente"
               target="_blank"
               className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

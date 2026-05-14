@@ -23,14 +23,14 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://web-pi-two-62.vercel.app"),
-  applicationName: "Acción Humana",
+  metadataBase: new URL("https://xn--espaatransparente-ixb.site"),
+  applicationName: "España Transparente",
   title: {
-    default: "Acción Humana",
-    template: "%s | Acción Humana",
+    default: "España Transparente",
+    template: "%s | España Transparente",
   },
   description:
-    "Datos públicos para seguir quién decidió qué en la política española. Personas, poder y trazabilidad.",
+    "Datos públicos para seguir quién decidió qué en la política española. Diputados, votaciones, contratos y subvenciones.",
   keywords: [
     "transparencia",
     "política",
@@ -38,6 +38,8 @@ export const metadata: Metadata = {
     "diputados",
     "congreso",
     "datos abiertos",
+    "subvenciones",
+    "contratos públicos",
   ],
   manifest: "/manifest.webmanifest",
   icons: {
@@ -51,9 +53,9 @@ export const metadata: Metadata = {
     other: [{ rel: "mask-icon", url: "/brand/accion-humana-mark.svg", color: "#0a2a53" }],
   },
   openGraph: {
-    title: "Acción Humana",
+    title: "España Transparente",
     description:
-      "Datos públicos para seguir quién decidió qué en la política española. Personas, poder y trazabilidad.",
+      "Datos públicos para seguir quién decidió qué en la política española. Diputados, votaciones, contratos y subvenciones.",
     type: "website",
     locale: "es_ES",
     images: [
@@ -61,13 +63,13 @@ export const metadata: Metadata = {
         url: "/brand/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Acción Humana — personas, poder y trazabilidad",
+        alt: "España Transparente — datos públicos de la política española",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Acción Humana",
+    title: "España Transparente",
     description:
       "Datos públicos para seguir quién decidió qué en la política española.",
     images: ["/brand/og-image.png"],
