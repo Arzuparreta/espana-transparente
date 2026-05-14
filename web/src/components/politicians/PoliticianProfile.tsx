@@ -18,12 +18,19 @@ const RELATION_LABELS: Record<string, string> = {
   appointed_by: "Nombrado por",
 }
 
+interface AttendanceSummary {
+  total_sessions: number
+  sessions_present: number
+  attendance_pct: number
+}
+
 interface Props {
   pol: Record<string, unknown>
   votes: Record<string, unknown>[]
   totalVotes: number | null
   powerRels: Record<string, unknown>[]
   revolvingDoors: Record<string, unknown>[]
+  attendance: AttendanceSummary | null
 }
 
 export function PoliticianProfile({
@@ -32,6 +39,7 @@ export function PoliticianProfile({
   totalVotes,
   powerRels: pr,
   revolvingDoors: rd,
+  attendance,
 }: Props) {
   const fullName = String(p.full_name || "")
   const photoUrl = p.photo_url as string | undefined
@@ -100,11 +108,21 @@ export function PoliticianProfile({
             value: memberships.length,
             hint: "Etapas parlamentarias trazadas en la base de datos.",
           },
-          {
-            label: "Declaraciones",
-            value: econDecls.length,
-            hint: "Declaraciones económicas asociadas a esta persona.",
-          },
+          ...(attendance
+            ? [
+                {
+                  label: "Asistencia a plenos",
+                  value: `${attendance.attendance_pct}%`,
+                  hint: `${attendance.sessions_present} de ${attendance.total_sessions} sesiones con votación nominal (Leg. XV).`,
+                },
+              ]
+            : [
+                {
+                  label: "Declaraciones",
+                  value: econDecls.length,
+                  hint: "Declaraciones económicas asociadas a esta persona.",
+                },
+              ]),
         ]}
       />
 

@@ -41,6 +41,12 @@ export default async function PoliticianPage({ params }: PageProps) {
     .from("revolving_door")
     .select("*").eq("person_id", id)
 
+  const { data: attendance } = await supabase
+    .from("v_attendance_summary")
+    .select("total_sessions, sessions_present, attendance_pct")
+    .eq("politician_id", id)
+    .maybeSingle()
+
   return (
     <PoliticianProfile
       pol={pol as Record<string, unknown>}
@@ -48,6 +54,7 @@ export default async function PoliticianPage({ params }: PageProps) {
       totalVotes={totalVotes}
       powerRels={(powerRels || []) as Record<string, unknown>[]}
       revolvingDoors={(revolvingDoors || []) as Record<string, unknown>[]}
+      attendance={attendance as { total_sessions: number; sessions_present: number; attendance_pct: number } | null}
     />
   )
 }

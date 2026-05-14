@@ -98,6 +98,12 @@ la metodología es invisible.
 - [x] Función SQL `get_divergences()` para detección automática
 - [x] Historial de voto individual en ficha de diputado
 
+### 🔜 Fase 1b — Datos pendientes de alta prioridad
+
+- [ ] ETL de asistencia de diputados (Congreso publica presencia por sesión)
+- [ ] Puertas giratorias: ampliar más allá de los 20 casos manuales (CNMC, prensa, transparencia)
+- [ ] Puertas giratorias: añadir fechas, meses de periodo de enfriamiento, URL de fuente por caso
+
 ### 🔜 Fase 2 — Presupuestos y gasto público
 
 - [ ] ETL de Presupuestos Generales del Estado (usando Civio `presupuesto-pge`)
@@ -114,16 +120,16 @@ la metodología es invisible.
 ### 🔜 Fase 1 (pendiente) — Dinero
 
 - [ ] Retribuciones de altos cargos (Portal Transparencia vía datos.gob.es)
-- [ ] Contratos públicos (contrataciondelestado.es)
+- [x] Contratos públicos (PCSP — plataforma de contratación del sector público, ATOM/XML)
 - [ ] Cruce automático: firmante de contrato ↔ político
-- [ ] Declaraciones de bienes del Congreso
+- [ ] Declaraciones de bienes del Congreso (Congreso Open Data — PDFs, difícil)
 
 ### 🔜 Fase 5 — Comunidad y búsqueda
 
 - [ ] Meilisearch en Oracle Cloud Always Free
 - [ ] Búsqueda semántica en frontend
 - [ ] Moderación de anotaciones
-- [ ] Fotos de diputados
+- [x] Fotos de diputados (Wikidata — matching por nombre/partido)
 
 ---
 
@@ -145,4 +151,4 @@ la metodología es invisible.
 
 ---
 
-*Plan actualizado el 13 de mayo de 2026. Refleja el estado real del proyecto.*
+*Plan actualizado el 14 de mayo de 2026. Refleja el estado real del proyecto.*
