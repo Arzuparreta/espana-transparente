@@ -1,0 +1,613 @@
+# Ministros del Gobierno de España, 2016-actual.
+#
+# Datos declarativos: este YAML es la fuente de verdad para `government_positions`.
+# Cualquier cambio se hace por PR y se re-ejecuta `python -m src.congreso.gobierno`.
+#
+# Convenciones:
+#  - `organization`: SIEMPRE en MAYÚSCULAS sin tildes (clave de join contra
+#    subsidies.ministry_normalized / contracts.ministry_normalized).
+#  - `aliases`: variantes del nombre tal y como aparecen en BDNS/PCSP.
+#  - `person`: "Apellidos, Nombre" (formato Congreso). Si está en activo como
+#    diputado/a, el ETL lo emparejará con `politicians`. Si no, queda como nombre.
+#  - Fechas en formato ISO. `end` null = en activo.
+#  - `source`: URL del Real Decreto en el BOE.
+#
+# Última verificación: 2026-05-14
+# Fuente: BOE (RD nombramiento), La Moncloa, Wikipedia.
+
+governments:
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "Sánchez III"
+    start: 2023-11-21
+    end: null
+    ministers:
+      - position_type: presidente_gobierno
+        organization: "PRESIDENCIA DEL GOBIERNO"
+        aliases: ["Presidencia del Gobierno", "Ministerio de la Presidencia"]
+        person: "Sánchez Pérez-Castejón, Pedro"
+        party: PSOE
+        start: 2023-11-17
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23426"
+
+      - position_type: vicepresidente
+        organization: "MINISTERIO DE HACIENDA"
+        aliases: ["Ministerio de Hacienda"]
+        person: "Montero Cuadrado, María Jesús"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: vicepresidente
+        organization: "MINISTERIO DE TRABAJO Y ECONOMIA SOCIAL"
+        aliases: ["Ministerio de Trabajo y Economía Social"]
+        person: "Díaz Pérez, Yolanda"
+        party: SUMAR
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: vicepresidente
+        organization: "MINISTERIO PARA LA TRANSICION ECOLOGICA Y EL RETO DEMOGRAFICO"
+        aliases: ["Ministerio para la Transición Ecológica y el Reto Demográfico"]
+        person: "Ribera Rodríguez, Teresa"
+        party: PSOE
+        start: 2023-11-21
+        end: 2024-11-30
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO PARA LA TRANSICION ECOLOGICA Y EL RETO DEMOGRAFICO"
+        aliases: ["Ministerio para la Transición Ecológica y el Reto Demográfico"]
+        person: "Aagesen Muñoz, Sara"
+        party: PSOE
+        start: 2024-12-01
+        end: null
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ASUNTOS EXTERIORES, UNION EUROPEA Y COOPERACION"
+        aliases: ["Ministerio de Asuntos Exteriores, Unión Europea y Cooperación"]
+        person: "Albares Bueno, José Manuel"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE JUSTICIA"
+        aliases: ["Ministerio de Justicia", "Ministerio de la Presidencia, Justicia y Relaciones con las Cortes"]
+        person: "Bolaños García, Félix"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE DEFENSA"
+        aliases: ["Ministerio de Defensa"]
+        person: "Robles Fernández, Margarita"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DEL INTERIOR"
+        aliases: ["Ministerio del Interior"]
+        person: "Grande-Marlaska Gómez, Fernando"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE TRANSPORTES Y MOVILIDAD SOSTENIBLE"
+        aliases: ["Ministerio de Transportes y Movilidad Sostenible"]
+        person: "Puente Santiago, Óscar"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE EDUCACION, FORMACION PROFESIONAL Y DEPORTES"
+        aliases: ["Ministerio de Educación, Formación Profesional y Deportes"]
+        person: "Alegría Continente, María del Pilar"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE INDUSTRIA Y TURISMO"
+        aliases: ["Ministerio de Industria y Turismo"]
+        person: "Hereu Boher, Jordi"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE AGRICULTURA, PESCA Y ALIMENTACION"
+        aliases: ["Ministerio de Agricultura, Pesca y Alimentación"]
+        person: "Planas Puchades, Luis"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ECONOMIA, COMERCIO Y EMPRESA"
+        aliases: ["Ministerio de Economía, Comercio y Empresa"]
+        person: "Cuerpo Caballero, Carlos"
+        party: PSOE
+        start: 2023-12-31
+        end: null
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE SANIDAD"
+        aliases: ["Ministerio de Sanidad"]
+        person: "García Gómez, Mónica"
+        party: SUMAR
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE POLITICA TERRITORIAL Y MEMORIA DEMOCRATICA"
+        aliases: ["Ministerio de Política Territorial y Memoria Democrática"]
+        person: "Torres Pérez, Ángel Víctor"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE VIVIENDA Y AGENDA URBANA"
+        aliases: ["Ministerio de Vivienda y Agenda Urbana"]
+        person: "Rodríguez García, Isabel"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE CIENCIA, INNOVACION Y UNIVERSIDADES"
+        aliases: ["Ministerio de Ciencia, Innovación y Universidades"]
+        person: "Morant Ripoll, Diana"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE CULTURA"
+        aliases: ["Ministerio de Cultura"]
+        person: "Urtasun Domènech, Ernest"
+        party: SUMAR
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE INCLUSION, SEGURIDAD SOCIAL Y MIGRACIONES"
+        aliases: ["Ministerio de Inclusión, Seguridad Social y Migraciones"]
+        person: "Saiz Delgado, Elma"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE IGUALDAD"
+        aliases: ["Ministerio de Igualdad"]
+        person: "Redondo García, Ana"
+        party: PSOE
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE JUVENTUD E INFANCIA"
+        aliases: ["Ministerio de Juventud e Infancia"]
+        person: "Rego Polanco, Sira"
+        party: SUMAR
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE DERECHOS SOCIALES, CONSUMO Y AGENDA 2030"
+        aliases: ["Ministerio de Derechos Sociales, Consumo y Agenda 2030"]
+        person: "Bustinduy Amador, Pablo"
+        party: SUMAR
+        start: 2023-11-21
+        end: null
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-23927"
+
+      - position_type: ministro
+        organization: "MINISTERIO PARA LA TRANSFORMACION DIGITAL Y DE LA FUNCION PUBLICA"
+        aliases: ["Ministerio para la Transformación Digital y de la Función Pública"]
+        person: "López Águeda, Óscar"
+        party: PSOE
+        start: 2024-12-01
+        end: null
+        source: "https://www.boe.es"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "Sánchez II"
+    start: 2020-01-13
+    end: 2023-11-21
+    ministers:
+      - position_type: presidente_gobierno
+        organization: "PRESIDENCIA DEL GOBIERNO"
+        aliases: ["Presidencia del Gobierno"]
+        person: "Sánchez Pérez-Castejón, Pedro"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE HACIENDA Y FUNCION PUBLICA"
+        aliases: ["Ministerio de Hacienda y Función Pública", "Ministerio de Hacienda"]
+        person: "Montero Cuadrado, María Jesús"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ASUNTOS ECONOMICOS Y TRANSFORMACION DIGITAL"
+        aliases: ["Ministerio de Asuntos Económicos y Transformación Digital"]
+        person: "Calviño Santamaría, Nadia"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-12-30
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ASUNTOS EXTERIORES, UNION EUROPEA Y COOPERACION"
+        aliases: ["Ministerio de Asuntos Exteriores, Unión Europea y Cooperación"]
+        person: "González Laya, Arancha"
+        party: PSOE
+        start: 2020-01-13
+        end: 2021-07-12
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ASUNTOS EXTERIORES, UNION EUROPEA Y COOPERACION"
+        aliases: ["Ministerio de Asuntos Exteriores, Unión Europea y Cooperación"]
+        person: "Albares Bueno, José Manuel"
+        party: PSOE
+        start: 2021-07-12
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE DEFENSA"
+        aliases: ["Ministerio de Defensa"]
+        person: "Robles Fernández, Margarita"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DEL INTERIOR"
+        aliases: ["Ministerio del Interior"]
+        person: "Grande-Marlaska Gómez, Fernando"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE TRANSPORTES, MOVILIDAD Y AGENDA URBANA"
+        aliases: ["Ministerio de Transportes, Movilidad y Agenda Urbana"]
+        person: "Ábalos Meco, José Luis"
+        party: PSOE
+        start: 2020-01-13
+        end: 2021-07-12
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE TRANSPORTES, MOVILIDAD Y AGENDA URBANA"
+        aliases: ["Ministerio de Transportes, Movilidad y Agenda Urbana"]
+        person: "Sánchez Jiménez, Raquel"
+        party: PSOE
+        start: 2021-07-12
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE AGRICULTURA, PESCA Y ALIMENTACION"
+        aliases: ["Ministerio de Agricultura, Pesca y Alimentación"]
+        person: "Planas Puchades, Luis"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE TRABAJO Y ECONOMIA SOCIAL"
+        aliases: ["Ministerio de Trabajo y Economía Social"]
+        person: "Díaz Pérez, Yolanda"
+        party: SUMAR
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO PARA LA TRANSICION ECOLOGICA Y EL RETO DEMOGRAFICO"
+        aliases: ["Ministerio para la Transición Ecológica y el Reto Demográfico"]
+        person: "Ribera Rodríguez, Teresa"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2020-485"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE INCLUSION, SEGURIDAD SOCIAL Y MIGRACIONES"
+        aliases: ["Ministerio de Inclusión, Seguridad Social y Migraciones"]
+        person: "Escrivá Belmonte, José Luis"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE INDUSTRIA, COMERCIO Y TURISMO"
+        aliases: ["Ministerio de Industria, Comercio y Turismo"]
+        person: "Maroto Illera, María Reyes"
+        party: PSOE
+        start: 2020-01-13
+        end: 2023-03-25
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE SANIDAD"
+        aliases: ["Ministerio de Sanidad"]
+        person: "Darias San Sebastián, Carolina"
+        party: PSOE
+        start: 2021-01-27
+        end: 2023-03-25
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE CIENCIA E INNOVACION"
+        aliases: ["Ministerio de Ciencia e Innovación"]
+        person: "Morant Ripoll, Diana"
+        party: PSOE
+        start: 2021-07-12
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE EDUCACION Y FORMACION PROFESIONAL"
+        aliases: ["Ministerio de Educación y Formación Profesional"]
+        person: "Alegría Continente, María del Pilar"
+        party: PSOE
+        start: 2021-07-12
+        end: 2023-11-21
+        source: "https://www.boe.es"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "Sánchez I"
+    start: 2018-06-07
+    end: 2020-01-13
+    ministers:
+      - position_type: presidente_gobierno
+        organization: "PRESIDENCIA DEL GOBIERNO"
+        aliases: ["Presidencia del Gobierno"]
+        person: "Sánchez Pérez-Castejón, Pedro"
+        party: PSOE
+        start: 2018-06-02
+        end: 2020-01-13
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-7574"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE HACIENDA"
+        aliases: ["Ministerio de Hacienda"]
+        person: "Montero Cuadrado, María Jesús"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-7878"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE DEFENSA"
+        aliases: ["Ministerio de Defensa"]
+        person: "Robles Fernández, Margarita"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-7878"
+
+      - position_type: ministro
+        organization: "MINISTERIO DEL INTERIOR"
+        aliases: ["Ministerio del Interior"]
+        person: "Grande-Marlaska Gómez, Fernando"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2018-7878"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE FOMENTO"
+        aliases: ["Ministerio de Fomento"]
+        person: "Ábalos Meco, José Luis"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE EDUCACION Y FORMACION PROFESIONAL"
+        aliases: ["Ministerio de Educación y Formación Profesional"]
+        person: "Celaá Diéguez, Isabel"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE TRABAJO, MIGRACIONES Y SEGURIDAD SOCIAL"
+        aliases: ["Ministerio de Trabajo, Migraciones y Seguridad Social"]
+        person: "Valerio Cordero, Magdalena"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE INDUSTRIA, COMERCIO Y TURISMO"
+        aliases: ["Ministerio de Industria, Comercio y Turismo"]
+        person: "Maroto Illera, María Reyes"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE AGRICULTURA, PESCA Y ALIMENTACION"
+        aliases: ["Ministerio de Agricultura, Pesca y Alimentación"]
+        person: "Planas Puchades, Luis"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO PARA LA TRANSICION ECOLOGICA"
+        aliases: ["Ministerio para la Transición Ecológica"]
+        person: "Ribera Rodríguez, Teresa"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ECONOMIA Y EMPRESA"
+        aliases: ["Ministerio de Economía y Empresa"]
+        person: "Calviño Santamaría, Nadia"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE CIENCIA, INNOVACION Y UNIVERSIDADES"
+        aliases: ["Ministerio de Ciencia, Innovación y Universidades"]
+        person: "Duque Duque, Pedro Francisco"
+        party: PSOE
+        start: 2018-06-07
+        end: 2020-01-13
+        source: "https://www.boe.es"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  - name: "Rajoy II"
+    start: 2016-11-04
+    end: 2018-06-01
+    ministers:
+      - position_type: presidente_gobierno
+        organization: "PRESIDENCIA DEL GOBIERNO"
+        aliases: ["Presidencia del Gobierno"]
+        person: "Rajoy Brey, Mariano"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2016-10240"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE HACIENDA Y FUNCION PUBLICA"
+        aliases: ["Ministerio de Hacienda y Función Pública", "Ministerio de Hacienda"]
+        person: "Montoro Romero, Cristóbal Ricardo"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2016-10379"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE DEFENSA"
+        aliases: ["Ministerio de Defensa"]
+        person: "Cospedal García, María Dolores de"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DEL INTERIOR"
+        aliases: ["Ministerio del Interior"]
+        person: "Zoido Álvarez, Juan Ignacio"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE FOMENTO"
+        aliases: ["Ministerio de Fomento"]
+        person: "De la Serna Hernáiz, Íñigo"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE EMPLEO Y SEGURIDAD SOCIAL"
+        aliases: ["Ministerio de Empleo y Seguridad Social"]
+        person: "Báñez García, Fátima"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ENERGIA, TURISMO Y AGENDA DIGITAL"
+        aliases: ["Ministerio de Energía, Turismo y Agenda Digital"]
+        person: "Nadal Belda, Álvaro María"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE AGRICULTURA Y PESCA, ALIMENTACION Y MEDIO AMBIENTE"
+        aliases: ["Ministerio de Agricultura y Pesca, Alimentación y Medio Ambiente"]
+        person: "García Tejerina, Isabel"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE ECONOMIA, INDUSTRIA Y COMPETITIVIDAD"
+        aliases: ["Ministerio de Economía, Industria y Competitividad"]
+        person: "De Guindos Jurado, Luis"
+        party: PP
+        start: 2016-11-04
+        end: 2018-03-07
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE EDUCACION, CULTURA Y DEPORTE"
+        aliases: ["Ministerio de Educación, Cultura y Deporte"]
+        person: "Méndez de Vigo y Montojo, Íñigo"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"
+
+      - position_type: ministro
+        organization: "MINISTERIO DE SANIDAD, SERVICIOS SOCIALES E IGUALDAD"
+        aliases: ["Ministerio de Sanidad, Servicios Sociales e Igualdad"]
+        person: "Montserrat Montserrat, Dolors"
+        party: PP
+        start: 2016-11-04
+        end: 2018-06-01
+        source: "https://www.boe.es"

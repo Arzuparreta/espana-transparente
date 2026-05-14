@@ -1,17 +1,17 @@
 import type { MetadataRoute } from "next"
+import { BRAND_DESCRIPTION, BRAND_NAME } from "@/lib/brand"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "España Transparente",
-    short_name: "España Transparente",
-    description:
-      "Datos públicos para seguir quién decidió qué en la política española.",
+    name: BRAND_NAME,
+    short_name: BRAND_NAME,
+    description: BRAND_DESCRIPTION,
     lang: "es",
     start_url: "/",
     scope: "/",
     display: "standalone",
-    background_color: "#fbfaf7",
-    theme_color: "#0a2a53",
+    background_color: "#FAFAF7",
+    theme_color: "#1A1612",
     icons: [
       {
         src: "/icons/icon-192.png",

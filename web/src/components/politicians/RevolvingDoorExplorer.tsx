@@ -92,7 +92,16 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                             <div className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
                               {entry.public_role} en {entry.public_organization}{" -> "}
                               <span className="font-medium text-foreground">{entry.private_role}</span> en{" "}
-                              {entry.private_organization}
+                              {entry.organization_id ? (
+                                <ResponsiveLink
+                                  href={`/organizaciones/${entry.organization_id}`}
+                                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                                >
+                                  {entry.private_organization}
+                                </ResponsiveLink>
+                              ) : (
+                                entry.private_organization
+                              )}
                             </div>
                             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                               {entry.public_exit_date ? (

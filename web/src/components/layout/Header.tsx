@@ -1,18 +1,19 @@
 import { LogoMark } from "@/components/brand/LogoMark"
 import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { BRAND_NAME, GITHUB_URL } from "@/lib/brand"
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92 backdrop-blur">
       <div className="ui-shell flex min-h-14 flex-row items-center justify-between gap-3 py-3 sm:min-h-16">
         <ResponsiveLink href="/" prefetch className="flex min-w-0 items-center gap-3 group">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[1rem] border border-primary/15 bg-primary text-primary-foreground shadow-sm transition-transform group-hover:-rotate-3 sm:h-11 sm:w-11">
-            <LogoMark className="h-7 w-7" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-primary/15 bg-primary text-primary-foreground shadow-sm transition-colors group-hover:bg-foreground sm:h-11 sm:w-11">
+            <LogoMark className="h-7 w-7" variant="inverse" />
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-base">
-              España Transparente
+              {BRAND_NAME}
             </div>
             <div className="truncate text-[11px] text-muted-foreground sm:text-xs">
               Datos públicos de la política española
@@ -50,7 +51,7 @@ export function Header() {
               Puertas
             </ResponsiveLink>
             <ResponsiveLink
-              href="https://github.com/Arzuparreta/espana-transparente"
+              href={GITHUB_URL}
               target="_blank"
               className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

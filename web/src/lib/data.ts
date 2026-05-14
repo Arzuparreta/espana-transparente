@@ -229,6 +229,62 @@ export const getIndicatorPoints = unstable_cache(
 
 export const PAGE_SIZE_SUBSIDIES = 50
 
+type Responsibility = {
+  person_name: string | null
+  politician_id: string | null
+  ministry: string | null
+  government: string | null
+  political_party: string | null
+  administration_level?: string | null
+  territory_name?: string | null
+  match_method?: string | null
+}
+
+type SubsidyResponsibilityRow = Responsibility & {
+  subsidy_id: string
+}
+
+type ContractResponsibilityRow = Responsibility & {
+  contract_id: string
+}
+
+type OrganizationPublicRow = {
+  id: string
+  name: string
+  organization_type: string | null
+  sector: string | null
+  country: string | null
+  source_url: string | null
+  contract_count: number
+  subsidy_beneficiary_count: number
+  subsidy_granting_count: number
+  revolving_door_count: number
+}
+
+type MoneyCoverageRow = {
+  dataset: string
+  administration_level: string
+  freshness_window: string
+  total_rows: number
+  resolved_rows: number
+  unresolved_rows: number
+  conflict_rows: number
+  coverage_start_date: string | null
+  latest_record_date: string | null
+}
+
+type UnresolvedMoneyExampleRow = {
+  dataset: string
+  record_id: string
+  record_date: string | null
+  body_name: string | null
+  body_normalized: string | null
+  administration_level: string | null
+  display_title: string | null
+  source_url: string | null
+  issue_type: "unresolved" | "conflict"
+}
+
 export const getSubvencionPage = unstable_cache(
   async (page: number, nivel1: string) => {
     const from = (page - 1) * PAGE_SIZE_SUBSIDIES
@@ -237,7 +293,7 @@ export const getSubvencionPage = unstable_cache(
     let query = supabase
       .from("subsidies")
       .select(
-        "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, nivel1, nivel2, nivel3, source_url",
+        "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, nivel1, nivel2, nivel3, beneficiary_organization_id, granting_body_organization_id, source_url",
         { count: "exact" }
       )
       .order("importe", { ascending: false, nullsFirst: false })
@@ -247,6 +303,32 @@ export const getSubvencionPage = unstable_cache(
     }
 
     const { data, count } = await query.range(from, to)
+    const subsidyIds = (data ?? []).map((row) => row.id)
+    const responsibilities =
+      subsidyIds.length > 0
+        ? await supabase
+            .from("v_subsidy_responsibility")
+            .select(
+              "subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method"
+            )
+            .in("subsidy_id", subsidyIds)
+        : { data: [] }
+
+    const responsibleBySubsidy = new Map(
+      ((responsibilities.data ?? []) as SubsidyResponsibilityRow[]).map((row) => [
+        row.subsidy_id,
+        {
+          person_name: row.person_name,
+          politician_id: row.politician_id,
+          ministry: row.ministry,
+          government: row.government,
+          political_party: row.political_party,
+          administration_level: row.administration_level,
+          territory_name: row.territory_name,
+          match_method: row.match_method,
+        },
+      ])
+    )
 
     const stats = await supabase
       .from("subsidies")
@@ -254,7 +336,10 @@ export const getSubvencionPage = unstable_cache(
       .limit(2000)
 
     return {
-      subsidies: data ?? [],
+      subsidies: (data ?? []).map((row) => ({
+        ...row,
+        responsible: responsibleBySubsidy.get(row.id) ?? null,
+      })),
       total: count ?? 0,
       statsRows: stats.data ?? [],
     }
@@ -270,7 +355,7 @@ export const getContractPage = unstable_cache(
     let query = supabase
       .from("contracts")
       .select(
-        "id, contract_folder_id, title, awarding_body, amount, status, contract_type, region, date, source_url",
+        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url",
         { count: "exact" }
       )
       .order("amount", { ascending: false, nullsFirst: false })
@@ -280,6 +365,32 @@ export const getContractPage = unstable_cache(
     }
 
     const { data, count } = await query.range(from, to)
+    const contractIds = (data ?? []).map((row) => row.id)
+    const responsibilities =
+      contractIds.length > 0
+        ? await supabase
+            .from("v_contract_responsibility")
+            .select(
+              "contract_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method"
+            )
+            .in("contract_id", contractIds)
+        : { data: [] }
+
+    const responsibleByContract = new Map(
+      ((responsibilities.data ?? []) as ContractResponsibilityRow[]).map((row) => [
+        row.contract_id,
+        {
+          person_name: row.person_name,
+          politician_id: row.politician_id,
+          ministry: row.ministry,
+          government: row.government,
+          political_party: row.political_party,
+          administration_level: row.administration_level,
+          territory_name: row.territory_name,
+          match_method: row.match_method,
+        },
+      ])
+    )
 
     const stats = await supabase
       .from("contracts")
@@ -287,7 +398,10 @@ export const getContractPage = unstable_cache(
       .limit(1000)
 
     return {
-      contracts: data ?? [],
+      contracts: (data ?? []).map((row) => ({
+        ...row,
+        responsible: responsibleByContract.get(row.id) ?? null,
+      })),
       total: count ?? 0,
       statsRows: stats.data ?? [],
     }
@@ -301,7 +415,7 @@ export const getRevolvingDoorCases = unstable_cache(
     const { data, error } = await supabase
       .from("v_revolving_door_public")
       .select(
-        "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, primary_source_url, source_url, sources"
+        "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
       )
       .order("person_name")
 
@@ -334,5 +448,122 @@ export const getRevolvingDoorCases = unstable_cache(
     }))
   },
   ["revolving-door-cases"],
+  { revalidate: HOUR }
+)
+
+export const getOrganizationPageData = unstable_cache(
+  async (id: string) => {
+    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases] =
+      await Promise.all([
+        supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .from("contracts")
+          .select("id, title, amount, date, source_url")
+          .eq("awarding_body_organization_id", id)
+          .order("date", { ascending: false })
+          .limit(20),
+        supabase
+          .from("subsidies")
+          .select("id, beneficiario, importe, fecha_concesion, source_url")
+          .eq("beneficiary_organization_id", id)
+          .order("fecha_concesion", { ascending: false })
+          .limit(20),
+        supabase
+          .from("subsidies")
+          .select("id, nivel3, beneficiario, importe, fecha_concesion, source_url")
+          .eq("granting_body_organization_id", id)
+          .order("fecha_concesion", { ascending: false })
+          .limit(20),
+        supabase
+          .from("v_revolving_door_public")
+          .select(
+            "id, person_name, person_id, private_role, private_organization, public_role, public_organization, private_start_date, primary_source_url, source_url"
+          )
+          .eq("organization_id", id)
+          .order("private_start_date", { ascending: false, nullsFirst: false })
+          .limit(20),
+      ])
+
+    return {
+      organization: organization.data as OrganizationPublicRow | null,
+      contracts: contracts.data ?? [],
+      beneficiarySubsidies: beneficiarySubsidies.data ?? [],
+      grantingSubsidies: grantingSubsidies.data ?? [],
+      revolvingDoorCases: revolvingDoorCases.data ?? [],
+    }
+  },
+  ["organization-page-data"],
+  { revalidate: HOUR }
+)
+
+export const getMoneyDataOverview = unstable_cache(
+  async () => {
+    const [coverage, examples] = await Promise.all([
+      supabase
+        .from("v_money_data_public")
+        .select(
+          "dataset, administration_level, freshness_window, total_rows, resolved_rows, unresolved_rows, conflict_rows, coverage_start_date, latest_record_date"
+        )
+        .order("dataset")
+        .order("administration_level"),
+      supabase
+        .from("v_unresolved_money_examples")
+        .select(
+          "dataset, record_id, record_date, body_name, body_normalized, administration_level, display_title, source_url, issue_type"
+        )
+        .order("record_date", { ascending: false })
+        .limit(18),
+    ])
+
+    const coverageRows = (coverage.data ?? []) as MoneyCoverageRow[]
+    const exampleRows = (examples.data ?? []) as UnresolvedMoneyExampleRow[]
+
+    return {
+      coverage: coverageRows,
+      examples: exampleRows,
+    }
+  },
+  ["money-data-overview"],
+  { revalidate: HOUR }
+)
+
+export const getMoneyDatasetSummary = unstable_cache(
+  async (dataset: "contracts" | "subsidies") => {
+    const { data } = await supabase
+      .from("v_money_data_public")
+      .select(
+        "dataset, administration_level, freshness_window, total_rows, resolved_rows, unresolved_rows, conflict_rows, coverage_start_date, latest_record_date"
+      )
+      .eq("dataset", dataset)
+      .order("administration_level")
+
+    const rows = (data ?? []) as MoneyCoverageRow[]
+    const total = rows.reduce(
+      (acc, row) => {
+        acc.total_rows += row.total_rows
+        acc.resolved_rows += row.resolved_rows
+        acc.unresolved_rows += row.unresolved_rows
+        acc.conflict_rows += row.conflict_rows
+        if (!acc.coverage_start_date || (row.coverage_start_date && row.coverage_start_date < acc.coverage_start_date)) {
+          acc.coverage_start_date = row.coverage_start_date
+        }
+        if (!acc.latest_record_date || (row.latest_record_date && row.latest_record_date > acc.latest_record_date)) {
+          acc.latest_record_date = row.latest_record_date
+        }
+        return acc
+      },
+      {
+        total_rows: 0,
+        resolved_rows: 0,
+        unresolved_rows: 0,
+        conflict_rows: 0,
+        coverage_start_date: null as string | null,
+        latest_record_date: null as string | null,
+      }
+    )
+
+    return { rows, total }
+  },
+  ["money-dataset-summary"],
   { revalidate: HOUR }
 )

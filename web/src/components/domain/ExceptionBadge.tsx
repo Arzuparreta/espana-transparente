@@ -10,7 +10,7 @@ export function ExceptionBadge({ count, className }: ExceptionBadgeProps) {
   return (
     <Badge
       className={cn(
-        "h-5 shrink-0 border-amber-300 bg-amber-100 text-[10px] text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+        "h-5 shrink-0 border-accent/30 bg-accent/10 text-[10px] text-accent dark:border-accent/40 dark:bg-accent/15 dark:text-accent",
         className
       )}
     >

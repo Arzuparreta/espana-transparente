@@ -2,17 +2,20 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { ResponsibleChip, type Responsible } from "@/components/domain/ResponsibleChip"
 
 interface Contrato {
   id: string
   contract_folder_id: string | null
   title: string
   awarding_body: string | null
+  awarding_body_organization_id: string | null
   amount: number | null
   status: string | null
   contract_type: string | null
   region: string | null
   date: string | null
+  responsible: Responsible | null
   source_url: string | null
 }
 
@@ -80,10 +83,20 @@ function ContratoCard({ c }: { c: Contrato }) {
                 {c.contract_type}
               </span>
             ) : null}
+            <ResponsibleChip responsible={c.responsible} />
           </div>
           <div className="text-sm font-medium leading-snug text-balance">{c.title}</div>
           <div className="text-xs text-muted-foreground">
-            {c.awarding_body ?? "—"}
+            {c.awarding_body_organization_id ? (
+              <ResponsiveLink
+                href={`/organizaciones/${c.awarding_body_organization_id}`}
+                className="underline-offset-2 hover:text-foreground hover:underline"
+              >
+                {c.awarding_body ?? "—"}
+              </ResponsiveLink>
+            ) : (
+              c.awarding_body ?? "—"
+            )}
             {c.region ? ` · ${c.region}` : ""}
           </div>
           {dateStr ? <div className="text-[11px] text-muted-foreground">{dateStr}</div> : null}

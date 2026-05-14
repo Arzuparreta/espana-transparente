@@ -18,12 +18,12 @@ export function StatGrid({ items, className }: StatGridProps) {
   return (
     <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3", className)}>
       {items.map((item) => (
-        <Card key={item.label} className="bg-card/80">
+        <Card key={item.label} className="bg-card/90">
           <CardContent className="space-y-1 px-4 py-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {item.label}
             </div>
-            <div className={cn("text-2xl font-semibold tracking-tight", item.valueClassName)}>
+            <div className={cn("font-display text-3xl font-semibold tracking-[-0.045em]", item.valueClassName)}>
               {item.value}
             </div>
             {item.hint ? (

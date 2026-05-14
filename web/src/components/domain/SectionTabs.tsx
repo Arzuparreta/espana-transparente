@@ -22,7 +22,7 @@ export function SectionTabs({ tabs, defaultTab, children }: SectionTabsProps) {
   return (
     <div className="space-y-6">
       <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
-        <div className="inline-flex min-w-full gap-2 border-b border-border/70 pb-1">
+        <div className="inline-flex min-w-full gap-2 border-b border-border/80 pb-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.value
 
@@ -34,7 +34,7 @@ export function SectionTabs({ tabs, defaultTab, children }: SectionTabsProps) {
                 className={cn(
                   "shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-foreground text-background"
+                    ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >

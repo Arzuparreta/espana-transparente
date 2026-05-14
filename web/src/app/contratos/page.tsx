@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
-import { PAGE_SIZE, getContractPage, parsePage } from "@/lib/data"
+import { PAGE_SIZE, getContractPage, getMoneyDatasetSummary, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -18,7 +19,10 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const activeType = ["all", "Servicios", "Obras", "Suministros"].includes(requestedType)
     ? requestedType
     : "all"
-  const { contracts, total, statsRows } = await getContractPage(page, activeType)
+  const [{ contracts, total, statsRows }, summary] = await Promise.all([
+    getContractPage(page, activeType),
+    getMoneyDatasetSummary("contracts"),
+  ])
 
   const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
   const formatted =
@@ -51,6 +55,8 @@ export default async function ContratosPage({ searchParams }: PageProps) {
           </div>
         </div>
       ) : null}
+
+      <MoneyDataSummary datasetHref="/contratos" rows={summary.rows} total={summary.total} />
 
       <ContratosClient
         activeType={activeType}

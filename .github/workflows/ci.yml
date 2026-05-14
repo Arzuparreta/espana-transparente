@@ -44,6 +44,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: PYTHONPATH=src python -m pytest tests/
+      - run: PYTHONPATH=src python -m src.congreso.gobierno --dry-run
 
   etl-daily:
     name: ETL daily pipelines

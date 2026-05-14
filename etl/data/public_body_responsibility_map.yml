@@ -1,0 +1,40 @@
+entries:
+  - body_normalized: AGENCIA ESTATAL DE INVESTIGACION
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE CIENCIA, INNOVACION Y UNIVERSIDADES
+    match_strategy: curated_body_map
+    start_date: 2023-11-21
+    end_date:
+    source_url: https://www.aei.gob.es
+
+  - body_normalized: DIRECCION GENERAL DE TRAFICO
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DEL INTERIOR
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.interior.gob.es
+
+  - body_normalized: DEPARTAMENTO DE EDUCACION CULTURA Y DEPORTE
+    administration_level: autonomic
+    territory_name: Aragón
+    territory_code: AR
+    ministry_or_department_normalized: DEPARTAMENTO DE EDUCACION CULTURA Y DEPORTE
+    match_strategy: curated_body_map
+    start_date: 2023-08-12
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+
+  - body_normalized: AYUNTAMIENTO DE ZARAGOZA
+    administration_level: municipal
+    territory_name: Zaragoza
+    territory_code: 50297
+    ministry_or_department_normalized: AYUNTAMIENTO DE ZARAGOZA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes

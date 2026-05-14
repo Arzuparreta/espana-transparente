@@ -1,0 +1,116 @@
+sources:
+  - administration_level: autonomic
+    territory_name: Aragón
+    territory_code: AR
+    source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+  - administration_level: autonomic
+    territory_name: Comunidad de Madrid
+    territory_code: MD
+    source_url: https://datos.gob.es/es/catalogo/a13002908-altos-cargos
+  - administration_level: municipal
+    territory_name: Zaragoza
+    territory_code: 50297
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes
+  - administration_level: municipal
+    territory_name: Madrid
+    territory_code: 28079
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes
+
+positions:
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Aragón
+    territory_code: AR
+    organization_name: GOBIERNO DE ARAGON
+    organization_aliases:
+      - Presidencia del Gobierno de Aragón
+    person_name: Lambán Montañés, Javier
+    political_party: PSOE
+    government: Aragón X
+    start_date: 2015-07-04
+    end_date: 2023-08-11
+    source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Aragón
+    territory_code: AR
+    organization_name: GOBIERNO DE ARAGON
+    organization_aliases:
+      - Presidencia del Gobierno de Aragón
+    person_name: Azcón Navarro, Jorge
+    political_party: PP
+    government: Aragón XI
+    start_date: 2023-08-12
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+
+  - administration_level: autonomic
+    position_type: consejero
+    territory_name: Aragón
+    territory_code: AR
+    organization_name: DEPARTAMENTO DE EDUCACION CULTURA Y DEPORTE
+    organization_aliases:
+      - Consejería de Educación, Cultura y Deporte
+    person_name: Repollés, Tomasa Hernández Martín
+    political_party: PP
+    government: Aragón XI
+    start_date: 2023-08-12
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Comunidad de Madrid
+    territory_code: MD
+    organization_name: COMUNIDAD DE MADRID
+    organization_aliases:
+      - Presidencia de la Comunidad de Madrid
+    person_name: Díaz Ayuso, Isabel
+    political_party: PP
+    government: Madrid XIII
+    start_date: 2019-08-19
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/a13002908-altos-cargos
+
+  - administration_level: municipal
+    position_type: alcalde
+    territory_name: Zaragoza
+    territory_code: 50297
+    organization_name: AYUNTAMIENTO DE ZARAGOZA
+    organization_aliases:
+      - Alcaldía de Zaragoza
+    person_name: Azcón Navarro, Jorge
+    political_party: PP
+    government: Ayuntamiento de Zaragoza
+    start_date: 2019-06-15
+    end_date: 2023-08-11
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes
+
+  - administration_level: municipal
+    position_type: alcalde
+    territory_name: Zaragoza
+    territory_code: 50297
+    organization_name: AYUNTAMIENTO DE ZARAGOZA
+    organization_aliases:
+      - Alcaldía de Zaragoza
+    person_name: Chueca Muñoz, Natalia
+    political_party: PP
+    government: Ayuntamiento de Zaragoza
+    start_date: 2023-06-17
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes
+
+  - administration_level: municipal
+    position_type: alcalde
+    territory_name: Madrid
+    territory_code: 28079
+    organization_name: AYUNTAMIENTO DE MADRID
+    organization_aliases:
+      - Alcaldía de Madrid
+    person_name: Almeida Navasqüés, José Luis Martínez-Almeida
+    political_party: PP
+    government: Ayuntamiento de Madrid
+    start_date: 2019-06-15
+    end_date:
+    source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes

@@ -18,7 +18,7 @@ export default async function HomePage() {
           {
             label: "Diputados",
             value: `${politicianCount}`,
-            hint: "Con ficha individual, trayectoria y cadena de mando.",
+            hint: "Con ficha individual, trayectoria y relaciones registradas.",
           },
           {
             label: "Partidos",
@@ -38,7 +38,7 @@ export default async function HomePage() {
           <div>
             <h3 className="text-xl font-semibold tracking-tight">Diputados destacados</h3>
             <p className="text-sm text-muted-foreground">
-              Muestra inicial para entrar en perfiles, trayectorias y cadenas de mando.
+              Muestra inicial para entrar en perfiles, trayectorias y votaciones.
             </p>
           </div>
         </div>

@@ -3,6 +3,25 @@
 import re
 import unicodedata
 
+from common.responsibility import normalize_public_body
+
+
+def normalize_ministry(name: str | None) -> str | None:
+    """UPPERCASE, strip accents, collapse whitespace.
+
+    Used to align ministry names from BDNS and PCSP with `government_positions.organization_name`.
+    Preserves punctuation (commas, ampersands) since ministry names contain them.
+    """
+    return normalize_public_body(name)
+
+
+def extract_ministry_from_body(body: str | None) -> str | None:
+    """Find the 'Ministerio de X' substring inside a free-text awarding body."""
+    if not body:
+        return None
+    m = re.search(r"Ministerio[^.]*", body)
+    return normalize_ministry(m.group(0)) if m else None
+
 
 def normalize_name(name: str) -> str:
     if not name:

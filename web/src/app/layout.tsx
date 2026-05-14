@@ -3,6 +3,12 @@ import localFont from "next/font/local"
 import { cn } from "@/lib/utils"
 import { Header } from "@/components/layout/Header"
 import { NavigationProgress } from "@/components/navigation/NavigationProgress"
+import {
+  BRAND_DESCRIPTION,
+  BRAND_LONG_DESCRIPTION,
+  BRAND_NAME,
+  BRAND_URL,
+} from "@/lib/brand"
 import "./globals.css"
 
 export const viewport = {
@@ -12,25 +18,24 @@ export const viewport = {
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   weight: "100 900",
 })
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   weight: "100 900",
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://xn--espaatransparente-ixb.site"),
-  applicationName: "España Transparente",
+  metadataBase: new URL(BRAND_URL),
+  applicationName: BRAND_NAME,
   title: {
-    default: "España Transparente",
-    template: "%s | España Transparente",
+    default: BRAND_NAME,
+    template: `%s | ${BRAND_NAME}`,
   },
-  description:
-    "Datos públicos para seguir quién decidió qué en la política española. Diputados, votaciones, contratos y subvenciones.",
+  description: BRAND_LONG_DESCRIPTION,
   keywords: [
     "transparencia",
     "política",
@@ -50,12 +55,11 @@ export const metadata: Metadata = {
     ],
     shortcut: "/favicon.ico",
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/brand/accion-humana-mark.svg", color: "#0a2a53" }],
+    other: [{ rel: "mask-icon", url: "/brand/espana-transparente-mark.svg", color: "#1A1612" }],
   },
   openGraph: {
-    title: "España Transparente",
-    description:
-      "Datos públicos para seguir quién decidió qué en la política española. Diputados, votaciones, contratos y subvenciones.",
+    title: BRAND_NAME,
+    description: BRAND_LONG_DESCRIPTION,
     type: "website",
     locale: "es_ES",
     images: [
@@ -63,15 +67,14 @@ export const metadata: Metadata = {
         url: "/brand/og-image.png",
         width: 1200,
         height: 630,
-        alt: "España Transparente — datos públicos de la política española",
+        alt: `${BRAND_NAME} - datos públicos de la política española`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "España Transparente",
-    description:
-      "Datos públicos para seguir quién decidió qué en la política española.",
+    title: BRAND_NAME,
+    description: BRAND_DESCRIPTION,
     images: ["/brand/og-image.png"],
   },
 }
@@ -82,9 +85,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={cn("font-sans", geistSans.variable)}>
+    <html lang="es" className={cn("font-sans", geistSans.variable, geistMono.variable)}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
       >
         <NavigationProgress />
         <Header />

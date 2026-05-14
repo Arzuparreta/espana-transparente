@@ -1,25 +1,33 @@
 -- Public procurement contracts from PCSP (Plataforma de Contratación del Sector Público)
-CREATE TABLE contracts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  contract_folder_id text UNIQUE NOT NULL,
-  title text NOT NULL,
-  contracting_authority text,
-  amount_eur numeric,         -- TaxExclusiveAmount (sin IVA)
-  total_amount_eur numeric,   -- TotalAmount (con IVA)
-  status text,                -- PUB, ADJ, RES, ANU, PRE, EV
-  contract_type text,         -- 1=Obras, 2=Servicios, 3=Suministros, ...
-  cpv_code text,
-  region text,
-  published_at timestamptz,
-  source_url text,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
+-- Upgrades the lightweight contracts table created in the initial schema to the
+-- canonical shape used by the ETL and frontend.
 
-CREATE INDEX contracts_amount_idx ON contracts (amount_eur DESC NULLS LAST);
-CREATE INDEX contracts_published_idx ON contracts (published_at DESC);
-CREATE INDEX contracts_authority_idx ON contracts (contracting_authority);
-CREATE INDEX contracts_status_idx ON contracts (status);
+ALTER TABLE contracts
+  ADD COLUMN IF NOT EXISTS contract_folder_id text,
+  ADD COLUMN IF NOT EXISTS status text,
+  ADD COLUMN IF NOT EXISTS contract_type text,
+  ADD COLUMN IF NOT EXISTS cpv_code text,
+  ADD COLUMN IF NOT EXISTS region text,
+  ADD COLUMN IF NOT EXISTS ministry_normalized text,
+  ADD COLUMN IF NOT EXISTS awarding_body_organization_id uuid,
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'contracts_contract_folder_id_key'
+  ) THEN
+    ALTER TABLE contracts ADD CONSTRAINT contracts_contract_folder_id_key UNIQUE (contract_folder_id);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS contracts_amount_idx ON contracts (amount DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS contracts_date_idx ON contracts (date DESC);
+CREATE INDEX IF NOT EXISTS contracts_authority_idx ON contracts (awarding_body);
+CREATE INDEX IF NOT EXISTS contracts_status_idx ON contracts (status);
+CREATE INDEX IF NOT EXISTS contracts_ministry_idx ON contracts (ministry_normalized);
+CREATE INDEX IF NOT EXISTS contracts_awarding_org_idx ON contracts (awarding_body_organization_id);
 
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "contracts_public_read" ON contracts;
 CREATE POLICY "contracts_public_read" ON contracts FOR SELECT USING (true);

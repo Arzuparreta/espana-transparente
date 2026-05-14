@@ -1,16 +1,16 @@
-![Acción Humana — personas, poder y trazabilidad](web/public/brand/github-banner.svg)
+![España Transparente — datos públicos de la política española](web/public/brand/github-banner.svg)
 
-# Acción Humana
+# España Transparente
 
-**Acción Humana** es un portal de datos de la política española. Traduce datos públicos al lenguaje del ciudadano sin filtros ideológicos. Cada voto, cada contrato, cada decisión — enlazada a la persona que la ejecuta.
+**España Transparente** es un portal de datos públicos de la política española. Reúne diputados, votaciones, contratos, subvenciones, trayectorias y fuentes para consultar cada registro con contexto verificable.
 
-🌐 **[web-pi-two-62.vercel.app](https://web-pi-two-62.vercel.app)**
+🌐 **[xn--espaatransparente-ixb.site](https://xn--espaatransparente-ixb.site)**
 
 ## 📦 Qué hay ahora
 
 - **350 diputados** activos de la XV Legislatura con partido, circunscripción y biografía
 - **4.200 votos individuales** enlazados a cada diputado (sesión del 30 abril 2026)
-- **Cadena de mando**: quién controla a quién dentro de cada partido
+- **Relaciones registradas**: cargos, partidos, organizaciones y responsabilidades públicas
 - **Puertas giratorias**: 20 casos documentados de políticos en la empresa privada
 - **Distorsión electoral**: D'Hondt, votos por escaño, umbral provincial
 - **Divergencias**: detección automática de votos contra el grupo parlamentario
@@ -55,7 +55,7 @@ corporativo, página corporativa, resolución pública o repositorio documental 
 ## 🤝 Contribuir
 
 1. Lee `AGENTS.md` — es obligatorio
-2. Revisa los [issues](https://github.com/Arzuparreta/accion-humana/issues)
+2. Revisa los [issues](https://github.com/Arzuparreta/espana-transparente/issues)
 3. Haz fork, crea rama, envía PR
 4. Todo PR debe pasar CI (lint + build)
 

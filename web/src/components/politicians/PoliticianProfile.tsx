@@ -80,7 +80,7 @@ export function PoliticianProfile({
       <PageHeader
         title={fullName}
         description={
-          curGroup || "Ficha individual con su cadena de mando, historial de voto y trayectoria."
+          curGroup || "Ficha individual con relaciones registradas, historial de voto y trayectoria."
         }
         eyebrow={
           <>
@@ -218,7 +218,17 @@ export function PoliticianProfile({
                             <span className="text-muted-foreground">→</span>
                             <span className="font-medium">{String(entry.private_role || "")}</span>
                             <span className="text-muted-foreground">
-                              en {String(entry.private_organization || "")}
+                              {" "}en{" "}
+                              {entry.organization_id ? (
+                                <a
+                                  href={`/organizaciones/${String(entry.organization_id)}`}
+                                  className="text-foreground underline-offset-4 hover:underline"
+                                >
+                                  {String(entry.private_organization || "")}
+                                </a>
+                              ) : (
+                                String(entry.private_organization || "")
+                              )}
                             </span>
                           </div>
                           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground">

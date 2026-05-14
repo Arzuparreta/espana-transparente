@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { ResponsibleChip, type Responsible } from "@/components/domain/ResponsibleChip"
 
 interface Subvencion {
   id: string
@@ -15,6 +16,9 @@ interface Subvencion {
   nivel1: string | null
   nivel2: string | null
   nivel3: string | null
+  beneficiary_organization_id: string | null
+  granting_body_organization_id: string | null
+  responsible: Responsible | null
   source_url: string | null
 }
 
@@ -88,9 +92,32 @@ function SubvencionCard({ s }: { s: Subvencion }) {
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${nivelClass(s.nivel1)}`}>
               {nivelLabel}
             </span>
+            <ResponsibleChip responsible={s.responsible} />
           </div>
-          <div className="text-sm font-medium leading-snug">{s.beneficiario ?? "—"}</div>
-          <div className="text-xs text-muted-foreground">{organo}</div>
+          <div className="text-sm font-medium leading-snug">
+            {s.beneficiary_organization_id ? (
+              <ResponsiveLink
+                href={`/organizaciones/${s.beneficiary_organization_id}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {s.beneficiario ?? "—"}
+              </ResponsiveLink>
+            ) : (
+              s.beneficiario ?? "—"
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {s.granting_body_organization_id ? (
+              <ResponsiveLink
+                href={`/organizaciones/${s.granting_body_organization_id}`}
+                className="underline-offset-2 hover:text-foreground hover:underline"
+              >
+                {organo}
+              </ResponsiveLink>
+            ) : (
+              organo
+            )}
+          </div>
           {s.convocatoria ? (
             <div className="text-[11px] text-muted-foreground line-clamp-1">{s.convocatoria}</div>
           ) : null}

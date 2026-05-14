@@ -4,13 +4,13 @@
 Este documento describe el SISTEMA INTERNO de diseño. Sus reglas ("las personas son la unidad primaria de lectura", "la excepción manda sobre el agregado") guían CÓMO construimos componentes, pero NUNCA aparecen como texto en la interfaz de usuario. La web muestra datos, no metodología.
 
 ## Propósito
-La UI de Acción Humana no presenta instituciones como actores. Presenta personas, cadenas de poder y excepciones relevantes. El sistema visual debe reforzar eso en cada pantalla nueva.
+La UI de España Transparente no presenta instituciones como actores. Presenta personas, relaciones registradas y excepciones relevantes. El sistema visual debe reforzar eso en cada pantalla nueva.
 
 ## Marca
 - La identidad visual vive en `BRAND.md`.
-- El símbolo oficial es una fachada abierta que revela una persona concreta.
+- El símbolo oficial es una estructura descendente con un punto final de atención.
 - En UI usar `LogoMark`; no incrustar versiones copiadas del SVG dentro de componentes nuevos.
-- El acento dorado se reserva para personas, excepciones y puntos de trazabilidad.
+- El acento rojo se reserva para estados activos, excepciones y puntos de trazabilidad.
 
 ## Reglas obligatorias
 - Las personas son la unidad primaria de lectura. Nombre, cargo, circunscripción y relación deben tener prioridad sobre la sigla.
@@ -39,7 +39,7 @@ La UI de Acción Humana no presenta instituciones como actores. Presenta persona
 1. ¿Estoy usando una primitive existente antes de montar utilidades inline?
 2. ¿He probado nombres, títulos y badges largos?
 3. ¿La pantalla sigue leyendo bien a `375px`?
-4. ¿La excepción visual realmente destaca?
+4. ¿La excepción visual realmente destaca sin parecer un error destructivo?
 5. ¿La metadata tiene contexto de poder y no solo dato suelto?
 
 ## Verificación

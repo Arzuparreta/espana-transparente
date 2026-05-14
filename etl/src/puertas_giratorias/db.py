@@ -1,7 +1,4 @@
 """Database helpers for the revolving-door investigation pipeline."""
-
-import re
-import unicodedata
 from datetime import date
 from typing import Any
 
@@ -10,19 +7,10 @@ from thefuzz import fuzz
 
 from common.db import get_pg_conn
 from common.utils import normalize_name
+from common.organizations import upsert_organization
 from puertas_giratorias.model import RevolvingDoorCandidate, SourceEvidence
 
 PRIMARY_SOURCE_TYPES = {"primary"}
-
-
-def normalize_organization_name(name: str) -> str:
-    cleaned = unicodedata.normalize("NFKD", name or "")
-    cleaned = "".join(c for c in cleaned if not unicodedata.combining(c))
-    cleaned = cleaned.lower()
-    cleaned = re.sub(r"\b(s\.?a\.?|s\.?l\.?|sa|sl|plc|ltd|inc)\b", "", cleaned)
-    cleaned = re.sub(r"[^a-z0-9]+", " ", cleaned)
-    return re.sub(r"\s+", " ", cleaned).strip()
-
 
 def _json(value: dict[str, Any]) -> psycopg2.extras.Json:
     return psycopg2.extras.Json(value or {})
@@ -72,25 +60,6 @@ def match_politician(cur, person_name: str) -> tuple[str | None, str | None, flo
         return None, None, best_score
     return best_id, best_party, best_score
 
-
-def upsert_organization(cur, name: str, sector: str | None, source_url: str | None) -> str:
-    normalized = normalize_organization_name(name)
-    cur.execute(
-        """
-        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url)
-        VALUES (%s, %s, 'company', %s, %s)
-        ON CONFLICT (normalized_name) DO UPDATE SET
-          name = EXCLUDED.name,
-          sector = coalesce(EXCLUDED.sector, organizations.sector),
-          source_url = coalesce(EXCLUDED.source_url, organizations.source_url),
-          updated_at = now()
-        RETURNING id
-        """,
-        (name, normalized, sector, source_url),
-    )
-    return cur.fetchone()[0]
-
-
 def upsert_candidate(cur, candidate: RevolvingDoorCandidate) -> str:
     primary_source = next(
         (source.source_url for source in candidate.sources if source.source_type in PRIMARY_SOURCE_TYPES),
@@ -98,9 +67,10 @@ def upsert_candidate(cur, candidate: RevolvingDoorCandidate) -> str:
     )
     organization_id = upsert_organization(
         cur,
-        candidate.private_organization,
-        candidate.sector,
-        primary_source,
+        name=candidate.private_organization,
+        organization_type="company",
+        sector=candidate.sector,
+        source_url=primary_source,
     )
     person_id, matched_party, match_score = match_politician(cur, candidate.person_name)
     confidence = max(candidate.confidence, match_score)

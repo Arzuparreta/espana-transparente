@@ -1,42 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
-  <title>Acción Humana — personas, poder y trazabilidad</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <title>España Transparente - datos públicos de la política española</title>
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fbfaf7"/>
-      <stop offset=".58" stop-color="#f7f1e8"/>
-      <stop offset="1" stop-color="#fbfaf7"/>
-    </linearGradient>
-    <radialGradient id="warm" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(925 198) rotate(126) scale(520 390)">
-      <stop stop-color="#d1872a" stop-opacity=".2"/>
-      <stop offset=".65" stop-color="#d1872a" stop-opacity=".04"/>
-      <stop offset="1" stop-color="#d1872a" stop-opacity="0"/>
-    </radialGradient>
-    <pattern id="fine-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0H0V48" stroke="#0a2a53" stroke-opacity=".045"/>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#1A1612" stroke-opacity=".055"/>
     </pattern>
+    <radialGradient id="signal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(992 114) rotate(136) scale(540 370)">
+      <stop stop-color="#A1242C" stop-opacity=".18"/>
+      <stop offset=".7" stop-color="#A1242C" stop-opacity=".035"/>
+      <stop offset="1" stop-color="#A1242C" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-
-  <rect width="1280" height="640" fill="url(#paper)"/>
-  <rect width="1280" height="640" fill="url(#fine-grid)"/>
-  <rect width="1280" height="640" fill="url(#warm)"/>
-
-  <g transform="translate(96 96)">
-    <rect width="108" height="108" rx="30" fill="#0a2a53"/>
-    <g transform="translate(22 22)">
-      <circle cx="32" cy="21" r="7.5" fill="#d1872a"/>
-      <path d="M32 31v20" stroke="#d1872a" stroke-width="8" stroke-linecap="round"/>
-    </g>
+  <rect width="1280" height="640" fill="#FAFAF7"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#signal)"/>
+  <rect x="68" y="64" width="1144" height="512" rx="34" fill="#FFFFFF" fill-opacity=".72" stroke="#D7C9BB" stroke-width="2"/>
+  <g transform="translate(102 96) scale(1.34)">
+    <polygon points="14,22 86,22 80.71,30.82 19.29,30.82" fill="#1A1612"/>
+    <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#1A1612"/>
+    <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#1A1612"/>
+    <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#1A1612"/>
+    <polygon points="44.71,73.18 55.29,73.18 50,82 50,82" fill="#A1242C"/>
   </g>
-
-  <text x="96" y="296" fill="#0a2a53" font-family="Georgia, 'Times New Roman', serif" font-size="86" font-weight="700" letter-spacing="-2.6">Acción Humana</text>
-  <text x="101" y="354" fill="#516171" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="2.8">PERSONAS, PODER Y TRAZABILIDAD</text>
-  <path d="M102 386H542" stroke="#d1872a" stroke-width="4" stroke-linecap="round"/>
-
-  <g transform="translate(744 112)">
-    <rect x="78" y="18" width="316" height="396" rx="18" fill="#fbfaf7" fill-opacity=".72" stroke="#0a2a53" stroke-opacity=".2" stroke-width="2"/>
-    <path d="M104 88H366M104 144H366M104 200H366M104 312H366" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
-    <path d="M104 256H244" stroke="#0a2a53" stroke-opacity=".16" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="236" cy="188" r="28" fill="#d1872a"/>
-    <path d="M236 232v76" stroke="#d1872a" stroke-width="14" stroke-linecap="round"/>
+  <text x="102" y="304" fill="#1A1612" font-family="Georgia, 'Times New Roman', serif" font-size="80" font-weight="700" letter-spacing="-2.7">España Transparente</text>
+  <text x="107" y="364" fill="#6F6258" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="2.6">DATOS PÚBLICOS DE LA POLÍTICA ESPAÑOLA</text>
+  <path d="M108 396H628" stroke="#A1242C" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(884 128)">
+    <rect width="266" height="348" rx="20" fill="#FAFAF7" stroke="#D7C9BB" stroke-width="2"/>
+    <path d="M36 68H230M36 120H230M36 172H168M36 248H230" stroke="#1A1612" stroke-opacity=".18" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="206" cy="172" r="10" fill="#A1242C"/>
+    <circle cx="168" cy="248" r="10" fill="#1A1612"/>
+    <path d="M206 182V238L178 248" fill="none" stroke="#A1242C" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>

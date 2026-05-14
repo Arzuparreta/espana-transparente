@@ -13,7 +13,7 @@ export default async function PartidosPage() {
     <div className="space-y-8">
       <PageHeader
         title="Partidos"
-        description="Partidos con representación en el Congreso. Cada partido incluye sus diputados activos, grupo parlamentario y cadena de mando."
+        description="Partidos con representación en el Congreso. Cada partido incluye diputados activos, grupo parlamentario y relaciones registradas."
       />
       <div className="ui-grid-cards">
         {(parties as Party[]).map((p) => (

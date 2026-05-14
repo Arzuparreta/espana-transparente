@@ -1,5 +1,7 @@
 import { SearchBox } from "@/components/search/SearchBox"
 import { PartyBadge } from "@/components/domain/PartyBadge"
+import { LogoMark } from "@/components/brand/LogoMark"
+import { BRAND_LONG_DESCRIPTION } from "@/lib/brand"
 
 interface LogoHeroProps {
   parties?: { acronym: string; color: string | null }[]
@@ -13,19 +15,22 @@ export function LogoHero({ parties }: LogoHeroProps) {
     : []
 
   return (
-    <section className="relative overflow-hidden rounded-[calc(var(--radius)+0.4rem)] border border-border/70 bg-card px-5 py-10 shadow-sm sm:px-8 sm:py-14">
+    <section className="relative overflow-hidden rounded-xl border border-border/80 bg-card px-5 py-10 shadow-sm sm:px-8 sm:py-14">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--brand-signal)/0.08),transparent_28%),radial-gradient(circle_at_20%_10%,hsl(var(--foreground)/0.08),transparent_22%)]" />
       <div className="flex flex-col items-center gap-6 text-center">
+        <div className="grid h-20 w-20 place-items-center rounded-2xl border border-border bg-background shadow-sm">
+          <LogoMark className="h-14 w-14" variant="accent" />
+        </div>
         <div className="space-y-2">
-          <h1 className="text-6xl font-bold tracking-tighter text-primary sm:text-8xl">
-            350
+          <h1 className="font-display text-5xl font-semibold tracking-[-0.055em] text-primary sm:text-7xl">
+            Datos públicos
           </h1>
-          <p className="text-xl font-medium tracking-tight text-muted-foreground sm:text-2xl">
-            personas bajo la lupa
+          <p className="text-lg font-medium tracking-tight text-muted-foreground sm:text-2xl">
+            de la política española
           </p>
         </div>
         <p className="mx-auto max-w-2xl text-balance text-base leading-7 text-muted-foreground">
-          Datos del Congreso de los Diputados. Cada voto, cada declaración, cada contrato,
-          enlazado a la persona que lo decide.
+          {BRAND_LONG_DESCRIPTION}
         </p>
         <SearchBox />
       </div>

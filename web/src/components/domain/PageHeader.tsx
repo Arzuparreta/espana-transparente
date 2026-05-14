@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <section
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/70 px-4 py-5 shadow-sm sm:px-6 sm:py-6",
+        "flex flex-col gap-4 rounded-xl border border-border/80 bg-card/80 px-4 py-5 shadow-sm sm:px-6 sm:py-6",
         className
       )}
     >
@@ -27,7 +27,7 @@ export function PageHeader({
         <div className="min-w-0 space-y-2">
           {eyebrow ? <div className="flex flex-wrap items-center gap-2">{eyebrow}</div> : null}
           <div className="space-y-1">
-            <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            <h1 className="font-display text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
               {title}
             </h1>
             {description ? (

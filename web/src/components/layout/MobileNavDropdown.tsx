@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { GITHUB_URL } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -21,7 +22,7 @@ const navItems: NavItem[] = [
   { href: "/contratos", label: "Contratos públicos" },
   { href: "/subvenciones", label: "Subvenciones" },
   { href: "/puertas-giratorias", label: "Puertas Giratorias" },
-  { href: "https://github.com/Arzuparreta/espana-transparente", label: "GitHub" },
+  { href: GITHUB_URL, label: "GitHub" },
 ]
 
 export function MobileNavDropdown() {

@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
-import { PAGE_SIZE_SUBSIDIES, getSubvencionPage, parsePage } from "@/lib/data"
+import { PAGE_SIZE_SUBSIDIES, getMoneyDatasetSummary, getSubvencionPage, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -19,7 +20,10 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const requestedNivel = searchParams?.nivel || "all"
   const activeNivel = VALID_NIVELES.includes(requestedNivel) ? requestedNivel : "all"
 
-  const { subsidies, total, statsRows } = await getSubvencionPage(page, activeNivel)
+  const [{ subsidies, total, statsRows }, summary] = await Promise.all([
+    getSubvencionPage(page, activeNivel),
+    getMoneyDatasetSummary("subsidies"),
+  ])
 
   const totalAmount = statsRows.reduce((sum, s) => sum + ((s as { importe?: number }).importe ?? 0), 0)
   const formatted =
@@ -52,6 +56,8 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
           </div>
         </div>
       ) : null}
+
+      <MoneyDataSummary datasetHref="/subvenciones" rows={summary.rows} total={summary.total} />
 
       <SubvencionesClient
         activeNivel={activeNivel}

@@ -1,31 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# España Transparente Web
 
-## Getting Started
+Frontend público de España Transparente, construido con Next.js 14, Tailwind y shadcn/ui.
 
-First, run the development server:
+## Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verificación
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run content:audit
+npm run ui:audit
+npm run lint
+npm run build
+```
 
-## Learn More
+## Marca
 
-To learn more about Next.js, take a look at the following resources:
+La identidad visual está documentada en `BRAND.md`. El sistema de UI está documentado en `UI_SYSTEM.md`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+La interfaz pública muestra datos y fuentes. No debe incluir metodología interna, juicios de valor o referencias ideológicas.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 

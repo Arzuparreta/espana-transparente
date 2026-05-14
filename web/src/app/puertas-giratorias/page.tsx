@@ -17,6 +17,7 @@ export interface RDCase {
   cooling_off_months: number | null
   sector: string
   person_id: string | null
+  organization_id: string | null
   primary_source_url: string | null
   source_url: string | null
   sources: RDSource[] | null
