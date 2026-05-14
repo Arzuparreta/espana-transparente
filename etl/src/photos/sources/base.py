@@ -30,10 +30,16 @@ class SourceMatch:
     photo_bytes is already validated + normalized (512x512 WebP) by the source.
     wikidata_qid is set when the match is anchored on a Wikidata entity, so the
     pipeline can persist it for stable matching next run.
+
+    source_url is the original CDN URL of the image (before downloading). When
+    Supabase Storage is unavailable, the pipeline falls back to storing this URL
+    directly in photo_url — valid for Wikimedia which allows hotlinking from
+    upload.wikimedia.org. Not set for sources that don't hotlink cleanly (Congreso).
     """
     photo_bytes: bytes
     source: str
     wikidata_qid: Optional[str] = None
+    source_url: Optional[str] = None  # CDN URL usable as hotlink fallback
 
 
 class PhotoSource(Protocol):

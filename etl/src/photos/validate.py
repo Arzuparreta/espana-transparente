@@ -1,10 +1,11 @@
 """Validate and normalize photo bytes.
 
-Pipeline: HEAD-checked download → content-type/size validation → Pillow open →
-resize 512x512 (proportion preserved, padded to square) → WebP q=85 output.
+Pipeline: download → content-type/size validation → Pillow open → resize
+512x512 (proportion preserved, padded to square) → WebP q=85 output.
 """
 
 import io
+from dataclasses import dataclass
 from typing import Optional
 
 import httpx
@@ -22,9 +23,25 @@ class PhotoValidationError(Exception):
     pass
 
 
+@dataclass(frozen=True)
+class DownloadResult:
+    data: bytes
+    final_url: str
+
+
 def download(url: str, *, user_agent: str = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)",
              timeout: float = 30.0) -> bytes:
     """Download a photo with browser-like UA. Raises PhotoValidationError on failure."""
+    return download_with_final_url(url, user_agent=user_agent, timeout=timeout).data
+
+
+def download_with_final_url(
+    url: str,
+    *,
+    user_agent: str = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)",
+    timeout: float = 30.0,
+) -> DownloadResult:
+    """Download a photo and return bytes plus the final redirect-resolved URL."""
     try:
         with httpx.Client(follow_redirects=True, timeout=timeout,
                           headers={"User-Agent": user_agent}) as client:
@@ -42,7 +59,7 @@ def download(url: str, *, user_agent: str = "Mozilla/5.0 (compatible; EspanaTran
         raise PhotoValidationError(f"too small: {len(data)} bytes")
     if len(data) > MAX_BYTES:
         raise PhotoValidationError(f"too large: {len(data)} bytes")
-    return data
+    return DownloadResult(data=data, final_url=str(resp.url))
 
 
 def to_webp_square(raw: bytes, *, size: int = TARGET_SIZE,

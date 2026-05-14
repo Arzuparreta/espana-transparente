@@ -19,7 +19,7 @@ import urllib.parse
 import urllib.request
 from typing import Optional
 
-from ..validate import to_webp_square, download, PhotoValidationError
+from ..validate import to_webp_square, download_with_final_url, PhotoValidationError
 from .base import PhotoSource, PoliticianRow, SourceMatch
 
 SPARQL_URL = "https://query.wikidata.org/sparql"
@@ -162,8 +162,8 @@ class WikidataSource:
             return None
 
         try:
-            raw = download(entry["photo"])
-            normalized = to_webp_square(raw)
+            downloaded = download_with_final_url(entry["photo"], user_agent=USER_AGENT)
+            normalized = to_webp_square(downloaded.data)
         except PhotoValidationError as exc:
             print(f"[wikidata] {politician.full_name}: download/validate failed: {exc}")
             return None
@@ -172,4 +172,5 @@ class WikidataSource:
             photo_bytes=normalized,
             source=self.name,
             wikidata_qid=entry["qid"],
+            source_url=downloaded.final_url,
         )

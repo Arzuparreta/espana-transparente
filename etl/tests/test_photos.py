@@ -18,6 +18,7 @@ from photos.sources.wikidata import (
     _qid_from_iri,
 )
 from photos.validate import (
+    DownloadResult,
     MIN_BYTES,
     PhotoValidationError,
     TARGET_SIZE,
@@ -95,14 +96,17 @@ def test_wikidata_p1768_match_wins_over_name(monkeypatch):
     ])
     captured = {}
 
-    def fake_dl(url: str):
+    def fake_dl(url: str, **_kwargs):
         captured["url"] = url
-        return b"\x89PNG\r\n\x1a\n" + b"\x00" * 4096  # not actually decoded
+        return DownloadResult(
+            data=b"\x89PNG\r\n\x1a\n" + b"\x00" * 4096,
+            final_url="https://upload.wikimedia.org/test.webp",
+        )
 
     def fake_norm(_raw: bytes) -> bytes:
         return b"webp-bytes"
 
-    monkeypatch.setattr("photos.sources.wikidata.download", fake_dl)
+    monkeypatch.setattr("photos.sources.wikidata.download_with_final_url", fake_dl)
     monkeypatch.setattr("photos.sources.wikidata.to_webp_square", fake_norm)
 
     pol = _make_pol(cod="271")
@@ -110,6 +114,7 @@ def test_wikidata_p1768_match_wins_over_name(monkeypatch):
     assert match is not None
     assert match.wikidata_qid == "Q1"
     assert captured["url"] == "p1"
+    assert match.source_url == "https://upload.wikimedia.org/test.webp"
 
 
 def test_wikidata_name_jaccard_below_threshold_returns_none(monkeypatch):
@@ -117,8 +122,8 @@ def test_wikidata_name_jaccard_below_threshold_returns_none(monkeypatch):
         {"qid": "Q9", "label": "Mariano Rajoy Brey", "photo": "p"},
     ])
 
-    monkeypatch.setattr("photos.sources.wikidata.download",
-                        lambda url: pytest.fail("should not download"))
+    monkeypatch.setattr("photos.sources.wikidata.download_with_final_url",
+                        lambda url, **_kwargs: pytest.fail("should not download"))
 
     pol = _make_pol(name="Pedro Sánchez Pérez-Castejón")
     assert src.find(pol) is None
@@ -128,7 +133,10 @@ def test_wikidata_name_jaccard_above_threshold_matches(monkeypatch):
     src = _seed_wikidata_source([
         {"qid": "Q42", "label": "Pedro Sánchez Pérez-Castejón", "photo": "p"},
     ])
-    monkeypatch.setattr("photos.sources.wikidata.download", lambda url: b"x" * 4096)
+    monkeypatch.setattr(
+        "photos.sources.wikidata.download_with_final_url",
+        lambda url, **_kwargs: DownloadResult(data=b"x" * 4096, final_url="https://upload.wikimedia.org/p.webp"),
+    )
     monkeypatch.setattr("photos.sources.wikidata.to_webp_square", lambda raw: b"w")
 
     pol = _make_pol(name="Pedro Sánchez Pérez-Castejón")
@@ -136,6 +144,7 @@ def test_wikidata_name_jaccard_above_threshold_matches(monkeypatch):
     assert match is not None
     assert match.wikidata_qid == "Q42"
     assert match.source == "wikidata"
+    assert match.source_url == "https://upload.wikimedia.org/p.webp"
 
 
 def test_wikidata_requires_two_shared_tokens(monkeypatch):
@@ -143,8 +152,8 @@ def test_wikidata_requires_two_shared_tokens(monkeypatch):
     src = _seed_wikidata_source([
         {"qid": "Q1", "label": "Pedro", "photo": "p"},
     ])
-    monkeypatch.setattr("photos.sources.wikidata.download",
-                        lambda url: pytest.fail("should not download"))
+    monkeypatch.setattr("photos.sources.wikidata.download_with_final_url",
+                        lambda url, **_kwargs: pytest.fail("should not download"))
 
     pol = _make_pol(name="Pedro Sánchez Pérez-Castejón")
     assert src.find(pol) is None
@@ -194,6 +203,12 @@ def test_source_priorities_are_strict_order():
     priorities = [s.priority for s in ALL_SOURCES]
     assert priorities == sorted(priorities)
     assert len(set(priorities)) == len(priorities), "priorities must be unique"
+
+
+def test_politician_key_normalizes_to_ascii():
+    from photos.storage import politician_key
+    assert politician_key("agüera-gago-cristina-576494ca") == "politicians/aguera-gago-cristina-576494ca.webp"
+    assert politician_key("alonso-cantorne-fèlix-d0c0f7f7") == "politicians/alonso-cantorne-felix-d0c0f7f7.webp"
 
 
 def test_alcaldes_source_skips_non_mayors():

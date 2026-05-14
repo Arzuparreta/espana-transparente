@@ -107,13 +107,30 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
 
 
 def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) -> str:
-    """Upload bytes to Storage and update DB. Returns the final public URL."""
+    """Upload bytes to Storage and update DB. Returns the final public URL.
+
+    If Supabase Storage is unavailable (missing key or auth failure) the pipeline
+    falls back to storing the source CDN URL directly. This is valid for Wikimedia
+    (upload.wikimedia.org allows hotlinking); sources that block hotlinking
+    (Congreso) do not set source_url and are skipped in that case.
+    """
+    from .storage import StorageError, politician_key, public_url, upload_photo
+
     key = politician_key(politician.congress_id)
     if dry_run:
-        from .storage import public_url
-        return public_url(key)
+        final_url = match.source_url or public_url(key)
+        return final_url
 
-    url = upload_photo(match.photo_bytes, key)
+    final_url: str
+    try:
+        final_url = upload_photo(match.photo_bytes, key)
+    except StorageError as exc:
+        if match.source_url:
+            print(f"  ! Storage unavailable ({exc}); using hotlink URL as fallback")
+            final_url = match.source_url
+        else:
+            raise
+
     with get_pg_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -127,10 +144,10 @@ def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) ->
                     updated_at = now()
                 WHERE id = %s
                 """,
-                (url, match.source, match.wikidata_qid, politician.id),
+                (final_url, match.source, match.wikidata_qid, politician.id),
             )
         conn.commit()
-    return url
+    return final_url
 
 
 def _bump_attempts(politician_id: str, *, dry_run: bool) -> None:

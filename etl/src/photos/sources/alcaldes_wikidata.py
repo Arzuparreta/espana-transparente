@@ -13,7 +13,7 @@ import time
 import unicodedata
 from typing import Optional
 
-from ..validate import PhotoValidationError, download, to_webp_square
+from ..validate import PhotoValidationError, download_with_final_url, to_webp_square
 from .base import PhotoSource, PoliticianRow, SourceMatch
 from .wikidata import SPARQL_URL, USER_AGENT, _fetch_sparql, _normalize, _jaccard, _qid_from_iri
 
@@ -87,8 +87,8 @@ class AlcaldesWikidataSource:
               f"(jaccard={best_score:.2f} → {best_entry['qid']} '{best_entry['label']}')")
 
         try:
-            raw = download(best_entry["photo"])
-            normalized = to_webp_square(raw)
+            downloaded = download_with_final_url(best_entry["photo"], user_agent=USER_AGENT)
+            normalized = to_webp_square(downloaded.data)
         except PhotoValidationError as exc:
             print(f"[alcaldes_wikidata] {politician.full_name}: download/validate failed: {exc}")
             return None
@@ -97,4 +97,5 @@ class AlcaldesWikidataSource:
             photo_bytes=normalized,
             source=self.name,
             wikidata_qid=best_entry["qid"],
+            source_url=downloaded.final_url,
         )

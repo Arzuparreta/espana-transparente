@@ -5,6 +5,8 @@ not require a key because the bucket is configured as public.
 """
 
 import os
+import re
+import unicodedata
 from typing import Optional
 
 import httpx
@@ -30,6 +32,14 @@ def _require_service_key() -> str:
     return SERVICE_ROLE_KEY
 
 
+def _auth_headers(token: str) -> dict[str, str]:
+    """Support both legacy JWT service_role keys and new sb_secret keys."""
+    headers = {"apikey": token}
+    if not token.startswith("sb_"):
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def public_url(key: str) -> str:
     return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{key}"
 
@@ -39,7 +49,7 @@ def upload_photo(data: bytes, key: str, *, content_type: str = "image/webp") -> 
     token = _require_service_key()
     url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{key}"
     headers = {
-        "Authorization": f"Bearer {token}",
+        **_auth_headers(token),
         "Content-Type": content_type,
         "x-upsert": "true",
         "Cache-Control": "max-age=604800",  # 7 days — pipeline owns refresh cadence
@@ -56,7 +66,7 @@ def upload_photo(data: bytes, key: str, *, content_type: str = "image/webp") -> 
 def ensure_bucket(*, public: bool = True) -> None:
     """Create the politician-photos bucket if it doesn't exist. Idempotent."""
     token = _require_service_key()
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    headers = {**_auth_headers(token), "Content-Type": "application/json"}
 
     get = httpx.get(f"{SUPABASE_URL}/storage/v1/bucket/{BUCKET}", headers=headers, timeout=30.0)
     if get.status_code == 200:
@@ -79,7 +89,11 @@ def ensure_bucket(*, public: bool = True) -> None:
 
 def politician_key(congress_id: str) -> str:
     """Path convention. Same layout will be used for senators / municipal cargos."""
-    return f"politicians/{congress_id}.webp"
+    nfkd = unicodedata.normalize("NFKD", congress_id)
+    ascii_slug = "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
+    ascii_slug = re.sub(r"[^a-z0-9._-]+", "-", ascii_slug).strip("-")
+    ascii_slug = re.sub(r"-{2,}", "-", ascii_slug)
+    return f"politicians/{ascii_slug}.webp"
 
 
 def from_storage_url(url: Optional[str]) -> bool:
