@@ -7,19 +7,13 @@ Usage:
     PYTHONPATH=src python -m src.congreso.fotos
 """
 
-import os
 import re
 import time
 import unicodedata
-import psycopg2
 import psycopg2.extras
 import urllib.request
 import json
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 SPARQL_URL = "https://query.wikidata.org/sparql"
 
@@ -82,7 +76,7 @@ def run() -> None:
         if normalize(label)
     ]
 
-    conn = psycopg2.connect(DB_URL)
+    conn = get_pg_conn()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute("SELECT id, full_name FROM politicians WHERE photo_url IS NULL")
     politicians = cur.fetchall()

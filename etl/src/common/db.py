@@ -8,10 +8,7 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+DB_URL = os.getenv("DATABASE_URL")
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "https://zktpodkvlgciluhbulwr.supabase.co")
 PUBLISHABLE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O")
 
@@ -23,6 +20,8 @@ def get_client() -> Client:
 
 def get_pg_conn():
     """Get direct PostgreSQL connection (for writes)."""
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL env var is required for ETL writes")
     return psycopg2.connect(DB_URL)
 
 

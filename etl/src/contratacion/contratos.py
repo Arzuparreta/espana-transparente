@@ -18,13 +18,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-import psycopg2
 import psycopg2.extras
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 BASE_URL = "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643"
 SUMMARY_ATOM = "licitacionesPerfilesContratanteCompleto3.atom"
@@ -209,7 +204,7 @@ def run(year: int, month: int) -> None:
         print(f"  Extracted {SUMMARY_ATOM} ({len(atom_bytes) / 1000:.1f} KB)")
 
     records = parse_atom(atom_bytes)
-    conn = psycopg2.connect(DB_URL)
+    conn = get_pg_conn()
     n = upsert(conn, records)
     conn.close()
     print(f"Done! Upserted {n} contracts for {year}-{month:02d}")

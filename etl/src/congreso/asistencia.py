@@ -19,13 +19,8 @@ import subprocess
 import time
 import zipfile
 
-import psycopg2
 import psycopg2.extras
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 BASE_URL = "https://www.congreso.es"
 PORTLET_URL = (
@@ -193,7 +188,7 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
 
 
 def run(dry_run: bool = False, from_date: int | None = None) -> None:
-    conn = psycopg2.connect(DB_URL)
+    conn = get_pg_conn()
     cur = conn.cursor()
 
     cur.execute("SELECT id FROM legislatures WHERE number = 15")

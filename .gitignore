@@ -3,7 +3,12 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+
+# Env
 .env
+.env.local
+.env*.local
+!.env.example
 
 # Node
 node_modules/

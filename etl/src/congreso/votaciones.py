@@ -2,14 +2,8 @@
 
 import json
 import subprocess
-import psycopg2
 import psycopg2.extras
-import os
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 UA = "Mozilla/5.0"
 
@@ -48,7 +42,7 @@ def build_politician_index(cur) -> dict:
 
 
 def run():
-    conn = psycopg2.connect(DB_URL)
+    conn = get_pg_conn()
     cur = conn.cursor()
 
     print("Building politician index...")

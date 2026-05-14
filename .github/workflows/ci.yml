@@ -60,3 +60,12 @@ jobs:
       - run: PYTHONPATH=src python -m src.congreso.diputados
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.ine.indicadores
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.contratacion.contratos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

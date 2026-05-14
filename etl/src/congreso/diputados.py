@@ -4,14 +4,8 @@ import csv
 import io
 import hashlib
 import httpx
-import psycopg2
 import psycopg2.extras
-import os
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 CONGRESO_BASE = "https://www.congreso.es"
 DIPUTADOS_CSV = "https://www.congreso.es/webpublica/opendata/diputados/DiputadosActivos__20260513050012.csv"
@@ -76,7 +70,7 @@ def extract_acronym(formacion: str, grupo: str) -> str:
 
 
 def get_conn():
-    return psycopg2.connect(DB_URL)
+    return get_pg_conn()
 
 
 def parse_date(d: str):

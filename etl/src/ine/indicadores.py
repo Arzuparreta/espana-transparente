@@ -1,14 +1,8 @@
 """ETL: ingest IPC (Consumer Price Index) data from INE API"""
 
 import json
-import os
 import subprocess
-import psycopg2
-
-DB_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres.zktpodkvlgciluhbulwr:A%28H_2026_Supabase_Secure%21@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
-)
+from common.db import get_pg_conn
 
 # INE table codes for key indicators
 INDICATORS = {
@@ -30,7 +24,7 @@ INDICATORS = {
 
 
 def run():
-    conn = psycopg2.connect(DB_URL)
+    conn = get_pg_conn()
     cur = conn.cursor()
 
     for key, meta in INDICATORS.items():
