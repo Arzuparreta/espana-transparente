@@ -7,6 +7,18 @@ sources:
     territory_name: Comunidad de Madrid
     territory_code: MD
     source_url: https://datos.gob.es/es/catalogo/a13002908-altos-cargos
+  - administration_level: autonomic
+    territory_name: Islas Baleares
+    territory_code: IB
+    source_url: https://www.caib.es/govern/index.do
+  - administration_level: autonomic
+    territory_name: Comunitat Valenciana
+    territory_code: VC
+    source_url: https://www.gva.es/es/inicio/estructura_organica
+  - administration_level: autonomic
+    territory_name: La Rioja
+    territory_code: RI
+    source_url: https://www.larioja.org/gobierno-rioja/es/gobierno/presidencia
   - administration_level: municipal
     territory_name: Zaragoza
     territory_code: 50297
@@ -17,6 +29,8 @@ sources:
     source_url: https://datos.gob.es/es/catalogo/e05232701-registro-de-alcaldes
 
 positions:
+  # ── ARAGÓN ──────────────────────────────────────────────────────────────────
+
   - administration_level: autonomic
     position_type: presidente_autonomico
     territory_name: Aragón
@@ -59,6 +73,8 @@ positions:
     end_date:
     source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
 
+  # ── COMUNIDAD DE MADRID ─────────────────────────────────────────────────────
+
   - administration_level: autonomic
     position_type: presidente_autonomico
     territory_name: Comunidad de Madrid
@@ -72,6 +88,153 @@ positions:
     start_date: 2019-08-19
     end_date:
     source_url: https://datos.gob.es/es/catalogo/a13002908-altos-cargos
+
+  # ── ISLAS BALEARES ──────────────────────────────────────────────────────────
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Islas Baleares
+    territory_code: IB
+    organization_name: GOVERN DE LES ILLES BALEARS
+    organization_aliases:
+      - Govern Balear
+      - Govern de les Illes Balears
+      - Presidencia del Govern de les Illes Balears
+    person_name: Armengol Socías, Francina
+    political_party: PSOE
+    government: Baleares IX
+    start_date: 2019-06-20
+    end_date: 2023-06-15
+    source_url: https://www.caib.es/govern/index.do
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Islas Baleares
+    territory_code: IB
+    organization_name: GOVERN DE LES ILLES BALEARS
+    organization_aliases:
+      - Govern Balear
+      - Govern de les Illes Balears
+      - Presidencia del Govern de les Illes Balears
+    person_name: Prohens García, Marga
+    political_party: PP
+    government: Baleares X
+    start_date: 2023-06-16
+    end_date:
+    source_url: https://www.caib.es/govern/index.do
+
+  # ── COMUNITAT VALENCIANA ────────────────────────────────────────────────────
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Comunitat Valenciana
+    territory_code: VC
+    organization_name: GENERALITAT VALENCIANA
+    organization_aliases:
+      - Presidencia de la Generalitat Valenciana
+      - Presidència de la Generalitat Valenciana
+    person_name: Puig Ferrer, Ximo
+    political_party: PSOE
+    government: Valencia XII
+    start_date: 2015-06-29
+    end_date: 2023-06-25
+    source_url: https://www.gva.es/es/inicio/estructura_organica
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Comunitat Valenciana
+    territory_code: VC
+    organization_name: GENERALITAT VALENCIANA
+    organization_aliases:
+      - Presidencia de la Generalitat Valenciana
+      - Presidència de la Generalitat Valenciana
+    person_name: Mazón Guixot, Carlos
+    political_party: PP
+    government: Valencia XIII
+    start_date: 2023-06-26
+    end_date:
+    source_url: https://www.gva.es/es/inicio/estructura_organica
+
+  # ── LA RIOJA ────────────────────────────────────────────────────────────────
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: La Rioja
+    territory_code: RI
+    organization_name: GOBIERNO DE LA RIOJA
+    organization_aliases:
+      - Presidencia del Gobierno de La Rioja
+    person_name: González Capdevila, Concha
+    political_party: PSOE
+    government: La Rioja IX
+    start_date: 2019-07-01
+    end_date: 2023-06-21
+    source_url: https://www.larioja.org/gobierno-rioja/es/gobierno/presidencia
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: La Rioja
+    territory_code: RI
+    organization_name: GOBIERNO DE LA RIOJA
+    organization_aliases:
+      - Presidencia del Gobierno de La Rioja
+    person_name: Capellán Amo, Gonzalo
+    political_party: PP
+    government: La Rioja X
+    start_date: 2023-06-22
+    end_date:
+    source_url: https://www.larioja.org/gobierno-rioja/es/gobierno/presidencia
+
+  # ── NAVARRA ─────────────────────────────────────────────────────────────────
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Navarra
+    territory_code: NA
+    organization_name: GOBIERNO DE NAVARRA
+    organization_aliases:
+      - Presidencia del Gobierno de Navarra
+      - Nafarroako Gobernua
+    person_name: Chivite Navascués, María
+    political_party: PSN-PSOE
+    government: Navarra X
+    start_date: 2019-07-26
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # ── CATALUNYA ───────────────────────────────────────────────────────────────
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Catalunya
+    territory_code: CT
+    organization_name: GENERALITAT DE CATALUNYA
+    organization_aliases:
+      - Presidencia de la Generalitat de Catalunya
+      - Presidència de la Generalitat de Catalunya
+    person_name: Aragonès Sanchís, Pere
+    political_party: ERC
+    government: Catalunya XIV
+    start_date: 2021-05-22
+    end_date: 2024-08-07
+    source_url: https://govern.cat/govern/docs/2021/05/22/10/43/b7226f50-78b6-4e1f-8d47-d7f03e4e1ccb.pdf
+
+  - administration_level: autonomic
+    position_type: presidente_autonomico
+    territory_name: Catalunya
+    territory_code: CT
+    organization_name: GENERALITAT DE CATALUNYA
+    organization_aliases:
+      - Presidencia de la Generalitat de Catalunya
+      - Presidència de la Generalitat de Catalunya
+    person_name: Illa Roca, Salvador
+    political_party: PSC
+    government: Catalunya XV
+    start_date: 2024-08-08
+    end_date:
+    source_url: https://govern.cat
+
+  # ── MUNICIPAL ───────────────────────────────────────────────────────────────
 
   - administration_level: municipal
     position_type: alcalde

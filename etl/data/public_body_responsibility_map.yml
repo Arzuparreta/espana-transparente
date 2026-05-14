@@ -1,4 +1,6 @@
 entries:
+  # ── ESTADO ──────────────────────────────────────────────────────────────────
+
   - body_normalized: AGENCIA ESTATAL DE INVESTIGACION
     administration_level: state
     territory_name: España
@@ -19,6 +21,103 @@ entries:
     end_date:
     source_url: https://www.interior.gob.es
 
+  # ADIF — Administrador de Infraestructuras Ferroviarias
+  - body_normalized: ADIF - PRESIDENCIA
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE FOMENTO
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date: 2020-01-12
+    source_url: https://www.adif.es
+
+  - body_normalized: ADIF - PRESIDENCIA
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE TRANSPORTES, MOVILIDAD Y AGENDA URBANA
+    match_strategy: curated_body_map
+    start_date: 2020-01-13
+    end_date: 2023-11-20
+    source_url: https://www.adif.es
+
+  - body_normalized: ADIF - PRESIDENCIA
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE TRANSPORTES Y MOVILIDAD SOSTENIBLE
+    match_strategy: curated_body_map
+    start_date: 2023-11-21
+    end_date:
+    source_url: https://www.adif.es
+
+  # INECO — Ingeniería y Economía del Transporte (sociedad estatal del MITMA)
+  - body_normalized: INECO-COMITE DE DIRECCION
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE FOMENTO
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date: 2020-01-12
+    source_url: https://www.ineco.com
+
+  - body_normalized: INECO-COMITE DE DIRECCION
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE TRANSPORTES, MOVILIDAD Y AGENDA URBANA
+    match_strategy: curated_body_map
+    start_date: 2020-01-13
+    end_date: 2023-11-20
+    source_url: https://www.ineco.com
+
+  - body_normalized: INECO-COMITE DE DIRECCION
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE TRANSPORTES Y MOVILIDAD SOSTENIBLE
+    match_strategy: curated_body_map
+    start_date: 2023-11-21
+    end_date:
+    source_url: https://www.ineco.com
+
+  # Correos y Telégrafos — adscrita al ministerio de digitalización
+  - body_normalized: CONSEJO DE ADMINISTRACION-COMITE DE INVERSIONES DE LA SOCIEDAD ESTATAL CORREOS Y TELEGRAFOS S.A
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO PARA LA TRANSFORMACION DIGITAL Y DE LA FUNCION PUBLICA
+    match_strategy: curated_body_map
+    start_date: 2023-11-21
+    end_date:
+    source_url: https://www.correos.es
+
+  # Agencia Tributaria — delegaciones especiales
+  - body_normalized: DELEGACION ESPECIAL DE LA AGENCIA TRIBUTARIA EN CANARIAS
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE HACIENDA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.agenciatributaria.es
+
+  # TRAGSA — Empresa de Transformación Agraria (sociedad estatal MAPA)
+  - body_normalized: EMPRESA DE TRANSFORMACION AGRARIA S.A.,S.M.E., M.P., (TRAGSA)
+    administration_level: state
+    territory_name: España
+    territory_code: ES
+    ministry_or_department_normalized: MINISTERIO DE AGRICULTURA, PESCA Y ALIMENTACION
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.tragsa.es
+
+  # ── AUTONÓMICO ──────────────────────────────────────────────────────────────
+
   - body_normalized: DEPARTAMENTO DE EDUCACION CULTURA Y DEPORTE
     administration_level: autonomic
     territory_name: Aragón
@@ -28,6 +127,129 @@ entries:
     start_date: 2023-08-12
     end_date:
     source_url: https://datos.gob.es/es/catalogo/a02002834-organigrama-del-gobierno-de-aragon
+
+  # FOGAIBA — Fondo de Garantía Agraria y Pesquera de Illes Balears
+  - body_normalized: FONDO DE GARANTIA AGRARIA Y PESQUERA DE LAS ISLAS BALEARES (FOGAIBA)
+    administration_level: autonomic
+    territory_name: Islas Baleares
+    territory_code: IB
+    ministry_or_department_normalized: GOVERN DE LES ILLES BALEARS
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.caib.es/govern/index.do
+
+  # AVFGA — Agència Valenciana de Foment i Garantia Agrària
+  - body_normalized: AGENCIA VALENCIANA DE FOMENTO Y GARANTIA AGRARIA
+    administration_level: autonomic
+    territory_name: Comunitat Valenciana
+    territory_code: VC
+    ministry_or_department_normalized: GENERALITAT VALENCIANA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.gva.es
+
+  # ADER — Agencia de Desarrollo Económico de La Rioja
+  - body_normalized: AGENCIA DE DESARROLLO ECONOMICO DE LA RIOJA
+    administration_level: autonomic
+    territory_name: La Rioja
+    territory_code: RI
+    ministry_or_department_normalized: GOBIERNO DE LA RIOJA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.larioja.org/ader
+
+  # Navarra — Departamento de Interior, Función Pública y Justicia
+  - body_normalized: DEPARTAMENTO DE INTERIOR, FUNCION PUBLICA Y JUSTICIA
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Navarra — Dirección General del Tesoro, Política Financiera y Patrimonio
+  - body_normalized: DIRECCION GENERAL DEL TESORO, POLITICA FINANCIERA Y PATRIMONIO
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Navarra — Departamento de Desarrollo Rural y Medio Ambiente
+  - body_normalized: DEPARTAMENTO DE DESARROLLO RURAL Y MEDIO AMBIENTE
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Navarra — Departamento de Cohesión Territorial
+  - body_normalized: DEPARTAMENTO DE COHESION TERRITORIAL
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Navarra — Departamento de Vivienda y Agenda Urbana
+  - body_normalized: DEPARTAMENTO DE VIVIENDA Y AGENDA URBANA
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Navarra — Departamento de Vivienda, Juventud y Políticas Migratorias
+  - body_normalized: DEPARTAMENTO DE VIVIENDA, JUVENTUD Y POLITICAS MIGRATORIAS
+    administration_level: autonomic
+    territory_name: Navarra
+    territory_code: NA
+    ministry_or_department_normalized: GOBIERNO DE NAVARRA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.navarra.es/es/gobierno-de-navarra
+
+  # Catalunya — Institut Català de Finances
+  - body_normalized: INSTITUT CATALA DE FINANCES (ICF)
+    administration_level: autonomic
+    territory_name: Catalunya
+    territory_code: CT
+    ministry_or_department_normalized: GENERALITAT DE CATALUNYA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://icf.cat
+
+  # Comunitat Valenciana — Institut Valencià de Finances
+  - body_normalized: INSTITUT VALENCIA DE FINANCES
+    administration_level: autonomic
+    territory_name: Comunitat Valenciana
+    territory_code: VC
+    ministry_or_department_normalized: GENERALITAT VALENCIANA
+    match_strategy: curated_body_map
+    start_date: 2016-01-01
+    end_date:
+    source_url: https://www.ivf.gva.es
+
+  # ── MUNICIPAL ───────────────────────────────────────────────────────────────
 
   - body_normalized: AYUNTAMIENTO DE ZARAGOZA
     administration_level: municipal
