@@ -28,12 +28,22 @@ export function LogoHero({ parties }: LogoHeroProps) {
         <div className="relative mt-10 -mb-2 overflow-hidden">
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-card to-transparent z-10" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-card to-transparent z-10" />
-          <div className="flex w-max animate-marquee gap-2">
+          <div className="flex w-max animate-marquee">
             {parties.map((p) => (
-              <PartyBadge key={p.acronym} acronym={p.acronym} color={p.color} />
+              <PartyBadge
+                key={p.acronym}
+                acronym={p.acronym}
+                color={p.color}
+                className="mx-2 text-sm px-3 py-1"
+              />
             ))}
             {parties.map((p) => (
-              <PartyBadge key={`${p.acronym}-dup`} acronym={p.acronym} color={p.color} />
+              <PartyBadge
+                key={`${p.acronym}-dup`}
+                acronym={p.acronym}
+                color={p.color}
+                className="mx-2 text-sm px-3 py-1"
+              />
             ))}
           </div>
         </div>
