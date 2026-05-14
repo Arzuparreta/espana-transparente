@@ -1,80 +1,183 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para Claude Code (claude.ai/code) cuando trabaje en este repositorio.
 
-## What this project is
+## Qué es este proyecto
 
-A Spanish political transparency portal. It exposes raw data — politicians, individual votes, power chains, revolving-door cases, electoral distortion — and lets the numbers speak. **No editorializing, ever.** See `AGENTS.md` for the full content policy; the short version: show data, use factual labels, never put methodology or value judgments in the UI.
+Portal de transparencia política española. Expone datos crudos —diputados, votos individuales, cadenas de poder, puertas giratorias, distorsión electoral, contratos, indicadores económicos— y deja que los números hablen. **Nunca editorializa.**
 
-## Commands
+Política de contenido (obligatoria): `AGENTS.md`. Marco interno de producto (no aparece en UI bajo ninguna circunstancia): `BASES_FILOSOFICAS.md`. Roadmap: `PLAN.md`.
 
-All frontend commands run from `web/`:
+## Stack
+
+- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind + shadcn/ui (`web/`).
+- **ETL**: Python 3.12 + psycopg2 + httpx + BeautifulSoup (`etl/`).
+- **Base de datos**: Supabase (PostgreSQL) con RLS y `pg_trgm` (`supabase/migrations/`).
+- **CI/CD**: GitHub Actions → Vercel Hobby + Supabase Free.
+
+## Comandos
+
+Desde `web/`:
 
 ```bash
-npm run dev      # dev server → http://localhost:3000
-npm run build    # production build
-npm run lint     # ESLint
-npm run ui:audit # UI consistency audit (scripts/ui-audit.mjs)
+npm run dev           # dev server → http://localhost:3000
+npm run build         # production build
+npm run lint          # ESLint
+npm run ui:audit      # auditoría de consistencia UI (scripts/ui-audit.mjs)
+npm run content:audit # auditoría de reglas de contenido (scripts/content-audit.mjs)
 ```
 
-ETL commands run from `etl/`:
+Desde `etl/`:
 
 ```bash
 pip install -r requirements.txt
-PYTHONPATH=src python -m src.congreso.diputados   # ingest politicians
+PYTHONPATH=src python -m src.congreso.diputados              # diputados activos
+PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
+PYTHONPATH=src python -m src.congreso.votaciones             # votos individuales
+PYTHONPATH=src python -m src.congreso.fotos                  # fotos vía Wikidata
+PYTHONPATH=src python -m src.contratacion.contratos          # PCSP
+PYTHONPATH=src python -m src.ine.indicadores                 # INE
+PYTHONPATH=src python -m src.puertas_giratorias.ingest --csv ... --dry-run
+PYTHONPATH=src python -m src.puertas_giratorias.review list
 ```
 
-Schema changes:
+Schema:
 
 ```bash
-npx supabase db push   # apply migrations in supabase/migrations/
+npx supabase db push   # aplica migrations
 ```
 
-## Architecture
+## Arquitectura
 
 ```
-web/       Next.js 14 App Router frontend (TypeScript, Tailwind, shadcn/ui)
-etl/       Python 3.12 scrapers that populate Supabase
-supabase/  SQL migrations (PostgreSQL with RLS and pg_trgm full-text search)
+web/       Next.js 14 App Router (TS, Tailwind, shadcn/ui)
+etl/       Scrapers Python 3.12 que escriben en Supabase
+supabase/  Migrations SQL secuenciales (Postgres + RLS + pg_trgm)
 ```
 
-### Frontend data flow
+### Flujo de datos frontend
 
-Pages in `web/src/app/` are Server Components that query Supabase directly via `web/src/lib/supabase/client.ts`. There is no API layer — DB calls happen server-side and results are passed as props to client components.
+Las páginas en `web/src/app/` son Server Components que consultan Supabase vía `web/src/lib/supabase/client.ts`. **No hay API layer** — la query es server-side y se pasa por props al cliente.
 
-Component layers:
-- `components/ui/` — shadcn/ui primitives (don't edit directly, regenerate via `npx shadcn add`)
-- `components/domain/` — shared domain widgets (badges, stat grids, page headers)
-- `components/politicians/`, `components/indicators/`, etc. — feature-specific components
+### Mapa de subsistemas
 
-Styling: Tailwind utility classes + `web/src/lib/domain-style.ts` for party/vote color mappings. Party colors and factional styles are centralized there.
+**Rutas (`web/src/app/`)**
 
-### Key pages
+| Ruta | Qué muestra |
+|------|-------------|
+| `/` | Home: buscador + hero "350 personas bajo la lupa" |
+| `/diputados` | Listado con búsqueda |
+| `/diputados/[id]` | Ficha individual: partido, trayectoria, cadena de mando, voto, declaraciones, revolving door |
+| `/votaciones` | Sesiones de votación con badge de divergencias |
+| `/votaciones/[id]` | Desglose por partido con divergencias destacadas |
+| `/partidos` | Listado de partidos con representación |
+| `/puertas-giratorias` | Casos verificados de paso público → privado |
+| `/indicadores` | Series del INE (IPC y otros) |
+| `/distorsion` | D'Hondt, votos por escaño, umbral provincial |
+| `/contratos` | Licitaciones PCSP ordenadas por importe |
 
-| Route | What it shows |
-|-------|--------------|
-| `/diputados` | Politician list with search |
-| `/votaciones` | Vote sessions; divergences highlighted |
-| `/distorsion` | D'Hondt electoral distortion charts |
-| `/puertas-giratorias` | Revolving-door cases |
-| `/partidos` | Party breakdown |
-| `/indicadores` | Aggregated indicators |
+**Componentes (`web/src/components/`)**
 
-### ETL layout
+- `ui/` — primitivos shadcn/ui. **No editar a mano**, regenerar con `npx shadcn add`.
+- `domain/` — widgets compartidos (badges, stat grids, page headers).
+- `layout/` — Header, navegación, footer.
+- `politicians/` — PoliticianProfile, PoliticianCard, PoliticianTimeline, PowerChain, VotingHistory, VoteStats, EconomicDeclaration, RevolvingDoorExplorer, RevolvingDoorList.
+- `indicators/`, `votes/`, `contratos/`, `distorsion/`, `search/`, `annotations/`, `brand/` — específicos de feature.
+
+**Lib (`web/src/lib/`)**
+
+- `supabase/client.ts` — factoría del cliente.
+- `domain-style.ts` — mappings centrales de color por partido y por tipo de voto. **Cualquier color de partido o estilo faccional vive aquí.**
+- `utils.ts` — utilidades generales (`cn` de tailwind-merge).
+
+**Tipos (`web/src/types/index.ts`)** — Politician, Party, Legislature, PoliticianMembership, EconomicDeclaration, Vote, VotingSession, Annotation, PoliticianWithMemberships.
+
+**ETL (`etl/src/`)**
+
+- `congreso/` — diputados, votaciones, asistencia, fotos (Wikidata SPARQL), power_relationships.
+- `contratacion/` — contratos (PCSP ATOM feed mensual).
+- `ine/` — indicadores (API JSON).
+- `puertas_giratorias/` — pipeline 3 fases: `model.py` (shapes), `ingest.py` (CSV + BORME discovery), `db.py` (match_politician con Jaccard 0.92), `review.py` (CLI list/reject/publish).
+- `presupuestos/` — placeholder vacío para Fase 2.
+- `common/` — `db.py` (psycopg2 + bulk upsert), `utils.py` (normalización de nombres).
+
+### Modelo de datos (migrations en orden cronológico)
+
+| Migration | Aporta |
+|-----------|--------|
+| `20260513140000_initial_schema.sql` | `parties`, `politicians`, `legislatures`, `politician_memberships`, `voting_sessions`, `votes`, `initiatives`, `economic_declarations`, `annotations`, `budgets`, `economic_indicators`; índices `pg_trgm`; RLS de lectura pública |
+| `20260513140100_add_parties_unique.sql` | UNIQUE en `parties.name` |
+| `20260513150000_voting_sessions_fix.sql` | `votacion_number` y UNIQUE compuesto |
+| `20260513160000_power_structures.sql` | `power_relationships`, `revolving_door`; añade trazabilidad de origen a `initiatives` |
+| `20260513170000_divergence_function.sql` | función `get_divergences()` (vota distinto a la mayoría del grupo, excluye "No vota") |
+| `20260513180000_revolving_door_enhance.sql` | `person_id` nullable + `person_name`, `political_party` para casos históricos |
+| `20260514000000_contracts.sql` | `contracts` (PCSP) |
+| `20260514000002_attendance.sql` | vistas `v_session_attendance` y `v_attendance_summary` (derivadas de `votes`) |
+| `20260514010000_revolving_door_pipeline.sql` | `organizations`; columnas extendidas en `revolving_door` (organization_id, public_exit_date, private_start_date, authorization_date, verification_status, primary_source_url); tablas `revolving_door_candidates` y `revolving_door_sources`; vista pública `v_revolving_door_public` |
+
+### Modelo RLS
+
+Política general: anon lee solo datos publicados; authenticated puede leer fases de investigación.
+
+- `revolving_door_candidates` → solo `authenticated` (investigación interna).
+- `revolving_door_sources` → anon ve únicamente fuentes ligadas a casos publicados (`revolving_door_id IS NOT NULL`).
+- `revolving_door`, `organizations`, `politicians`, `votes`, etc. → lectura pública.
+- Escrituras: siempre vía ETL con `DATABASE_URL` directa a Postgres (la `service_role` no se usa en runtime web).
+
+### Scheduling ETL (`.github/workflows/ci.yml`)
+
+Cron diario `0 4 * * *` UTC (job `etl-run`): `diputados`, `asistencia`, `indicadores`, `contratos`.
+
+Manuales (todavía sin cron):
+- `votaciones` — tiene sesión hardcoded, pendiente refactor a iteración sobre `voting_sessions`.
+- `fotos` — Wikidata SPARQL, periodicidad baja.
+- `power_relationships` — datos declarativos, leer de YAML versionado.
+- `puertas_giratorias.ingest --source borme` — discovery semanal previsto.
+
+## Reglas de contenido (resumen — fuente canónica: `AGENTS.md`)
+
+- La UI muestra datos. **Solo datos.** El usuario saca sus propias conclusiones.
+- Etiquetas factuales: "Diputados", "Votaciones", "Partidos", "Divergencias detectadas", "Cadena de mando".
+- Resaltar excepciones (divergencias), no uniformidades.
+- Cada dato apunta a una persona física, no a una entidad agregada con voluntad propia.
+- Nunca exponer en UI: metodología del proyecto, juicios de valor, ironía, vocabulario filosófico interno.
+
+**Términos PROHIBIDOS en UI** (`web/src/`, excluyendo comments). Auditados por `npm run content:audit`:
 
 ```
-etl/src/congreso/   scrapers for Congress votes and politician data
-etl/src/common/     DB client (psycopg2), name normalization utilities
-etl/src/ine/        INE data scrapers
+austriac*, libertari*, coerción, expolio, anarcocap*,
+Huerta de Soto, Mises, Hayek, Rothbard,
+"fatal arrogancia", "robo del estado", "robar al",
+BASES_FILOSOFICAS
 ```
 
-### Database
+`BASES_FILOSOFICAS.md` es lectura interna para colaboradores. **Nunca** se enlaza desde la web, los meta tags o el sitemap.
 
-Supabase (PostgreSQL). Migrations are sequential in `supabase/migrations/`. The divergence detection logic lives in a DB function (`20260513170000_divergence_function.sql`). Power structures (who controls whom) are in their own migration. RLS is active — check policies before adding new tables.
+## Convenciones
 
-## Content rules (from AGENTS.md)
+- **No reescribir lo que ya existe.** Antes de crear un componente o utility, buscar en `domain/`, `domain-style.ts`, `common/`. Ejemplo: para matchear nombres de políticos, usar `etl/src/puertas_giratorias/db.py:match_politician` (Jaccard 0.92).
+- **Idempotencia ETL.** Los scrapers se reejecutan en cron — todos los upserts deben usar claves naturales (`congress_id`, `(politician_id, session_id)`, etc.).
+- **Una migración por cambio de schema.** Numeradas con timestamp, jamás editar una migration ya commiteada.
+- **Server Components por defecto.** Solo bajar a Client Component (`"use client"`) si hace falta estado o efectos.
 
-- UI text must be purely factual: "Diputados", "Votaciones", "Divergencias detectadas" — not methodology
-- Never reference Austrian Economics, the project's internal principles, or any value judgment in the UI
-- Highlight exceptions (politicians who deviate from their group), not uniformity
-- Every data point should be traceable to a specific person, not attributed to a party as an agent
+## Checklist pre-PR
+
+Desde `web/`:
+1. `npm run lint`
+2. `npm run build`
+3. `npm run ui:audit`
+4. `npm run content:audit` (debe salir con exit 0)
+
+Desde `etl/` (si tocas un pipeline):
+5. Probar el módulo modificado con `--dry-run` si lo soporta.
+
+Si añades migration:
+6. Aplicar local con `npx supabase db push` y verificar que no rompe migrations posteriores.
+
+## Trabajo reciente (contexto de dirección)
+
+- Pipeline 3 fases de puertas giratorias (candidato → fuente → publicado) con BORME como discovery channel y revisión humana obligatoria.
+- Vistas de asistencia derivadas de `votes` (la "presencia" se infiere de haber emitido cualquier voto incluido "No vota" en una sesión).
+- Integración Wikidata para fotos de diputados (matching por nombre/partido, threshold Jaccard ≥0.5).
+- Contratos PCSP (ATOM feed mensual) ingestados pero **sin** vinculación todavía al político firmante.
+- Distorsión electoral D'Hondt con cálculo en cliente (no requiere ETL).
