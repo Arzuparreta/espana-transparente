@@ -32,6 +32,20 @@ ALTER TABLE revolving_door
   ADD COLUMN IF NOT EXISTS verification_method text,
   ADD COLUMN IF NOT EXISTS primary_source_url text;
 
+CREATE OR REPLACE FUNCTION immutable_date_key(input date)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT CASE
+    WHEN input IS NULL THEN ''
+    ELSE
+      lpad(extract(year FROM input)::int::text, 4, '0') || '-' ||
+      lpad(extract(month FROM input)::int::text, 2, '0') || '-' ||
+      lpad(extract(day FROM input)::int::text, 2, '0')
+  END
+$$;
+
 CREATE TABLE IF NOT EXISTS revolving_door_candidates (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   person_id uuid REFERENCES politicians(id) ON DELETE SET NULL,
@@ -60,8 +74,8 @@ CREATE TABLE IF NOT EXISTS revolving_door_candidates (
       lower(coalesce(person_name, '')) || '|' ||
       lower(coalesce(private_organization, '')) || '|' ||
       lower(coalesce(private_role, '')) || '|' ||
-      coalesce(private_start_date::text, '') || '|' ||
-      coalesce(authorization_date::text, '')
+      immutable_date_key(private_start_date) || '|' ||
+      immutable_date_key(authorization_date)
     )
   ) STORED,
   raw_data jsonb DEFAULT '{}',

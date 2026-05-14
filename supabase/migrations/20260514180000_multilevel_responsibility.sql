@@ -247,7 +247,7 @@ DROP POLICY IF EXISTS "public_body_responsibility_map_public_read" ON public_bod
 CREATE POLICY "public_body_responsibility_map_public_read"
   ON public_body_responsibility_map FOR SELECT USING (true);
 
-DROP VIEW IF EXISTS v_government_position_lookup;
+DROP VIEW IF EXISTS v_government_position_lookup CASCADE;
 CREATE OR REPLACE VIEW v_responsibility_position_lookup
 WITH (security_invoker = true) AS
 SELECT DISTINCT
@@ -388,7 +388,7 @@ JOIN v_responsibility_position_lookup lookup
 UNION ALL
 SELECT
   base.record_id AS contract_id,
-  lookup.position_id,
+  lookup.id AS position_id,
   lookup.person_name,
   lookup.politician_id,
   lookup.organization_name AS ministry,
