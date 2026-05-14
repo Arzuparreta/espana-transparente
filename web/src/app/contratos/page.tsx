@@ -1,20 +1,26 @@
-import { supabase } from "@/lib/supabase/client"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
+import { PAGE_SIZE, getContractPage, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
-export default async function ContratosPage() {
-  const { data: contracts } = await supabase
-    .from("contracts")
-    .select("id, contract_folder_id, title, awarding_body, amount, status, contract_type, region, date, source_url")
-    .order("amount", { ascending: false, nullsFirst: false })
-    .limit(500)
+interface PageProps {
+  searchParams?: {
+    page?: string
+    type?: string
+  }
+}
 
-  const rows = contracts ?? []
+export default async function ContratosPage({ searchParams }: PageProps) {
+  const page = parsePage(searchParams?.page)
+  const requestedType = searchParams?.type || "all"
+  const activeType = ["all", "Servicios", "Obras", "Suministros"].includes(requestedType)
+    ? requestedType
+    : "all"
+  const { contracts, total, statsRows } = await getContractPage(page, activeType)
 
-  const totalAmount = rows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
+  const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
   const formatted =
     totalAmount >= 1_000_000_000
       ? `${(totalAmount / 1_000_000_000).toFixed(1)}B €`
@@ -27,10 +33,10 @@ export default async function ContratosPage() {
         description="Licitaciones publicadas en la Plataforma de Contratación del Sector Público (PCSP). Ordenadas por importe sin IVA."
       />
 
-      {rows.length > 0 ? (
+      {statsRows.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{rows.length}</div>
+            <div className="text-2xl font-semibold tabular-nums">{total}</div>
             <div className="text-xs text-muted-foreground">Licitaciones</div>
           </div>
           <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
@@ -39,14 +45,20 @@ export default async function ContratosPage() {
           </div>
           <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
             <div className="text-2xl font-semibold tabular-nums">
-              {new Set(rows.map((c) => c.awarding_body)).size}
+              {new Set(statsRows.map((c) => c.awarding_body)).size}
             </div>
             <div className="text-xs text-muted-foreground">Organismos</div>
           </div>
         </div>
       ) : null}
 
-      <ContratosClient contracts={rows} />
+      <ContratosClient
+        activeType={activeType}
+        contracts={contracts}
+        page={page}
+        total={total}
+        totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE.contracts))}
+      />
 
       <InfoPanel title="Fuente">
         Fuente: Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.

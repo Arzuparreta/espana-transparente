@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -7,6 +6,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { VoteBadge } from "@/components/domain/VoteBadge"
 import { getVoteColor } from "@/lib/domain-style"
+import { getVotingDetailData } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -22,14 +22,8 @@ interface VoteRow {
 
 export default async function VotacionPage({ params }: PageProps) {
   const { id } = await params
-  const { data: session } = await supabase.from("voting_sessions").select("*").eq("id", id).single()
+  const { session, votes } = await getVotingDetailData(id)
   if (!session) notFound()
-
-  const { data: votes } = await supabase
-    .from("votes")
-    .select("vote, politician:politicians(full_name), membership:politician_memberships!inner(party:parties(acronym, color))")
-    .eq("voting_session_id", id)
-    .eq("membership.is_active", true)
 
   const partyGroups: Record<
     string,

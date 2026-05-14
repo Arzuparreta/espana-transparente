@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -66,7 +66,7 @@ export function MobileNavDropdown() {
                   (item.href !== "/" && pathname?.startsWith(item.href))
 
                 return (
-                  <Link
+                  <ResponsiveLink
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
@@ -78,7 +78,7 @@ export function MobileNavDropdown() {
                     )}
                   >
                     {item.label}
-                  </Link>
+                  </ResponsiveLink>
                 )
               })}
             </nav>

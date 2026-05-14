@@ -1,9 +1,9 @@
-import { supabase } from "@/lib/supabase/client"
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { PAGE_SIZE, getVotingSessionPage, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -14,55 +14,20 @@ interface SessionRow {
   date: string
   initiative_number?: string
   votes: Array<{ count: number }>
+  vote_count?: number
+  divergence_count?: number
 }
 
-interface VoteWithPartyRow {
-  voting_session_id: string
-  vote: string
-  membership: {
-    party_id: string | null
-  } | null
+interface PageProps {
+  searchParams?: {
+    page?: string
+  }
 }
 
-export default async function VotacionesPage() {
-  const { data: sessions } = await supabase
-    .from("voting_sessions")
-    .select("*, votes(count)")
-    .order("date", { ascending: false })
-
-  const { data: voteRows } = await supabase
-    .from("votes")
-    .select("voting_session_id, vote, membership:politician_memberships!inner(party_id)")
-    .eq("membership.is_active", true)
-
-  const groupedVotes: Record<string, Record<string, string[]>> = {}
-  for (const row of (voteRows as VoteWithPartyRow[] | null) || []) {
-    const partyId = row.membership?.party_id
-    if (!partyId) continue
-    if (!groupedVotes[row.voting_session_id]) groupedVotes[row.voting_session_id] = {}
-    if (!groupedVotes[row.voting_session_id][partyId]) groupedVotes[row.voting_session_id][partyId] = []
-    groupedVotes[row.voting_session_id][partyId].push(row.vote)
-  }
-
-  const divBySessionId: Record<string, number> = {}
-  for (const [sessionId, partyVotes] of Object.entries(groupedVotes)) {
-    let divergences = 0
-    for (const votes of Object.values(partyVotes)) {
-      const voteCounts = votes.reduce<Record<string, number>>((acc, vote) => {
-        if (vote === "No vota") return acc
-        acc[vote] = (acc[vote] || 0) + 1
-        return acc
-      }, {})
-
-      const majorityVote = Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-      if (!majorityVote) continue
-
-      for (const vote of votes) {
-        if (vote !== "No vota" && vote !== majorityVote) divergences++
-      }
-    }
-    divBySessionId[sessionId] = divergences
-  }
+export default async function VotacionesPage({ searchParams }: PageProps) {
+  const page = parsePage(searchParams?.page)
+  const { sessions, total } = await getVotingSessionPage(page)
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.votingSessions))
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -76,10 +41,11 @@ export default async function VotacionesPage() {
           const dateStr = s.date
             ? new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
             : ""
-          const divCount = divBySessionId[s.id] || 0
+          const divCount = s.divergence_count ?? 0
+          const voteCount = s.vote_count ?? s.votes?.[0]?.count ?? 0
 
           return (
-            <Link key={s.id} href={`/votaciones/${s.id}`}>
+            <ResponsiveLink key={s.id} href={`/votaciones/${s.id}`}>
               <Card className="ui-card-link cursor-pointer bg-card/85">
                 <CardContent className="flex items-start gap-3 py-4 sm:gap-4">
                   <div className="min-w-0 flex-1">
@@ -89,7 +55,7 @@ export default async function VotacionesPage() {
                         Sesión {s.session_number} · {dateStr}
                       </span>
                       <Badge variant="outline" className="h-5 shrink-0 text-[10px]">
-                        {s.votes?.[0]?.count || 0} votos
+                        {voteCount} votos
                       </Badge>
                     </div>
                   </div>
@@ -98,10 +64,36 @@ export default async function VotacionesPage() {
                   )}
                 </CardContent>
               </Card>
-            </Link>
+            </ResponsiveLink>
           )
         })}
       </div>
+
+      {totalPages > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
+          <ResponsiveLink
+            href={`/votaciones?page=${Math.max(1, page - 1)}`}
+            aria-disabled={page <= 1}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Anterior
+          </ResponsiveLink>
+          <span className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </span>
+          <ResponsiveLink
+            href={`/votaciones?page=${Math.min(totalPages, page + 1)}`}
+            aria-disabled={page >= totalPages}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Siguiente
+          </ResponsiveLink>
+        </div>
+      ) : null}
     </div>
   )
 }

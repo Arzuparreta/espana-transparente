@@ -1,16 +1,13 @@
-import { supabase } from "@/lib/supabase/client"
-import Link from "next/link"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { getParties } from "@/lib/data"
 import type { Party } from "@/types"
 
 export const revalidate = 3600
 
 export default async function PartidosPage() {
-  const { data: parties } = await supabase
-    .from("parties")
-    .select("*")
-    .order("acronym")
+  const parties = await getParties()
 
   return (
     <div className="space-y-8">
@@ -19,8 +16,8 @@ export default async function PartidosPage() {
         description="Partidos con representación en el Congreso. Cada partido incluye sus diputados activos, grupo parlamentario y cadena de mando."
       />
       <div className="ui-grid-cards">
-        {(parties as Party[])?.map((p) => (
-          <Link key={p.id} href={`/partidos/${p.id}`}>
+        {(parties as Party[]).map((p) => (
+          <ResponsiveLink key={p.id} href={`/partidos/${p.id}`}>
             <Card className="ui-card-link h-full cursor-pointer bg-card/85">
               <CardHeader className="space-y-3">
                 <div className="flex items-start gap-3">
@@ -37,7 +34,7 @@ export default async function PartidosPage() {
                 </div>
               </CardHeader>
             </Card>
-          </Link>
+          </ResponsiveLink>
         ))}
       </div>
     </div>

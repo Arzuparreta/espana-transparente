@@ -3,6 +3,8 @@
 Discovers all voting dates from the Congress portlet, downloads the ZIP for
 each session, and upserts votes into the existing voting_sessions/votes tables.
 Attendance is then queryable via the v_attendance_summary DB view.
+The voting list summary is exposed via v_voting_session_summary and updates
+automatically from the same voting_sessions/votes tables.
 
 Usage:
     PYTHONPATH=src python -m src.congreso.asistencia

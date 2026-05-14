@@ -1,18 +1,14 @@
-import { supabase } from "@/lib/supabase/client"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { getIndicators } from "@/lib/data"
 
 export const revalidate = 3600
 
 export default async function IndicadoresPage() {
-  const { data: rows } = await supabase
-    .from("economic_indicators")
-    .select("indicator_code, indicator_name, unit, period, value")
-    .order("indicator_code")
-    .order("period", { ascending: false })
+  const rows = await getIndicators()
 
   // Keep only the first (latest) row per indicator_code
   const unique: Record<string, { name: string; unit: string; latest: string; value: number }> = {}
@@ -42,7 +38,7 @@ export default async function IndicadoresPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {entries.map(([code, info]) => (
-            <Link key={code} href={`/indicadores/${code}`}>
+            <ResponsiveLink key={code} href={`/indicadores/${code}`}>
               <Card className="ui-card-link h-full cursor-pointer bg-card/85">
                 <CardHeader className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -60,7 +56,7 @@ export default async function IndicadoresPage() {
                   </CardDescription>
                 </CardHeader>
               </Card>
-            </Link>
+            </ResponsiveLink>
           ))}
         </div>
       )}

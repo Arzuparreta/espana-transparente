@@ -1,12 +1,12 @@
-import Link from "next/link"
 import { LogoMark } from "@/components/brand/LogoMark"
 import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92 backdrop-blur">
       <div className="ui-shell flex min-h-14 flex-row items-center justify-between gap-3 py-3 sm:min-h-16">
-        <Link href="/" className="flex min-w-0 items-center gap-3 group">
+        <ResponsiveLink href="/" prefetch className="flex min-w-0 items-center gap-3 group">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[1rem] border border-primary/15 bg-primary text-primary-foreground shadow-sm transition-transform group-hover:-rotate-3 sm:h-11 sm:w-11">
             <LogoMark className="h-7 w-7" />
           </span>
@@ -18,41 +18,41 @@ export function Header() {
               Personas, poder y trazabilidad
             </div>
           </div>
-        </Link>
+        </ResponsiveLink>
         <div className="flex shrink-0 items-center justify-end">
           <MobileNavDropdown />
           <nav className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
-            <Link href="/" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            <ResponsiveLink href="/" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Inicio
-            </Link>
-            <Link href="/diputados" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/diputados" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Diputados
-            </Link>
-            <Link href="/votaciones" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/votaciones" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Votaciones
-            </Link>
-            <Link href="/partidos" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/partidos" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Partidos
-            </Link>
-            <Link href="/indicadores" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/indicadores" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               IPC
-            </Link>
-            <Link href="/distorsion" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/distorsion" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Distorsión
-            </Link>
-            <Link href="/contratos" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/contratos" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Contratos
-            </Link>
-            <Link href="/puertas-giratorias" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+            </ResponsiveLink>
+            <ResponsiveLink href="/puertas-giratorias" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Puertas
-            </Link>
-            <Link
+            </ResponsiveLink>
+            <ResponsiveLink
               href="https://github.com/Arzuparreta/accion-humana"
               target="_blank"
               className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               GH
-            </Link>
+            </ResponsiveLink>
           </nav>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { SectionTabs } from "@/components/domain/SectionTabs"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 
 interface Contrato {
   id: string
@@ -17,7 +17,11 @@ interface Contrato {
 }
 
 interface ContratosClientProps {
+  activeType: string
   contracts: Contrato[]
+  page: number
+  total: number
+  totalPages: number
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -103,32 +107,85 @@ function ContratoCard({ c }: { c: Contrato }) {
   )
 }
 
-export function ContratosClient({ contracts }: ContratosClientProps) {
-  return (
-    <SectionTabs tabs={TYPE_TABS} defaultTab="all">
-      {(activeType) => {
-        const filtered =
-          activeType === "all"
-            ? contracts
-            : contracts.filter((c) => c.contract_type === activeType)
+function contractsHref(type: string, page = 1) {
+  const params = new URLSearchParams()
+  if (type !== "all") params.set("type", type)
+  if (page > 1) params.set("page", String(page))
+  const query = params.toString()
+  return query ? `/contratos?${query}` : "/contratos"
+}
 
-        return (
-          <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">
-              {filtered.length} licitaciones · ordenadas por importe
-            </div>
-            {filtered.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  Sin datos. Ejecuta el ETL: <code>PYTHONPATH=src python -m src.contratacion.contratos</code>
-                </CardContent>
-              </Card>
-            ) : (
-              filtered.map((c) => <ContratoCard key={c.id} c={c} />)
-            )}
-          </div>
-        )
-      }}
-    </SectionTabs>
+export function ContratosClient({
+  activeType,
+  contracts,
+  page,
+  total,
+  totalPages,
+}: ContratosClientProps) {
+  return (
+    <div className="space-y-6">
+      <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+        <div className="inline-flex min-w-full gap-2 border-b border-border/70 pb-1">
+          {TYPE_TABS.map((tab) => {
+            const isActive = activeType === tab.value
+
+            return (
+              <ResponsiveLink
+                key={tab.value}
+                href={contractsHref(tab.value)}
+                className={
+                  isActive
+                    ? "shrink-0 rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background"
+                    : "shrink-0 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                }
+              >
+                {tab.label}
+              </ResponsiveLink>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-xs text-muted-foreground">
+          {total} licitaciones · ordenadas por importe
+        </div>
+        {contracts.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              Sin datos. Ejecuta el ETL: <code>PYTHONPATH=src python -m src.contratacion.contratos</code>
+            </CardContent>
+          </Card>
+        ) : (
+          contracts.map((c) => <ContratoCard key={c.id} c={c} />)
+        )}
+      </div>
+
+      {totalPages > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
+          <ResponsiveLink
+            href={contractsHref(activeType, Math.max(1, page - 1))}
+            aria-disabled={page <= 1}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Anterior
+          </ResponsiveLink>
+          <span className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </span>
+          <ResponsiveLink
+            href={contractsHref(activeType, Math.min(totalPages, page + 1))}
+            aria-disabled={page >= totalPages}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Siguiente
+          </ResponsiveLink>
+        </div>
+      ) : null}
+    </div>
   )
 }

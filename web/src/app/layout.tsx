@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import { cn } from "@/lib/utils"
 import { Header } from "@/components/layout/Header"
+import { NavigationProgress } from "@/components/navigation/NavigationProgress"
 import "./globals.css"
 
 export const viewport = {
@@ -83,6 +84,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
+        <NavigationProgress />
         <Header />
         <main className="ui-shell overflow-x-hidden py-5 sm:py-8">
           {children}

@@ -1,7 +1,7 @@
-import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PartyBadge } from "@/components/domain/PartyBadge"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import type { PoliticianWithMemberships } from "@/types"
 
 interface PoliticianCardProps {
@@ -14,7 +14,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
   const initials = `${politician.first_name[0] ?? ""}${politician.last_name[0] ?? ""}`.toUpperCase()
 
   return (
-    <Link href={`/diputados/${politician.id}`}>
+    <ResponsiveLink href={`/diputados/${politician.id}`}>
       <Card className="ui-card-link h-full cursor-pointer bg-card/85">
         <CardHeader className="space-y-3">
           <div className="flex items-start gap-3">
@@ -43,6 +43,6 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
           ) : null}
         </CardHeader>
       </Card>
-    </Link>
+    </ResponsiveLink>
   )
 }

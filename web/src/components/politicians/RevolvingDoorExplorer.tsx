@@ -1,10 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionTabs } from "@/components/domain/SectionTabs"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import type { RDCase } from "@/app/puertas-giratorias/page"
 
 interface RevolvingDoorExplorerProps {
@@ -70,9 +70,9 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                         entry.sources?.find((source) => source.source_type === "primary")?.source_name ||
                         (entry.primary_source_url || entry.source_url ? "Fuente" : null)
                       const personName = entry.person_id ? (
-                        <Link href={`/diputados/${entry.person_id}`} className="truncate font-medium hover:underline">
+                        <ResponsiveLink href={`/diputados/${entry.person_id}`} className="truncate font-medium hover:underline">
                           {entry.person_name}
-                        </Link>
+                        </ResponsiveLink>
                       ) : (
                         <span className="truncate font-medium">{entry.person_name}</span>
                       )

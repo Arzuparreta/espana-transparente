@@ -1,10 +1,10 @@
-import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IndicatorChart } from "@/components/indicators/IndicatorChart"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { getIndicatorPoints } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -22,12 +22,7 @@ interface Row {
 export default async function IndicadorPage({ params }: PageProps) {
   const { code } = await params
 
-  const { data: points } = await supabase
-    .from("economic_indicators")
-    .select("period, value, unit, indicator_name")
-    .eq("indicator_code", code)
-    .order("period", { ascending: false })
-    .limit(120)
+  const points = await getIndicatorPoints(code)
 
   if (!points || points.length === 0) notFound()
 

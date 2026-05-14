@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ export function SearchBox() {
   const [partyResults, setPartyResults] = useState<PartyResult[]>([])
   const [sessionResults, setSessionResults] = useState<VotingSessionResult[]>([])
   const [open, setOpen] = useState(false)
+  const [isNavigating, startNavigation] = useTransition()
   const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
 
@@ -76,6 +77,11 @@ export function SearchBox() {
   }, [])
 
   const hasResults = results.length > 0 || partyResults.length > 0 || sessionResults.length > 0
+  const navigateTo = (href: string) => {
+    setOpen(false)
+    setQuery("")
+    startNavigation(() => router.push(href))
+  }
 
   return (
     <div ref={ref} className="relative max-w-xl mx-auto w-full">
@@ -89,6 +95,7 @@ export function SearchBox() {
         }}
         onFocus={() => setOpen(true)}
         className="h-12 rounded-2xl border-border/70 bg-card px-4 text-base shadow-sm sm:text-lg"
+        aria-busy={isNavigating}
       />
       {open && query.length >= 2 && hasResults && (
         <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl">
@@ -104,9 +111,7 @@ export function SearchBox() {
                   <button
                     key={r.id}
                     onClick={() => {
-                      router.push(`/diputados/${r.id}`)
-                      setOpen(false)
-                      setQuery("")
+                      navigateTo(`/diputados/${r.id}`)
                     }}
                     className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
                   >
@@ -136,9 +141,7 @@ export function SearchBox() {
                 <button
                   key={party.id}
                   onClick={() => {
-                    router.push(`/partidos/${party.id}`)
-                    setOpen(false)
-                    setQuery("")
+                    navigateTo(`/partidos/${party.id}`)
                   }}
                   className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted"
                 >
@@ -158,9 +161,7 @@ export function SearchBox() {
                 <button
                   key={session.id}
                   onClick={() => {
-                    router.push(`/votaciones/${session.id}`)
-                    setOpen(false)
-                    setQuery("")
+                    navigateTo(`/votaciones/${session.id}`)
                   }}
                   className="w-full px-4 py-3 text-left transition-colors hover:bg-muted"
                 >
