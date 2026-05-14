@@ -32,8 +32,7 @@ Desde `etl/`:
 ```bash
 pip install -r requirements.txt
 PYTHONPATH=src python -m src.congreso.diputados              # diputados activos
-PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
-PYTHONPATH=src python -m src.congreso.votaciones             # votos individuales
+PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101  # sesiones + votos + asistencia
 PYTHONPATH=src python -m src.congreso.fotos                  # fotos vía Wikidata
 PYTHONPATH=src python -m src.contratacion.contratos          # PCSP
 PYTHONPATH=src python -m src.ine.indicadores                 # INE
@@ -94,7 +93,7 @@ Las páginas en `web/src/app/` son Server Components que consultan Supabase vía
 
 **ETL (`etl/src/`)**
 
-- `congreso/` — diputados, votaciones, asistencia, fotos (Wikidata SPARQL), power_relationships.
+- `congreso/` — diputados, asistencia (descubre sesiones del portlet, ingiere votos individuales y deriva asistencia), fotos (Wikidata SPARQL), power_relationships.
 - `contratacion/` — contratos (PCSP ATOM feed mensual).
 - `ine/` — indicadores (API JSON).
 - `puertas_giratorias/` — pipeline 3 fases: `model.py` (shapes), `ingest.py` (CSV + BORME discovery), `db.py` (match_politician con Jaccard 0.92), `review.py` (CLI list/reject/publish).
@@ -129,10 +128,9 @@ Política general: anon lee solo datos publicados; authenticated puede leer fase
 Cron diario `0 4 * * *` UTC (job `etl-run`): `diputados`, `asistencia`, `indicadores`, `contratos`.
 
 Manuales (todavía sin cron):
-- `votaciones` — tiene sesión hardcoded, pendiente refactor a iteración sobre `voting_sessions`.
 - `fotos` — Wikidata SPARQL, periodicidad baja.
-- `power_relationships` — datos declarativos, leer de YAML versionado.
-- `puertas_giratorias.ingest --source borme` — discovery semanal previsto.
+- `power_relationships` — datos declarativos hardcoded, candidato a pasarse a YAML versionado.
+- `puertas_giratorias.ingest` — CSV (revisión humana) + BORME (descubrimiento con `--borme-date` + `--names`).
 
 ## Reglas de contenido (resumen — fuente canónica: `AGENTS.md`)
 
