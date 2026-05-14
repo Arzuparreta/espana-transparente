@@ -7,6 +7,7 @@ on:
     branches: [main]
   schedule:
     - cron: "0 4 * * *"  # Daily at 4am UTC
+    - cron: "0 5 * * 1"  # Mondays at 5am UTC (slow weekly pipelines)
 
 jobs:
   web:
@@ -43,9 +44,9 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
 
-  etl-run:
-    name: ETL Pipeline (scheduled)
-    if: github.event_name == 'schedule'
+  etl-daily:
+    name: ETL daily pipelines
+    if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -67,5 +68,23 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.contratacion.contratos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  etl-weekly:
+    name: ETL weekly pipelines
+    if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: etl
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: PYTHONPATH=src python -m src.congreso.declaraciones
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

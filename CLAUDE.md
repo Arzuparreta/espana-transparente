@@ -33,6 +33,7 @@ Desde `etl/`:
 pip install -r requirements.txt
 PYTHONPATH=src python -m src.congreso.diputados              # diputados activos
 PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101  # sesiones + votos + asistencia
+PYTHONPATH=src python -m src.congreso.declaraciones          # declaraciones de bienes e intereses (semanal)
 PYTHONPATH=src python -m src.congreso.fotos                  # fotos vía Wikidata
 PYTHONPATH=src python -m src.contratacion.contratos          # PCSP
 PYTHONPATH=src python -m src.ine.indicadores                 # INE
@@ -93,7 +94,7 @@ Las páginas en `web/src/app/` son Server Components que consultan Supabase vía
 
 **ETL (`etl/src/`)**
 
-- `congreso/` — diputados, asistencia (descubre sesiones del portlet, ingiere votos individuales y deriva asistencia), fotos (Wikidata SPARQL), power_relationships.
+- `congreso/` — diputados, asistencia (descubre sesiones del portlet, ingiere votos individuales y deriva asistencia), declaraciones (scrape de ficha para PDFs de bienes e intereses económicos), fotos (Wikidata SPARQL), power_relationships.
 - `contratacion/` — contratos (PCSP ATOM feed mensual).
 - `ine/` — indicadores (API JSON).
 - `puertas_giratorias/` — pipeline 3 fases: `model.py` (shapes), `ingest.py` (CSV + BORME discovery), `db.py` (match_politician con Jaccard 0.92), `review.py` (CLI list/reject/publish).
@@ -113,6 +114,7 @@ Las páginas en `web/src/app/` son Server Components que consultan Supabase vía
 | `20260514000000_contracts.sql` | `contracts` (PCSP) |
 | `20260514000002_attendance.sql` | vistas `v_session_attendance` y `v_attendance_summary` (derivadas de `votes`) |
 | `20260514010000_revolving_door_pipeline.sql` | `organizations`; columnas extendidas en `revolving_door` (organization_id, public_exit_date, private_start_date, authorization_date, verification_status, primary_source_url); tablas `revolving_door_candidates` y `revolving_door_sources`; vista pública `v_revolving_door_public` |
+| `20260514020000_economic_declarations_source_unique.sql` | UNIQUE parcial sobre `economic_declarations.source_url` (clave natural del ETL de declaraciones); índice `(politician_id, declaration_date DESC)` |
 
 ### Modelo RLS
 
@@ -125,7 +127,8 @@ Política general: anon lee solo datos publicados; authenticated puede leer fase
 
 ### Scheduling ETL (`.github/workflows/ci.yml`)
 
-Cron diario `0 4 * * *` UTC (job `etl-run`): `diputados`, `asistencia`, `indicadores`, `contratos`.
+- Diario `0 4 * * *` UTC (`etl-daily`): `diputados`, `asistencia`, `indicadores`, `contratos`.
+- Semanal `0 5 * * 1` UTC (`etl-weekly`, lunes): `declaraciones`.
 
 Manuales (todavía sin cron):
 - `fotos` — Wikidata SPARQL, periodicidad baja.

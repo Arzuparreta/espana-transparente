@@ -10,6 +10,8 @@ import { SectionTabs } from "@/components/domain/SectionTabs"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { VoteBadge } from "@/components/domain/VoteBadge"
 import { getVoteColor } from "@/lib/domain-style"
+import { EconomicDeclarationList } from "@/components/politicians/EconomicDeclaration"
+import type { EconomicDeclaration } from "@/types"
 
 const RELATION_LABELS: Record<string, string> = {
   party_leader: "Responde ante",
@@ -46,7 +48,7 @@ export function PoliticianProfile({
   const initials = [String(p.first_name || "").charAt(0), String(p.last_name || "").charAt(0)].join("").toUpperCase()
   const bio = (p.raw_data as Record<string, unknown> | undefined)?.biografia as string | undefined
   const memberships = (p.politician_memberships || []) as Array<Record<string, unknown>>
-  const econDecls = (p.economic_declarations || []) as Array<Record<string, unknown>>
+  const econDecls = (p.economic_declarations || []) as EconomicDeclaration[]
   const current = memberships.find(
     (m: Record<string, unknown>) =>
       (m.legislature as Record<string, unknown> | undefined)?.is_active
@@ -362,17 +364,9 @@ export function PoliticianProfile({
               </Card>
             ) : null}
 
-            {active === "declarations" && econDecls.length > 0
-              ? econDecls.map((declaration: Record<string, unknown>) => (
-                  <Card key={String(declaration.id)} className="bg-card/80">
-                    <CardContent className="p-4">
-                      <p className="max-h-96 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
-                        {JSON.stringify(declaration.raw_data, null, 2)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))
-              : null}
+            {active === "declarations" ? (
+              <EconomicDeclarationList declarations={econDecls} />
+            ) : null}
 
             {active === "annotations" ? (
               <AnnotationPanel entityType="politician" entityId={String(p.id)} />
