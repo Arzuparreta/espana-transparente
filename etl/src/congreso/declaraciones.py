@@ -84,14 +84,14 @@ def parse_declarations(html: str) -> list[dict]:
 def fetch_politicians(cur, only_cod: str | None) -> list[tuple]:
     if only_cod:
         cur.execute(
-            "SELECT id, full_name, photo_url FROM politicians "
-            "WHERE photo_url LIKE %s",
-            (f"%/diputados/{only_cod}.jpg",),
+            "SELECT id, full_name, cod_parlamentario FROM politicians "
+            "WHERE cod_parlamentario = %s",
+            (only_cod,),
         )
     else:
         cur.execute(
-            "SELECT id, full_name, photo_url FROM politicians "
-            "WHERE photo_url IS NOT NULL ORDER BY full_name",
+            "SELECT id, full_name, cod_parlamentario FROM politicians "
+            "WHERE cod_parlamentario IS NOT NULL ORDER BY full_name",
         )
     return cur.fetchall()
 
@@ -114,8 +114,7 @@ def run(dry_run: bool = False, only_cod: str | None = None) -> None:
     no_cod = 0
     no_decls = 0
 
-    for i, (pol_id, full_name, photo_url) in enumerate(politicians, start=1):
-        cod = cod_from_photo_url(photo_url)
+    for i, (pol_id, full_name, cod) in enumerate(politicians, start=1):
         if not cod:
             no_cod += 1
             continue

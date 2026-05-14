@@ -3,12 +3,26 @@
 import csv
 import io
 import hashlib
+import re
+import subprocess
 import httpx
 import psycopg2.extras
 from common.db import get_pg_conn
 
 CONGRESO_BASE = "https://www.congreso.es"
-DIPUTADOS_CSV = "https://www.congreso.es/webpublica/opendata/diputados/DiputadosActivos__20260513050012.csv"
+OPENDATA_PAGE = "https://www.congreso.es/opendata/diputados"
+
+
+def discover_csv_url() -> str:
+    """Discover the current DiputadosActivos CSV URL from the open data page."""
+    result = subprocess.run(
+        ["curl", "-sL", "-H", "User-Agent: Mozilla/5.0 (compatible; EspanaTransparente/1.0)", OPENDATA_PAGE],
+        capture_output=True, text=True, timeout=30,
+    )
+    match = re.search(r'href="(/webpublica/opendata/diputados/DiputadosActivos__\d+\.csv)"', result.stdout)
+    if not match:
+        raise RuntimeError("No se encontró el CSV de diputados en la página de open data del Congreso")
+    return f"{CONGRESO_BASE}{match.group(1)}"
 
 LEGISLATURE_MAP = {
     "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
@@ -97,10 +111,10 @@ def run():
     cur.execute("SELECT id FROM legislatures WHERE number = 15")
     xv_leg_id = cur.fetchone()[0]
 
-    print(f"Fetching active deputies from: {DIPUTADOS_CSV}")
-    import subprocess
+    csv_url = discover_csv_url()
+    print(f"Fetching active deputies from: {csv_url}")
     result = subprocess.run(
-        ["curl", "-sL", "-H", "User-Agent: Mozilla/5.0 (compatible; AccionHumana/1.0)", DIPUTADOS_CSV],
+        ["curl", "-sL", "-H", "User-Agent: Mozilla/5.0 (compatible; EspanaTransparente/1.0)", csv_url],
         capture_output=True, text=True, timeout=30
     )
     if result.returncode != 0:
@@ -143,16 +157,18 @@ def run():
 
         # Politician upsert
         cur.execute("""
-            INSERT INTO politicians (congress_id, first_name, last_name, full_name, photo_url, raw_data)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO politicians (congress_id, first_name, last_name, full_name, photo_url, cod_parlamentario, raw_data)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (congress_id) DO UPDATE SET
                 first_name = EXCLUDED.first_name,
                 last_name = EXCLUDED.last_name,
                 full_name = EXCLUDED.full_name,
                 photo_url = EXCLUDED.photo_url,
+                cod_parlamentario = EXCLUDED.cod_parlamentario,
                 raw_data = EXCLUDED.raw_data,
                 updated_at = now()
         """, (cid, first_name, last_name, full_name, photo_url,
+              cod_parlamentario or None,
               psycopg2.extras.Json({"biografia": biografia, "formacion": formacion, "grupo": grupo})))
         pol_count += 1
 
