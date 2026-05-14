@@ -43,6 +43,9 @@ export function Header() {
             <ResponsiveLink href="/contratos" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Contratos
             </ResponsiveLink>
+            <ResponsiveLink href="/subvenciones" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Subvenciones
+            </ResponsiveLink>
             <ResponsiveLink href="/puertas-giratorias" prefetch className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Puertas
             </ResponsiveLink>

@@ -71,6 +71,9 @@ jobs:
       - run: PYTHONPATH=src python -m src.contratacion.contratos
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.bdns.subvenciones --from-date $(date -d 'yesterday' +%Y-%m-%d) --to-date $(date +%Y-%m-%d) --importe-min 0 --max-pages 100
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   etl-weekly:
     name: ETL weekly pipelines

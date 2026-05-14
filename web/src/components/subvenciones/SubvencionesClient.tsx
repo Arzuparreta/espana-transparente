@@ -1,0 +1,191 @@
+"use client"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+
+interface Subvencion {
+  id: string
+  bdns_id: number
+  cod_concesion: string | null
+  fecha_concesion: string | null
+  beneficiario: string | null
+  instrumento: string | null
+  importe: number | null
+  convocatoria: string | null
+  nivel1: string | null
+  nivel2: string | null
+  nivel3: string | null
+  source_url: string | null
+}
+
+interface SubvencionesClientProps {
+  activeNivel: string
+  subsidies: Subvencion[]
+  page: number
+  total: number
+  totalPages: number
+}
+
+const NIVEL1_LABELS: Record<string, string> = {
+  ESTADO: "Estatal",
+  AUTONOMICA: "Autonómica",
+  LOCAL: "Local",
+}
+
+const NIVEL_TABS = [
+  { value: "all", label: "Todas" },
+  { value: "ESTADO", label: "Estatal" },
+  { value: "AUTONOMICA", label: "Autonómica" },
+  { value: "LOCAL", label: "Local" },
+]
+
+function formatAmount(eur: number | null): string {
+  if (eur == null) return "—"
+  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)}B €`
+  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(1)}M €`
+  if (eur >= 1_000) return `${Math.round(eur / 1_000)}K €`
+  return `${Math.round(eur).toLocaleString("es-ES")} €`
+}
+
+function nivelClass(nivel1: string | null): string {
+  switch (nivel1) {
+    case "ESTADO":
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+    case "AUTONOMICA":
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+    case "LOCAL":
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+    default:
+      return "bg-muted text-muted-foreground"
+  }
+}
+
+function subvencionesHref(nivel: string, page = 1) {
+  const params = new URLSearchParams()
+  if (nivel !== "all") params.set("nivel", nivel)
+  if (page > 1) params.set("page", String(page))
+  const query = params.toString()
+  return query ? `/subvenciones?${query}` : "/subvenciones"
+}
+
+function SubvencionCard({ s }: { s: Subvencion }) {
+  const dateStr = s.fecha_concesion
+    ? new Date(s.fecha_concesion).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null
+
+  const nivelLabel = NIVEL1_LABELS[s.nivel1 ?? ""] ?? s.nivel1 ?? "—"
+  const organo = s.nivel3 ?? s.nivel2 ?? "—"
+
+  return (
+    <Card className="bg-card/85">
+      <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex flex-wrap items-start gap-2">
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${nivelClass(s.nivel1)}`}>
+              {nivelLabel}
+            </span>
+          </div>
+          <div className="text-sm font-medium leading-snug">{s.beneficiario ?? "—"}</div>
+          <div className="text-xs text-muted-foreground">{organo}</div>
+          {s.convocatoria ? (
+            <div className="text-[11px] text-muted-foreground line-clamp-1">{s.convocatoria}</div>
+          ) : null}
+          {dateStr ? <div className="text-[11px] text-muted-foreground">{dateStr}</div> : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
+          <div className="text-base font-semibold tabular-nums">{formatAmount(s.importe)}</div>
+          {s.source_url ? (
+            <a
+              href={s.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Ver convocatoria →
+            </a>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function SubvencionesClient({
+  activeNivel,
+  subsidies,
+  page,
+  total,
+  totalPages,
+}: SubvencionesClientProps) {
+  return (
+    <div className="space-y-6">
+      <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
+        <div className="inline-flex min-w-full gap-2 border-b border-border/70 pb-1">
+          {NIVEL_TABS.map((tab) => {
+            const isActive = activeNivel === tab.value
+            return (
+              <ResponsiveLink
+                key={tab.value}
+                href={subvencionesHref(tab.value)}
+                className={
+                  isActive
+                    ? "shrink-0 rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background"
+                    : "shrink-0 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                }
+              >
+                {tab.label}
+              </ResponsiveLink>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="text-xs text-muted-foreground">
+          {total} concesiones · ordenadas por importe
+        </div>
+        {subsidies.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              Sin datos. Ejecuta el ETL:{" "}
+              <code>PYTHONPATH=src python -m src.bdns.subvenciones</code>
+            </CardContent>
+          </Card>
+        ) : (
+          subsidies.map((s) => <SubvencionCard key={s.id} s={s} />)
+        )}
+      </div>
+
+      {totalPages > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
+          <ResponsiveLink
+            href={subvencionesHref(activeNivel, Math.max(1, page - 1))}
+            aria-disabled={page <= 1}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Anterior
+          </ResponsiveLink>
+          <span className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </span>
+          <ResponsiveLink
+            href={subvencionesHref(activeNivel, Math.min(totalPages, page + 1))}
+            aria-disabled={page >= totalPages}
+            className={`rounded-full border border-border/70 px-3 py-2 ${
+              page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"
+            }`}
+          >
+            Siguiente
+          </ResponsiveLink>
+        </div>
+      ) : null}
+    </div>
+  )
+}

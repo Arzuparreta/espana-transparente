@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
   { href: "/indicadores", label: "IPC" },
   { href: "/distorsion", label: "Distorsión" },
   { href: "/contratos", label: "Contratos públicos" },
+  { href: "/subvenciones", label: "Subvenciones" },
   { href: "/puertas-giratorias", label: "Puertas Giratorias" },
   { href: "https://github.com/Arzuparreta/accion-humana", label: "GitHub" },
 ]

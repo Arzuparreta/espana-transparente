@@ -227,6 +227,42 @@ export const getIndicatorPoints = unstable_cache(
   { revalidate: HOUR }
 )
 
+export const PAGE_SIZE_SUBSIDIES = 50
+
+export const getSubvencionPage = unstable_cache(
+  async (page: number, nivel1: string) => {
+    const from = (page - 1) * PAGE_SIZE_SUBSIDIES
+    const to = from + PAGE_SIZE_SUBSIDIES - 1
+
+    let query = supabase
+      .from("subsidies")
+      .select(
+        "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, nivel1, nivel2, nivel3, source_url",
+        { count: "exact" }
+      )
+      .order("importe", { ascending: false, nullsFirst: false })
+
+    if (nivel1 !== "all") {
+      query = query.eq("nivel1", nivel1)
+    }
+
+    const { data, count } = await query.range(from, to)
+
+    const stats = await supabase
+      .from("subsidies")
+      .select("id, nivel1, importe")
+      .limit(2000)
+
+    return {
+      subsidies: data ?? [],
+      total: count ?? 0,
+      statsRows: stats.data ?? [],
+    }
+  },
+  ["subsidies-page"],
+  { revalidate: HOUR }
+)
+
 export const getContractPage = unstable_cache(
   async (page: number, type: string) => {
     const from = (page - 1) * PAGE_SIZE.contracts

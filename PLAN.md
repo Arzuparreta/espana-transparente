@@ -129,7 +129,8 @@ la metodología es invisible.
 - [ ] Cruce automático: firmante de contrato ↔ político (órgano contratante → cargo público responsable)
 - [x] Declaraciones de bienes y rentas + intereses económicos del Congreso (scrape de ficha por `codParlamentario`, dos tipos de PDF por diputado, semanal)
 - [ ] Declaraciones de actividades (sólo disponibles vía iniciativas, no como PDF — pendiente diseño)
-- [ ] Subvenciones públicas (BDNS — Base de Datos Nacional de Subvenciones; receptor + importe + convocatoria + órgano)
+- [x] Subvenciones públicas (BDNS — API pública de infosubvenciones.es; solo organizaciones; diario en cron)
+- [ ] Cruce subvención ↔ político (nivel3/órgano concedente → cargo público responsable)
 - [ ] Fondos UE (PAC y fondos estructurales) trazados al receptor final
 - [ ] Pensiones / Seguridad Social — datos agregados, no individuales (límite de privacidad legal)
 
@@ -163,3 +164,8 @@ la metodología es invisible.
 ---
 
 *Plan actualizado el 14 de mayo de 2026. Refleja el estado real del proyecto.*
+
+### Scheduling ETL actualizado
+
+- Diario (`etl-daily`): `diputados`, `asistencia`, `indicadores`, `contratos`, **`subvenciones` (BDNS, últimos 30 días)**
+- Semanal (`etl-weekly`): `declaraciones`
