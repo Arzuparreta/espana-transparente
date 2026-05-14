@@ -1,0 +1,47 @@
+# Liderazgo y portavocía de los grupos parlamentarios en la XV Legislatura.
+#
+# Estos datos son DECLARATIVOS: el Congreso no publica un dataset estructurado
+# de quién es portavoz / líder de cada partido. La fuente es información pública
+# verificada (web del propio partido, notas de prensa del Congreso). Cualquier
+# cambio se hace por PR: editar este archivo y volver a correr el ETL.
+#
+# Convenciones:
+#  - El nombre debe coincidir EXACTAMENTE con politicians.full_name (formato
+#    "Apellidos, Nombre" tal y como lo publica el Congreso en su CSV abierto).
+#  - "leader" = presidente / secretario general del partido en activo.
+#  - "spokesperson" = portavoz titular del grupo parlamentario en el Congreso.
+#  - null = no aplica o no figura como diputado/a actualmente.
+#
+# Última verificación: 2026-05-14
+
+PP:
+  leader: "Núñez Feijóo, Alberto"
+  spokesperson: "Gamarra Ruiz-Clavijo, Concepción"
+
+PSOE:
+  leader: "Sánchez Pérez-Castejón, Pedro"
+  spokesperson: null  # rotación de portavoces; no consta uno único
+
+VOX:
+  leader: "Abascal Conde, Santiago"
+  spokesperson: null
+
+SUMAR:
+  leader: "Díaz Pérez, Yolanda"
+  spokesperson: null
+
+ERC:
+  leader: null  # presidente del partido no es diputado
+  spokesperson: "Álvaro Vidal, Francesc-Marc"
+
+JUNTS:
+  leader: null
+  spokesperson: "Calvo Gómez, Pilar"
+
+EH Bildu:
+  leader: null
+  spokesperson: "Aizpurua Arzallus, Mertxe"
+
+EAJ-PNV:
+  leader: null
+  spokesperson: "Agirretxea Urresti, Joseba Andoni"

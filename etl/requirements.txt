@@ -7,3 +7,5 @@ thefuzz[speedup]
 tenacity
 pydantic
 psycopg2-binary
+PyYAML
+pytest

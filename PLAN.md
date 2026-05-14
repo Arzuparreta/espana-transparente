@@ -104,9 +104,10 @@ la metodología es invisible.
 
 ### 🔜 Fase 1b — Datos pendientes de alta prioridad
 
-- [ ] ETL de asistencia de diputados (Congreso publica presencia por sesión)
+- [x] ETL de asistencia de diputados (vistas `v_session_attendance` y `v_attendance_summary` derivadas de votos individuales)
 - [ ] Puertas giratorias: ampliar más allá de los 20 casos manuales con fuentes públicas primarias
 - [x] Puertas giratorias: añadir soporte para fechas, meses entre fechas registradas y URL de fuente por caso
+- [x] Pipeline de candidatos de puertas giratorias en 3 fases (candidato → fuente → publicado) con CSV + BORME como descubrimiento
 
 ### 🔜 Fase 2 — Presupuestos y gasto público
 
@@ -123,10 +124,14 @@ la metodología es invisible.
 
 ### 🔜 Fase 1 (pendiente) — Dinero
 
-- [ ] Retribuciones de altos cargos (Portal Transparencia vía datos.gob.es)
+- [ ] Retribuciones de altos cargos (BOE — nombramientos + Portal Transparencia vía datos.gob.es)
 - [x] Contratos públicos (PCSP — plataforma de contratación del sector público, ATOM/XML)
-- [ ] Cruce automático: firmante de contrato ↔ político
-- [ ] Declaraciones de bienes del Congreso (Congreso Open Data — PDFs, difícil)
+- [ ] Cruce automático: firmante de contrato ↔ político (órgano contratante → cargo público responsable)
+- [x] Declaraciones de bienes y rentas + intereses económicos del Congreso (scrape de ficha por `codParlamentario`, dos tipos de PDF por diputado, semanal)
+- [ ] Declaraciones de actividades (sólo disponibles vía iniciativas, no como PDF — pendiente diseño)
+- [ ] Subvenciones públicas (BDNS — Base de Datos Nacional de Subvenciones; receptor + importe + convocatoria + órgano)
+- [ ] Fondos UE (PAC y fondos estructurales) trazados al receptor final
+- [ ] Pensiones / Seguridad Social — datos agregados, no individuales (límite de privacidad legal)
 
 ### 🔜 Fase 5 — Comunidad y búsqueda
 
@@ -139,9 +144,11 @@ la metodología es invisible.
 
 ## ⚠️ Problemas conocidos
 
-- **Rate-limit del Congreso**: El servidor del Congreso bloquea IPs tras muchas peticiones. Los scrapers usan `curl` con User-Agent. Si fallan con 403, esperar. La web del Congreso es la única fuente bloqueable; INE y datos.gob.es no tienen este problema.
+- **Rate-limit del Congreso**: El servidor del Congreso bloquea IPs tras muchas peticiones. Los scrapers usan `curl` con User-Agent y respetan `REQUEST_DELAY=1.5s`. Si fallan con 403, esperar. La web del Congreso es la única fuente bloqueable; INE y datos.gob.es no tienen este problema.
 - **Supabase publishable key**: El proyecto usa el formato nuevo de claves (`sb_publishable_...`). Las JWT legacy no funcionan. Para escrituras ETL se usa PostgreSQL directo.
 - **CI**: Necesita `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` como env vars (son públicas). `DATABASE_URL` como secreto para el ETL.
+- **`power_relationships`**: el liderazgo de partido no tiene fuente estructurada en el Congreso. Vive en `etl/data/party_leadership.yml` como PR de datos. Última verificación: 2026-05-14.
+- **Declaraciones de actividades**: el Congreso las publica sólo como iniciativas (sin PDF directo). El ETL actual sólo cubre bienes/rentas e intereses económicos.
 
 ---
 
