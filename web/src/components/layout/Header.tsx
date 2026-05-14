@@ -5,7 +5,7 @@ import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/92 backdrop-blur">
-      <div className="ui-shell flex min-h-14 flex-col gap-3 py-3 sm:min-h-16 sm:flex-row sm:items-center sm:justify-between">
+      <div className="ui-shell flex min-h-14 flex-row items-center justify-between gap-3 py-3 sm:min-h-16">
         <Link href="/" className="flex min-w-0 items-center gap-3 group">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[1rem] border border-primary/15 bg-primary text-primary-foreground shadow-sm transition-transform group-hover:-rotate-3 sm:h-11 sm:w-11">
             <LogoMark className="h-7 w-7" />
@@ -19,9 +19,12 @@ export function Header() {
             </div>
           </div>
         </Link>
-        <div className="flex w-full items-center justify-end sm:w-auto">
+        <div className="flex shrink-0 items-center justify-end">
           <MobileNavDropdown />
           <nav className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
+            <Link href="/" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Inicio
+            </Link>
             <Link href="/diputados" className="rounded-full border border-border/60 bg-card px-3 py-2 text-center text-xs text-muted-foreground transition-colors hover:text-foreground">
               Diputados
             </Link>
