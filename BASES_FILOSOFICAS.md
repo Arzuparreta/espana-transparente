@@ -1,4 +1,4 @@
-# 🜁 Fundamentos Filosóficos de España Transparente
+# 🜁 Fundamentos Filosóficos de Acción Humana
 
 > *Una guía para entender por qué el Estado es un mito, cómo desmontarlo con datos y qué papel juega la Escuela Austriaca en todo ello, con especial atención al pensamiento de Jesús Huerta de Soto aplicado a España.*
 
@@ -104,7 +104,7 @@ Aunque Huerta de Soto se declara anarcocapitalista, suele enfocar su discurso en
 
 ---
 
-## 6. Cómo se traduce esta filosofía en el proyecto España Transparente
+## 6. Cómo se traduce esta filosofía en el proyecto Acción Humana
 
 La web no es un panfleto. No va a decir "el Estado es un robo" en la portada. **Se limita a mostrar datos objetivos y relaciones entre personas e instituciones**, pero lo hace desde una premisa clara: el Estado se disuelve cuando se le señala como lo que realmente es —un conjunto de personas que toman decisiones y gastan dinero que no es suyo—. Esta es la "ingeniería inversa narrativa":
 

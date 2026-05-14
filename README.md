@@ -1,8 +1,8 @@
-![España Transparente — personas, poder y trazabilidad](web/public/brand/github-banner.svg)
+![Acción Humana — personas, poder y trazabilidad](web/public/brand/github-banner.svg)
 
-# España Transparente
+# Acción Humana
 
-**España Transparente** es un portal de datos de la política española. Traduce datos públicos al lenguaje del ciudadano sin filtros ideológicos. Cada voto, cada contrato, cada decisión — enlazada a la persona que la ejecuta.
+**Acción Humana** es un portal de datos de la política española. Traduce datos públicos al lenguaje del ciudadano sin filtros ideológicos. Cada voto, cada contrato, cada decisión — enlazada a la persona que la ejecuta.
 
 🌐 **[web-pi-two-62.vercel.app](https://web-pi-two-62.vercel.app)**
 
@@ -55,7 +55,7 @@ corporativo, página corporativa, resolución pública o repositorio documental 
 ## 🤝 Contribuir
 
 1. Lee `AGENTS.md` — es obligatorio
-2. Revisa los [issues](https://github.com/Arzuparreta/espana-transparente/issues)
+2. Revisa los [issues](https://github.com/Arzuparreta/accion-humana/issues)
 3. Haz fork, crea rama, envía PR
 4. Todo PR debe pasar CI (lint + build)
 
