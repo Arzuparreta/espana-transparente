@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: "/partidos", label: "Partidos" },
   { href: "/indicadores", label: "IPC" },
   { href: "/distorsion", label: "Distorsión" },
+  { href: "/contratos", label: "Contratos públicos" },
   { href: "/puertas-giratorias", label: "Puertas Giratorias" },
   { href: "https://github.com/Arzuparreta/accion-humana", label: "GitHub" },
 ]

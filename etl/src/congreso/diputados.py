@@ -134,6 +134,8 @@ def run():
         grupo = d.get("GRUPOPARLAMENTARIO", "").strip()
         biografia = d.get("BIOGRAFIA", "").strip()
         fecha_alta = d.get("FECHAALTA", "").strip()
+        cod_parlamentario = d.get("CODPARLAMENTARIO", "").strip()
+        photo_url = f"https://www.congreso.es/img/diputados/{cod_parlamentario}.jpg" if cod_parlamentario else None
 
         # Split name
         if "," in full_name:
@@ -147,15 +149,16 @@ def run():
 
         # Politician upsert
         cur.execute("""
-            INSERT INTO politicians (congress_id, first_name, last_name, full_name, raw_data)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO politicians (congress_id, first_name, last_name, full_name, photo_url, raw_data)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (congress_id) DO UPDATE SET
                 first_name = EXCLUDED.first_name,
                 last_name = EXCLUDED.last_name,
                 full_name = EXCLUDED.full_name,
+                photo_url = EXCLUDED.photo_url,
                 raw_data = EXCLUDED.raw_data,
                 updated_at = now()
-        """, (cid, first_name, last_name, full_name,
+        """, (cid, first_name, last_name, full_name, photo_url,
               psycopg2.extras.Json({"biografia": biografia, "formacion": formacion, "grupo": grupo})))
         pol_count += 1
 
