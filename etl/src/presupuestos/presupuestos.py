@@ -24,7 +24,7 @@ import psycopg2.extras
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 from common.responsibility import normalize_public_body
-from presupuestos.sources import BudgetSource, available_years, download_gastos
+from presupuestos.sources import BudgetSource, available_years, download_funcional, download_gastos
 from presupuestos.scraper_sepg import SepgRecord, scrape_year as scrape_sepg_year
 
 
@@ -69,7 +69,27 @@ def _load_organica(organica_bytes: bytes) -> dict[str, str]:
     return lookup
 
 
-def parse_civio_records(gastos_bytes: bytes, organica_bytes: bytes, source: BudgetSource) -> list[dict]:
+def _load_funcional(funcional_bytes: bytes) -> dict[str, str]:
+    """Build {program_code: program_name} lookup from estructura_funcional.csv."""
+    if not funcional_bytes:
+        return {}
+    text = funcional_bytes.decode("utf-8", errors="replace")
+    reader = csv.DictReader(io.StringIO(text), delimiter=";")
+    lookup = {}
+    for row in reader:
+        code = row.get("PROGRAMA", "").strip()
+        name = (row.get("DESCRIPCION LARGA", "") or row.get("DESCRIPCION CORTA", "")).strip()
+        if code and name:
+            lookup[code] = name
+    return lookup
+
+
+def parse_civio_records(
+    gastos_bytes: bytes,
+    organica_bytes: bytes,
+    source: BudgetSource,
+    program_names: dict[str, str] | None = None,
+) -> list[dict]:
     """Parse Civio scraper-pge gastos.csv into budget_lines records.
 
     Aggregates spending by (section_code, program_code, economic_chapter),
@@ -139,7 +159,7 @@ def parse_civio_records(gastos_bytes: bytes, organica_bytes: bytes, source: Budg
             "service_code":        None,
             "service_name":        None,
             "program_code":        program_code,
-            "program_name":        None,   # available in estructura_funcional if needed
+            "program_name":        program_names.get(program_code) if program_names else None,
             "economic_chapter":    chapter,
             "economic_article":    None,
             "economic_concept":    None,
@@ -429,7 +449,10 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
         gastos_bytes, organica_bytes, source = download_gastos(year)
 
         if source.fmt == "civio":
-            records = parse_civio_records(gastos_bytes, organica_bytes, source)
+            funcional_bytes = download_funcional(source)
+            funcional = _load_funcional(funcional_bytes)
+            print(f"  funcional lookup: {len(funcional)} program codes")
+            records = parse_civio_records(gastos_bytes, organica_bytes, source, program_names=funcional)
         elif source.fmt == "sepg_prorroga":
             records = parse_sepg_records(scrape_sepg_year(year, verbose=not dry_run), source)
         else:

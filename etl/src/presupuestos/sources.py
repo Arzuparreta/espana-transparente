@@ -4,8 +4,9 @@ Primary source: Civio scraper-pge GitHub repository (2007-2023).
   https://github.com/civio/scraper-pge/tree/master/output/{year}/
 
 Each year has:
-  gastos.csv        — spending lines (CENTRO GESTOR, FUNCIONAL, ECONOMICA, IMPORTE)
-  estructura_organica.csv — section/service name lookup
+  gastos.csv               — spending lines (CENTRO GESTOR, FUNCIONAL, ECONOMICA, IMPORTE)
+  estructura_organica.csv  — section/service name lookup
+  estructura_funcional.csv — program code → name lookup (PROGRAMA → DESCRIPCION LARGA)
 
 Usage (standalone inspection):
     PYTHONPATH=src python -m src.presupuestos.sources --year 2023
@@ -26,7 +27,8 @@ class BudgetSource:
     year: int
     fmt: str          # "civio" | "sepg_prorroga" | "csv_semicolon" | "unknown"
     gastos_url: str   # primary spending data
-    organica_url: str = ""  # section/service names lookup
+    organica_url: str = ""   # section/service names lookup
+    funcional_url: str = ""  # program code → name lookup
     budget_type: str = "ley"  # "ley" | "prorroga" | "proyecto"
     in_force_year: int | None = None
     notes: str = ""
@@ -55,6 +57,7 @@ def _civio_source(year: int, folder: str, *, budget_type: str = "ley", notes: st
         fmt="civio",
         gastos_url=f"{base}/gastos.csv",
         organica_url=f"{base}/estructura_organica.csv",
+        funcional_url=f"{base}/estructura_funcional.csv",
         budget_type=budget_type,
         notes=notes or f"Civio scraper-pge, folder={folder}",
     )
@@ -143,6 +146,16 @@ def download_gastos(year: int) -> tuple[bytes, bytes, BudgetSource]:
         print(f"  organica: {len(organica):,} bytes")
 
     return gastos, organica, source
+
+
+def download_funcional(source: BudgetSource) -> bytes:
+    """Download estructura_funcional.csv for the given source. Returns b"" if not available."""
+    if not source.funcional_url:
+        return b""
+    print(f"Downloading funcional from {source.funcional_url} ...")
+    data = _curl_get(source.funcional_url, timeout=30)
+    print(f"  funcional: {len(data):,} bytes")
+    return data
 
 
 # ─── CLI inspection helpers ──────────────────────────────────────────────────
