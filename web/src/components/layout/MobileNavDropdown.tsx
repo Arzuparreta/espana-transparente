@@ -7,22 +7,42 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { GITHUB_URL } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
-interface NavItem {
-  href: string
+interface NavGroup {
   label: string
+  items: { href: string; label: string }[]
 }
 
-const navItems: NavItem[] = [
-  { href: "/", label: "Inicio" },
-  { href: "/diputados", label: "Diputados" },
-  { href: "/votaciones", label: "Votaciones" },
-  { href: "/partidos", label: "Partidos" },
-  { href: "/indicadores", label: "IPC" },
-  { href: "/distorsion", label: "Distorsión" },
-  { href: "/contratos", label: "Contratos públicos" },
-  { href: "/subvenciones", label: "Subvenciones" },
-  { href: "/puertas-giratorias", label: "Puertas Giratorias" },
-  { href: GITHUB_URL, label: "GitHub" },
+const navGroups: NavGroup[] = [
+  {
+    label: "Personas",
+    items: [
+      { href: "/diputados", label: "Diputados" },
+      { href: "/partidos", label: "Partidos" },
+      { href: "/votaciones", label: "Votaciones" },
+    ],
+  },
+  {
+    label: "Dinero público",
+    items: [
+      { href: "/presupuestos", label: "Presupuestos" },
+      { href: "/contratos", label: "Contratos públicos" },
+      { href: "/subvenciones", label: "Subvenciones" },
+    ],
+  },
+  {
+    label: "Contexto",
+    items: [
+      { href: "/indicadores", label: "Indicadores económicos" },
+      { href: "/puertas-giratorias", label: "Puertas giratorias" },
+    ],
+  },
+  {
+    label: "Más",
+    items: [
+      { href: "/estado-datos", label: "Estado de los datos" },
+      { href: GITHUB_URL, label: "GitHub" },
+    ],
+  },
 ]
 
 export function MobileNavDropdown() {
@@ -61,28 +81,36 @@ export function MobileNavDropdown() {
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
           <DialogPrimitive.Popup className="fixed top-2 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 rounded-xl border border-border/70 bg-card p-3 shadow-lg data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-top-2">
-            <nav className="flex flex-col gap-1.5">
-              {navItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname?.startsWith(item.href))
+            <nav className="flex flex-col gap-0.5">
+              {navGroups.map((group, gi) => (
+                <div key={group.label}>
+                  {gi > 0 && <div className="my-1.5 h-px bg-border/60" />}
+                  <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                    {group.label}
+                  </div>
+                  {group.items.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/" && !item.href.startsWith("http") && pathname?.startsWith(item.href))
 
-                return (
-                  <ResponsiveLink
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium select-none",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground active:bg-muted active:text-foreground"
-                    )}
-                  >
-                    {item.label}
-                  </ResponsiveLink>
-                )
-              })}
+                    return (
+                      <ResponsiveLink
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium select-none",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground active:bg-muted active:text-foreground"
+                        )}
+                      >
+                        {item.label}
+                      </ResponsiveLink>
+                    )
+                  })}
+                </div>
+              ))}
             </nav>
           </DialogPrimitive.Popup>
         </DialogPrimitive.Portal>

@@ -17,7 +17,17 @@ export function parsePage(value: string | string[] | undefined) {
 
 export const getHomeData = unstable_cache(
   async () => {
-    const [politicians, politicianCount, parties, sessionsCount] = await Promise.all([
+    const [
+      politicians,
+      politicianCount,
+      parties,
+      sessionsCount,
+      contractCount,
+      subsidyCount,
+      revolvingDoorCount,
+      budgetSummaryRows,
+      latestIpcRows,
+    ] = await Promise.all([
       supabase
         .from("politicians")
         .select(
@@ -29,13 +39,36 @@ export const getHomeData = unstable_cache(
       supabase.from("politicians").select("*", { count: "exact", head: true }),
       supabase.from("parties").select("acronym, color, name").order("acronym"),
       supabase.from("voting_sessions").select("*", { count: "exact", head: true }),
+      supabase.from("contracts").select("*", { count: "exact", head: true }),
+      supabase.from("subsidies").select("*", { count: "exact", head: true }),
+      supabase.from("revolving_door").select("*", { count: "exact", head: true }),
+      supabase
+        .from("v_budget_summary")
+        .select("total_credit_initial")
+        .eq("year", 2023),
+      supabase
+        .from("economic_indicators")
+        .select("value, period")
+        .eq("indicator_code", "IPC")
+        .order("period", { ascending: false })
+        .limit(1),
     ])
+
+    const budgetTotal = (budgetSummaryRows.data ?? []).reduce(
+      (sum, r) => sum + ((r.total_credit_initial as number) ?? 0),
+      0
+    )
 
     return {
       politicians: politicians.data ?? [],
       politicianCount: politicianCount.count ?? 0,
       parties: parties.data ?? [],
       sessionsCount: sessionsCount.count ?? 0,
+      contractCount: contractCount.count ?? 0,
+      subsidyCount: subsidyCount.count ?? 0,
+      revolvingDoorCount: revolvingDoorCount.count ?? 0,
+      budgetTotal,
+      latestIpc: latestIpcRows.data?.[0] ?? null,
     }
   },
   ["home-data", PHOTOS_CACHE_VERSION],
