@@ -83,13 +83,14 @@ export function EconomicDeclarationList({ declarations }: Props) {
               {grouped.get(type)!.map((declaration) => {
                 const date = formatDate(declaration.declaration_date)
                 const host = sourceHost(declaration.source_url)
+                const isActividades = type === "actividades"
                 return (
                   <li
                     key={declaration.id}
                     className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
                   >
                     <span className="text-foreground">
-                      {date || "Sin fecha"}
+                      {isActividades ? "Documento vigente" : (date || "Sin fecha")}
                     </span>
                     {declaration.source_url ? (
                       <a
