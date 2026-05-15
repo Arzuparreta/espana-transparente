@@ -1,6 +1,6 @@
 """Scrape PGE budget data from SEPG ROM HTML/CSV format.
 
-Used for prórroga years (2024, 2025) where Civio scraper-pge has no data.
+Used for prórroga years (2024-2026) where Civio scraper-pge has no data.
 Each section's 'estado de gastos' page lists individual program CSVs.
 Amounts are in miles de euros (thousands); we store in euros.
 
@@ -27,6 +27,7 @@ _BASE = "https://www.sepg.pap.hacienda.gob.es/Presup"
 PRORROGA_FOLDERS: dict[int, str] = {
     2024: "PGE2024Prorroga",
     2025: "PGE2025Prorroga",
+    2026: "PGE2025Prorroga",
 }
 
 

@@ -64,6 +64,7 @@ _SEPG_PRORROGA_BASE = "https://www.sepg.pap.hacienda.gob.es/sitios/sepg/es-ES/Pr
 _SEPG_PRORROGA_YEARS: dict[int, tuple[str, int]] = {
     2024: ("PGE2024Prorroga", 2023),
     2025: ("PGE2025Prorroga", 2023),
+    2026: ("PGE2025Prorroga", 2023),
 }
 
 

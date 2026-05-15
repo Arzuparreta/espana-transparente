@@ -590,6 +590,11 @@ export const BUDGET_YEAR_META: Record<
     label: "Prórroga vigente",
     note: "No hubo un nuevo presupuesto aprobado. Siguieron en vigor los créditos prorrogados del PGE 2023, publicados por SEPG.",
   },
+  2026: {
+    budgetType: "prorroga",
+    label: "Prórroga vigente",
+    note: "No hubo un nuevo presupuesto aprobado. Siguen en vigor los créditos prorrogados del PGE 2023, publicados por SEPG para 2026.",
+  },
 }
 
 export const BUDGET_YEARS = Object.keys(BUDGET_YEAR_META)
