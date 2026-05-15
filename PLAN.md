@@ -161,7 +161,7 @@ peor.
 
 - **Rate-limit del Congreso**: el portal del Congreso devuelve 403 tras ráfagas. Los scrapers usan `curl`, User-Agent explícito y `REQUEST_DELAY=1.5s`. No paralelizar peticiones al Congreso.
 - **Declaraciones de actividades**: ~~pendiente~~ implementado. URL `/docinte/registro_intereses_diputado_{cod}.pdf` (un único PDF por diputado, sin fecha en URL, se actualiza in-place). Tipo `actividades` en `economic_declarations`. Ver `declaraciones.py`.
-- **Referencias YAML**: liderazgo de partido y algunos mapas de responsabilidad siguen siendo datos mantenidos como PR en `etl/data/` por falta de fuente estructurada única.
+- **Referencias YAML**: liderazgo de partido y mapas de responsabilidad se mantienen como PR en `etl/data/`. Todos los YAMLs llevan marca `# Última verificación:` en la cabecera. Cadencia recomendada: mensual para `party_leadership.yml` y `gobierno_historico.yml` (cambian con relevos ministeriales), trimestral para `responsibility_positions.yml` y `public_body_responsibility_map.yml`, semestral para `personas_vigiladas.yml`.
 - **Presupuestos 2020**: sin fuente disponible — España prorrogó el PGE 2018 en 2019 y 2020; Civio no publicó datos para ese año. Cobertura actual en web/DB: 2016-2026, con hueco en 2020.
 - **Presupuestos 2024-2026**: cargados desde el ROM de SEPG como `budget_type='prorroga'`. El PGE en vigor sigue siendo 2023 y la UI lo muestra explícitamente.
 - **Presupuestos 2027+**: pendiente de nueva fuente pública estructurada. Cuando SEPG publique nueva prórroga o proyecto, actualizar `BUDGET_YEAR_META` en `data.ts`, el registro de fuentes en `sources.py` y reingestar.
@@ -198,4 +198,12 @@ peor.
 
 ---
 
-*Plan actualizado el 15 de mayo de 2026 (tarde). Refleja el estado real tras añadir el vertical de Presupuestos Generales del Estado.*
+### Mejoras del 15 de mayo de 2026 (sesión noche — consolidación)
+
+- [x] Tests de humo añadidos para `bdns`, `contratacion`, `ine` y `puertas_giratorias` (31 tests nuevos; suite total: 90/90 ✅)
+- [x] Todos los YAMLs de `etl/data/` tienen marca `# Última verificación: 2026-05-15`; cadencia documentada en "Problemas conocidos"
+- [x] BORME scanner verificado estructuralmente: parsers `_extract_appointments` y `_best_match` cubiertos con fixtures reales de texto BORME; pipeline `--dry-run` disponible para validación operativa
+
+---
+
+*Plan actualizado el 15 de mayo de 2026 (noche). Refleja sprint de consolidación: tests de humo, metadatos YAML y verificación del scanner BORME.*

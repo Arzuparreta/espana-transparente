@@ -1,0 +1,33 @@
+{
+  "totalElements": 2,
+  "content": [
+    {
+      "id": 12345,
+      "codConcesion": "BDNS-2025-001",
+      "fechaConcesion": "15/01/2025",
+      "beneficiario": "UNIVERSIDAD COMPLUTENSE DE MADRID",
+      "instrumento": "Subvención",
+      "importe": 50000.00,
+      "convocatoria": "Convocatoria I+D 2024",
+      "numeroConvocatoria": "123",
+      "nivel1": "ESTADO",
+      "nivel2": "MINISTERIO DE CIENCIA, INNOVACION Y UNIVERSIDADES",
+      "nivel3": "AGENCIA ESTATAL DE INVESTIGACION",
+      "urlBR": "https://www.infosubvenciones.es/bdnstrans/GE/es/concesion/12345"
+    },
+    {
+      "id": 67890,
+      "codConcesion": "BDNS-2025-002",
+      "fechaConcesion": "20/01/2025",
+      "beneficiario": "* (datos personales protegidos)",
+      "instrumento": "Beca",
+      "importe": 5000.00,
+      "convocatoria": "Becas FPU 2024",
+      "numeroConvocatoria": "456",
+      "nivel1": "ESTADO",
+      "nivel2": "MINISTERIO DE CIENCIA, INNOVACION Y UNIVERSIDADES",
+      "nivel3": "SECRETARIA DE ESTADO DE UNIVERSIDADES",
+      "urlBR": "https://www.infosubvenciones.es/bdnstrans/GE/es/concesion/67890"
+    }
+  ]
+}

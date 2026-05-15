@@ -1,0 +1,19 @@
+[
+  {
+    "COD": "IPC251852",
+    "Nombre": "Índice general",
+    "Data": [
+      {"Anyo": 2025, "FK_Periodo": 1, "Valor": 113.5, "NombrePeriodo": "Enero"},
+      {"Anyo": 2025, "FK_Periodo": 2, "Valor": 113.9, "NombrePeriodo": "Febrero"},
+      {"Anyo": 2024, "FK_Periodo": 12, "Valor": 112.8, "NombrePeriodo": "Diciembre"}
+    ]
+  },
+  {
+    "COD": "IPC251855",
+    "Nombre": "Variación mensual",
+    "Data": [
+      {"Anyo": 2025, "FK_Periodo": 1, "Valor": 0.4, "NombrePeriodo": "Enero"},
+      {"Anyo": 2025, "FK_Periodo": 2, "Valor": 0.3, "NombrePeriodo": "Febrero"}
+    ]
+  }
+]

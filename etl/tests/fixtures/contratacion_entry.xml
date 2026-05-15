@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:cbc="urn:dgpe:names:draft:codice:schema:xsd:CommonBasicComponents-2"
+      xmlns:cac="urn:dgpe:names:draft:codice:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cac_ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonAggregateComponents-2"
+      xmlns:cbc_ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonBasicComponents-2">
+  <entry>
+    <title>Contrato de servicios de consultoría tecnológica</title>
+    <link href="https://contrataciondelsectorpublico.gob.es/web/guest/licitaciones/-/frontend/licitacion/1234567"/>
+    <updated>2025-03-15T10:00:00Z</updated>
+    <cac_ext:ContractFolderStatus>
+      <cbc:ContractFolderID>EXP-2025-001</cbc:ContractFolderID>
+      <cbc_ext:ContractFolderStatusCode>ADJ</cbc_ext:ContractFolderStatusCode>
+      <cac_ext:LocatedContractingParty>
+        <cac:Party>
+          <cac:PartyName>
+            <cbc:Name>Ministerio de Hacienda</cbc:Name>
+          </cac:PartyName>
+        </cac:Party>
+      </cac_ext:LocatedContractingParty>
+      <cac:ProcurementProject>
+        <cbc:TypeCode>2</cbc:TypeCode>
+        <cac:BudgetAmount>
+          <cbc:TaxExclusiveAmount>125000.00</cbc:TaxExclusiveAmount>
+          <cbc:TotalAmount>151250.00</cbc:TotalAmount>
+        </cac:BudgetAmount>
+        <cac:RequiredCommodityClassification>
+          <cbc:ItemClassificationCode>72000000</cbc:ItemClassificationCode>
+        </cac:RequiredCommodityClassification>
+        <cac:RealizedLocation>
+          <cbc:CountrySubentity>ES30</cbc:CountrySubentity>
+        </cac:RealizedLocation>
+      </cac:ProcurementProject>
+    </cac_ext:ContractFolderStatus>
+  </entry>
+</feed>
