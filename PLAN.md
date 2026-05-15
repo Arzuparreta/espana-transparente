@@ -110,8 +110,11 @@ divergencias del frontend.
 - [x] Declaraciones de actividades: pipeline implementado — URL determinista `/docinte/registro_intereses_diputado_{cod}.pdf`, tipo `actividades` en `economic_declarations`, frontend actualizado. Ingest completo: 350/350 diputados, 1149 declaraciones.
 - [x] Presupuestos Generales del Estado: ETL base implementado — jerarquía sección → programa → capítulo, 2016-2023 ingestados (~1.100-1.555 partidas/año). `program_name` enriquecido desde `estructura_funcional.csv`. Fuente: Civio scraper-pge. Frontend `/presupuestos` y `/presupuestos/[section]` desplegados.
 - [ ] Fondos UE trazados al receptor final — **pendiente de fuente confirmada** (ver "Problemas conocidos")
-- [ ] Búsqueda global de texto libre (diputados, contratos, subvenciones, puertas giratorias)
-- [ ] Más cobertura institucional útil fuera del Congreso cuando el modelo de responsables ya esté estable
+- [x] Búsqueda global full-text: función RPC `search_global` (tsvector + unaccent) sobre 5 entidades; página `/buscar`; atajo ⌘K en header.
+- [x] Cobertura institucional — Gobierno: página `/gobierno` con vista `v_gobierno_actual`, gabinete completo con partido, gasto por ministerio y enlace a fichas de diputados.
+- [x] Home rediseñada como dashboard: búsqueda, snapshot del gobierno, votaciones recientes con badge de divergencias, puertas giratorias verificadas.
+- [ ] Senado — datos abiertos evaluados: no tiene API equivalente al Congreso. Pendiente de scraping HTML o fuente alternativa.
+- [ ] Más cobertura institucional: Tribunal Constitucional, CGPJ, RTVE, SEPI — nombramientos políticos con trazabilidad. Próximo candidato natural para el vertical de revolving door.
 
 ### Mejoras recientes del 15 mayo 2026
 
