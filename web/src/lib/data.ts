@@ -115,8 +115,12 @@ export const getDeputyCards = unstable_cache(
 
 export const getParties = unstable_cache(
   async () => {
-    const { data } = await supabase.from("parties").select("*").order("acronym")
-    return data ?? []
+    const [parties, stats] = await Promise.all([
+      supabase.from("parties").select("*").order("acronym"),
+      supabase.from("v_party_stats").select("party_id, deputy_count, attendance_pct, pct_yes, pct_no, pct_abstain"),
+    ])
+    const statsByParty = new Map((stats.data ?? []).map((s) => [s.party_id, s]))
+    return (parties.data ?? []).map((p) => ({ ...p, stats: statsByParty.get(p.id) ?? null }))
   },
   ["parties"],
   { revalidate: HOUR }
@@ -124,7 +128,7 @@ export const getParties = unstable_cache(
 
 export const getPartyPageData = unstable_cache(
   async (id: string) => {
-    const [party, memberships] = await Promise.all([
+    const [party, memberships, stats] = await Promise.all([
       supabase.from("parties").select("*").eq("id", id).single(),
       supabase
         .from("politician_memberships")
@@ -134,11 +138,17 @@ export const getPartyPageData = unstable_cache(
         .eq("party_id", id)
         .eq("is_active", true)
         .order("constituency"),
+      supabase
+        .from("v_party_stats")
+        .select("deputy_count, total_votes, attendance_pct, pct_yes, pct_no, pct_abstain, pct_absent")
+        .eq("party_id", id)
+        .maybeSingle(),
     ])
 
     return {
       party: party.data,
       memberships: memberships.data ?? [],
+      stats: stats.data ?? null,
     }
   },
   ["party-page-data", PHOTOS_CACHE_VERSION],
