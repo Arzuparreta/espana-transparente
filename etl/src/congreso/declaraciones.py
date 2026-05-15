@@ -1,26 +1,28 @@
-"""ETL: ingest deputies' wealth and economic-interests declarations.
+"""ETL: ingest deputies' wealth, economic-interests, and activity declarations.
 
-Each Spanish deputy publishes two kinds of declarations during a
-legislature, both linked from their public ficha:
+Each Spanish deputy publishes three kinds of declarations:
 
   - Declaración de Bienes y Rentas       -> /docbienes/leg15/<cod>/<file>.pdf
   - Declaración de Intereses Económicos  -> /docacteco/leg15/<cod>/<file>.pdf
+  - Declaración de Actividades           -> /docinte/registro_intereses_diputado_{cod}.pdf
 
-Deputies may update either over time (e.g. on appointment changes), so
-multiple PDFs per type are normal. The internal six-digit cod inside the
-URL is per-document, not per-deputy — the only reliable way to discover
-a deputy's PDFs is to scrape their ficha page.
+The first two are discovered by scraping the deputy's ficha page (multiple
+versioned PDFs per type, date-stamped in the URL). The third is a single
+document per deputy at a deterministic URL (updated in-place by the Congress,
+no date in the URL, no version history).
 
 Usage:
     PYTHONPATH=src python -m src.congreso.declaraciones --dry-run
     PYTHONPATH=src python -m src.congreso.declaraciones
     PYTHONPATH=src python -m src.congreso.declaraciones --cod 126
+    PYTHONPATH=src python -m src.congreso.declaraciones --skip-actividades
 """
 
 import argparse
 import re
 import subprocess
 import time
+from datetime import datetime, timezone
 
 import psycopg2.extras
 
@@ -33,6 +35,7 @@ FICHA_URL = (
     "&_diputadomodule_mostrarFicha=true"
     "&codParlamentario={cod}&idLegislatura=XV"
 )
+ACTIVIDADES_URL = f"{CONGRESO_BASE}/docinte/registro_intereses_diputado_{{cod}}.pdf"
 
 UA = "Mozilla/5.0 (compatible; AccionHumana/1.0)"
 REQUEST_DELAY = 1.5  # seconds between deputies — Congress rate-limits
@@ -56,6 +59,21 @@ def curl_text(url: str) -> str:
     if result.returncode != 0:
         raise RuntimeError(f"curl failed: {result.stderr}")
     return result.stdout
+
+
+def check_actividades_url(cod: str) -> str | None:
+    """Return the actividades PDF URL if it exists for this deputy, else None."""
+    url = ACTIVIDADES_URL.format(cod=cod)
+    result = subprocess.run(
+        ["curl", "-sI", "--max-time", "15", "-H", f"User-Agent: {UA}", url],
+        capture_output=True, text=True, timeout=20,
+    )
+    if result.returncode != 0:
+        return None
+    first_line = result.stdout.splitlines()[0] if result.stdout else ""
+    if any(f" {code} " in first_line for code in ("200", "302")):
+        return url
+    return None
 
 
 def cod_from_photo_url(photo_url: str | None) -> str | None:
@@ -96,7 +114,28 @@ def fetch_politicians(cur, only_cod: str | None) -> list[tuple]:
     return cur.fetchall()
 
 
-def run(dry_run: bool = False, only_cod: str | None = None) -> None:
+def upsert_declaration(cur, pol_id, leg_id, declaration_date, source_url, payload):
+    cur.execute(
+        """
+        INSERT INTO economic_declarations
+            (politician_id, legislature_id, declaration_date, source_url, raw_data)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (source_url) WHERE source_url IS NOT NULL DO UPDATE SET
+            politician_id = EXCLUDED.politician_id,
+            legislature_id = EXCLUDED.legislature_id,
+            declaration_date = EXCLUDED.declaration_date,
+            raw_data = EXCLUDED.raw_data
+        """,
+        (pol_id, leg_id, declaration_date, source_url, psycopg2.extras.Json(payload)),
+    )
+    return cur.rowcount
+
+
+def run(
+    dry_run: bool = False,
+    only_cod: str | None = None,
+    skip_actividades: bool = False,
+) -> None:
     conn = get_pg_conn()
     cur = conn.cursor()
 
@@ -110,9 +149,9 @@ def run(dry_run: bool = False, only_cod: str | None = None) -> None:
     print(f"Scanning {len(politicians)} politicians for declarations...")
 
     inserted = 0
-    skipped = 0
     no_cod = 0
     no_decls = 0
+    actividades_found = 0
 
     for i, (pol_id, full_name, cod) in enumerate(politicians, start=1):
         if not cod:
@@ -130,10 +169,7 @@ def run(dry_run: bool = False, only_cod: str | None = None) -> None:
             continue
 
         decls = parse_declarations(html)
-        if not decls:
-            no_decls += 1
-            print("no declarations")
-            continue
+        decl_count = 0
 
         for d in decls:
             payload = {
@@ -141,33 +177,44 @@ def run(dry_run: bool = False, only_cod: str | None = None) -> None:
                 "filename": d["filename"],
                 "internal_cod": d["internal_cod"],
             }
-            if dry_run:
-                continue
-            cur.execute(
-                """
-                INSERT INTO economic_declarations
-                    (politician_id, legislature_id, declaration_date, source_url, raw_data)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (source_url) DO UPDATE SET
-                    politician_id = EXCLUDED.politician_id,
-                    legislature_id = EXCLUDED.legislature_id,
-                    declaration_date = EXCLUDED.declaration_date,
-                    raw_data = EXCLUDED.raw_data
-                """,
-                (pol_id, leg_id, d["declaration_date"], d["source_url"],
-                 psycopg2.extras.Json(payload)),
-            )
-            inserted += cur.rowcount
+            if not dry_run:
+                inserted += upsert_declaration(
+                    cur, pol_id, leg_id, d["declaration_date"], d["source_url"], payload,
+                )
+            decl_count += 1
+
+        # Actividades: single deterministic URL per deputy, updated in-place
+        if not skip_actividades:
+            time.sleep(REQUEST_DELAY)
+            act_url = check_actividades_url(cod)
+            if act_url:
+                actividades_found += 1
+                payload = {
+                    "type": "actividades",
+                    "fetched_at": datetime.now(timezone.utc).isoformat(),
+                }
+                if not dry_run:
+                    inserted += upsert_declaration(
+                        cur, pol_id, leg_id, None, act_url, payload,
+                    )
+                decl_count += 1
 
         if not dry_run:
             conn.commit()
-        print(f"{len(decls)} decl.")
+
+        if decl_count == 0:
+            no_decls += 1
+            print("no declarations")
+        else:
+            print(f"{decl_count} decl.")
 
     cur.close()
     conn.close()
+    act_summary = "" if skip_actividades else f", {actividades_found} actividades"
     print(
-        f"\nDone! {inserted} upserts, {skipped} skipped, "
-        f"{no_cod} without cod_parlamentario, {no_decls} without declarations.",
+        f"\nDone! {inserted} upserts, "
+        f"{no_cod} without cod_parlamentario, {no_decls} without declarations"
+        f"{act_summary}.",
     )
 
 
@@ -175,8 +222,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--cod", help="Process only the deputy with this codParlamentario")
+    parser.add_argument(
+        "--skip-actividades",
+        action="store_true",
+        help="Skip the actividades HEAD-check (faster runs when only updating bienes/intereses)",
+    )
     args = parser.parse_args()
-    run(dry_run=args.dry_run, only_cod=args.cod)
+    run(dry_run=args.dry_run, only_cod=args.cod, skip_actividades=args.skip_actividades)
 
 
 if __name__ == "__main__":
