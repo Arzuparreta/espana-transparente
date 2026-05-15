@@ -106,11 +106,11 @@ divergencias del frontend.
 
 ### En curso / siguiente prioridad
 
-- [ ] Ampliar puertas giratorias con más fuentes primarias y menos dependencia de entradas manuales
-- [x] Declaraciones de actividades: pipeline implementado — URL determinista `/docinte/registro_intereses_diputado_{cod}.pdf`, tipo `actividades` en `economic_declarations`, frontend actualizado
-- [x] Presupuestos Generales del Estado: ETL base implementado — jerarquía sección → programa → capítulo, 2016-2023 ingestados (~1.100-1.555 partidas/año). Fuente: Civio scraper-pge. Frontend `/presupuestos` y `/presupuestos/[section]` desplegados.
-- [ ] Fondos UE trazados al receptor final
-- [ ] Búsqueda avanzada / índice dedicado si el volumen empieza a penalizar las consultas
+- [x] Ampliar puertas giratorias: scanner BORME real — descarga PDFs de Sección A, extrae líneas `Nombramientos/Ceses`, fuzzy-match contra watchlist. Genera `source_type=primary` (confidence 0.65) en lugar del scanner de metadatos JSON anterior (que nunca encontraba nada).
+- [x] Declaraciones de actividades: pipeline implementado — URL determinista `/docinte/registro_intereses_diputado_{cod}.pdf`, tipo `actividades` en `economic_declarations`, frontend actualizado. Ingest completo: 350/350 diputados, 1149 declaraciones.
+- [x] Presupuestos Generales del Estado: ETL base implementado — jerarquía sección → programa → capítulo, 2016-2023 ingestados (~1.100-1.555 partidas/año). `program_name` enriquecido desde `estructura_funcional.csv`. Fuente: Civio scraper-pge. Frontend `/presupuestos` y `/presupuestos/[section]` desplegados.
+- [ ] Fondos UE trazados al receptor final — **pendiente de fuente confirmada** (ver "Problemas conocidos")
+- [ ] Búsqueda global de texto libre (diputados, contratos, subvenciones, puertas giratorias)
 - [ ] Más cobertura institucional útil fuera del Congreso cuando el modelo de responsables ya esté estable
 
 ### Mejoras recientes del 15 mayo 2026
@@ -128,6 +128,12 @@ divergencias del frontend.
 - [x] Datos ingestados: 2016, 2017, 2018, 2019P, 2021, 2022, 2023 (2020 sin fuente — España no aprobó PGE ese año)
 - [x] Frontend `/presupuestos` (lista ministerios por año, selector 2016-2026) y `/presupuestos/[section]` (detalle con programas, capítulos y ministro responsable)
 - [x] Cron semanal añadido: `src.presupuestos.presupuestos --year $(date +%Y) --resume`
+
+### Mejoras recientes del 15 mayo 2026 (sesión noche)
+
+- [x] `budget_lines.program_name` enriquecido desde `estructura_funcional.csv` de Civio — 8.020 registros actualizados (2016-2023)
+- [x] Declaraciones de actividades verificadas end-to-end y ingestadas para 350/350 diputados (1.149 registros). Fix UI: "Sin fecha" → "Documento vigente" para declaraciones de actividades
+- [x] Scanner BORME de puertas giratorias reescrito: parsea PDFs de Sección A reales en lugar de metadatos JSON (que nunca encontraba nada). Genera candidatos con `source_type=primary` y `confidence=0.65` cuando encuentra `Nombramientos`. Requiere `pdftotext` (poppler-utils)
 
 ---
 
@@ -156,7 +162,7 @@ peor.
 - **Presupuestos 2020**: sin fuente disponible — España prorrogó el PGE 2018 en 2019 y 2020; Civio no publicó datos para ese año. Cobertura actual en web/DB: 2016-2026, con hueco en 2020.
 - **Presupuestos 2024-2026**: cargados desde el ROM de SEPG como `budget_type='prorroga'`. El PGE en vigor sigue siendo 2023 y la UI lo muestra explícitamente.
 - **Presupuestos 2027+**: pendiente de nueva fuente pública estructurada. Cuando SEPG publique nueva prórroga o proyecto, actualizar `BUDGET_YEAR_META` en `data.ts`, el registro de fuentes en `sources.py` y reingestar.
-- **Nombres de programa**: `budget_lines.program_name` está a NULL — disponible en `estructura_funcional.csv` de Civio; pendiente de enriquecer en siguiente iteración.
+- **Fondos UE — fuente pendiente de confirmar**: la fuente más prometedora es **Kohesio** (`kohesio.ec.europa.eu/api/beneficiaries`), portal EC con 678K+ beneficiarios ESIF 2014-2027. Tiene API JSON con `label`, `euBudget`, `numberProjects` por entidad. Problema bloqueante: el filtrado por país requiere el entity ID de España en el grafo LOD interno de Kohesio (`https://linkedopendata.eu/entity/Q???`) — no recuperable sin acceso a la interfaz web o documentación oficial de la API. Otras fuentes exploradas sin éxito: `fondoseuropeos.gob.es` (portal reestructurado, sin API), datos.gob.es (devuelve HTML en endpoints JSON), PRTR Spain (datos a nivel componente, no beneficiario). **Próximo paso**: navegar `kohesio.ec.europa.eu/en/beneficiaries?country=ES` en un navegador, inspeccionar la petición de red para extraer el entity URI correcto de España, y usarlo como parámetro `country=` en la API.
 
 ---
 
