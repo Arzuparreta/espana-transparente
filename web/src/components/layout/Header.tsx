@@ -32,7 +32,6 @@ export function Header() {
             <ResponsiveLink href="/partidos" prefetch className={pill}>Partidos</ResponsiveLink>
             <ResponsiveLink href="/gobierno" prefetch className={pill}>Gobierno</ResponsiveLink>
             <ResponsiveLink href="/votaciones" prefetch className={pill}>Votaciones</ResponsiveLink>
-            <ResponsiveLink href="/divergencias" prefetch className={pill}>Divergencias</ResponsiveLink>
             {divider}
             {/* Dinero público */}
             <ResponsiveLink href="/presupuestos" prefetch className={pill}>Presupuestos</ResponsiveLink>
