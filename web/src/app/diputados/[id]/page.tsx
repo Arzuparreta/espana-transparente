@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function PoliticianPage({ params }: PageProps) {
   const { id } = await params
 
-  const { pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergentSessionIds } =
+  const { pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergentSessionIds, govPosition, ministryContracts } =
     await getPoliticianProfileData(id)
   if (!pol) notFound()
 
@@ -29,6 +29,8 @@ export default async function PoliticianPage({ params }: PageProps) {
       revolvingDoors={revolvingDoors as Record<string, unknown>[]}
       attendance={attendance as { total_sessions: number; sessions_present: number; attendance_pct: number } | null}
       divergentSessionIds={divergentSessionIds}
+      govPosition={govPosition as Parameters<typeof PoliticianProfile>[0]["govPosition"]}
+      ministryContracts={ministryContracts as Parameters<typeof PoliticianProfile>[0]["ministryContracts"]}
     />
   )
 }

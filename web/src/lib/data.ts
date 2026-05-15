@@ -212,7 +212,7 @@ export const getVotingDetailData = unstable_cache(
 
 export const getPoliticianProfileData = unstable_cache(
   async (id: string) => {
-    const [pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergences] =
+    const [pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergences, govPosition] =
       await Promise.all([
         supabase
           .from("politicians")
@@ -242,6 +242,13 @@ export const getPoliticianProfileData = unstable_cache(
           .eq("politician_id", id)
           .maybeSingle(),
         supabase.rpc("get_politician_divergences", { p_politician_id: id }),
+        supabase
+          .from("responsibility_positions")
+          .select("position_type, organization_name, government, start_date, source_url")
+          .eq("politician_id", id)
+          .is("end_date", null)
+          .eq("administration_level", "state")
+          .maybeSingle(),
       ])
 
     let legacyRevolvingDoors = null
@@ -250,6 +257,19 @@ export const getPoliticianProfileData = unstable_cache(
         .from("revolving_door")
         .select("*")
         .eq("person_id", id)
+    }
+
+    // If this person is a minister, fetch recent contracts from their ministry
+    const govPos = govPosition.data ?? null
+    let ministryContracts: unknown[] = []
+    if (govPos?.organization_name) {
+      const { data: mc } = await supabase
+        .from("contracts")
+        .select("id, title, amount, date, awarding_body")
+        .eq("ministry_normalized", govPos.organization_name)
+        .order("amount", { ascending: false, nullsFirst: false })
+        .limit(5)
+      ministryContracts = mc ?? []
     }
 
     return {
@@ -262,6 +282,8 @@ export const getPoliticianProfileData = unstable_cache(
       divergentSessionIds: new Set<string>(
         (divergences.data ?? []).map((d: { voting_session_id: string }) => d.voting_session_id)
       ),
+      govPosition: govPos,
+      ministryContracts,
     }
   },
   ["politician-profile-data", PHOTOS_CACHE_VERSION],

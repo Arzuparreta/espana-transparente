@@ -21,10 +21,47 @@ const RELATION_LABELS: Record<string, string> = {
   appointed_by: "Nombrado por",
 }
 
+const POSITION_LABELS: Record<string, string> = {
+  presidente_gobierno: "Presidente del Gobierno",
+  vicepresidente: "Vicepresidenta/e del Gobierno",
+  ministro: "Ministra/o",
+}
+
+function formatAmount(n: number | null): string {
+  if (!n) return "—"
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M €`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K €`
+  return `${Math.round(n)} €`
+}
+
+function formatProfileDate(value: string): string {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 interface AttendanceSummary {
   total_sessions: number
   sessions_present: number
   attendance_pct: number
+}
+
+interface GovPosition {
+  position_type: string
+  organization_name: string
+  government: string
+  start_date: string | null
+  source_url: string | null
+}
+
+interface MinistryContract {
+  id: string
+  title: string
+  amount: number | null
+  date: string | null
+  awarding_body: string | null
 }
 
 interface Props {
@@ -35,6 +72,8 @@ interface Props {
   revolvingDoors: Record<string, unknown>[]
   attendance: AttendanceSummary | null
   divergentSessionIds?: Set<string>
+  govPosition?: GovPosition | null
+  ministryContracts?: MinistryContract[]
 }
 
 export function PoliticianProfile({
@@ -45,6 +84,8 @@ export function PoliticianProfile({
   revolvingDoors: rd,
   attendance,
   divergentSessionIds,
+  govPosition,
+  ministryContracts = [],
 }: Props) {
   const fullName = String(p.full_name || "")
   const photoUrl = p.photo_url as string | undefined
@@ -138,6 +179,62 @@ export function PoliticianProfile({
               ]),
         ]}
       />
+
+      {/* Cargo gubernamental actual */}
+      {govPosition && (
+        <Card className="border-primary/20 bg-card/80">
+          <CardContent className="px-4 py-4">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
+                </div>
+                <div className="mt-0.5 font-semibold">{govPosition.organization_name}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  {govPosition.government}
+                  {govPosition.start_date ? ` · desde ${formatProfileDate(govPosition.start_date)}` : ""}
+                </div>
+              </div>
+              {govPosition.source_url && (
+                <a
+                  href={govPosition.source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  BOE →
+                </a>
+              )}
+            </div>
+
+            {ministryContracts.length > 0 && (
+              <div className="mt-4 space-y-1.5">
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Contratos recientes del ministerio
+                </div>
+                {ministryContracts.map((c) => (
+                  <a
+                    key={c.id}
+                    href={`/contratos/${c.id}`}
+                    className="flex min-w-0 items-baseline justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm transition-colors hover:bg-background"
+                  >
+                    <span className="min-w-0 truncate">{c.title}</span>
+                    <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+                      {formatAmount(c.amount)}
+                    </span>
+                  </a>
+                ))}
+                <a
+                  href={`/contratos?q=${encodeURIComponent(govPosition.organization_name)}`}
+                  className="block pt-1 text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  Ver todos los contratos del ministerio →
+                </a>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {voteDistribution.length > 0 ? (
         <Card className="bg-card/80">
@@ -416,10 +513,3 @@ export function PoliticianProfile({
   )
 }
 
-function formatProfileDate(value: string) {
-  return new Date(`${value}T00:00:00`).toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })
-}
