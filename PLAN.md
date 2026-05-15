@@ -108,7 +108,7 @@ divergencias del frontend.
 
 - [ ] Ampliar puertas giratorias con más fuentes primarias y menos dependencia de entradas manuales
 - [x] Declaraciones de actividades: pipeline implementado — URL determinista `/docinte/registro_intereses_diputado_{cod}.pdf`, tipo `actividades` en `economic_declarations`, frontend actualizado
-- [ ] Presupuestos Generales del Estado: ETL base y jerarquía ministerio -> programa -> partida
+- [x] Presupuestos Generales del Estado: ETL base implementado — jerarquía sección → programa → capítulo, 2016-2023 ingestados (~1.100-1.555 partidas/año). Fuente: Civio scraper-pge. Frontend `/presupuestos` y `/presupuestos/[section]` desplegados.
 - [ ] Fondos UE trazados al receptor final
 - [ ] Búsqueda avanzada / índice dedicado si el volumen empieza a penalizar las consultas
 - [ ] Más cobertura institucional útil fuera del Congreso cuando el modelo de responsables ya esté estable
@@ -120,6 +120,14 @@ divergencias del frontend.
 - [x] Las fotos oficiales usan la ruta vigente del Congreso (`/docu/imgweb/diputados/{cod}_{legislatura}.jpg`)
 - [x] Se eliminó el hotlinking de terceros en `politicians.photo_url`: la URL pública siempre sale de Supabase Storage
 - [x] El frontend consume `photo_variants` con `srcSet` y fallback estable a iniciales
+
+### Mejoras recientes del 15 mayo 2026 (sesión tarde)
+
+- [x] Vertical de Presupuestos: migración `budget_lines` + vistas `v_budget_summary`, `v_budget_by_program`, `v_budget_responsibility`
+- [x] ETL `src.presupuestos.presupuestos` con parser Civio (`gastos.csv` + `estructura_organica.csv`), dry-run, resume y backfill por año
+- [x] Datos ingestados: 2016, 2017, 2018, 2019P, 2021, 2022, 2023 (2020 sin fuente — España no aprobó PGE ese año)
+- [x] Frontend `/presupuestos` (lista ministerios por año, selector 2016-2026) y `/presupuestos/[section]` (detalle con programas, capítulos y ministro responsable)
+- [x] Cron semanal añadido: `src.presupuestos.presupuestos --year $(date +%Y) --resume`
 
 ---
 
@@ -145,7 +153,9 @@ peor.
 - **Rate-limit del Congreso**: el portal del Congreso devuelve 403 tras ráfagas. Los scrapers usan `curl`, User-Agent explícito y `REQUEST_DELAY=1.5s`. No paralelizar peticiones al Congreso.
 - **Declaraciones de actividades**: ~~pendiente~~ implementado. URL `/docinte/registro_intereses_diputado_{cod}.pdf` (un único PDF por diputado, sin fecha en URL, se actualiza in-place). Tipo `actividades` en `economic_declarations`. Ver `declaraciones.py`.
 - **Referencias YAML**: liderazgo de partido y algunos mapas de responsabilidad siguen siendo datos mantenidos como PR en `etl/data/` por falta de fuente estructurada única.
-- **Presupuestos**: sigue sin haber pipeline estable equivalente al resto de verticales.
+- **Presupuestos 2020**: sin fuente disponible — España prorrogó el PGE 2018 en 2019 y 2020; Civio no publicó datos para ese año. Cobertura: 2016-2023 con hueco en 2020.
+- **Presupuestos 2024+**: Civio scraper-pge no cubre años posteriores a 2023. Cuando publiquen o se encuentre otra fuente estructurada, actualizar `_CIVIO_YEARS` en `sources.py`.
+- **Nombres de programa**: `budget_lines.program_name` está a NULL — disponible en `estructura_funcional.csv` de Civio; pendiente de enriquecer en siguiente iteración.
 
 ---
 
@@ -164,6 +174,7 @@ peor.
   - `src.congreso.gobierno`
   - `src.congreso.responsables`
   - `src.photos.run --no-refresh-missing --max-age-days 30`
+  - `src.presupuestos.presupuestos --year $(date +%Y) --resume`
 
 ---
 
@@ -177,4 +188,4 @@ peor.
 
 ---
 
-*Plan actualizado el 15 de mayo de 2026. Refleja el estado real del repo y de los cron tras la refactorización de identidad y fotos de diputados.*
+*Plan actualizado el 15 de mayo de 2026 (tarde). Refleja el estado real tras añadir el vertical de Presupuestos Generales del Estado.*
