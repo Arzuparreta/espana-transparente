@@ -72,7 +72,8 @@ function ContratoCard({ c }: { c: Contrato }) {
     : null
 
   return (
-    <Card className="bg-card/85">
+    <Card className="bg-card/85 transition-colors hover:bg-card">
+      <ResponsiveLink href={`/contratos/${c.id}`}>
       <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
@@ -119,6 +120,7 @@ function ContratoCard({ c }: { c: Contrato }) {
           ) : null}
         </div>
       </CardContent>
+      </ResponsiveLink>
     </Card>
   )
 }

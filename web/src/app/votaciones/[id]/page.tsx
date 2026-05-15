@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
@@ -16,7 +17,8 @@ interface PageProps {
 
 interface VoteRow {
   vote: string
-  politician: { full_name: string } | null
+  politician_id: string | null
+  politician: { id: string; full_name: string } | null
   membership: { party: { acronym: string; color: string } } | null
 }
 
@@ -32,7 +34,7 @@ export default async function VotacionPage({ params }: PageProps) {
       color: string
       votes: Record<string, number>
       total: number
-      deputies: Array<{ name: string; vote: string }>
+      deputies: Array<{ name: string; vote: string; politicianId: string | null }>
     }
   > = {}
 
@@ -54,10 +56,11 @@ export default async function VotacionPage({ params }: PageProps) {
     partyGroups[key].deputies.push({
       name: vote.politician?.full_name || "",
       vote: vote.vote,
+      politicianId: vote.politician?.id ?? null,
     })
   }
 
-  const divergences: Array<{ name: string; party: string; voted: string; partyVoted: string }> = []
+  const divergences: Array<{ name: string; politicianId: string | null; party: string; voted: string; partyVoted: string }> = []
   for (const [party, group] of Object.entries(partyGroups)) {
     const majorityVote = Object.entries(group.votes).sort((a, b) => b[1] - a[1])[0]?.[0]
     if (!majorityVote) continue
@@ -65,6 +68,7 @@ export default async function VotacionPage({ params }: PageProps) {
       if (deputy.vote !== majorityVote && deputy.vote !== "No vota") {
         divergences.push({
           name: deputy.name,
+          politicianId: deputy.politicianId,
           party,
           voted: deputy.vote,
           partyVoted: majorityVote,
@@ -116,7 +120,13 @@ export default async function VotacionPage({ params }: PageProps) {
                 key={index}
                 className="flex flex-wrap items-center gap-2 border-l-2 border-amber-300 pl-3 text-sm"
               >
-                <span className="font-medium">{divergence.name}</span>
+                {divergence.politicianId ? (
+                  <Link href={`/diputados/${divergence.politicianId}`} className="font-medium underline-offset-2 hover:underline">
+                    {divergence.name}
+                  </Link>
+                ) : (
+                  <span className="font-medium">{divergence.name}</span>
+                )}
                 <PartyBadge acronym={divergence.party} className="text-[11px]" />
                 <span className="text-xs">
                   votó <b style={{ color: getVoteColor(divergence.voted) }}>{divergence.voted}</b> ≠{" "}
@@ -187,7 +197,16 @@ export default async function VotacionPage({ params }: PageProps) {
                   key={index}
                   className="flex items-center justify-between gap-3 border-b border-muted/30 py-1 last:border-0"
                 >
-                  <span className="min-w-0 flex-1 truncate text-xs">{deputy.name}</span>
+                  {deputy.politicianId ? (
+                    <Link
+                      href={`/diputados/${deputy.politicianId}`}
+                      className="min-w-0 flex-1 truncate text-xs underline-offset-2 hover:underline"
+                    >
+                      {deputy.name}
+                    </Link>
+                  ) : (
+                    <span className="min-w-0 flex-1 truncate text-xs">{deputy.name}</span>
+                  )}
                   <VoteBadge vote={deputy.vote} className="text-[11px]" />
                 </div>
               ))}

@@ -185,7 +185,7 @@ export const getVotingDetailData = unstable_cache(
       supabase
         .from("votes")
         .select(
-          "vote, politician:politicians(full_name), membership:politician_memberships!inner(party:parties(acronym, color))"
+          "vote, politician_id, politician:politicians(id, full_name), membership:politician_memberships!inner(party:parties(acronym, color))"
         )
         .eq("voting_session_id", id)
         .eq("membership.is_active", true),
@@ -549,6 +549,31 @@ export const getOrganizationPageData = unstable_cache(
     }
   },
   ["organization-page-data"],
+  { revalidate: HOUR }
+)
+
+export const getContractDetail = unstable_cache(
+  async (id: string) => {
+    const [contract, responsibility] = await Promise.all([
+      supabase
+        .from("contracts")
+        .select(
+          "id, contract_folder_id, title, awarding_body, awarding_body_normalized, awarding_body_organization_id, amount, currency, date, contractor, description, source_url, contract_type, cpv_code, region, ministry_normalized, administration_level"
+        )
+        .eq("id", id)
+        .single(),
+      supabase
+        .from("v_contract_responsibility")
+        .select("person_name, politician_id, ministry, government, political_party, administration_level, territory_name")
+        .eq("contract_id", id)
+        .maybeSingle(),
+    ])
+    return {
+      contract: contract.data,
+      responsible: responsibility.data ?? null,
+    }
+  },
+  ["contract-detail"],
   { revalidate: HOUR }
 )
 
