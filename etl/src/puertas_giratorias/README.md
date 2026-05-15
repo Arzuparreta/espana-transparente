@@ -34,15 +34,33 @@ evidence_text, confidence, discovered_by, discovery_method
 
 `source_type` debe ser `primary`, `secondary` o `discovery`. Para publicar, hace falta al menos una fuente `primary`.
 
-**BORME** (descubrimiento, baja confianza):
+**BORME** (scanner automático — parsea PDFs de Sección A):
 
 ```bash
+# Watchlist completa contra el día anterior (modo cron):
 PYTHONPATH=src python -m src.puertas_giratorias.ingest \
-  --borme-date 2026-05-13 \
-  --names "Nombre Apellido" "Otro Nombre"
+  --watchlist data/personas_vigiladas.yml
+
+# Día concreto:
+PYTHONPATH=src python -m src.puertas_giratorias.ingest \
+  --watchlist data/personas_vigiladas.yml --borme-date 2026-05-13
+
+# Nombres ad-hoc:
+PYTHONPATH=src python -m src.puertas_giratorias.ingest \
+  --names "Nombre Apellido" "Otro Nombre" --borme-date 2026-05-13
 ```
 
-Genera candidatos con `confidence=0.35`, `private_role=Pendiente de revisar`. Requiere revisión humana antes de poder publicar nada.
+El scanner descarga los PDFs de Sección A (Actos inscritos) para cada provincia,
+extrae líneas de `Nombramientos` y `Ceses/Dimisiones`, y hace fuzzy matching contra
+el watchlist (tolerante a acentos y orden APELLIDO NOMBRE vs NOMBRE APELLIDO).
+
+Cuando hay `Nombramientos`: `source_type=primary`, `confidence=0.65`.
+Cuando solo hay `Ceses/Dimisiones`: `source_type=secondary`, `confidence=0.45`.
+
+En ambos casos, el candidato entra en staging y requiere revisión humana antes
+de poder publicarse. El rol privado queda pre-rellenado con el cargo detectado
+en el BORME (ej: `Consejero`, `Adm. Unico`), pero `private_organization` requiere
+que el revisor identifique la empresa concreta en el PDF enlazado.
 
 ### 2. Revisión
 
@@ -69,7 +87,18 @@ La investigación toma tiempo y produce material inseguro. El staging permite:
 - Revisión auditable (`reviewed_by`, `reviewed_at`, `review_notes`).
 - Rechazo explícito (las pistas falsas también se documentan).
 
+## Requisitos del sistema
+
+El scanner BORME usa `pdftotext` (parte de `poppler-utils`). En Debian/Ubuntu:
+```bash
+apt-get install poppler-utils
+```
+En GitHub Actions ya disponible en `ubuntu-latest`.
+
 ## Pendientes
 
-- Cron automático de BORME: necesita una lista de "personas a vigilar" curada (no escanear los 350 diputados todos los días — demasiado ruido). Mientras tanto, ejecutar `ingest --borme-date` manualmente cuando se quiera muestrear un día concreto.
-- Backfill desde fuentes secundarias documentadas (Wikipedia "Puerta giratoria (política)" tiene listado).
+- Backfill desde fuentes secundarias documentadas: hay casos conocidos en prensa
+  especializada (El Confidencial, Civio) que podrían importarse vía CSV para
+  arrancar el staging con más volumen.
+- Ampliar `personas_vigiladas.yml` con más cargos intermedios (secretarios de
+  estado, directores generales) cuando el ruido sea asumible.
