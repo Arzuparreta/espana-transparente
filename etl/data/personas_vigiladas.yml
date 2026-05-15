@@ -1,0 +1,136 @@
+# Personas a vigilar en BORME para detección automática de puertas giratorias.
+#
+# BORME registra nombramientos, ceses y poderes notariales de sociedades.
+# El pipeline semanal busca estas personas en el sumario del día y genera
+# candidatos con confidence=0.35 para revisión humana.
+#
+# Campos:
+#   name    — nombre completo tal y como aparece en fuentes oficiales (BORME usa
+#             mayúsculas; el buscador es case-insensitive)
+#   role    — último cargo público conocido (solo informativo — no va a BD)
+#   party   — partido o gobierno de referencia
+#   sector  — sector privado más probable (orienta la revisión humana)
+
+personas:
+
+  # Ex-presidentes y vicepresidentes del Gobierno
+  - name: "Felipe González Márquez"
+    role: "Presidente del Gobierno (1982-1996)"
+    party: "PSOE"
+    sector: "energía/banca"
+  - name: "José María Aznar López"
+    role: "Presidente del Gobierno (1996-2004)"
+    party: "PP"
+    sector: "energía/medios/consultoría"
+  - name: "Mariano Rajoy Brey"
+    role: "Presidente del Gobierno (2011-2018)"
+    party: "PP"
+    sector: "consultoría/derecho"
+  - name: "Soraya Sáenz de Santamaría"
+    role: "Vicepresidenta del Gobierno (2011-2018)"
+    party: "PP"
+    sector: "tecnología/consultoría"
+  - name: "Elena Salgado Méndez"
+    role: "Ministra de Economía (2009-2011)"
+    party: "PSOE"
+    sector: "energía/banca"
+
+  # Ex-ministros de Economía / Hacienda / Industria
+  - name: "Luis de Guindos Jurado"
+    role: "Ministro de Economía (2011-2018)"
+    party: "PP"
+    sector: "banca/finanzas"
+  - name: "Cristóbal Montoro Romero"
+    role: "Ministro de Hacienda (2011-2018)"
+    party: "PP"
+    sector: "consultoría fiscal"
+  - name: "José Manuel Soria López"
+    role: "Ministro de Industria (2011-2016)"
+    party: "PP"
+    sector: "energía"
+  - name: "Miguel Sebastián Gascón"
+    role: "Ministro de Industria (2008-2011)"
+    party: "PSOE"
+    sector: "automoción/consultoría"
+  - name: "Pedro Solbes Mira"
+    role: "Ministro de Economía (2004-2009)"
+    party: "PSOE"
+    sector: "banca/finanzas"
+  - name: "Rodrigo Rato Figaredo"
+    role: "Ministro de Economía (1996-2004)"
+    party: "PP"
+    sector: "banca"
+
+  # Ex-ministros de Energía / Medio Ambiente / Transición Ecológica
+  - name: "Álvaro Nadal Belda"
+    role: "Ministro de Energía (2016-2018)"
+    party: "PP"
+    sector: "energía"
+  - name: "Teresa Ribera Rodríguez"
+    role: "Ministra de Transición Ecológica (2018-2024)"
+    party: "PSOE"
+    sector: "energía/medioambiente"
+  - name: "Jordi Sevilla Segura"
+    role: "Ministro de Administraciones Públicas (2004-2007)"
+    party: "PSOE"
+    sector: "consultoría/banca"
+
+  # Ex-ministros de Defensa / Interior / Exteriores
+  - name: "Federico Trillo-Figueroa Martínez-Conde"
+    role: "Ministro de Defensa (2000-2004)"
+    party: "PP"
+    sector: "defensa/consultoría"
+  - name: "Ángel Acebes Paniagua"
+    role: "Ministro del Interior (2002-2004)"
+    party: "PP"
+    sector: "energía/telecomunicaciones"
+  - name: "José Ignacio Wert Ortega"
+    role: "Ministro de Educación (2011-2015)"
+    party: "PP"
+    sector: "consultoría/comunicación"
+
+  # Ex-altos cargos de reguladores y organismos públicos
+  - name: "Julio Segura Sánchez"
+    role: "Presidente de la CNMV (2007-2012)"
+    party: "PSOE"
+    sector: "banca/finanzas"
+  - name: "Sebastián Albella Amigo"
+    role: "Presidente de la CNMV (2016-2020)"
+    party: "PP"
+    sector: "banca/derecho"
+  - name: "Cani Fernández Vicién"
+    role: "Presidenta de la CNMC (2020-2024)"
+    party: "independiente"
+    sector: "telecomunicaciones/competencia"
+  - name: "José Luis García Delgado"
+    role: "Presidente de la CNMC (2013-2019)"
+    party: "PP"
+    sector: "consultoría/telecomunicaciones"
+
+  # Ex-secretarios de Estado y directores generales con historial relevante
+  - name: "Íñigo Fernández de Mesa Díaz del Río"
+    role: "Secretario de Estado de Economía (2012-2016)"
+    party: "PP"
+    sector: "banca/finanzas"
+  - name: "Jaime García-Legaz Ponce"
+    role: "Secretario de Estado de Comercio (2012-2016)"
+    party: "PP"
+    sector: "consultoría/comercio"
+  - name: "Lucía Figar de Lacalle"
+    role: "Consejera de Educación de Madrid (2007-2015)"
+    party: "PP"
+    sector: "educación/consultoría"
+
+  # Ex-cargos autonómicos de perfil nacional
+  - name: "Esperanza Aguirre Gil de Biedma"
+    role: "Presidenta de la Comunidad de Madrid (2003-2012)"
+    party: "PP"
+    sector: "consultoría/medios"
+  - name: "Jaume Matas Palou"
+    role: "Presidente de las Illes Balears (2003-2007)"
+    party: "PP"
+    sector: "consultoría/turismo"
+  - name: "Francisco Camps Ortiz"
+    role: "Presidente de la Comunitat Valenciana (2003-2011)"
+    party: "PP"
+    sector: "construcción/consultoría"

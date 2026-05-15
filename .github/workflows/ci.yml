@@ -115,3 +115,6 @@ jobs:
       - run: PYTHONPATH=src python -m src.presupuestos.presupuestos --year $(date +%Y) --resume
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.puertas_giratorias.ingest --watchlist data/personas_vigiladas.yml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

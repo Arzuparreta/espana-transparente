@@ -7,6 +7,10 @@ Usage:
     PYTHONPATH=src python -m src.puertas_giratorias.ingest --csv data.csv --dry-run
     PYTHONPATH=src python -m src.puertas_giratorias.ingest --csv data.csv
 
+    # Automatic BORME watchlist scan (uses yesterday if --borme-date omitted):
+    PYTHONPATH=src python -m src.puertas_giratorias.ingest --watchlist data/personas_vigiladas.yml
+    PYTHONPATH=src python -m src.puertas_giratorias.ingest --watchlist data/personas_vigiladas.yml --borme-date 2026-05-13
+
 CSV columns accepted:
     person_name, political_party, public_role, public_organization,
     public_exit_date, private_role, private_organization, private_start_date,
@@ -18,9 +22,11 @@ import argparse
 import csv
 import json
 import subprocess
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from puertas_giratorias.db import parse_optional_date, save_candidates
 from puertas_giratorias.model import RevolvingDoorCandidate, SourceEvidence
@@ -145,23 +151,40 @@ def scan_borme(day: date, names: list[str]) -> list[RevolvingDoorCandidate]:
     return candidates
 
 
+def load_watchlist(path: Path) -> list[str]:
+    """Return the list of person names from a personas_vigiladas YAML file."""
+    with path.open(encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    personas = data.get("personas", [])
+    names = [p["name"] for p in personas if p.get("name")]
+    if not names:
+        raise ValueError(f"No names found in watchlist {path}")
+    return names
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", type=Path, help="CSV exported from investigation work")
-    parser.add_argument("--borme-date", type=lambda s: date.fromisoformat(s), help="YYYY-MM-DD")
+    parser.add_argument("--borme-date", type=lambda s: date.fromisoformat(s), help="YYYY-MM-DD (default: yesterday when using --watchlist)")
     parser.add_argument("--names", nargs="*", default=[], help="Names to search in BORME summary")
+    parser.add_argument("--watchlist", type=Path, help="YAML watchlist (personas_vigiladas.yml); scans BORME for all names")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     candidates: list[RevolvingDoorCandidate] = []
     if args.csv:
         candidates.extend(read_csv(args.csv))
-    if args.borme_date:
-        if not args.names:
-            raise SystemExit("--names is required with --borme-date")
-        candidates.extend(scan_borme(args.borme_date, args.names))
-    if not candidates:
-        raise SystemExit("No candidates. Use --csv or --borme-date.")
+
+    borme_names: list[str] = list(args.names)
+    if args.watchlist:
+        borme_names.extend(load_watchlist(args.watchlist))
+
+    if borme_names:
+        borme_day = args.borme_date or (date.today() - timedelta(days=1))
+        candidates.extend(scan_borme(borme_day, borme_names))
+
+    if not args.csv and not borme_names:
+        raise SystemExit("No candidates. Use --csv, --borme-date --names, or --watchlist.")
 
     count = save_candidates(candidates, dry_run=args.dry_run)
     print(f"Processed {count} revolving-door candidates")
