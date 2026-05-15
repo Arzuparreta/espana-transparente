@@ -103,8 +103,29 @@
     @apply grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3;
   }
 
+  /* Auto-animate any [data-slot="card"] that is inside a link or button.
+     This covers both <Card> (shadcn) and any custom div with data-slot="card".
+     No code changes needed when a card becomes clickable — just wrap it in <Link>. */
+  a [data-slot="card"],
+  button [data-slot="card"] {
+    @apply transition-all duration-200;
+  }
+  a:hover [data-slot="card"],
+  button:hover [data-slot="card"] {
+    @apply -translate-y-0.5 shadow-md;
+  }
+
+  /* Explicit override for rare cases where the card itself IS the interactive element */
   .ui-card-link {
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    a [data-slot="card"],
+    button [data-slot="card"] {
+      transition: none;
+      transform: none !important;
+    }
   }
 
   .animate-marquee {

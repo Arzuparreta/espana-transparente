@@ -17,7 +17,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
 
   return (
     <ResponsiveLink href={`/diputados/${politician.id}`}>
-      <Card className="ui-card-link h-full cursor-pointer bg-card/85">
+      <Card className="h-full bg-card/85">
         <CardHeader className="space-y-3">
           <div className="flex items-start gap-3">
             <Avatar size="default" className="mt-0.5 shrink-0">

@@ -59,7 +59,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
 
           return (
             <ResponsiveLink key={s.id} href={`/votaciones/${s.id}`}>
-              <Card className="ui-card-link cursor-pointer bg-card/85">
+              <Card className="bg-card/85">
                 <CardContent className="flex items-start gap-3 py-4 sm:gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="text-base font-medium leading-6 text-balance">{s.title}</div>

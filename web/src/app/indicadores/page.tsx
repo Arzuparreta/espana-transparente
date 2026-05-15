@@ -39,7 +39,7 @@ export default async function IndicadoresPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {entries.map(([code, info]) => (
             <ResponsiveLink key={code} href={`/indicadores/${code}`}>
-              <Card className="ui-card-link h-full cursor-pointer bg-card/85">
+              <Card className="h-full bg-card/85">
                 <CardHeader className="space-y-3">
                   <div className="flex items-start gap-3">
                     <CardTitle className="min-w-0 flex-1 text-base leading-6 text-balance">{info.name}</CardTitle>
