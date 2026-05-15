@@ -5,9 +5,11 @@ import pytest
 from presupuestos.presupuestos import (
     _parse_amount,
     detect_delimiter,
+    parse_sepg_records,
     parse_records,
 )
 from presupuestos.sources import BudgetSource
+from presupuestos.scraper_sepg import SepgRecord
 
 
 # ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -175,3 +177,42 @@ def test_parse_records_source_url_propagated():
     source = _make_source()
     records = parse_records(CSV_SEMICOLON, source)
     assert all(r["source_url"] == "https://example.com/pge.csv" for r in records)
+
+
+def test_parse_records_budget_type_propagated():
+    source = BudgetSource(
+        year=2019,
+        fmt="civio",
+        gastos_url="https://example.com/pge.csv",
+        budget_type="proyecto",
+    )
+    records = parse_records(CSV_SEMICOLON, source)
+    assert all(r["budget_type"] == "proyecto" for r in records)
+
+
+def test_parse_sepg_records_builds_budget_lines():
+    source = BudgetSource(
+        year=2024,
+        fmt="sepg_prorroga",
+        gastos_url="https://example.com/pge2024prorroga",
+        budget_type="prorroga",
+        in_force_year=2023,
+    )
+    rows = [
+        SepgRecord(
+            section_code="06",
+            section_name="DEUDA PÚBLICA",
+            program_code="951N",
+            program_name="Amortización y gastos financieros de la deuda pública en euros",
+            economic_chapter=3,
+            credit_initial=123456.0,
+        )
+    ]
+
+    records = parse_sepg_records(rows, source)
+
+    assert len(records) == 1
+    assert records[0]["year"] == 2024
+    assert records[0]["budget_type"] == "prorroga"
+    assert records[0]["credit_initial"] == pytest.approx(123456.0)
+    assert records[0]["credit_final"] is None

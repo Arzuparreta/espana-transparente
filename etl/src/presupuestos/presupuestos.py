@@ -25,6 +25,7 @@ from common.db import get_pg_conn
 from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 from common.responsibility import normalize_public_body
 from presupuestos.sources import BudgetSource, available_years, download_gastos
+from presupuestos.scraper_sepg import SepgRecord, scrape_year as scrape_sepg_year
 
 
 # ─── Amount parsing ───────────────────────────────────────────────────────────
@@ -132,6 +133,7 @@ def parse_civio_records(gastos_bytes: bytes, organica_bytes: bytes, source: Budg
 
         records.append({
             "year":                source.year,
+            "budget_type":         source.budget_type,
             "section_code":        section_code,
             "section_name":        section_name,
             "service_code":        None,
@@ -151,10 +153,46 @@ def parse_civio_records(gastos_bytes: bytes, organica_bytes: bytes, source: Budg
                 "program_code": program_code,
                 "chapter":      chapter,
                 "source":       source.notes,
+                "budget_type": source.budget_type,
             }),
         })
 
     print(f"  Built {len(records)} records for year {source.year}")
+    return records
+
+
+def parse_sepg_records(rows: list[SepgRecord], source: BudgetSource) -> list[dict]:
+    """Convert SEPG prorroga rows into budget_lines records."""
+    records = []
+    for row in rows:
+        records.append({
+            "year":                 source.year,
+            "budget_type":          source.budget_type,
+            "section_code":         row.section_code,
+            "section_name":         row.section_name,
+            "service_code":         None,
+            "service_name":         None,
+            "program_code":         row.program_code,
+            "program_name":         row.program_name,
+            "economic_chapter":     row.economic_chapter,
+            "economic_article":     None,
+            "economic_concept":     None,
+            "credit_initial":       row.credit_initial,
+            "credit_final":         None,
+            "ministry_normalized":  normalize_public_body(row.section_name),
+            "administration_level": "state",
+            "source_url":           source.gastos_url,
+            "raw_data":             psycopg2.extras.Json({
+                "source": source.notes,
+                "budget_type": source.budget_type,
+                "in_force_year": source.in_force_year,
+                "section_code": row.section_code,
+                "program_code": row.program_code,
+                "economic_chapter": row.economic_chapter,
+            }),
+        })
+
+    print(f"  Built {len(records)} SEPG records for year {source.year}")
     return records
 
 
@@ -286,6 +324,7 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
 
         records.append({
             "year":                source.year,
+            "budget_type":         source.budget_type,
             "section_code":        section_code,
             "section_name":        section_name,
             "service_code":        service_code,
@@ -317,6 +356,7 @@ def upsert(conn, records: list[dict]) -> int:
         cur.execute("""
             INSERT INTO budget_lines (
               year, section_code, section_name, service_code, service_name,
+              budget_type,
               program_code, program_name,
               economic_chapter, economic_article, economic_concept,
               credit_initial, credit_final,
@@ -325,13 +365,14 @@ def upsert(conn, records: list[dict]) -> int:
             ) VALUES (
               %(year)s, %(section_code)s, %(section_name)s,
               %(service_code)s, %(service_name)s,
+              %(budget_type)s,
               %(program_code)s, %(program_name)s,
               %(economic_chapter)s, %(economic_article)s, %(economic_concept)s,
               %(credit_initial)s, %(credit_final)s,
               %(ministry_normalized)s, %(administration_level)s,
               %(source_url)s, %(raw_data)s, now()
             )
-            ON CONFLICT (year, section_code, program_code, economic_chapter) DO UPDATE SET
+            ON CONFLICT (year, budget_type, section_code, program_code, economic_chapter) DO UPDATE SET
               section_name        = EXCLUDED.section_name,
               service_code        = EXCLUDED.service_code,
               service_name        = EXCLUDED.service_name,
@@ -389,6 +430,8 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
 
         if source.fmt == "civio":
             records = parse_civio_records(gastos_bytes, organica_bytes, source)
+        elif source.fmt == "sepg_prorroga":
+            records = parse_sepg_records(scrape_sepg_year(year, verbose=not dry_run), source)
         else:
             records = parse_records(gastos_bytes, source)
 
@@ -454,7 +497,7 @@ def main() -> None:
 
     if args.from_year or args.to_year:
         from_year = args.from_year or 2016
-        to_year   = args.to_year   or 2023
+        to_year   = args.to_year   or max(available_years())
         run_backfill(from_year=from_year, to_year=to_year, resume=args.resume, dry_run=args.dry_run)
         return
 

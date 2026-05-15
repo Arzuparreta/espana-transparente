@@ -19,86 +19,45 @@ export default async function HomePage() {
     politicians,
     politicianCount,
     parties,
-    sessionsCount,
     contractCount,
     subsidyCount,
-    revolvingDoorCount,
-    budgetTotal,
-    latestIpc,
+    currentBudget,
   } = await getHomeData()
-
-  const ipcValue = latestIpc?.value != null
-    ? `${Number(latestIpc.value).toFixed(1)}`
-    : "—"
-  const ipcPeriod = latestIpc?.period
-    ? (latestIpc.period as string).replace(/^(\d{4})-(\d{2})$/, "$2/$1")
-    : null
+  const stats = [
+    {
+      label: "Diputados activos",
+      value: `${politicianCount}`,
+      hint: "Con ficha individual, trayectoria y voto registrados.",
+    },
+    ...(currentBudget
+      ? [
+          {
+            label: `Presupuesto vigente ${currentBudget.year}`,
+            value: formatBig(currentBudget.total),
+            hint:
+              currentBudget.budgetType === "prorroga"
+                ? "Crédito inicial hoy en vigor por prórroga presupuestaria."
+                : "Crédito inicial hoy en vigor.",
+          },
+        ]
+      : []),
+    {
+      label: "Contratos públicos",
+      value: contractCount.toLocaleString("es-ES"),
+      hint: "Licitaciones en PCSP con importe publicado.",
+    },
+    {
+      label: "Subvenciones",
+      value: subsidyCount.toLocaleString("es-ES"),
+      hint: "Concesiones en BDNS a entidades organizativas.",
+    },
+  ]
 
   return (
     <div className="space-y-8 sm:space-y-12">
       <LogoHero parties={parties ?? []} />
 
-      {/* Personas y sus decisiones */}
-      <StatGrid
-        items={[
-          {
-            label: "Diputados activos",
-            value: `${politicianCount}`,
-            hint: "Con ficha individual, trayectoria y voto registrados.",
-          },
-          {
-            label: "Partidos con escaños",
-            value: `${parties.length}`,
-            hint: "Con representación en la XV Legislatura.",
-          },
-          {
-            label: "Votaciones",
-            value: `${sessionsCount}`,
-            hint: "Sesiones con voto individual desglosado.",
-          },
-        ]}
-      />
-
-      {/* Dinero público que gestionan */}
-      <StatGrid
-        items={[
-          {
-            label: "Presupuesto del Estado 2023",
-            value: formatBig(budgetTotal),
-            hint: "Crédito inicial consolidado. Fuente: Civio / SEPG.",
-          },
-          {
-            label: "Contratos públicos",
-            value: contractCount.toLocaleString("es-ES"),
-            hint: "Licitaciones en PCSP con importe publicado.",
-          },
-          {
-            label: "Subvenciones",
-            value: subsidyCount.toLocaleString("es-ES"),
-            hint: "Concesiones en BDNS a entidades organizativas.",
-          },
-        ]}
-      />
-
-      {/* Contexto: IPC y puertas giratorias */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <ResponsiveLink
-          href="/indicadores"
-          className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 transition-colors hover:bg-card"
-        >
-          <div className="text-2xl font-semibold tabular-nums">{ipcValue}</div>
-          <div className="text-xs text-muted-foreground">
-            IPC{ipcPeriod ? ` · ${ipcPeriod}` : ""}
-          </div>
-        </ResponsiveLink>
-        <ResponsiveLink
-          href="/puertas-giratorias"
-          className="rounded-xl border border-border/70 bg-card/70 px-4 py-3 transition-colors hover:bg-card"
-        >
-          <div className="text-2xl font-semibold tabular-nums">{revolvingDoorCount}</div>
-          <div className="text-xs text-muted-foreground">Puertas giratorias documentadas</div>
-        </ResponsiveLink>
-      </div>
+      <StatGrid items={stats} className={stats.length === 3 ? "xl:grid-cols-3" : "xl:grid-cols-4"} />
 
       {/* Diputados — punto de entrada principal a personas */}
       <section>

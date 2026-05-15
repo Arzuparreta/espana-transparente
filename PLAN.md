@@ -153,8 +153,9 @@ peor.
 - **Rate-limit del Congreso**: el portal del Congreso devuelve 403 tras ráfagas. Los scrapers usan `curl`, User-Agent explícito y `REQUEST_DELAY=1.5s`. No paralelizar peticiones al Congreso.
 - **Declaraciones de actividades**: ~~pendiente~~ implementado. URL `/docinte/registro_intereses_diputado_{cod}.pdf` (un único PDF por diputado, sin fecha en URL, se actualiza in-place). Tipo `actividades` en `economic_declarations`. Ver `declaraciones.py`.
 - **Referencias YAML**: liderazgo de partido y algunos mapas de responsabilidad siguen siendo datos mantenidos como PR en `etl/data/` por falta de fuente estructurada única.
-- **Presupuestos 2020**: sin fuente disponible — España prorrogó el PGE 2018 en 2019 y 2020; Civio no publicó datos para ese año. Cobertura: 2016-2023 con hueco en 2020.
-- **Presupuestos 2024+**: Civio scraper-pge no cubre años posteriores a 2023. Cuando publiquen o se encuentre otra fuente estructurada, actualizar `_CIVIO_YEARS` en `sources.py`.
+- **Presupuestos 2020**: sin fuente disponible — España prorrogó el PGE 2018 en 2019 y 2020; Civio no publicó datos para ese año. Cobertura actual en web/DB: 2016-2025, con hueco en 2020.
+- **Presupuestos 2024-2025**: cargados desde el ROM de SEPG como `budget_type='prorroga'`. El PGE en vigor sigue siendo 2023 y la UI lo muestra explícitamente.
+- **Presupuestos 2026+**: pendiente de fuente pública estructurada. Cuando SEPG publique nueva prórroga o proyecto, actualizar `BUDGET_YEAR_META` en `data.ts`, el registro de fuentes en `sources.py` y reingestar.
 - **Nombres de programa**: `budget_lines.program_name` está a NULL — disponible en `estructura_funcional.csv` de Civio; pendiente de enriquecer en siguiente iteración.
 
 ---

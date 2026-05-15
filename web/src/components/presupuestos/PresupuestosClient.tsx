@@ -1,10 +1,12 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { BUDGET_YEARS } from "@/lib/data"
+import { BUDGET_YEARS, getBudgetYearMeta, type BudgetType } from "@/lib/data"
 
 interface BudgetSectionRow {
+  budget_type: BudgetType
   section_code: string
   section_name: string | null
   ministry_normalized: string | null
@@ -27,7 +29,7 @@ function formatAmount(eur: number | null): string {
 }
 
 function budgetHref(year: number) {
-  return year === new Date().getFullYear()
+  return year === BUDGET_YEARS[BUDGET_YEARS.length - 1]
     ? "/presupuestos"
     : `/presupuestos?year=${year}`
 }
@@ -67,6 +69,8 @@ function SectionCard({ row, year }: { row: BudgetSectionRow; year: number }) {
 }
 
 export function PresupuestosClient({ year, rows }: PresupuestosClientProps) {
+  const meta = getBudgetYearMeta(year)
+
   return (
     <div className="space-y-6">
       {/* Year tabs */}
@@ -74,17 +78,26 @@ export function PresupuestosClient({ year, rows }: PresupuestosClientProps) {
         <div className="inline-flex min-w-full gap-2 border-b border-border/70 pb-1">
           {BUDGET_YEARS.map((y) => {
             const isActive = y === year
+            const meta = getBudgetYearMeta(y)
             return (
               <ResponsiveLink
                 key={y}
                 href={budgetHref(y)}
                 className={
                   isActive
-                    ? "shrink-0 rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background"
-                    : "shrink-0 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "inline-flex shrink-0 items-center gap-2 rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background"
+                    : "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 }
               >
-                {y}
+                <span>{y}</span>
+                {meta ? (
+                  <Badge
+                    variant={isActive ? "secondary" : "outline"}
+                    className={isActive ? "h-4 bg-background/15 text-[10px] text-background" : "h-4 text-[10px]"}
+                  >
+                    {meta.label}
+                  </Badge>
+                ) : null}
               </ResponsiveLink>
             )
           })}
@@ -99,8 +112,20 @@ export function PresupuestosClient({ year, rows }: PresupuestosClientProps) {
         {rows.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Sin datos para {year}. Ejecuta el ETL:{" "}
-              <code>PYTHONPATH=src python -m src.presupuestos.presupuestos --year {year}</code>
+              {meta?.budgetType === "prorroga" ? (
+                <>
+                  No hubo un nuevo presupuesto aprobado para {year}. {meta.note}
+                </>
+              ) : meta?.budgetType === "proyecto" ? (
+                <>
+                  El presupuesto de {year} no fue aprobado. {meta.note}
+                </>
+              ) : (
+                <>
+                  Sin datos ingestados para {year}. Ejecuta el ETL:{" "}
+                  <code>PYTHONPATH=src python -m src.presupuestos.presupuestos --year {year}</code>
+                </>
+              )}
             </CardContent>
           </Card>
         ) : (

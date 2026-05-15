@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { Card, CardContent } from "@/components/ui/card"
-import { BUDGET_YEARS, getBudgetMinister, getBudgetSection } from "@/lib/data"
+import { BUDGET_YEARS, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
 import { notFound } from "next/navigation"
 
 export const revalidate = 3600
@@ -31,9 +32,10 @@ function formatAmount(eur: number | null): string {
 }
 
 export default async function BudgetSectionPage({ params, searchParams }: PageProps) {
-  const currentYear = new Date().getFullYear()
-  const requestedYear = Number.parseInt(searchParams?.year ?? String(currentYear), 10)
-  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : currentYear
+  const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
+  const requestedYear = Number.parseInt(searchParams?.year ?? String(latestYear), 10)
+  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
+  const meta = getBudgetYearMeta(year)
   const sectionCode = decodeURIComponent(params.section)
 
   const [programs, minister] = await Promise.all([
@@ -55,13 +57,24 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
         title={sectionName}
         description={`Sección ${sectionCode} · Presupuesto ${year}`}
         eyebrow={
-          minister?.minister_name ? (
-            <span className="text-xs text-muted-foreground">
-              Ministro/a responsable: <span className="font-medium text-foreground">{minister.minister_name}</span>
-            </span>
-          ) : null
+          <>
+            {minister?.minister_name ? (
+              <span className="text-xs text-muted-foreground">
+                Ministro/a responsable: <span className="font-medium text-foreground">{minister.minister_name}</span>
+              </span>
+            ) : null}
+          </>
         }
       />
+
+      {meta ? (
+        <BudgetStatusBanner
+          year={year}
+          label={meta.label}
+          note={meta.note}
+          budgetType={meta.budgetType}
+        />
+      ) : null}
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -132,6 +145,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
       <InfoPanel title="Fuente">
         Fuente: SEPG · Ministerio de Hacienda. Sección {sectionCode} del PGE {year}.
         Los capítulos muestran la clasificación económica del gasto (personal, corrientes, inversiones, transferencias).
+        {meta ? ` Estado ${year}: ${meta.note}` : ""}
       </InfoPanel>
     </div>
   )

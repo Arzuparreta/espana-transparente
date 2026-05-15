@@ -17,16 +17,14 @@ export function parsePage(value: string | string[] | undefined) {
 
 export const getHomeData = unstable_cache(
   async () => {
+    const currentBudgetYear = new Date().getFullYear()
     const [
       politicians,
       politicianCount,
       parties,
-      sessionsCount,
       contractCount,
       subsidyCount,
-      revolvingDoorCount,
       budgetSummaryRows,
-      latestIpcRows,
     ] = await Promise.all([
       supabase
         .from("politicians")
@@ -38,37 +36,37 @@ export const getHomeData = unstable_cache(
         .limit(24),
       supabase.from("politicians").select("*", { count: "exact", head: true }),
       supabase.from("parties").select("acronym, color, name").order("acronym"),
-      supabase.from("voting_sessions").select("*", { count: "exact", head: true }),
       supabase.from("contracts").select("*", { count: "exact", head: true }),
       supabase.from("subsidies").select("*", { count: "exact", head: true }),
-      supabase.from("revolving_door").select("*", { count: "exact", head: true }),
       supabase
         .from("v_budget_summary")
-        .select("total_credit_initial")
-        .eq("year", 2023),
-      supabase
-        .from("economic_indicators")
-        .select("value, period")
-        .eq("indicator_code", "IPC")
-        .order("period", { ascending: false })
-        .limit(1),
+        .select("year, budget_type, total_credit_initial")
+        .eq("year", currentBudgetYear),
     ])
 
     const budgetTotal = (budgetSummaryRows.data ?? []).reduce(
       (sum, r) => sum + ((r.total_credit_initial as number) ?? 0),
       0
     )
+    const currentBudgetType =
+      budgetSummaryRows.data?.[0]?.budget_type != null
+        ? String(budgetSummaryRows.data[0].budget_type)
+        : null
 
     return {
       politicians: politicians.data ?? [],
       politicianCount: politicianCount.count ?? 0,
       parties: parties.data ?? [],
-      sessionsCount: sessionsCount.count ?? 0,
       contractCount: contractCount.count ?? 0,
       subsidyCount: subsidyCount.count ?? 0,
-      revolvingDoorCount: revolvingDoorCount.count ?? 0,
-      budgetTotal,
-      latestIpc: latestIpcRows.data?.[0] ?? null,
+      currentBudget:
+        budgetTotal > 0
+          ? {
+              year: currentBudgetYear,
+              total: budgetTotal,
+              budgetType: currentBudgetType,
+            }
+          : null,
     }
   },
   ["home-data", PHOTOS_CACHE_VERSION],
@@ -561,14 +559,52 @@ export const getMoneyDataOverview = unstable_cache(
   { revalidate: HOUR }
 )
 
-// Budget years available (2016 = first full legislature)
-export const BUDGET_YEARS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+export type BudgetType = "ley" | "prorroga" | "proyecto"
+
+export const BUDGET_YEAR_META: Record<
+  number,
+  {
+    budgetType: BudgetType
+    label: string
+    note: string
+  }
+> = {
+  2016: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2017: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2018: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2019: {
+    budgetType: "proyecto",
+    label: "No aprobado",
+    note: "Los datos publicados corresponden al proyecto 2019P; no llegó a aprobarse y no entró en vigor.",
+  },
+  2021: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2022: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2023: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
+  2024: {
+    budgetType: "prorroga",
+    label: "Prórroga vigente",
+    note: "No hubo un nuevo presupuesto aprobado. Siguieron en vigor los créditos prorrogados del PGE 2023, publicados por SEPG.",
+  },
+  2025: {
+    budgetType: "prorroga",
+    label: "Prórroga vigente",
+    note: "No hubo un nuevo presupuesto aprobado. Siguieron en vigor los créditos prorrogados del PGE 2023, publicados por SEPG.",
+  },
+}
+
+export const BUDGET_YEARS = Object.keys(BUDGET_YEAR_META)
+  .map((year) => Number.parseInt(year, 10))
+  .sort((a, b) => a - b)
+
+export function getBudgetYearMeta(year: number) {
+  return BUDGET_YEAR_META[year] ?? null
+}
 
 export const getBudgetSummary = unstable_cache(
   async (year: number) => {
     const { data } = await supabase
       .from("v_budget_summary")
-      .select("year, section_code, section_name, ministry_normalized, program_count, total_credit_initial, total_credit_final")
+      .select("year, budget_type, section_code, section_name, ministry_normalized, program_count, total_credit_initial, total_credit_final")
       .eq("year", year)
       .order("total_credit_initial", { ascending: false, nullsFirst: false })
     return data ?? []
@@ -581,7 +617,7 @@ export const getBudgetSection = unstable_cache(
   async (year: number, sectionCode: string) => {
     const { data } = await supabase
       .from("v_budget_by_program")
-      .select("year, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
+      .select("year, budget_type, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
       .eq("year", year)
       .eq("section_code", sectionCode)
       .order("total_credit_initial", { ascending: false, nullsFirst: false })
@@ -595,7 +631,7 @@ export const getBudgetMinister = unstable_cache(
   async (year: number, sectionCode: string) => {
     const { data } = await supabase
       .from("v_budget_responsibility")
-      .select("minister_name, responsibility_position_id")
+      .select("budget_type, minister_name, responsibility_position_id")
       .eq("year", year)
       .eq("section_code", sectionCode)
       .not("minister_name", "is", null)

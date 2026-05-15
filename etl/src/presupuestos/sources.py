@@ -24,9 +24,11 @@ from dataclasses import dataclass, field
 @dataclass
 class BudgetSource:
     year: int
-    fmt: str          # "civio" | "csv_semicolon" | "unknown"
+    fmt: str          # "civio" | "sepg_prorroga" | "csv_semicolon" | "unknown"
     gastos_url: str   # primary spending data
     organica_url: str = ""  # section/service names lookup
+    budget_type: str = "ley"  # "ley" | "prorroga" | "proyecto"
+    in_force_year: int | None = None
     notes: str = ""
 
 
@@ -46,14 +48,33 @@ _CIVIO_YEARS: dict[int, str] = {
 }
 
 
-def _civio_source(year: int, folder: str) -> BudgetSource:
+def _civio_source(year: int, folder: str, *, budget_type: str = "ley", notes: str = "") -> BudgetSource:
     base = f"{_CIVIO_BASE}/{folder}"
     return BudgetSource(
         year=year,
         fmt="civio",
         gastos_url=f"{base}/gastos.csv",
         organica_url=f"{base}/estructura_organica.csv",
-        notes=f"Civio scraper-pge, folder={folder}",
+        budget_type=budget_type,
+        notes=notes or f"Civio scraper-pge, folder={folder}",
+    )
+
+
+_SEPG_PRORROGA_BASE = "https://www.sepg.pap.hacienda.gob.es/sitios/sepg/es-ES/Presupuestos/PGE"
+_SEPG_PRORROGA_YEARS: dict[int, tuple[str, int]] = {
+    2024: ("PGE2024Prorroga", 2023),
+    2025: ("PGE2025Prorroga", 2023),
+}
+
+
+def _sepg_prorroga_source(year: int, folder: str, in_force_year: int) -> BudgetSource:
+    return BudgetSource(
+        year=year,
+        fmt="sepg_prorroga",
+        gastos_url=f"{_SEPG_PRORROGA_BASE}/{folder}/paginas/{folder.lower()}.aspx",
+        budget_type="prorroga",
+        in_force_year=in_force_year,
+        notes=f"SEPG ROM prorroga, folder={folder}, PGE en vigor={in_force_year}",
     )
 
 
@@ -62,17 +83,21 @@ def _civio_source(year: int, folder: str) -> BudgetSource:
 def get_source(year: int) -> BudgetSource:
     """Return a BudgetSource for the given year. Raises RuntimeError if not found."""
     if year in _CIVIO_YEARS:
-        return _civio_source(year, _CIVIO_YEARS[year])
+        budget_type = "proyecto" if year == 2019 else "ley"
+        return _civio_source(year, _CIVIO_YEARS[year], budget_type=budget_type)
+    if year in _SEPG_PRORROGA_YEARS:
+        folder, in_force_year = _SEPG_PRORROGA_YEARS[year]
+        return _sepg_prorroga_source(year, folder, in_force_year)
 
     raise RuntimeError(
         f"No PGE source found for year {year}. "
-        f"Available years: {sorted(_CIVIO_YEARS.keys())}. "
-        f"To add a new year, update _CIVIO_YEARS in sources.py."
+        f"Available years: {available_years()}. "
+        f"To add a new year, update _CIVIO_YEARS or _SEPG_PRORROGA_YEARS in sources.py."
     )
 
 
 def available_years() -> list[int]:
-    return sorted(_CIVIO_YEARS.keys())
+    return sorted(set(_CIVIO_YEARS) | set(_SEPG_PRORROGA_YEARS))
 
 
 # ─── Download helpers ─────────────────────────────────────────────────────────
@@ -102,6 +127,10 @@ def download_gastos(year: int) -> tuple[bytes, bytes, BudgetSource]:
     Returns (gastos_bytes, organica_bytes, source).
     """
     source = get_source(year)
+    if source.fmt == "sepg_prorroga":
+        print(f"Using SEPG prorroga source for {year}: {source.notes}")
+        return b"", b"", source
+
     print(f"Downloading PGE {year} gastos from {source.gastos_url} ...")
     gastos = _curl_get(source.gastos_url, timeout=60)
     print(f"  gastos: {len(gastos):,} bytes")
@@ -151,7 +180,7 @@ def main() -> None:
         print("Available years:")
         for y in available_years():
             s = get_source(y)
-            print(f"  {y}: folder={_CIVIO_YEARS[y]}  fmt={s.fmt}")
+            print(f"  {y}: fmt={s.fmt}  type={s.budget_type}  notes={s.notes}")
         return
 
     if args.year:

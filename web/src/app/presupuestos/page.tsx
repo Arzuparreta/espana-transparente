@@ -1,7 +1,8 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient"
-import { BUDGET_YEARS, getBudgetSummary } from "@/lib/data"
+import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -12,9 +13,10 @@ interface PageProps {
 }
 
 export default async function PresupuestosPage({ searchParams }: PageProps) {
-  const currentYear = new Date().getFullYear()
-  const requestedYear = Number.parseInt(searchParams?.year ?? String(currentYear), 10)
-  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : currentYear
+  const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
+  const requestedYear = Number.parseInt(searchParams?.year ?? String(latestYear), 10)
+  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
+  const meta = getBudgetYearMeta(year)
 
   const rows = await getBudgetSummary(year)
 
@@ -32,8 +34,17 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Presupuestos"
-        description="Créditos aprobados de los Presupuestos Generales del Estado, por sección ministerial y programa."
+        description="Créditos de los Presupuestos Generales del Estado, por sección ministerial y programa."
       />
+
+      {meta ? (
+        <BudgetStatusBanner
+          year={year}
+          label={meta.label}
+          note={meta.note}
+          budgetType={meta.budgetType}
+        />
+      ) : null}
 
       {rows.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -56,8 +67,9 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
 
       <InfoPanel title="Fuente">
         Fuente: Secretaría de Estado de Presupuestos y Gastos (SEPG) · Ministerio de Hacienda.
-        Datos de dotación aprobada (crédito inicial y crédito definitivo tras modificaciones).
-        Cobertura 2016–{currentYear}.
+        Datos de dotación presupuestaria por sección y programa.
+        Cobertura 2016–{latestYear} (sin 2020; España prorrogó el PGE 2018 ese año).
+        {meta ? ` Estado ${year}: ${meta.note}` : ""}
       </InfoPanel>
     </div>
   )
