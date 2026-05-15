@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync, statSync } from "node:fs"
-import { join, relative } from "node:path"
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
+import { dirname, join, relative } from "node:path"
 
 const root = join(process.cwd(), "src")
 const targets = []
@@ -21,10 +21,15 @@ function collect(dir) {
 collect(root)
 
 const violations = []
+const pageFiles = []
 
 for (const file of targets) {
   const source = readFileSync(file, "utf8")
   const rel = relative(process.cwd(), file)
+
+  if (rel.startsWith("src/app/") && rel.endsWith("/page.tsx")) {
+    pageFiles.push(file)
+  }
 
   if (/[^:\w-]grid-cols-3[^:\w-]/.test(source) && !/(sm:|md:|lg:|xl:|2xl:)grid-cols-3/.test(source)) {
     violations.push(`${rel}: usa "grid-cols-3" sin una variante responsive explícita.`)
@@ -48,8 +53,30 @@ for (const file of targets) {
     violations.push(`${rel}: implementa tabs personalizadas fuera de SectionTabs.`)
   }
 
+  if (
+    source.includes("inline-flex min-w-full gap-2 border-b") &&
+    !rel.includes("components/domain/LinkTabs.tsx") &&
+    !rel.includes("components/domain/SectionTabs.tsx")
+  ) {
+    violations.push(`${rel}: implementa tabs inline; usar LinkTabs o SectionTabs.`)
+  }
+
+  if (
+    source.includes("Página {page} de {totalPages}") &&
+    !rel.includes("components/domain/Pagination.tsx")
+  ) {
+    violations.push(`${rel}: implementa paginación inline; usar Pagination.`)
+  }
+
   if (/max-w-\[\d+px\]/.test(source)) {
     violations.push(`${rel}: fija anchuras máximas arbitrarias; usar layout fluido o primitives compartidas.`)
+  }
+}
+
+for (const file of pageFiles) {
+  const loadingFile = join(dirname(file), "loading.tsx")
+  if (!existsSync(loadingFile)) {
+    violations.push(`${relative(process.cwd(), file)}: falta loading.tsx junto a la página.`)
   }
 }
 

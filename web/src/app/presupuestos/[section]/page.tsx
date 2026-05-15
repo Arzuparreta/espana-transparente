@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { Card, CardContent } from "@/components/ui/card"
 import { BUDGET_YEARS, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
@@ -76,23 +77,15 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
         />
       ) : null}
 
-      {/* Summary stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-          <div className="text-2xl font-semibold tabular-nums">{formatAmount(totalInitial)}</div>
-          <div className="text-xs text-muted-foreground">Crédito inicial</div>
-        </div>
-        {Math.abs(totalFinal - totalInitial) > 1 ? (
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{formatAmount(totalFinal)}</div>
-            <div className="text-xs text-muted-foreground">Crédito definitivo</div>
-          </div>
-        ) : null}
-        <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-          <div className="text-2xl font-semibold tabular-nums">{programs.length}</div>
-          <div className="text-xs text-muted-foreground">Programas</div>
-        </div>
-      </div>
+      <StatGrid
+        items={[
+          { label: "Crédito inicial", value: formatAmount(totalInitial) },
+          ...(Math.abs(totalFinal - totalInitial) > 1
+            ? [{ label: "Crédito definitivo", value: formatAmount(totalFinal) }]
+            : []),
+          { label: "Programas", value: programs.length.toLocaleString("es-ES") },
+        ]}
+      />
 
       {/* Program list */}
       <div className="space-y-2">

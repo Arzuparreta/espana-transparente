@@ -32,9 +32,9 @@ export function SectionTabs({ tabs, defaultTab, children }: SectionTabsProps) {
                 type="button"
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
-                  "shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                  "min-h-11 shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-accent text-accent-foreground"
+                    ? "bg-foreground text-background"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >

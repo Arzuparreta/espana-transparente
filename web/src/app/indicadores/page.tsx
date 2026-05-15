@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
@@ -26,15 +27,14 @@ export default async function IndicadoresPage() {
   const entries = Object.entries(unique)
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Indicadores económicos"
         description="Series históricas del Instituto Nacional de Estadística (INE). IPC, PIB, EPA, deuda pública y otros indicadores económicos."
-        className="mb-6"
       />
 
       {entries.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Sin datos todavía. Ejecuta el ETL del INE.</CardContent></Card>
+        <EmptyState title="Sin indicadores" description="Ejecuta el ETL del INE." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {entries.map(([code, info]) => (
@@ -61,11 +61,9 @@ export default async function IndicadoresPage() {
         </div>
       )}
 
-      <div className="mt-6">
-        <InfoPanel title="Fuente">
-          Fuente: INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
-        </InfoPanel>
-      </div>
+      <InfoPanel title="Fuente">
+        Fuente: INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
+      </InfoPanel>
     </div>
   )
 }

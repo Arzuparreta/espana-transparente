@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
+import { StatGrid } from "@/components/domain/StatGrid"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
 import { PAGE_SIZE, getContractPage, getMoneyDatasetSummary, parsePage } from "@/lib/data"
 
@@ -38,22 +39,13 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       />
 
       {statsRows.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{total}</div>
-            <div className="text-xs text-muted-foreground">Licitaciones</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{formatted}</div>
-            <div className="text-xs text-muted-foreground">Importe total</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">
-              {new Set(statsRows.map((c) => c.awarding_body)).size}
-            </div>
-            <div className="text-xs text-muted-foreground">Organismos</div>
-          </div>
-        </div>
+        <StatGrid
+          items={[
+            { label: "Licitaciones", value: total.toLocaleString("es-ES") },
+            { label: "Importe total", value: formatted },
+            { label: "Organismos", value: new Set(statsRows.map((c) => c.awarding_body)).size.toLocaleString("es-ES") },
+          ]}
+        />
       ) : null}
 
       <MoneyDataSummary datasetHref="/contratos" rows={summary.rows} total={summary.total} />

@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { Pagination } from "@/components/domain/Pagination"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { PAGE_SIZE, getVotingSessionPage, parsePage } from "@/lib/data"
 
@@ -45,6 +47,9 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
       />
 
       <div className="space-y-3">
+        {(sessions as unknown as SessionRow[]).length === 0 ? (
+          <EmptyState title="Sin votaciones" description="No hay sesiones publicadas en la muestra actual." />
+        ) : null}
         {(sessions as unknown as SessionRow[])?.map((s) => {
           const dateStr = s.date
             ? new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
@@ -77,31 +82,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
         })}
       </div>
 
-      {totalPages > 1 ? (
-        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
-          <ResponsiveLink
-            href={`/votaciones?page=${Math.max(1, page - 1)}`}
-            aria-disabled={page <= 1}
-            className={`rounded-full border border-border/70 px-3 py-2 ${
-              page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"
-            }`}
-          >
-            Anterior
-          </ResponsiveLink>
-          <span className="text-xs text-muted-foreground">
-            Página {page} de {totalPages}
-          </span>
-          <ResponsiveLink
-            href={`/votaciones?page=${Math.min(totalPages, page + 1)}`}
-            aria-disabled={page >= totalPages}
-            className={`rounded-full border border-border/70 px-3 py-2 ${
-              page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"
-            }`}
-          >
-            Siguiente
-          </ResponsiveLink>
-        </div>
-      ) : null}
+      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => `/votaciones?page=${nextPage}`} />
     </div>
   )
 }

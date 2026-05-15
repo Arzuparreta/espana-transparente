@@ -1,5 +1,8 @@
 "use client"
 
+import { EmptyState } from "@/components/domain/EmptyState"
+import { LinkTabs } from "@/components/domain/LinkTabs"
+import { Pagination } from "@/components/domain/Pagination"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { ResponsibleChip, type Responsible } from "@/components/domain/ResponsibleChip"
@@ -151,68 +154,30 @@ export function SubvencionesClient({
 }: SubvencionesClientProps) {
   return (
     <div className="space-y-6">
-      <div className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
-        <div className="inline-flex min-w-full gap-2 border-b border-border/70 pb-1">
-          {NIVEL_TABS.map((tab) => {
-            const isActive = activeNivel === tab.value
-            return (
-              <ResponsiveLink
-                key={tab.value}
-                href={subvencionesHref(tab.value)}
-                className={
-                  isActive
-                    ? "shrink-0 rounded-full bg-foreground px-3 py-2 text-sm font-medium text-background"
-                    : "shrink-0 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-                }
-              >
-                {tab.label}
-              </ResponsiveLink>
-            )
-          })}
-        </div>
-      </div>
+      <LinkTabs
+        ariaLabel="Nivel administrativo"
+        tabs={NIVEL_TABS.map((tab) => ({
+          href: subvencionesHref(tab.value),
+          label: tab.label,
+          active: activeNivel === tab.value,
+        }))}
+      />
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
           {total} concesiones · ordenadas por importe
         </div>
         {subsidies.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              Sin datos. Ejecuta el ETL:{" "}
-              <code>PYTHONPATH=src python -m src.bdns.subvenciones</code>
-            </CardContent>
-          </Card>
+          <EmptyState
+            title="Sin concesiones"
+            description={<>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.bdns.subvenciones</code></>}
+          />
         ) : (
           subsidies.map((s) => <SubvencionCard key={s.id} s={s} />)
         )}
       </div>
 
-      {totalPages > 1 ? (
-        <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
-          <ResponsiveLink
-            href={subvencionesHref(activeNivel, Math.max(1, page - 1))}
-            aria-disabled={page <= 1}
-            className={`rounded-full border border-border/70 px-3 py-2 ${
-              page <= 1 ? "pointer-events-none opacity-40" : "hover:bg-muted"
-            }`}
-          >
-            Anterior
-          </ResponsiveLink>
-          <span className="text-xs text-muted-foreground">
-            Página {page} de {totalPages}
-          </span>
-          <ResponsiveLink
-            href={subvencionesHref(activeNivel, Math.min(totalPages, page + 1))}
-            aria-disabled={page >= totalPages}
-            className={`rounded-full border border-border/70 px-3 py-2 ${
-              page >= totalPages ? "pointer-events-none opacity-40" : "hover:bg-muted"
-            }`}
-          >
-            Siguiente
-          </ResponsiveLink>
-        </div>
-      ) : null}
+      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => subvencionesHref(activeNivel, nextPage)} />
     </div>
   )
 }

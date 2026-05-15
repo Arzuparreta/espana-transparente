@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionTabs } from "@/components/domain/SectionTabs"
@@ -53,11 +54,7 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
           return (
             <div className="space-y-6">
               {filtered.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-muted-foreground">
-                    Sin datos en este sector.
-                  </CardContent>
-                </Card>
+                <EmptyState title="Sin movimientos" description="No hay registros publicados en este sector." />
               ) : (
                 <Card className="bg-card/85">
                   <CardContent className="space-y-3 p-4 sm:p-6">
@@ -80,7 +77,7 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                       return (
                         <div
                           key={`${entry.person_name}-${entry.private_organization}-${index}`}
-                          className="flex items-start gap-2 border-l-2 border-muted py-1 pl-2 text-xs sm:pl-3 sm:text-sm"
+                          className="rounded-xl border border-border/60 bg-background/70 px-3 py-3 text-xs sm:text-sm"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-1.5">

@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient"
 import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary } from "@/lib/data"
@@ -47,20 +48,13 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       ) : null}
 
       {rows.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{formatAmount(totalInitial)}</div>
-            <div className="text-xs text-muted-foreground">Crédito inicial {year}</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{sectionCount}</div>
-            <div className="text-xs text-muted-foreground">Secciones</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{programCount}</div>
-            <div className="text-xs text-muted-foreground">Programas</div>
-          </div>
-        </div>
+        <StatGrid
+          items={[
+            { label: `Crédito inicial ${year}`, value: formatAmount(totalInitial) },
+            { label: "Secciones", value: sectionCount.toLocaleString("es-ES") },
+            { label: "Programas", value: programCount.toLocaleString("es-ES") },
+          ]}
+        />
       ) : null}
 
       <PresupuestosClient year={year} rows={rows} />

@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview } from "@/lib/data"
@@ -54,7 +55,7 @@ export default async function EstadoDatosPage() {
         const examplesRows = examplesByDataset[dataset] ?? []
 
         return (
-          <section key={dataset} className="space-y-4 rounded-3xl border border-border/70 bg-card/50 p-5">
+          <section key={dataset} className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <h2 className="text-xl font-semibold">{datasetLabel(dataset)}</h2>
@@ -104,7 +105,10 @@ export default async function EstadoDatosPage() {
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Ejemplos abiertos</h3>
               {examplesRows.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin ejemplos abiertos en la muestra pública.</p>
+                <EmptyState
+                  title="Sin ejemplos abiertos"
+                  description="No hay conflictos o registros sin resolver en la muestra pública."
+                />
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">
                   {examplesRows.map((row) => (

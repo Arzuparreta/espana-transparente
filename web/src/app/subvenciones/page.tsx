@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
+import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
 import { PAGE_SIZE_SUBSIDIES, getMoneyDatasetSummary, getSubvencionPage, parsePage } from "@/lib/data"
 
@@ -41,20 +42,13 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
       />
 
       {statsRows.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{statsRows.length.toLocaleString("es-ES")}</div>
-            <div className="text-xs text-muted-foreground">Concesiones (muestra)</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{formatted}</div>
-            <div className="text-xs text-muted-foreground">Importe total muestra</div>
-          </div>
-          <div className="rounded-xl border border-border/70 bg-card/70 px-4 py-3">
-            <div className="text-2xl font-semibold tabular-nums">{uniqueOrganos}</div>
-            <div className="text-xs text-muted-foreground">Organismos</div>
-          </div>
-        </div>
+        <StatGrid
+          items={[
+            { label: "Concesiones (muestra)", value: statsRows.length.toLocaleString("es-ES") },
+            { label: "Importe total muestra", value: formatted },
+            { label: "Organismos", value: uniqueOrganos.toLocaleString("es-ES") },
+          ]}
+        />
       ) : null}
 
       <MoneyDataSummary datasetHref="/subvenciones" rows={summary.rows} total={summary.total} />
