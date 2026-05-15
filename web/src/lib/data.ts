@@ -552,6 +552,19 @@ export const getOrganizationPageData = unstable_cache(
   { revalidate: HOUR }
 )
 
+export const getDivergenceRanking = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("v_divergence_ranking")
+      .select("politician_id, full_name, party_acronym, party_color, photo_url, photo_variants, divergence_count")
+      .order("divergence_count", { ascending: false })
+      .limit(50)
+    return data ?? []
+  },
+  ["divergence-ranking"],
+  { revalidate: HOUR * 6 }
+)
+
 export const getContractDetail = unstable_cache(
   async (id: string) => {
     const [contract, responsibility] = await Promise.all([
