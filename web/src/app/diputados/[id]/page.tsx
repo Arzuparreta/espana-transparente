@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function PoliticianPage({ params }: PageProps) {
   const { id } = await params
 
-  const { pol, votes, totalVotes, powerRels, revolvingDoors, attendance } =
+  const { pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergentSessionIds } =
     await getPoliticianProfileData(id)
   if (!pol) notFound()
 
@@ -28,6 +28,7 @@ export default async function PoliticianPage({ params }: PageProps) {
       powerRels={powerRels as Record<string, unknown>[]}
       revolvingDoors={revolvingDoors as Record<string, unknown>[]}
       attendance={attendance as { total_sessions: number; sessions_present: number; attendance_pct: number } | null}
+      divergentSessionIds={divergentSessionIds}
     />
   )
 }

@@ -212,7 +212,7 @@ export const getVotingDetailData = unstable_cache(
 
 export const getPoliticianProfileData = unstable_cache(
   async (id: string) => {
-    const [pol, votes, totalVotes, powerRels, revolvingDoors, attendance] =
+    const [pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergences] =
       await Promise.all([
         supabase
           .from("politicians")
@@ -223,7 +223,7 @@ export const getPoliticianProfileData = unstable_cache(
           .single(),
         supabase
           .from("votes")
-          .select("vote, voting_sessions!inner(date, title, initiative_number)")
+          .select("vote, voting_session_id, voting_sessions!inner(id, date, title, initiative_number)")
           .eq("politician_id", id)
           .order("date", { ascending: false, foreignTable: "voting_sessions" })
           .limit(30),
@@ -241,6 +241,7 @@ export const getPoliticianProfileData = unstable_cache(
           .select("total_sessions, sessions_present, attendance_pct")
           .eq("politician_id", id)
           .maybeSingle(),
+        supabase.rpc("get_politician_divergences", { p_politician_id: id }),
       ])
 
     let legacyRevolvingDoors = null
@@ -258,6 +259,9 @@ export const getPoliticianProfileData = unstable_cache(
       powerRels: powerRels.data ?? [],
       revolvingDoors: revolvingDoors.data ?? legacyRevolvingDoors?.data ?? [],
       attendance: attendance.data,
+      divergentSessionIds: new Set<string>(
+        (divergences.data ?? []).map((d: { voting_session_id: string }) => d.voting_session_id)
+      ),
     }
   },
   ["politician-profile-data", PHOTOS_CACHE_VERSION],

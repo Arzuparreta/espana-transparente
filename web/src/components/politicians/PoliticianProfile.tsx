@@ -34,6 +34,7 @@ interface Props {
   powerRels: Record<string, unknown>[]
   revolvingDoors: Record<string, unknown>[]
   attendance: AttendanceSummary | null
+  divergentSessionIds?: Set<string>
 }
 
 export function PoliticianProfile({
@@ -43,6 +44,7 @@ export function PoliticianProfile({
   powerRels: pr,
   revolvingDoors: rd,
   attendance,
+  divergentSessionIds,
 }: Props) {
   const fullName = String(p.full_name || "")
   const photoUrl = p.photo_url as string | undefined
@@ -276,7 +278,9 @@ export function PoliticianProfile({
                 ) : (
                   v.slice(0, 30).map((vote: Record<string, unknown>, index: number) => {
                     const session = vote.voting_sessions as Record<string, string> | undefined
+                    const sessionId = session?.id ?? String(vote.voting_session_id ?? "")
                     const voteValue = String(vote.vote || "")
+                    const isDivergent = sessionId ? divergentSessionIds?.has(sessionId) : false
                     const dateStr = session?.date
                       ? new Date(session.date).toLocaleDateString("es-ES", {
                           day: "numeric",
@@ -285,22 +289,37 @@ export function PoliticianProfile({
                         })
                       : ""
 
-                    return (
-                      <Card key={index} className="bg-card/80">
-                        <CardContent className="flex items-start gap-3 px-4 py-4">
-                          <VoteBadge vote={voteValue} className="mt-0.5" />
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-balance">
-                              {session?.title}
-                            </div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">
-                              {dateStr}
-                              {session?.initiative_number
-                                ? ` · Exp. ${session.initiative_number}`
-                                : ""}
-                            </div>
+                    const inner = (
+                      <CardContent className="flex items-start gap-3 px-4 py-4">
+                        <VoteBadge vote={voteValue} className="mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-balance">
+                            {session?.title}
                           </div>
-                        </CardContent>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                            <span>{dateStr}</span>
+                            {session?.initiative_number && (
+                              <span>· Exp. {session.initiative_number}</span>
+                            )}
+                            {isDivergent && (
+                              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                                Votó distinto a su grupo
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    )
+
+                    return sessionId ? (
+                      <a key={index} href={`/votaciones/${sessionId}`}>
+                        <Card className="bg-card/80 transition-colors hover:bg-card">
+                          {inner}
+                        </Card>
+                      </a>
+                    ) : (
+                      <Card key={index} className="bg-card/80">
+                        {inner}
                       </Card>
                     )
                   })
