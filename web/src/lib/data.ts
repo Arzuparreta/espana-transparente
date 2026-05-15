@@ -689,6 +689,34 @@ export const getMoneyDatasetSummary = unstable_cache(
   { revalidate: HOUR }
 )
 
+export interface GobiernoMember {
+  id: string
+  position_type: "presidente_gobierno" | "vicepresidente" | "ministro"
+  person_name: string
+  organization_name: string
+  political_party: string
+  politician_id: string | null
+  party_color: string | null
+  contract_count: number
+  total_amount_eur: number
+  government: string
+  start_date: string | null
+  source_url: string | null
+}
+
+export const getGobiernoActual = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("v_gobierno_actual")
+      .select(
+        "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url"
+      )
+    return (data ?? []) as GobiernoMember[]
+  },
+  ["gobierno-actual"],
+  { revalidate: HOUR * 24 }
+)
+
 export interface SearchResult {
   entity_type: "politician" | "organization" | "voting_session" | "contract" | "revolving_door"
   id: string

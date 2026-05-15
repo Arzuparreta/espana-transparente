@@ -18,6 +18,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/diputados", label: "Diputados" },
       { href: "/partidos", label: "Partidos" },
+      { href: "/gobierno", label: "Gobierno" },
       { href: "/votaciones", label: "Votaciones" },
     ],
   },
@@ -39,6 +40,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Más",
     items: [
+      { href: "/buscar", label: "Búsqueda" },
       { href: "/estado-datos", label: "Estado de los datos" },
       { href: GITHUB_URL, label: "GitHub" },
     ],
