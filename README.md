@@ -1,7 +1,5 @@
 ![España Transparente — datos públicos de la política española](web/public/brand/github-banner.svg)
 
-# España Transparente
-
 **España Transparente** es un portal de datos públicos de la política española. Reúne diputados, votaciones, contratos, subvenciones, trayectorias y fuentes para consultar cada registro con contexto verificable.
 
 🌐 **[xn--espaatransparente-ixb.site](https://xn--espaatransparente-ixb.site)**
