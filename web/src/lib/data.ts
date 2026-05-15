@@ -528,6 +528,52 @@ export const getMoneyDataOverview = unstable_cache(
   { revalidate: HOUR }
 )
 
+// Budget years available (2016 = first full legislature)
+export const BUDGET_YEARS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+
+export const getBudgetSummary = unstable_cache(
+  async (year: number) => {
+    const { data } = await supabase
+      .from("v_budget_summary")
+      .select("year, section_code, section_name, ministry_normalized, program_count, total_credit_initial, total_credit_final")
+      .eq("year", year)
+      .order("total_credit_initial", { ascending: false, nullsFirst: false })
+    return data ?? []
+  },
+  ["budget-summary"],
+  { revalidate: HOUR }
+)
+
+export const getBudgetSection = unstable_cache(
+  async (year: number, sectionCode: string) => {
+    const { data } = await supabase
+      .from("v_budget_by_program")
+      .select("year, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
+      .eq("year", year)
+      .eq("section_code", sectionCode)
+      .order("total_credit_initial", { ascending: false, nullsFirst: false })
+    return data ?? []
+  },
+  ["budget-section"],
+  { revalidate: HOUR }
+)
+
+export const getBudgetMinister = unstable_cache(
+  async (year: number, sectionCode: string) => {
+    const { data } = await supabase
+      .from("v_budget_responsibility")
+      .select("minister_name, responsibility_position_id")
+      .eq("year", year)
+      .eq("section_code", sectionCode)
+      .not("minister_name", "is", null)
+      .limit(1)
+      .maybeSingle()
+    return data ?? null
+  },
+  ["budget-minister"],
+  { revalidate: HOUR }
+)
+
 export const getMoneyDatasetSummary = unstable_cache(
   async (dataset: "contracts" | "subsidies") => {
     const { data } = await supabase
