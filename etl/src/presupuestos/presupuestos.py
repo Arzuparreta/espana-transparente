@@ -1,13 +1,13 @@
 """ETL: ingest Presupuestos Generales del Estado (PGE) into budget_lines.
 
-Downloads the annual budget file from SEPG / datos.gob.es, parses the
-section → program → economic chapter hierarchy, normalises ministry names,
-and upserts to the budget_lines table.
+Primary source: Civio scraper-pge (2016-2023), via GitHub raw CSVs.
+  gastos.csv: spending lines keyed by CENTRO GESTOR + FUNCIONAL + ECONOMICA
+  estructura_organica.csv: section/service name lookup
 
 Usage:
-    PYTHONPATH=src python -m src.presupuestos.presupuestos --year 2025
-    PYTHONPATH=src python -m src.presupuestos.presupuestos --year 2025 --dry-run
-    PYTHONPATH=src python -m src.presupuestos.presupuestos --from-year 2016 --to-year 2026 --resume
+    PYTHONPATH=src python -m src.presupuestos.presupuestos --year 2023
+    PYTHONPATH=src python -m src.presupuestos.presupuestos --year 2023 --dry-run
+    PYTHONPATH=src python -m src.presupuestos.presupuestos --from-year 2016 --to-year 2023 --resume
 """
 
 from __future__ import annotations
@@ -15,9 +15,8 @@ from __future__ import annotations
 import argparse
 import csv
 import io
-import json
-import os
 import zipfile
+from collections import defaultdict
 from datetime import date
 from typing import Iterator
 
@@ -25,39 +24,10 @@ import psycopg2.extras
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 from common.responsibility import normalize_public_body
-from presupuestos.sources import BudgetSource, download_source
+from presupuestos.sources import BudgetSource, available_years, download_gastos
 
 
-# ─── Column name aliases ──────────────────────────────────────────────────────
-# Different years use slightly different column headers. These dicts map
-# expected canonical names to lists of observed aliases (lowercase stripped).
-
-_COL_SECTION_CODE  = {"seccion", "sec", "sección", "cod_seccion"}
-_COL_SECTION_NAME  = {"denominacion_seccion", "den_seccion", "nombre_seccion", "seccion_nombre"}
-_COL_SERVICE_CODE  = {"organismo", "org", "servicio", "cod_organismo"}
-_COL_SERVICE_NAME  = {"denominacion_organismo", "den_organismo", "nombre_organismo"}
-_COL_PROGRAM_CODE  = {"programa", "prog", "cod_programa"}
-_COL_PROGRAM_NAME  = {"denominacion_programa", "den_programa", "nombre_programa"}
-_COL_CHAPTER       = {"capitulo", "cap", "cod_capitulo", "economic_chapter"}
-_COL_ARTICLE       = {"articulo", "art", "cod_articulo"}
-_COL_CONCEPT       = {"concepto", "con", "cod_concepto"}
-_COL_CREDIT_INIT   = {
-    "creditos_iniciales", "credito_inicial", "credito_ini",
-    "dotacion_inicial", "inicial", "euros", "importe",
-}
-_COL_CREDIT_FINAL  = {
-    "creditos_definitivos", "credito_definitivo", "credito_def",
-    "dotacion_definitiva", "definitivo",
-}
-
-
-def _resolve_col(header: list[str], aliases: set[str]) -> str | None:
-    """Return the actual column name from header that matches any alias."""
-    for col in header:
-        if col.lower().strip().replace(" ", "_") in aliases:
-            return col
-    return None
-
+# ─── Amount parsing ───────────────────────────────────────────────────────────
 
 def _parse_amount(value: str | None) -> float | None:
     if not value:
@@ -83,6 +53,113 @@ def _parse_amount(value: str | None) -> float | None:
         return None
 
 
+# ─── Civio-format parser ─────────────────────────────────────────────────────
+
+def _load_organica(organica_bytes: bytes) -> dict[str, str]:
+    """Build {CENTRO_GESTOR: section_name} lookup from estructura_organica.csv."""
+    text = organica_bytes.decode("utf-8", errors="replace")
+    reader = csv.DictReader(io.StringIO(text), delimiter=";")
+    lookup = {}
+    for row in reader:
+        key = row.get("CENTRO GESTOR", "").strip()
+        name = row.get("DESCRIPCION LARGA", "").strip()
+        if key and name:
+            lookup[key] = name
+    return lookup
+
+
+def parse_civio_records(gastos_bytes: bytes, organica_bytes: bytes, source: BudgetSource) -> list[dict]:
+    """Parse Civio scraper-pge gastos.csv into budget_lines records.
+
+    Aggregates spending by (section_code, program_code, economic_chapter),
+    keeping only chapter-level rows (ECONOMICA = single digit 1-9).
+    IMPORTE is in euros.
+    """
+    organica = _load_organica(organica_bytes) if organica_bytes else {}
+
+    text = gastos_bytes.decode("utf-8", errors="replace")
+    reader = csv.DictReader(io.StringIO(text), delimiter=";")
+    raw_rows = list(reader)
+    print(f"  Raw rows: {len(raw_rows)}")
+
+    # Aggregate: sum IMPORTE by (section_code, program_code, chapter)
+    totals: dict[tuple, int] = defaultdict(int)
+    programs: dict[tuple, str] = {}   # (section, program) → description
+
+    for row in raw_rows:
+        centro = row.get("CENTRO GESTOR", "").strip()
+        funcional = row.get("FUNCIONAL", "").strip()
+        economica = row.get("ECONOMICA", "").strip()
+        importe_raw = row.get("IMPORTE", "").strip()
+        desc = row.get("DESCRIPCION", "").strip()
+
+        if not centro or not funcional or not economica or not importe_raw:
+            continue
+
+        # Only chapter-level rows (ECONOMICA is a single digit 1-9)
+        if not (economica.isdigit() and len(economica) == 1):
+            continue
+
+        chapter = int(economica)
+        section_code = centro[:2]
+
+        try:
+            importe = int(importe_raw)
+        except ValueError:
+            try:
+                importe = int(float(importe_raw))
+            except ValueError:
+                continue
+
+        key = (section_code, funcional, chapter)
+        totals[key] += importe
+
+        # Keep the description of the chapter row as a hint for section/program
+        if (section_code, funcional) not in programs and desc:
+            programs[(section_code, funcional)] = desc
+
+    print(f"  Aggregated to {len(totals)} section×program×chapter combinations")
+
+    records = []
+    for (section_code, program_code, chapter), credit_initial in totals.items():
+        section_name = organica.get(section_code)
+        # Fallback: try to find the section name from any matching key
+        if not section_name:
+            for k, v in organica.items():
+                if k.startswith(section_code) and len(k) > 2:
+                    section_name = organica.get(section_code) or v
+                    break
+
+        records.append({
+            "year":                source.year,
+            "section_code":        section_code,
+            "section_name":        section_name,
+            "service_code":        None,
+            "service_name":        None,
+            "program_code":        program_code,
+            "program_name":        None,   # available in estructura_funcional if needed
+            "economic_chapter":    chapter,
+            "economic_article":    None,
+            "economic_concept":    None,
+            "credit_initial":      float(credit_initial),
+            "credit_final":        None,
+            "ministry_normalized": normalize_public_body(section_name),
+            "administration_level": "state",
+            "source_url":          source.gastos_url,
+            "raw_data":            psycopg2.extras.Json({
+                "section_code": section_code,
+                "program_code": program_code,
+                "chapter":      chapter,
+                "source":       source.notes,
+            }),
+        })
+
+    print(f"  Built {len(records)} records for year {source.year}")
+    return records
+
+
+# ─── Generic CSV parser (fallback / tests) ───────────────────────────────────
+
 def detect_delimiter(first_line: str) -> str:
     if first_line.count(";") > first_line.count(","):
         return ";"
@@ -91,17 +168,34 @@ def detect_delimiter(first_line: str) -> str:
     return ","
 
 
-# ─── Parsing ─────────────────────────────────────────────────────────────────
+_COL_SECTION_CODE  = {"seccion", "sec", "sección", "cod_seccion"}
+_COL_SECTION_NAME  = {"denominacion_seccion", "den_seccion", "nombre_seccion", "seccion_nombre"}
+_COL_SERVICE_CODE  = {"organismo", "org", "servicio", "cod_organismo"}
+_COL_SERVICE_NAME  = {"denominacion_organismo", "den_organismo", "nombre_organismo"}
+_COL_PROGRAM_CODE  = {"programa", "prog", "cod_programa"}
+_COL_PROGRAM_NAME  = {"denominacion_programa", "den_programa", "nombre_programa"}
+_COL_CHAPTER       = {"capitulo", "cap", "cod_capitulo", "economic_chapter"}
+_COL_ARTICLE       = {"articulo", "art", "cod_articulo"}
+_COL_CONCEPT       = {"concepto", "con", "cod_concepto"}
+_COL_CREDIT_INIT   = {
+    "creditos_iniciales", "credito_inicial", "credito_ini",
+    "dotacion_inicial", "inicial", "euros", "importe",
+}
+_COL_CREDIT_FINAL  = {
+    "creditos_definitivos", "credito_definitivo", "credito_def",
+    "dotacion_definitiva", "definitivo",
+}
 
-def _iter_csv_rows(data: bytes, encoding: str, delimiter: str) -> Iterator[dict]:
-    text = data.decode(encoding, errors="replace")
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
-    for row in reader:
-        yield row
+
+def _resolve_col(header: list[str], aliases: set[str]) -> str | None:
+    for col in header:
+        if col.lower().strip().replace(" ", "_") in aliases:
+            return col
+    return None
 
 
 def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
-    """Parse raw bytes from a source file into a list of normalised record dicts."""
+    """Generic CSV/ZIP parser for non-Civio sources (used in tests and as fallback)."""
     data = raw
     filename = ""
 
@@ -116,15 +210,13 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
                 raise RuntimeError(f"No CSV/TXT found in ZIP. Contents: {names}")
             data = zf.read(target)
             filename = target
-            print(f"  Extracted {target} ({len(data)} bytes) from ZIP")
 
-    # Detect encoding
-    for enc in (source.encoding, "utf-8-sig", "utf-8", "latin-1"):
+    for enc in (source.encoding if hasattr(source, "encoding") else "utf-8", "utf-8-sig", "utf-8", "latin-1"):
         try:
             sample = data[:4096].decode(enc)
             encoding = enc
             break
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, AttributeError):
             continue
     else:
         encoding = "latin-1"
@@ -133,14 +225,13 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
     delimiter = detect_delimiter(first_line)
     print(f"  Format: enc={encoding}, delimiter={repr(delimiter)}, file={filename or 'inline'}")
 
-    rows = list(_iter_csv_rows(data, encoding, delimiter))
+    rows = list(csv.DictReader(io.StringIO(data.decode(encoding, errors="replace")), delimiter=delimiter))
     if not rows:
         raise RuntimeError("No rows found in source file")
 
     header = list(rows[0].keys())
     print(f"  Header ({len(header)} cols): {header[:10]}")
 
-    # Resolve column names
     col_section_code = _resolve_col(header, _COL_SECTION_CODE)
     col_section_name = _resolve_col(header, _COL_SECTION_NAME)
     col_service_code = _resolve_col(header, _COL_SERVICE_CODE)
@@ -208,7 +299,7 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
             "credit_final":        credit_final,
             "ministry_normalized": normalize_public_body(section_name),
             "administration_level": "state",
-            "source_url":          source.url,
+            "source_url":          getattr(source, "gastos_url", getattr(source, "url", "")),
             "raw_data":            psycopg2.extras.Json(dict(row)),
         })
 
@@ -294,10 +385,14 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
         conn.commit()
 
     try:
-        raw, source = download_source(year)
-        records = parse_records(raw, source)
-        upserted = 0
+        gastos_bytes, organica_bytes, source = download_gastos(year)
 
+        if source.fmt == "civio":
+            records = parse_civio_records(gastos_bytes, organica_bytes, source)
+        else:
+            records = parse_records(gastos_bytes, source)
+
+        upserted = 0
         if conn:
             upserted = upsert(conn, records)
             cur = conn.cursor()
@@ -337,24 +432,29 @@ def run_backfill(*, from_year: int, to_year: int, resume: bool, dry_run: bool) -
         try:
             run_year(year=year, resume=resume, dry_run=dry_run)
         except RuntimeError as exc:
-            # Source not found for this year: log and continue
             print(f"  SKIP year {year}: {exc}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest PGE budget lines")
     parser.add_argument("--year", type=int, help="Single year to ingest")
-    parser.add_argument("--from-year", type=int, help="Start of backfill range")
-    parser.add_argument("--to-year",   type=int, help="End of backfill range (inclusive)")
+    parser.add_argument("--from-year", type=int, help="Start of backfill range (default 2016)")
+    parser.add_argument("--to-year",   type=int, help="End of backfill range (default 2023)")
     parser.add_argument("--resume", action="store_true",
                         help="Skip years already marked succeeded in etl_runs")
     parser.add_argument("--dry-run", action="store_true",
                         help="Download and parse but skip DB writes")
+    parser.add_argument("--list-years", action="store_true",
+                        help="List available years and exit")
     args = parser.parse_args()
+
+    if args.list_years:
+        print("Available years:", available_years())
+        return
 
     if args.from_year or args.to_year:
         from_year = args.from_year or 2016
-        to_year   = args.to_year   or args.from_year
+        to_year   = args.to_year   or 2023
         run_backfill(from_year=from_year, to_year=to_year, resume=args.resume, dry_run=args.dry_run)
         return
 
@@ -362,9 +462,8 @@ def main() -> None:
         run_year(year=args.year, resume=args.resume, dry_run=args.dry_run)
         return
 
-    # Default: current year
-    import datetime
-    run_year(year=datetime.date.today().year, resume=args.resume, dry_run=args.dry_run)
+    # Default: most recent available year
+    run_year(year=max(available_years()), resume=args.resume, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

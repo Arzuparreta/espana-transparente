@@ -13,7 +13,7 @@ from presupuestos.sources import BudgetSource
 # ─── Fixtures ────────────────────────────────────────────────────────────────
 
 def _make_source(year: int = 2025, fmt: str = "csv_semicolon", enc: str = "utf-8") -> BudgetSource:
-    return BudgetSource(year=year, url="https://example.com/pge.csv", fmt=fmt, encoding=enc)
+    return BudgetSource(year=year, fmt=fmt, gastos_url="https://example.com/pge.csv")
 
 
 CSV_SEMICOLON = b"""\
