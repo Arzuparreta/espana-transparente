@@ -10,6 +10,7 @@ import { SectionTabs } from "@/components/domain/SectionTabs"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { VoteBadge } from "@/components/domain/VoteBadge"
 import { getVoteColor } from "@/lib/domain-style"
+import { getResponsivePhoto } from "@/lib/photos"
 import { EconomicDeclarationList } from "@/components/politicians/EconomicDeclaration"
 import type { EconomicDeclaration } from "@/types"
 
@@ -45,7 +46,9 @@ export function PoliticianProfile({
 }: Props) {
   const fullName = String(p.full_name || "")
   const photoUrl = p.photo_url as string | undefined
+  const photoVariants = (p.photo_variants as Record<string, string> | undefined) ?? undefined
   const initials = [String(p.first_name || "").charAt(0), String(p.last_name || "").charAt(0)].join("").toUpperCase()
+  const photo = getResponsivePhoto(photoUrl, photoVariants)
   const bio = (p.raw_data as Record<string, unknown> | undefined)?.biografia as string | undefined
   const memberships = (p.politician_memberships || []) as Array<Record<string, unknown>>
   const econDecls = (p.economic_declarations || []) as EconomicDeclaration[]
@@ -85,7 +88,13 @@ export function PoliticianProfile({
         eyebrow={
           <>
             <Avatar className="size-14 shrink-0">
-              <AvatarImage src={photoUrl} alt={fullName} />
+              <AvatarImage
+                src={photo.src}
+                srcSet={photo.srcSet}
+                sizes={photo.sizes}
+                decoding="async"
+                alt={fullName}
+              />
               <AvatarFallback className="text-base">{initials}</AvatarFallback>
             </Avatar>
             {curParty ? (

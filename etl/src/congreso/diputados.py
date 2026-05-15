@@ -1,28 +1,12 @@
-"""ETL script: scrape active deputies from Spanish Congress Open Data"""
+"""ETL script: scrape active deputies from Spanish Congress Open Data."""
 
 import csv
 import io
 import hashlib
-import re
 import subprocess
-import httpx
 import psycopg2.extras
 from common.db import get_pg_conn
-
-CONGRESO_BASE = "https://www.congreso.es"
-OPENDATA_PAGE = "https://www.congreso.es/opendata/diputados"
-
-
-def discover_csv_url() -> str:
-    """Discover the current DiputadosActivos CSV URL from the open data page."""
-    result = subprocess.run(
-        ["curl", "-sL", "-H", "User-Agent: Mozilla/5.0 (compatible; EspanaTransparente/1.0)", OPENDATA_PAGE],
-        capture_output=True, text=True, timeout=30,
-    )
-    match = re.search(r'href="(/webpublica/opendata/diputados/DiputadosActivos__\d+\.csv)"', result.stdout)
-    if not match:
-        raise RuntimeError("No se encontró el CSV de diputados en la página de open data del Congreso")
-    return f"{CONGRESO_BASE}{match.group(1)}"
+from congreso.directory import discover_active_csv_url, active_directory_index, normalize_name
 
 LEGISLATURE_MAP = {
     "I": 1, "II": 2, "III": 3, "IV": 4, "V": 5,
@@ -111,7 +95,8 @@ def run():
     cur.execute("SELECT id FROM legislatures WHERE number = 15")
     xv_leg_id = cur.fetchone()[0]
 
-    csv_url = discover_csv_url()
+    csv_url = discover_active_csv_url()
+    directory = active_directory_index()
     print(f"Fetching active deputies from: {csv_url}")
     result = subprocess.run(
         ["curl", "-sL", "-H", "User-Agent: Mozilla/5.0 (compatible; EspanaTransparente/1.0)", csv_url],
@@ -142,7 +127,10 @@ def run():
         grupo = d.get("GRUPOPARLAMENTARIO", "").strip()
         biografia = d.get("BIOGRAFIA", "").strip()
         fecha_alta = d.get("FECHAALTA", "").strip()
-        cod_parlamentario = d.get("CODPARLAMENTARIO", "").strip()
+        directory_entry = directory.get(normalize_name(full_name))
+        if not directory_entry:
+            raise RuntimeError(f"No se encontró {full_name!r} en searchDiputados para obtener cod_parlamentario")
+        cod_parlamentario = directory_entry.cod_parlamentario
 
         # Split name
         if "," in full_name:

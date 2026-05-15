@@ -1,4 +1,6 @@
-# Acción Humana — Manifiesto para agentes
+# España Transparente — Manifiesto para agentes
+
+Nombre histórico del repo: `accion-humana`. Nombre público actual del producto: **España Transparente**.
 
 ## REGLA DE ORO: Separación metodología / contenido
 
@@ -23,8 +25,8 @@ entra en la web ve datos crudos, no nuestra metodología.
 - Deja que los números y las relaciones hablen solos
 
 **Lógica:** Un portal de transparencia pierde toda credibilidad si editorializa.
-La visión ancap se demuestra dejando que los datos expongan las estructuras de poder
-por sí mismos — no explicándole al usuario lo que tiene que pensar.
+La utilidad del producto depende de dejar que los datos expongan las estructuras de poder
+por sí mismos, no de decirle al usuario qué conclusión sacar.
 
 ---
 

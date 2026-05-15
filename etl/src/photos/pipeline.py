@@ -1,8 +1,9 @@
 """Pipeline orchestrator: pick politicians needing photos, try each source in
 priority order, persist first successful match."""
 
+import json
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Optional
 
 import psycopg2.extras
 
@@ -10,14 +11,15 @@ from common.db import get_pg_conn
 
 from .sources import ALL_SOURCES
 from .sources.base import PhotoSource, PoliticianRow, SourceMatch
-from .storage import politician_key, upload_photo, from_storage_url
+from .storage import upload_variants
+from .validate import average_hash_hex, build_responsive_variants, sha256_hex
 
 
 @dataclass
 class RunOptions:
     dry_run: bool = False
     refresh_missing: bool = True
-    max_age_days: Optional[int] = None  # if set, also refresh photos older than this
+    max_age_days: Optional[int] = None
     only_congress_id: Optional[str] = None
     only_source: Optional[str] = None   # restrict to a single source by name
 
@@ -62,6 +64,13 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
         where.append("(" + " OR ".join(clauses) + ")")
 
     where_sql = " AND ".join(where) if where else "TRUE"
+    if opts.only_congress_id:
+        candidate_where_sql = where_sql
+    else:
+        candidate_where_sql = (
+            f"({where_sql}) OR "
+            "(p.photo_url IS NOT NULL AND (p.photo_version_id IS NULL OR p.photo_variants IS NULL))"
+        )
 
     sql = f"""
         SELECT p.id::text AS id, p.congress_id, p.full_name, p.first_name, p.last_name,
@@ -75,6 +84,14 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
                  ORDER BY pm.start_date DESC NULLS LAST
                  LIMIT 1
                ) AS party_acronym,
+               (
+                 SELECT l.number
+                 FROM politician_memberships pm
+                 JOIN legislatures l ON l.id = pm.legislature_id
+                 WHERE pm.politician_id = p.id AND l.is_active = true
+                 ORDER BY pm.start_date DESC NULLS LAST
+                 LIMIT 1
+               ) AS active_legislature_number,
                COALESCE(
                  (SELECT array_agg(DISTINCT rp.position_type::text)
                   FROM responsibility_positions rp
@@ -82,7 +99,7 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
                  ARRAY[]::text[]
                ) AS position_types
         FROM politicians p
-        WHERE {where_sql}
+        WHERE {candidate_where_sql}
         ORDER BY p.full_name
     """
     with get_pg_conn() as conn:
@@ -101,53 +118,180 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
             wikidata_qid=r["wikidata_qid"],
             party_acronym=r["party_acronym"],
             position_types=tuple(r["position_types"] or ()),
+            active_legislature_number=r["active_legislature_number"],
         )
         for r in rows
     ]
 
 
-def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) -> str:
-    """Upload bytes to Storage and update DB. Returns the final public URL.
+def _source_priority(source_name: str) -> int:
+    for source in ALL_SOURCES:
+        if source.name == source_name:
+            return source.priority
+    raise ValueError(f"Unknown photo source priority for {source_name!r}")
 
-    If Supabase Storage is unavailable (missing key or auth failure) the pipeline
-    falls back to storing the source CDN URL directly. This is valid for Wikimedia
-    (upload.wikimedia.org allows hotlinking); sources that block hotlinking
-    (Congreso) do not set source_url and are skipped in that case.
+
+def _should_promote(*, current: Optional[dict], candidate_source: str, candidate_hash: str) -> bool:
+    if current is None:
+        return True
+    if current["source"] == candidate_source:
+        return current["content_sha256"] != candidate_hash
+    return _source_priority(candidate_source) < _source_priority(current["source"])
+
+
+def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) -> tuple[str, bool]:
+    """Upload immutable variants and promote the candidate if it wins.
+
+    Returns `(public_url, promoted)`.
     """
-    from .storage import StorageError, politician_key, public_url, upload_photo
+    variants = build_responsive_variants(match.photo_bytes)
+    content_hash = sha256_hex(variants[max(variants)])
+    perceptual_hash = average_hash_hex(variants[max(variants)])
 
-    key = politician_key(politician.congress_id)
     if dry_run:
-        final_url = match.source_url or public_url(key)
-        return final_url
+        final_url = f"dry-run://politicians/{politician.congress_id}/{content_hash}/256.webp"
+        return final_url, True
 
-    final_url: str
-    try:
-        final_url = upload_photo(match.photo_bytes, key)
-    except StorageError as exc:
-        if match.source_url:
-            print(f"  ! Storage unavailable ({exc}); using hotlink URL as fallback")
-            final_url = match.source_url
-        else:
-            raise
+    variant_urls = upload_variants(
+        variants,
+        congress_id=politician.congress_id,
+        content_hash=content_hash,
+    )
+    primary_url = variant_urls.get("256") or variant_urls[str(max(variants))]
 
     with get_pg_conn() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
                 """
-                UPDATE politicians
-                SET photo_url = %s,
-                    photo_source = %s,
-                    photo_updated_at = now(),
-                    photo_attempts = 0,
-                    wikidata_qid = COALESCE(%s, wikidata_qid),
-                    updated_at = now()
-                WHERE id = %s
+                SELECT id, source, source_priority, content_sha256
+                FROM politician_photo_versions
+                WHERE politician_id = %s AND is_active = true
+                ORDER BY promoted_at DESC NULLS LAST, created_at DESC
+                LIMIT 1
                 """,
-                (final_url, match.source, match.wikidata_qid, politician.id),
+                (politician.id,),
             )
+            current = cur.fetchone()
+            if current is None:
+                cur.execute(
+                    """
+                    SELECT photo_url, photo_source
+                    FROM politicians
+                    WHERE id = %s
+                    """,
+                    (politician.id,),
+                )
+                legacy = cur.fetchone()
+                if legacy and legacy["photo_url"] and legacy["photo_source"]:
+                    current = {
+                        "id": None,
+                        "source": legacy["photo_source"],
+                        "source_priority": _source_priority(legacy["photo_source"]),
+                        "content_sha256": None,
+                    }
+
+            cur.execute(
+                """
+                INSERT INTO politician_photo_versions (
+                    politician_id, source, source_priority, source_url,
+                    source_etag, source_last_modified, content_sha256,
+                    perceptual_hash, variants, is_active, status, promoted_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, false, 'superseded', NULL)
+                ON CONFLICT (politician_id, source, content_sha256)
+                DO UPDATE SET
+                    source_url = EXCLUDED.source_url,
+                    source_etag = EXCLUDED.source_etag,
+                    source_last_modified = EXCLUDED.source_last_modified,
+                    variants = EXCLUDED.variants
+                RETURNING id
+                """,
+                (
+                    politician.id,
+                    match.source,
+                    _source_priority(match.source),
+                    match.source_url,
+                    match.source_etag,
+                    match.source_last_modified,
+                    content_hash,
+                    perceptual_hash,
+                    json.dumps(variant_urls),
+                ),
+            )
+            candidate_id = cur.fetchone()["id"]
+
+            should_promote = bool(
+                current and str(current["id"]) == str(candidate_id)
+            ) or _should_promote(
+                current=current,
+                candidate_source=match.source,
+                candidate_hash=content_hash,
+            )
+            if should_promote:
+                cur.execute(
+                    """
+                    UPDATE politician_photo_versions
+                    SET is_active = false,
+                        status = 'superseded'
+                    WHERE politician_id = %s AND is_active = true AND id <> %s
+                    """,
+                    (politician.id, candidate_id),
+                )
+                cur.execute(
+                    """
+                    UPDATE politician_photo_versions
+                    SET is_active = true,
+                        status = 'active',
+                        promoted_at = now(),
+                        rejection_reason = NULL
+                    WHERE id = %s
+                    """,
+                    (candidate_id,),
+                )
+                cur.execute(
+                    """
+                    UPDATE politicians
+                    SET photo_url = %s,
+                        photo_variants = %s::jsonb,
+                        photo_version_id = %s,
+                        photo_source = %s,
+                        photo_updated_at = now(),
+                        photo_attempts = 0,
+                        wikidata_qid = COALESCE(%s, wikidata_qid),
+                        updated_at = now()
+                    WHERE id = %s
+                    """,
+                    (
+                        primary_url,
+                        json.dumps(variant_urls),
+                        candidate_id,
+                        match.source,
+                        match.wikidata_qid,
+                        politician.id,
+                    ),
+                )
+            else:
+                cur.execute(
+                    """
+                    UPDATE politician_photo_versions
+                    SET is_active = false,
+                        status = 'rejected',
+                        rejection_reason = %s
+                    WHERE id = %s
+                    """,
+                    ("lower-priority-than-current", candidate_id),
+                )
+                cur.execute(
+                    """
+                    UPDATE politicians
+                    SET photo_attempts = 0,
+                        updated_at = now()
+                    WHERE id = %s
+                    """,
+                    (politician.id,),
+                )
         conn.commit()
-    return final_url
+    return primary_url, should_promote
 
 
 def _bump_attempts(politician_id: str, *, dry_run: bool) -> None:
@@ -199,14 +343,18 @@ def run(opts: RunOptions) -> RunStats:
             _bump_attempts(pol.id, dry_run=opts.dry_run)
             continue
 
-        url = _persist(pol, match, dry_run=opts.dry_run)
-        stats.updated += 1
+        url, promoted = _persist(pol, match, dry_run=opts.dry_run)
+        if promoted:
+            stats.updated += 1
+        else:
+            stats.skipped += 1
         stats.by_source[match.source] = stats.by_source.get(match.source, 0) + 1
-        print(f"  ✓ {pol.full_name}: source={match.source} url={url}")
+        status = "promoted" if promoted else "stored-not-promoted"
+        print(f"  ✓ {pol.full_name}: source={match.source} status={status} url={url}")
 
     print(
         f"\nDone. candidates={stats.candidates} "
-        f"updated={stats.updated} failed={stats.failed} "
+        f"updated={stats.updated} skipped={stats.skipped} failed={stats.failed} "
         f"by_source={stats.by_source}"
     )
     return stats

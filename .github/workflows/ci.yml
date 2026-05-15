@@ -75,6 +75,11 @@ jobs:
       - run: PYTHONPATH=src python -m src.bdns.subvenciones --from-date $(date -d 'yesterday' +%Y-%m-%d) --to-date $(date +%Y-%m-%d) --importe-min 0 --max-pages 100
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.photos.run --refresh-missing
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   etl-weekly:
     name: ETL weekly pipelines
@@ -102,7 +107,7 @@ jobs:
       - run: PYTHONPATH=src python -m src.congreso.responsables
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.photos.run --refresh-missing --max-age-days 30
+      - run: PYTHONPATH=src python -m src.photos.run --no-refresh-missing --max-age-days 30
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co

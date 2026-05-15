@@ -10,8 +10,8 @@ from .congreso import CongresoOficialSource
 from .alcaldes_wikidata import AlcaldesWikidataSource
 
 ALL_SOURCES: list[PhotoSource] = [
-    WikidataSource(),            # priority 1: P1768 → match exacto, Commons P18
-    CongresoOficialSource(),     # priority 2: congreso.es/img/diputados/<cod>.jpg
+    CongresoOficialSource(),     # priority 1: retrato oficial del Congreso
+    WikidataSource(),            # priority 2: P1768 / nombre + Commons P18
     AlcaldesWikidataSource(),    # priority 3: Wikidata vía P39 = alcalde de <municipio>
 ]
 

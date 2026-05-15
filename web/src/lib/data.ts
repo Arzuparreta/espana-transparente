@@ -20,7 +20,7 @@ export const getHomeData = unstable_cache(
       supabase
         .from("politicians")
         .select(
-          "id, first_name, last_name, full_name, photo_url, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
+          "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
         )
         .eq("politician_memberships.is_active", true)
         .order("full_name")
@@ -46,7 +46,7 @@ export const getDeputyCards = unstable_cache(
     const { data } = await supabase
       .from("politicians")
       .select(
-        "id, first_name, last_name, full_name, photo_url, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
+        "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
       )
       .eq("politician_memberships.is_active", true)
       .order("full_name")
@@ -73,7 +73,7 @@ export const getPartyPageData = unstable_cache(
       supabase
         .from("politician_memberships")
         .select(
-          "id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name), politician:politicians(id, first_name, last_name, full_name, photo_url)"
+          "id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name), politician:politicians(id, first_name, last_name, full_name, photo_url, photo_variants)"
         )
         .eq("party_id", id)
         .eq("is_active", true)

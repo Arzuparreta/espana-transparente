@@ -1,12 +1,13 @@
 """Validate and normalize photo bytes.
 
-Pipeline: download → content-type/size validation → Pillow open → resize
-512x512 (proportion preserved, padded to square) → WebP q=85 output.
+Pipeline: download -> content-type/size validation -> Pillow open -> square crop
+-> responsive WebP variants.
 """
 
 import io
+import hashlib
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Iterable
 
 import httpx
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -27,6 +28,9 @@ class PhotoValidationError(Exception):
 class DownloadResult:
     data: bytes
     final_url: str
+    content_type: str = "image/webp"
+    etag: str | None = None
+    last_modified: str | None = None
 
 
 def download(url: str, *, user_agent: str = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)",
@@ -59,15 +63,16 @@ def download_with_final_url(
         raise PhotoValidationError(f"too small: {len(data)} bytes")
     if len(data) > MAX_BYTES:
         raise PhotoValidationError(f"too large: {len(data)} bytes")
-    return DownloadResult(data=data, final_url=str(resp.url))
+    return DownloadResult(
+        data=data,
+        final_url=str(resp.url),
+        content_type=ct,
+        etag=resp.headers.get("etag"),
+        last_modified=resp.headers.get("last-modified"),
+    )
 
 
-def to_webp_square(raw: bytes, *, size: int = TARGET_SIZE,
-                   quality: int = WEBP_QUALITY) -> bytes:
-    """Resize to a `size`x`size` WebP, preserving proportion and padding to square.
-
-    Background is neutral grey (matches the AvatarFallback bg).
-    """
+def _open_image(raw: bytes) -> Image.Image:
     try:
         img = Image.open(io.BytesIO(raw))
         img.load()
@@ -77,16 +82,60 @@ def to_webp_square(raw: bytes, *, size: int = TARGET_SIZE,
     img = ImageOps.exif_transpose(img)
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
+    return img
 
-    img.thumbnail((size, size), Image.Resampling.LANCZOS)
 
-    canvas = Image.new("RGB", (size, size), (244, 244, 245))  # zinc-100 / muted
-    offset = ((size - img.width) // 2, (size - img.height) // 2)
-    canvas.paste(img, offset, img if img.mode == "RGBA" else None)
+def _square_cover(img: Image.Image, *, size: int) -> Image.Image:
+    rgba_img = img.convert("RGBA") if img.mode != "RGBA" else img
+    # Bias the crop slightly upward because most source photos are headshots.
+    squared = ImageOps.fit(
+        rgba_img,
+        (size, size),
+        method=Image.Resampling.LANCZOS,
+        centering=(0.5, 0.32),
+    )
+    return squared.convert("RGB")
 
+
+def _encode_webp(img: Image.Image, *, quality: int = WEBP_QUALITY) -> bytes:
     out = io.BytesIO()
-    canvas.save(out, format="WEBP", quality=quality, method=6)
+    img.save(out, format="WEBP", quality=quality, method=6)
     return out.getvalue()
+
+
+def to_webp_square(raw: bytes, *, size: int = TARGET_SIZE,
+                   quality: int = WEBP_QUALITY) -> bytes:
+    """Resize to a `size`x`size` WebP using cover-crop semantics."""
+    img = _open_image(raw)
+    squared = _square_cover(img, size=size)
+    return _encode_webp(squared, quality=quality)
+
+
+def build_responsive_variants(
+    raw: bytes,
+    *,
+    sizes: Iterable[int] = (64, 128, 256, 512),
+    quality: int = WEBP_QUALITY,
+) -> dict[int, bytes]:
+    """Generate deterministic square WebP variants from an image payload."""
+    img = _open_image(raw)
+    variants: dict[int, bytes] = {}
+    for size in sorted(set(int(s) for s in sizes)):
+        variants[size] = _encode_webp(_square_cover(img, size=size), quality=quality)
+    return variants
+
+
+def sha256_hex(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def average_hash_hex(raw: bytes, *, size: int = 8) -> str:
+    """Simple perceptual hash for change detection across refreshes."""
+    img = _open_image(raw).convert("L").resize((size, size), Image.Resampling.LANCZOS)
+    pixels = list(img.tobytes())
+    mean = sum(pixels) / len(pixels)
+    bits = "".join("1" if px >= mean else "0" for px in pixels)
+    return f"{int(bits, 2):0{size * size // 4}x}"
 
 
 def fetch_and_normalize(url: str) -> Optional[bytes]:

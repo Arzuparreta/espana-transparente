@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { getResponsivePhoto } from "@/lib/photos"
 import type { PoliticianWithMemberships } from "@/types"
 
 interface PoliticianCardProps {
@@ -12,6 +13,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
   const membership = politician.politician_memberships?.[0]
   const party = membership?.party
   const initials = `${politician.first_name[0] ?? ""}${politician.last_name[0] ?? ""}`.toUpperCase()
+  const photo = getResponsivePhoto(politician.photo_url, politician.photo_variants)
 
   return (
     <ResponsiveLink href={`/diputados/${politician.id}`}>
@@ -19,7 +21,14 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
         <CardHeader className="space-y-3">
           <div className="flex items-start gap-3">
             <Avatar size="default" className="mt-0.5 shrink-0">
-              <AvatarImage src={politician.photo_url ?? undefined} alt={politician.full_name} />
+              <AvatarImage
+                src={photo.src}
+                srcSet={photo.srcSet}
+                sizes={photo.sizes}
+                loading="lazy"
+                decoding="async"
+                alt={politician.full_name}
+              />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 space-y-1">

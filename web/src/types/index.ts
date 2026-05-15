@@ -7,6 +7,8 @@ export interface Politician {
   birth_date?: string
   birth_place?: string
   photo_url?: string
+  photo_variants?: Record<string, string>
+  photo_version_id?: string
   email?: string
   twitter?: string
   website?: string

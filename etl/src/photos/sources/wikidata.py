@@ -89,7 +89,7 @@ def _fetch_sparql(query: str) -> list[dict]:
 
 class WikidataSource:
     name = "wikidata"
-    priority = 1
+    priority = 2
 
     # Lower threshold = more false positives. 0.6 + 2-shared-token guard works well
     # because Spanish full names are 3–4 tokens after dropping particles.
@@ -173,4 +173,6 @@ class WikidataSource:
             source=self.name,
             wikidata_qid=entry["qid"],
             source_url=downloaded.final_url,
+            source_etag=downloaded.etag,
+            source_last_modified=downloaded.last_modified,
         )

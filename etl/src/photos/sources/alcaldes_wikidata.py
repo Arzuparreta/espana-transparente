@@ -98,4 +98,6 @@ class AlcaldesWikidataSource:
             source=self.name,
             wikidata_qid=best_entry["qid"],
             source_url=downloaded.final_url,
+            source_etag=downloaded.etag,
+            source_last_modified=downloaded.last_modified,
         )

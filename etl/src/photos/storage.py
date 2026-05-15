@@ -1,8 +1,4 @@
-"""Supabase Storage wrapper for the politician-photos bucket.
-
-Uses the Storage REST API with the service-role key (writes). Public reads do
-not require a key because the bucket is configured as public.
-"""
+"""Supabase Storage wrapper for the politician-photos bucket."""
 
 import os
 import re
@@ -63,6 +59,15 @@ def upload_photo(data: bytes, key: str, *, content_type: str = "image/webp") -> 
     return public_url(key)
 
 
+def upload_variants(variants: dict[int, bytes], *, congress_id: str, content_hash: str) -> dict[str, str]:
+    """Upload immutable responsive variants keyed by content hash."""
+    urls: dict[str, str] = {}
+    for size, data in sorted(variants.items()):
+        key = politician_variant_key(congress_id, content_hash, size)
+        urls[str(size)] = upload_photo(data, key)
+    return urls
+
+
 def ensure_bucket(*, public: bool = True) -> None:
     """Create the politician-photos bucket if it doesn't exist. Idempotent."""
     token = _require_service_key()
@@ -88,12 +93,20 @@ def ensure_bucket(*, public: bool = True) -> None:
 
 
 def politician_key(congress_id: str) -> str:
-    """Path convention. Same layout will be used for senators / municipal cargos."""
-    nfkd = unicodedata.normalize("NFKD", congress_id)
+    """Legacy public-object path for compatibility with older tests/callers."""
+    return f"politicians/{_slugify(congress_id)}.webp"
+
+
+def politician_variant_key(congress_id: str, content_hash: str, size: int) -> str:
+    return f"politicians/{_slugify(congress_id)}/{content_hash}/{size}.webp"
+
+
+def _slugify(value: str) -> str:
+    nfkd = unicodedata.normalize("NFKD", value)
     ascii_slug = "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
     ascii_slug = re.sub(r"[^a-z0-9._-]+", "-", ascii_slug).strip("-")
     ascii_slug = re.sub(r"-{2,}", "-", ascii_slug)
-    return f"politicians/{ascii_slug}.webp"
+    return ascii_slug
 
 
 def from_storage_url(url: Optional[str]) -> bool:

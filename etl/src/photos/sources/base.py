@@ -21,6 +21,7 @@ class PoliticianRow:
     wikidata_qid: Optional[str]
     party_acronym: Optional[str]
     position_types: tuple[str, ...] = ()
+    active_legislature_number: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -32,14 +33,14 @@ class SourceMatch:
     pipeline can persist it for stable matching next run.
 
     source_url is the original CDN URL of the image (before downloading). When
-    Supabase Storage is unavailable, the pipeline falls back to storing this URL
-    directly in photo_url — valid for Wikimedia which allows hotlinking from
-    upload.wikimedia.org. Not set for sources that don't hotlink cleanly (Congreso).
+    stored, it gives us provenance and refresh hints (ETag / Last-Modified).
     """
     photo_bytes: bytes
     source: str
     wikidata_qid: Optional[str] = None
-    source_url: Optional[str] = None  # CDN URL usable as hotlink fallback
+    source_url: Optional[str] = None
+    source_etag: Optional[str] = None
+    source_last_modified: Optional[str] = None
 
 
 class PhotoSource(Protocol):

@@ -11,6 +11,7 @@ import pytest
 from PIL import Image
 
 from photos.sources.base import PoliticianRow, SourceMatch
+from photos.sources.congreso import CongresoOficialSource
 from photos.sources.wikidata import (
     WikidataSource,
     _jaccard,
@@ -22,6 +23,8 @@ from photos.validate import (
     MIN_BYTES,
     PhotoValidationError,
     TARGET_SIZE,
+    average_hash_hex,
+    build_responsive_variants,
     to_webp_square,
 )
 
@@ -175,19 +178,38 @@ def test_to_webp_square_returns_target_size():
     assert img.format == "WEBP"
 
 
-def test_to_webp_square_pads_non_square_input():
-    out = to_webp_square(_make_png(1000, 500))
+def test_to_webp_square_cover_crops_instead_of_padding():
+    source = Image.new("RGB", (1000, 500), (255, 0, 0))
+    for x in range(450, 550):
+        for y in range(0, 500):
+            source.putpixel((x, y), (0, 255, 0))
+    buf = io.BytesIO()
+    source.save(buf, format="PNG")
+    out = to_webp_square(buf.getvalue())
     img = Image.open(io.BytesIO(out)).convert("RGB")
-    # Corner must be the neutral padding, not the content color. Allow a small
-    # tolerance for WebP quantization (target 244/244/245).
+    # No grey padding should remain after the cover-crop normalization.
     r, g, b = img.getpixel((0, 0))
-    assert r >= 230 and g >= 230 and b >= 230, f"corner not padded: {(r, g, b)}"
+    assert not (r >= 230 and g >= 230 and b >= 230), f"unexpected padding-like corner: {(r, g, b)}"
     assert img.size == (TARGET_SIZE, TARGET_SIZE)
 
 
 def test_to_webp_square_rejects_non_image():
     with pytest.raises(PhotoValidationError):
         to_webp_square(b"not an image at all" * 50)
+
+
+def test_build_responsive_variants_returns_expected_sizes():
+    variants = build_responsive_variants(_make_png(800, 1200))
+    assert sorted(variants) == [64, 128, 256, 512]
+    for size, payload in variants.items():
+        img = Image.open(io.BytesIO(payload))
+        assert img.size == (size, size)
+        assert img.format == "WEBP"
+
+
+def test_average_hash_is_stable_for_identical_input():
+    payload = _make_png(640, 640, color=(120, 40, 90))
+    assert average_hash_hex(payload) == average_hash_hex(payload)
 
 
 def test_min_bytes_constant_is_reasonable():
@@ -217,6 +239,24 @@ def test_alcaldes_source_skips_non_mayors():
     src = AlcaldesWikidataSource()
     pol = _make_pol()  # position_types=()
     assert src.find(pol) is None
+
+
+def test_congreso_source_uses_current_docu_imgweb_path(monkeypatch):
+    src = CongresoOficialSource()
+    captured = {}
+
+    def fake_dl(url: str, **_kwargs):
+        captured["url"] = url
+        return DownloadResult(data=b"x" * 4096, final_url=url)
+
+    monkeypatch.setattr("photos.sources.congreso.download_with_final_url", fake_dl)
+    monkeypatch.setattr("photos.sources.congreso.to_webp_square", lambda raw: b"w")
+
+    pol = _make_pol(cod="160")
+    match = src.find(pol)
+    assert match is not None
+    assert captured["url"] == "https://www.congreso.es/docu/imgweb/diputados/160_15.jpg"
+    assert match.source_url == captured["url"]
 
 
 # ---- SourceMatch dataclass --------------------------------------------------
