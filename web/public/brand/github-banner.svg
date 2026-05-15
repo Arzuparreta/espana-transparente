@@ -1,30 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320">
   <title>España Transparente - datos públicos de la política española</title>
   <defs>
     <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
       <path d="M44 0H0V44" fill="none" stroke="#1A1612" stroke-opacity=".055"/>
     </pattern>
-    <radialGradient id="signal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(992 114) rotate(136) scale(540 370)">
+    <radialGradient id="signal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1100 40) rotate(136) scale(380 220)">
       <stop stop-color="#A1242C" stop-opacity=".18"/>
       <stop offset=".7" stop-color="#A1242C" stop-opacity=".035"/>
       <stop offset="1" stop-color="#A1242C" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="1280" height="640" fill="#FAFAF7"/>
-  <rect width="1280" height="640" fill="url(#grid)"/>
-  <rect width="1280" height="640" fill="url(#signal)"/>
-  <rect x="32" y="28" width="1216" height="584" rx="34" fill="#FFFFFF" fill-opacity=".72" stroke="#D7C9BB" stroke-width="2"/>
-  <g transform="translate(102 96) scale(1.34)">
+  <rect width="1280" height="320" fill="#FAFAF7"/>
+  <rect width="1280" height="320" fill="url(#grid)"/>
+  <rect width="1280" height="320" fill="url(#signal)"/>
+  <rect x="20" y="20" width="1240" height="280" rx="24" fill="#FFFFFF" fill-opacity=".72" stroke="#D7C9BB" stroke-width="2"/>
+  <g transform="translate(56 110)">
     <polygon points="14,22 86,22 80.71,30.82 19.29,30.82" fill="#1A1612"/>
     <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#1A1612"/>
     <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#1A1612"/>
     <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#1A1612"/>
     <polygon points="44.71,73.18 55.29,73.18 50,82 50,82" fill="#A1242C"/>
   </g>
-  <text x="102" y="304" fill="#1A1612" font-family="Georgia, 'Times New Roman', serif" font-size="80" font-weight="700" letter-spacing="-2.7" textLength="740" lengthAdjust="spacingAndGlyphs">España Transparente</text>
-  <text x="107" y="364" fill="#6F6258" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="2.6">DATOS PÚBLICOS DE LA POLÍTICA ESPAÑOLA</text>
-  <path d="M108 396H628" stroke="#A1242C" stroke-width="4" stroke-linecap="round"/>
-  <g transform="translate(924 128)">
+  <text x="164" y="175" fill="#1A1612" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" letter-spacing="-2">España Transparente</text>
+  <text x="169" y="213" fill="#6F6258" font-family="Arial, Helvetica, sans-serif" font-size="19" letter-spacing="2.4">DATOS PÚBLICOS DE LA POLÍTICA ESPAÑOLA</text>
+  <path d="M169 233H596" stroke="#A1242C" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(1022 34) scale(0.72)">
     <rect width="266" height="348" rx="20" fill="#FAFAF7" stroke="#D7C9BB" stroke-width="2"/>
     <path d="M36 68H230M36 120H230M36 172H168M36 248H230" stroke="#1A1612" stroke-opacity=".18" stroke-width="5" stroke-linecap="round"/>
     <circle cx="206" cy="172" r="10" fill="#A1242C"/>
