@@ -1,9 +1,9 @@
-import Link from "next/link"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { getGobiernoActual, type GobiernoMember } from "@/lib/data"
+import { EntityLink } from "@/components/domain/EntityLink"
+import { getGobiernoActual, getPartyAcronymMap, type GobiernoMember } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 24
@@ -20,7 +20,7 @@ function formatAmount(eur: number): string {
   return `${Math.round(eur)} €`
 }
 
-function MemberCard({ member }: { member: GobiernoMember }) {
+function MemberCard({ member, partyId }: { member: GobiernoMember; partyId: string | null }) {
   const color = getPartyColor(member.party_color)
   const nameFormatted = member.person_name
     .split(",")
@@ -28,22 +28,42 @@ function MemberCard({ member }: { member: GobiernoMember }) {
     .reverse()
     .join(" ")
 
-  const inner = (
+  const isMinistry = member.position_type === "ministro" || member.position_type === "vicepresidente"
+  const orgLink = isMinistry ? (
+    <EntityLink kind="ministry" id={member.id}>
+      <p className="text-xs font-medium leading-snug text-muted-foreground line-clamp-2 underline-offset-2 hover:underline">
+        {member.organization_name}
+      </p>
+    </EntityLink>
+  ) : (
+    <p className="text-xs font-medium leading-snug text-muted-foreground line-clamp-2">
+      {member.organization_name}
+    </p>
+  )
+
+  const nameNode = member.politician_id ? (
+    <EntityLink kind="politician" id={member.politician_id}>
+      <p className="font-semibold leading-snug underline-offset-2 hover:underline">{nameFormatted}</p>
+    </EntityLink>
+  ) : (
+    <p className="font-semibold leading-snug">{nameFormatted}</p>
+  )
+
+  return (
     <div
       data-slot="card"
       className="flex min-h-[5.5rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
       style={{ borderColor: `${color}28` }}
     >
       <div className="space-y-1">
-        <p className="text-xs font-medium leading-snug text-muted-foreground line-clamp-2">
-          {member.organization_name}
-        </p>
-        <p className="font-semibold leading-snug">{nameFormatted}</p>
+        {orgLink}
+        {nameNode}
       </div>
       <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
         <PartyBadge
           acronym={member.political_party}
           color={member.party_color ?? undefined}
+          partyId={partyId}
         />
         {member.contract_count > 0 ? (
           <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
@@ -54,26 +74,13 @@ function MemberCard({ member }: { member: GobiernoMember }) {
       </div>
     </div>
   )
-
-  if (member.position_type === "ministro" || member.position_type === "vicepresidente") {
-    return (
-      <Link href={`/ministerios/${member.id}`} className="block">
-        {inner}
-      </Link>
-    )
-  }
-  if (member.politician_id) {
-    return (
-      <Link href={`/diputados/${member.politician_id}`} className="block">
-        {inner}
-      </Link>
-    )
-  }
-  return inner
 }
 
 export default async function GobiernoPage() {
-  const members = await getGobiernoActual()
+  const [members, partyMap] = await Promise.all([
+    getGobiernoActual(),
+    getPartyAcronymMap(),
+  ])
 
   const byType = members.reduce<Record<string, GobiernoMember[]>>((acc, m) => {
     acc[m.position_type] = [...(acc[m.position_type] ?? []), m]
@@ -112,7 +119,11 @@ export default async function GobiernoPage() {
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.map((m) => (
-                <MemberCard key={m.id} member={m} />
+                <MemberCard
+                  key={m.id}
+                  member={m}
+                  partyId={m.political_party ? partyMap[m.political_party.toLowerCase()] ?? null : null}
+                />
               ))}
             </div>
           </section>

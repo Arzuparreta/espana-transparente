@@ -17,6 +17,7 @@ interface TimelineProps {
       end_date?: string
     }
     party?: {
+      id?: string
       acronym: string
       color: string
       name: string
@@ -57,7 +58,7 @@ export function PoliticianTimeline({ memberships }: TimelineProps) {
                   {m.end_date && ` hasta ${m.end_date}`}
                 </div>
               </div>
-              {m.party ? <PartyBadge acronym={m.party.acronym} color={m.party.color} className="text-[11px]" /> : null}
+              {m.party ? <PartyBadge acronym={m.party.acronym} color={m.party.color} className="text-[11px]" partyId={m.party.id ?? null} /> : null}
               {m.is_active && (
                 <Badge
                   variant="outline"

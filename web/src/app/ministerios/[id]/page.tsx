@@ -4,7 +4,8 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { getMinistrioDetail, type MinistrioContract } from "@/lib/data"
+import { EntityLink } from "@/components/domain/EntityLink"
+import { getMinistrioDetail, getPartyAcronymMap, type MinistrioContract } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 6
@@ -54,8 +55,12 @@ function ContractRow({ contract }: { contract: MinistrioContract }) {
 
 export default async function MinistrioPage({ params }: PageProps) {
   const { id } = await params
-  const { member, contracts } = await getMinistrioDetail(id)
+  const [{ member, contracts }, partyMap] = await Promise.all([
+    getMinistrioDetail(id),
+    getPartyAcronymMap(),
+  ])
   if (!member) notFound()
+  const partyId = member.political_party ? partyMap[member.political_party.toLowerCase()] ?? null : null
 
   const color = getPartyColor(member.party_color)
   const nameFormatted = member.person_name
@@ -89,16 +94,9 @@ export default async function MinistrioPage({ params }: PageProps) {
         </p>
         <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            {member.politician_id ? (
-              <Link
-                href={`/diputados/${member.politician_id}`}
-                className="text-lg font-bold underline-offset-2 hover:underline"
-              >
-                {nameFormatted}
-              </Link>
-            ) : (
-              <p className="text-lg font-bold">{nameFormatted}</p>
-            )}
+            <EntityLink kind="politician" id={member.politician_id} className="text-lg font-bold underline-offset-2 hover:underline">
+              {nameFormatted}
+            </EntityLink>
             {startDate && (
               <p className="mt-0.5 text-sm text-muted-foreground">Desde {startDate}</p>
             )}
@@ -106,6 +104,7 @@ export default async function MinistrioPage({ params }: PageProps) {
           <PartyBadge
             acronym={member.political_party}
             color={member.party_color ?? undefined}
+            partyId={partyId}
           />
         </div>
       </div>

@@ -132,7 +132,18 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
           {dateStr ? <div className="text-[11px] text-muted-foreground">{dateStr}</div> : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
-          <div className="text-base font-semibold tabular-nums">{formatAmount(s.importe)}</div>
+          <ResponsiveLink
+            href={`/subvenciones/${s.id}`}
+            className="text-base font-semibold tabular-nums underline-offset-2 hover:underline"
+          >
+            {formatAmount(s.importe)}
+          </ResponsiveLink>
+          <ResponsiveLink
+            href={`/subvenciones/${s.id}`}
+            className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+          >
+            Detalle →
+          </ResponsiveLink>
           {s.source_url ? (
             <a
               href={s.source_url}

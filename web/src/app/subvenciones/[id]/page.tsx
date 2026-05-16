@@ -1,0 +1,152 @@
+import { notFound } from "next/navigation"
+import { PageHeader } from "@/components/domain/PageHeader"
+import { InfoPanel } from "@/components/domain/InfoPanel"
+import { EntityLink } from "@/components/domain/EntityLink"
+import { getSubsidyDetail } from "@/lib/data"
+
+export const revalidate = 3600
+
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params
+  const { subsidy } = await getSubsidyDetail(id)
+  return { title: subsidy?.convocatoria ?? subsidy?.beneficiario ?? "Subvención" }
+}
+
+const NIVEL1_LABELS: Record<string, string> = {
+  ESTADO: "Estatal",
+  AUTONOMICA: "Autonómica",
+  LOCAL: "Local",
+}
+
+function formatAmount(amount: number | null): string {
+  if (amount == null) return "—"
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm first:border-0">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 font-medium">{children}</dd>
+    </div>
+  )
+}
+
+export default async function SubsidyDetailPage({ params }: PageProps) {
+  const { id } = await params
+  const { subsidy, responsible, beneficiaryOrg, grantingOrg } = await getSubsidyDetail(id)
+  if (!subsidy) notFound()
+
+  const dateStr = subsidy.fecha_concesion
+    ? new Date(subsidy.fecha_concesion).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null
+
+  const nivelLabel = NIVEL1_LABELS[subsidy.nivel1 ?? ""] ?? subsidy.nivel1 ?? null
+  const titleText = subsidy.convocatoria ?? subsidy.beneficiario ?? `BDNS ${subsidy.bdns_id}`
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        title={titleText}
+        description={`BDNS ${subsidy.bdns_id}${subsidy.cod_concesion ? ` · ${subsidy.cod_concesion}` : ""}`}
+      />
+
+      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-5">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe</p>
+        <p className="mt-1 text-3xl font-bold tabular-nums">{formatAmount(subsidy.importe)}</p>
+      </div>
+
+      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-2">
+        <dl>
+          {dateStr && <Row label="Fecha concesión">{dateStr}</Row>}
+          {subsidy.instrumento && <Row label="Instrumento">{subsidy.instrumento}</Row>}
+          {nivelLabel && <Row label="Nivel">{nivelLabel}</Row>}
+          {subsidy.beneficiario && (
+            <Row label="Beneficiario">
+              {beneficiaryOrg ? (
+                <EntityLink kind="organization" id={beneficiaryOrg.id} className="underline-offset-2 hover:underline">
+                  {beneficiaryOrg.name}
+                </EntityLink>
+              ) : (
+                subsidy.beneficiario
+              )}
+            </Row>
+          )}
+          {(subsidy.nivel3 || grantingOrg) && (
+            <Row label="Órgano concedente">
+              {grantingOrg ? (
+                <EntityLink kind="organization" id={grantingOrg.id} className="underline-offset-2 hover:underline">
+                  {grantingOrg.name}
+                </EntityLink>
+              ) : (
+                subsidy.nivel3
+              )}
+            </Row>
+          )}
+          {subsidy.nivel2 && <Row label="Territorio">{subsidy.nivel2}</Row>}
+          {subsidy.ministry_normalized && (
+            <Row label="Ministerio">{subsidy.ministry_normalized}</Row>
+          )}
+          {subsidy.numero_convocatoria && (
+            <Row label="Convocatoria">{subsidy.numero_convocatoria}</Row>
+          )}
+        </dl>
+      </div>
+
+      {responsible && (
+        <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Responsable político
+          </p>
+          <div className="flex min-w-0 items-start justify-between gap-4">
+            <div className="min-w-0">
+              <EntityLink kind="politician" id={responsible.politician_id} className="font-semibold underline-offset-2 hover:underline">
+                {responsible.person_name}
+              </EntityLink>
+              {responsible.ministry && (
+                <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>
+              )}
+              {responsible.government && (
+                <p className="text-xs text-muted-foreground">{responsible.government}</p>
+              )}
+            </div>
+            {responsible.political_party && (
+              <span className="shrink-0 rounded-full border border-border/60 bg-muted px-2.5 py-0.5 text-xs font-medium">
+                {responsible.political_party}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <InfoPanel title="Fuente">
+        Fuente: Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
+        {subsidy.source_url && (
+          <>
+            {" "}
+            <a
+              href={subsidy.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              Ver convocatoria oficial →
+            </a>
+          </>
+        )}
+      </InfoPanel>
+    </div>
+  )
+}

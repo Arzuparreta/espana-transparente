@@ -276,7 +276,7 @@ export const getVotingDetailData = unstable_cache(
       supabase
         .from("votes")
         .select(
-          "vote, politician_id, politician:politicians(id, full_name), membership:politician_memberships!inner(party:parties(acronym, color))"
+          "vote, politician_id, politician:politicians(id, full_name), membership:politician_memberships!inner(party:parties(id, acronym, color))"
         )
         .eq("voting_session_id", id)
         .eq("membership.is_active", true),
@@ -715,6 +715,50 @@ export const getDivergenceRanking = unstable_cache(
   },
   ["divergence-ranking"],
   { revalidate: HOUR * 6 }
+)
+
+export const getSubsidyDetail = unstable_cache(
+  async (id: string) => {
+    const [subsidy, responsibility, beneficiary, grantingBody] = await Promise.all([
+      supabase
+        .from("subsidies")
+        .select(
+          "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, numero_convocatoria, nivel1, nivel2, nivel3, beneficiary_organization_id, granting_body_organization_id, source_url, ministry_normalized"
+        )
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("v_subsidy_responsibility")
+        .select("person_name, politician_id, ministry, government, political_party, administration_level, territory_name")
+        .eq("subsidy_id", id)
+        .maybeSingle(),
+      supabase
+        .from("subsidies")
+        .select("beneficiary_organization_id, organizations:beneficiary_organization_id(id, name)")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("subsidies")
+        .select("granting_body_organization_id, organizations:granting_body_organization_id(id, name)")
+        .eq("id", id)
+        .maybeSingle(),
+    ])
+    const benRaw = beneficiary.data?.organizations as unknown
+    const grantRaw = grantingBody.data?.organizations as unknown
+    const pickOrg = (raw: unknown): { id: string; name: string } | null => {
+      if (!raw) return null
+      const obj = Array.isArray(raw) ? raw[0] : raw
+      return (obj as { id: string; name: string }) ?? null
+    }
+    return {
+      subsidy: subsidy.data,
+      responsible: responsibility.data ?? null,
+      beneficiaryOrg: pickOrg(benRaw),
+      grantingOrg: pickOrg(grantRaw),
+    }
+  },
+  ["subsidy-detail"],
+  { revalidate: HOUR }
 )
 
 export const getContractDetail = unstable_cache(
@@ -1344,3 +1388,18 @@ export const getSenatorStats = unstable_cache(
   ["senator-stats"],
   { revalidate: HOUR * 6 }
 )
+
+export const getPartyAcronymMap = unstable_cache(
+  async () => {
+    const { data } = await supabase.from("parties").select("id, acronym, name")
+    const map: Record<string, string> = {}
+    for (const p of (data ?? []) as { id: string; acronym: string | null; name: string | null }[]) {
+      if (p.acronym) map[p.acronym.toLowerCase()] = p.id
+      if (p.name) map[p.name.toLowerCase()] = p.id
+    }
+    return map
+  },
+  ["party-acronym-map"],
+  { revalidate: HOUR * 24 }
+)
+

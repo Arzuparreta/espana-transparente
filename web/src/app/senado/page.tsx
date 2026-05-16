@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { EntityLink } from "@/components/domain/EntityLink"
 import { getSenators, getSenatorStats, type Senator } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -54,9 +55,11 @@ function SenatorCard({ senator }: { senator: Senator }) {
             {constituency ?? "—"}
             {tipo ? ` · ${tipo.charAt(0) + tipo.slice(1).toLowerCase()}` : ""}
           </p>
-          <p className="font-semibold leading-snug line-clamp-2">
-            {formatName(senator.full_name)}
-          </p>
+          <EntityLink kind="politician" id={senator.id}>
+            <p className="font-semibold leading-snug line-clamp-2 underline-offset-2 hover:underline">
+              {formatName(senator.full_name)}
+            </p>
+          </EntityLink>
         </div>
       </div>
 
@@ -65,6 +68,7 @@ function SenatorCard({ senator }: { senator: Senator }) {
           <PartyBadge
             acronym={party.acronym ?? party.name}
             color={party.color ?? undefined}
+            partyId={party.id ?? null}
           />
         )}
         {membership?.group_parliamentary && (

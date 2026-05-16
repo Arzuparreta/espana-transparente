@@ -3,7 +3,8 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { getInstitucionesActuales, type InstitucionMember } from "@/lib/data"
+import { EntityLink } from "@/components/domain/EntityLink"
+import { getInstitucionesActuales, getPartyAcronymMap, type InstitucionMember } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 24
@@ -50,11 +51,11 @@ function formatName(raw: string): string {
     .join(" ")
 }
 
-function MemberCard({ member }: { member: InstitucionMember }) {
+function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: string | null }) {
   const color = getPartyColor(member.party_color)
   const nameFormatted = formatName(member.person_name)
 
-  const inner = (
+  return (
     <div
       data-slot="card"
       className="flex min-h-[6rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
@@ -65,13 +66,20 @@ function MemberCard({ member }: { member: InstitucionMember }) {
           {member.position_title}
           {member.nominating_body ? ` · ${member.nominating_body}` : ""}
         </p>
-        <p className="font-semibold leading-snug">{nameFormatted}</p>
+        {member.politician_id ? (
+          <EntityLink kind="politician" id={member.politician_id}>
+            <p className="font-semibold leading-snug underline-offset-2 hover:underline">{nameFormatted}</p>
+          </EntityLink>
+        ) : (
+          <p className="font-semibold leading-snug">{nameFormatted}</p>
+        )}
       </div>
 
       <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
         <PartyBadge
           acronym={member.political_party ?? "—"}
           color={member.party_color ?? undefined}
+          partyId={partyId}
         />
         <div className="flex shrink-0 items-center gap-2">
           {member.has_revolving_door && (
@@ -102,19 +110,13 @@ function MemberCard({ member }: { member: InstitucionMember }) {
       )}
     </div>
   )
-
-  if (member.politician_id) {
-    return (
-      <Link href={`/diputados/${member.politician_id}`} className="block">
-        {inner}
-      </Link>
-    )
-  }
-  return inner
 }
 
 export default async function InstitucionesPage() {
-  const members = await getInstitucionesActuales()
+  const [members, partyMap] = await Promise.all([
+    getInstitucionesActuales(),
+    getPartyAcronymMap(),
+  ])
 
   const byInstitution = members.reduce<Record<string, InstitucionMember[]>>((acc, m) => {
     acc[m.institution] = [...(acc[m.institution] ?? []), m]
@@ -165,7 +167,11 @@ export default async function InstitucionesPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.map((m) => (
-                <MemberCard key={m.id} member={m} />
+                <MemberCard
+                  key={m.id}
+                  member={m}
+                  partyId={m.political_party ? partyMap[m.political_party.toLowerCase()] ?? null : null}
+                />
               ))}
             </div>
           </section>
