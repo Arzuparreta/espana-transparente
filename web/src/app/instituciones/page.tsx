@@ -78,7 +78,6 @@ function MemberCard({ member }: { member: InstitucionMember }) {
             <Link
               href="/puertas-giratorias"
               className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-              onClick={(e) => e.stopPropagation()}
             >
               Puerta giratoria →
             </Link>
@@ -89,7 +88,6 @@ function MemberCard({ member }: { member: InstitucionMember }) {
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 text-xs text-muted-foreground hover:underline"
-              onClick={(e) => e.stopPropagation()}
             >
               BOE
             </a>
