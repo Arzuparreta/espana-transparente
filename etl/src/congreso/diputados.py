@@ -1,5 +1,6 @@
 """ETL script: scrape active deputies from Spanish Congress Open Data."""
 
+import argparse
 import csv
 import io
 import hashlib
@@ -104,21 +105,7 @@ def parse_date(d: str):
     return None
 
 
-def run():
-    conn = get_conn()
-    cur = conn.cursor()
-
-    print("Ensuring legislatures...")
-    for roman, num in LEGISLATURE_MAP.items():
-        cur.execute("""
-            INSERT INTO legislatures (number, name, is_active)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (number) DO UPDATE SET name = EXCLUDED.name, is_active = EXCLUDED.is_active
-        """, (num, f"Legislatura {roman}", num == 15))
-
-    cur.execute("SELECT id FROM legislatures WHERE number = 15")
-    xv_leg_id = cur.fetchone()[0]
-
+def run(dry_run: bool = False):
     csv_url = discover_active_csv_url()
     directory = active_directory_index()
     print(f"Fetching active deputies from: {csv_url}")
@@ -136,96 +123,126 @@ def run():
 
     print(f"Found {len(diputados)} deputies")
 
-    parties_done = set()
-    pol_count = 0
-    mem_count = 0
+    if dry_run:
+        missing = [d.get("NOMBRE", "").strip() for d in diputados
+                   if d.get("NOMBRE", "").strip()
+                   and not directory.get(normalize_name(d["NOMBRE"].strip()))]
+        print(f"[DRY-RUN] {len(diputados)} deputies discovered, "
+              f"{len(missing)} sin cod_parlamentario en searchDiputados")
+        for name in missing[:5]:
+            print(f"  - {name}")
+        return
 
-    for d in diputados:
-        full_name = d.get("NOMBRE", "").strip()
-        if not full_name:
-            continue
+    conn = get_conn()
+    try:
+        cur = conn.cursor()
 
-        cid = congress_id_from_name(full_name)
-        constituency = d.get("CIRCUNSCRIPCION", "").strip()
-        formacion = d.get("FORMACIONELECTORAL", "").strip()
-        grupo = d.get("GRUPOPARLAMENTARIO", "").strip()
-        biografia = d.get("BIOGRAFIA", "").strip()
-        fecha_alta = d.get("FECHAALTA", "").strip()
-        directory_entry = directory.get(normalize_name(full_name))
-        if not directory_entry:
-            raise RuntimeError(f"No se encontró {full_name!r} en searchDiputados para obtener cod_parlamentario")
-        cod_parlamentario = directory_entry.cod_parlamentario
-
-        # Split name
-        if "," in full_name:
-            surnames, first = full_name.split(",", 1)
-            first_name = first.strip()
-            last_name = surnames.strip()
-        else:
-            parts = full_name.split()
-            first_name = " ".join(parts[:-2]) if len(parts) >= 3 else (parts[0] if parts else "")
-            last_name = " ".join(parts[-2:]) if len(parts) >= 2 else (parts[-1] if parts else "")
-
-        # Politician upsert — photo_url is owned by the photos pipeline (etl.src.photos),
-        # so this UPSERT never touches it (neither on insert nor on conflict).
-        cur.execute("""
-            INSERT INTO politicians (congress_id, first_name, last_name, full_name, cod_parlamentario, raw_data)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (congress_id) DO UPDATE SET
-                first_name = EXCLUDED.first_name,
-                last_name = EXCLUDED.last_name,
-                full_name = EXCLUDED.full_name,
-                cod_parlamentario = EXCLUDED.cod_parlamentario,
-                raw_data = EXCLUDED.raw_data,
-                updated_at = now()
-        """, (cid, first_name, last_name, full_name,
-              cod_parlamentario or None,
-              psycopg2.extras.Json({"biografia": biografia, "formacion": formacion, "grupo": grupo})))
-        pol_count += 1
-
-        # Party
-        party_name = canonical_party_name(formacion, grupo)
-        group_name = grupo or party_name
-        acronym = extract_acronym(formacion, grupo)
-        if party_name and party_name not in parties_done:
+        print("Ensuring legislatures...")
+        for roman, num in LEGISLATURE_MAP.items():
             cur.execute("""
-                INSERT INTO parties (name, acronym, color)
+                INSERT INTO legislatures (number, name, is_active)
                 VALUES (%s, %s, %s)
-                ON CONFLICT (name) DO UPDATE SET acronym = EXCLUDED.acronym, color = EXCLUDED.color
-            """, (party_name, acronym, PARTY_COLORS.get(acronym, "#718096")))
-            parties_done.add(party_name)
+                ON CONFLICT (number) DO UPDATE SET name = EXCLUDED.name, is_active = EXCLUDED.is_active
+            """, (num, f"Legislatura {roman}", num == 15))
 
-        # Get IDs
-        cur.execute("SELECT id FROM politicians WHERE congress_id = %s", (cid,))
-        pol_id = cur.fetchone()[0]
+        cur.execute("SELECT id FROM legislatures WHERE number = 15")
+        xv_leg_id = cur.fetchone()[0]
 
-        party_id = None
-        if party_name:
-            cur.execute("SELECT id FROM parties WHERE name = %s", (party_name,))
-            row = cur.fetchone()
-            if row:
-                party_id = row[0]
+        parties_done = set()
+        pol_count = 0
+        mem_count = 0
 
-        # Membership upsert — chamber='congress' (constraint: politician_id, legislature_id, chamber)
-        cur.execute("""
-            INSERT INTO politician_memberships
-                (politician_id, legislature_id, party_id, constituency,
-                 is_active, group_parliamentary, start_date, chamber)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (politician_id, legislature_id, chamber) DO UPDATE SET
-                party_id = EXCLUDED.party_id,
-                constituency = EXCLUDED.constituency,
-                is_active = EXCLUDED.is_active,
-                group_parliamentary = EXCLUDED.group_parliamentary,
-                start_date = EXCLUDED.start_date
-        """, (pol_id, xv_leg_id, party_id, constituency, True, group_name, parse_date(fecha_alta), "congress"))
-        mem_count += 1
+        for d in diputados:
+            full_name = d.get("NOMBRE", "").strip()
+            if not full_name:
+                continue
 
-    conn.commit()
-    cur.close()
-    conn.close()
-    print(f"Done! Upserted {pol_count} politicians, {mem_count} memberships, {len(parties_done)} parties")
+            cid = congress_id_from_name(full_name)
+            constituency = d.get("CIRCUNSCRIPCION", "").strip()
+            formacion = d.get("FORMACIONELECTORAL", "").strip()
+            grupo = d.get("GRUPOPARLAMENTARIO", "").strip()
+            biografia = d.get("BIOGRAFIA", "").strip()
+            fecha_alta = d.get("FECHAALTA", "").strip()
+            directory_entry = directory.get(normalize_name(full_name))
+            if not directory_entry:
+                raise RuntimeError(f"No se encontró {full_name!r} en searchDiputados para obtener cod_parlamentario")
+            cod_parlamentario = directory_entry.cod_parlamentario
+
+            # Split name
+            if "," in full_name:
+                surnames, first = full_name.split(",", 1)
+                first_name = first.strip()
+                last_name = surnames.strip()
+            else:
+                parts = full_name.split()
+                first_name = " ".join(parts[:-2]) if len(parts) >= 3 else (parts[0] if parts else "")
+                last_name = " ".join(parts[-2:]) if len(parts) >= 2 else (parts[-1] if parts else "")
+
+            # Politician upsert — photo_url is owned by the photos pipeline (etl.src.photos),
+            # so this UPSERT never touches it (neither on insert nor on conflict).
+            cur.execute("""
+                INSERT INTO politicians (congress_id, first_name, last_name, full_name, cod_parlamentario, raw_data)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (congress_id) DO UPDATE SET
+                    first_name = EXCLUDED.first_name,
+                    last_name = EXCLUDED.last_name,
+                    full_name = EXCLUDED.full_name,
+                    cod_parlamentario = EXCLUDED.cod_parlamentario,
+                    raw_data = EXCLUDED.raw_data,
+                    updated_at = now()
+            """, (cid, first_name, last_name, full_name,
+                  cod_parlamentario or None,
+                  psycopg2.extras.Json({"biografia": biografia, "formacion": formacion, "grupo": grupo})))
+            pol_count += 1
+
+            # Party
+            party_name = canonical_party_name(formacion, grupo)
+            group_name = grupo or party_name
+            acronym = extract_acronym(formacion, grupo)
+            if party_name and party_name not in parties_done:
+                cur.execute("""
+                    INSERT INTO parties (name, acronym, color)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (name) DO UPDATE SET acronym = EXCLUDED.acronym, color = EXCLUDED.color
+                """, (party_name, acronym, PARTY_COLORS.get(acronym, "#718096")))
+                parties_done.add(party_name)
+
+            # Get IDs
+            cur.execute("SELECT id FROM politicians WHERE congress_id = %s", (cid,))
+            pol_id = cur.fetchone()[0]
+
+            party_id = None
+            if party_name:
+                cur.execute("SELECT id FROM parties WHERE name = %s", (party_name,))
+                row = cur.fetchone()
+                if row:
+                    party_id = row[0]
+
+            # Membership upsert — chamber='congress' (constraint: politician_id, legislature_id, chamber)
+            cur.execute("""
+                INSERT INTO politician_memberships
+                    (politician_id, legislature_id, party_id, constituency,
+                     is_active, group_parliamentary, start_date, chamber)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (politician_id, legislature_id, chamber) DO UPDATE SET
+                    party_id = EXCLUDED.party_id,
+                    constituency = EXCLUDED.constituency,
+                    is_active = EXCLUDED.is_active,
+                    group_parliamentary = EXCLUDED.group_parliamentary,
+                    start_date = EXCLUDED.start_date
+            """, (pol_id, xv_leg_id, party_id, constituency, True, group_name, parse_date(fecha_alta), "congress"))
+            mem_count += 1
+
+        conn.commit()
+        cur.close()
+        print(f"Done! Upserted {pol_count} politicians, {mem_count} memberships, {len(parties_done)} parties")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dry-run", action="store_true",
+                        help="fetch and parse the CSV without writing to the database")
+    args = parser.parse_args()
+    run(dry_run=args.dry_run)

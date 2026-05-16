@@ -20,12 +20,20 @@ from decimal import Decimal, InvalidOperation
 
 import httpx
 import psycopg2.extras
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from common.db import get_pg_conn
 
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
 MAX_FETCH = 30_000
+
+_TRANSIENT = (httpx.TransportError, httpx.HTTPStatusError, httpx.ReadTimeout)
 
 
 def _to_decimal(value: str | float | None) -> Decimal | None:
@@ -37,12 +45,21 @@ def _to_decimal(value: str | float | None) -> Decimal | None:
         return None
 
 
+@retry(
+    reraise=True,
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=2, min=2, max=30),
+    retry=retry_if_exception_type(_TRANSIENT),
+)
 def fetch_all(client: httpx.Client, limit: int) -> tuple[list[dict], int]:
     resp = client.get(
         API_BASE,
         params={"country": SPAIN_ENTITY, "limit": limit, "offset": 0},
         timeout=120,
     )
+    # 5xx and 429 → retry. 4xx (other than 429) → fail fast.
+    if resp.status_code == 429 or resp.status_code >= 500:
+        resp.raise_for_status()
     resp.raise_for_status()
     data = resp.json()
     return data["list"], data["numberResults"]

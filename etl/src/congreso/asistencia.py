@@ -191,66 +191,68 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
 
 def run(dry_run: bool = False, from_date: int | None = None) -> None:
     conn = get_pg_conn()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    cur.execute("SELECT id FROM legislatures WHERE number = 15")
-    leg_id = cur.fetchone()[0]
+        cur.execute("SELECT id FROM legislatures WHERE number = 15")
+        leg_id = cur.fetchone()[0]
 
-    print("Fetching voting dates from Congress portlet...")
-    all_dates = get_voting_dates()
-    if from_date:
-        all_dates = [d for d in all_dates if d >= from_date]
-    print(f"{len(all_dates)} dates to process")
+        print("Fetching voting dates from Congress portlet...")
+        all_dates = get_voting_dates()
+        if from_date:
+            all_dates = [d for d in all_dates if d >= from_date]
+        print(f"{len(all_dates)} dates to process")
 
-    existing = get_existing_sessions(cur, leg_id)
-    pol_idx = build_politician_index(cur)
-    print(f"DB: {len(existing)} sessions already ingested | {len(pol_idx) // 3} politicians\n")
+        existing = get_existing_sessions(cur, leg_id)
+        pol_idx = build_politician_index(cur)
+        print(f"DB: {len(existing)} sessions already ingested | {len(pol_idx) // 3} politicians\n")
 
-    total_sessions = 0
-    total_votes = 0
+        total_sessions = 0
+        total_votes = 0
 
-    for i, date_int in enumerate(all_dates):
-        d = str(date_int)
-        date_str = f"{d[:4]}-{d[4:6]}-{d[6:]}"
-        print(f"[{i+1}/{len(all_dates)}] {date_str}", end="  ", flush=True)
+        for i, date_int in enumerate(all_dates):
+            d = str(date_int)
+            date_str = f"{d[:4]}-{d[4:6]}-{d[6:]}"
+            print(f"[{i+1}/{len(all_dates)}] {date_str}", end="  ", flush=True)
 
-        session_num, zip_url = get_session_zip_url(date_int)
+            session_num, zip_url = get_session_zip_url(date_int)
 
-        if session_num is None:
-            print("no session data")
-            continue
+            if session_num is None:
+                print("no session data")
+                continue
 
-        if (session_num, date_str) in existing:
-            print(f"session {session_num} already in DB")
-            continue
+            if (session_num, date_str) in existing:
+                print(f"session {session_num} already in DB")
+                continue
 
-        if dry_run:
-            print(f"would ingest session {session_num}")
-            continue
+            if dry_run:
+                print(f"would ingest session {session_num}")
+                continue
 
-        print(f"session {session_num} → downloading ZIP...", end=" ", flush=True)
-        zip_bytes = curl_bytes(zip_url)
+            print(f"session {session_num} → downloading ZIP...", end=" ", flush=True)
+            zip_bytes = curl_bytes(zip_url)
 
-        if not zip_bytes:
-            print("ZIP download failed")
-            continue
+            if not zip_bytes:
+                print("ZIP download failed")
+                continue
 
-        try:
-            votaciones = parse_zip_votaciones(zip_bytes)
-        except Exception as e:
-            print(f"ZIP parse error: {e}")
-            continue
+            try:
+                votaciones = parse_zip_votaciones(zip_bytes)
+            except Exception as e:
+                print(f"ZIP parse error: {e}")
+                continue
 
-        vote_count = ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx)
-        conn.commit()
-        existing.add((session_num, date_str))
-        total_sessions += 1
-        total_votes += vote_count
-        print(f"{len(votaciones)} votaciones, {vote_count} votes")
+            vote_count = ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx)
+            conn.commit()
+            existing.add((session_num, date_str))
+            total_sessions += 1
+            total_votes += vote_count
+            print(f"{len(votaciones)} votaciones, {vote_count} votes")
 
-    cur.close()
-    conn.close()
-    print(f"\nDone! {total_sessions} new sessions, {total_votes} new votes ingested.")
+        cur.close()
+        print(f"\nDone! {total_sessions} new sessions, {total_votes} new votes ingested.")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
