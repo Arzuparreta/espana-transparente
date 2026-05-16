@@ -136,7 +136,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
       </div>
 
       <InfoPanel title="Fuente">
-        Fuente: SEPG · Ministerio de Hacienda. Sección {sectionCode} del PGE {year}.
+        SEPG · Ministerio de Hacienda. Sección {sectionCode} del PGE {year}.
         Los capítulos muestran la clasificación económica del gasto (personal, corrientes, inversiones, transferencias).
         {meta ? ` Estado ${year}: ${meta.note}` : ""}
       </InfoPanel>

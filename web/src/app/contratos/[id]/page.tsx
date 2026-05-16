@@ -142,9 +142,8 @@ export default async function ContractDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Fuente */}
       <InfoPanel title="Fuente">
-        Fuente: Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
+        Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
         {contract.source_url && (
           <>
             {" "}

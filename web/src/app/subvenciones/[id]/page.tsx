@@ -132,7 +132,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
       )}
 
       <InfoPanel title="Fuente">
-        Fuente: Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
+        Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
         {subsidy.source_url && (
           <>
             {" "}

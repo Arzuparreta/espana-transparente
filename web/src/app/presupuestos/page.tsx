@@ -60,7 +60,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       <PresupuestosClient year={year} rows={rows} />
 
       <InfoPanel title="Fuente">
-        Fuente: Secretaría de Estado de Presupuestos y Gastos (SEPG) · Ministerio de Hacienda.
+        Secretaría de Estado de Presupuestos y Gastos (SEPG) · Ministerio de Hacienda.
         Datos de dotación presupuestaria por sección y programa.
         Cobertura 2016–{latestYear} (sin 2020; España prorrogó el PGE 2018 ese año).
         {meta ? ` Estado ${year}: ${meta.note}` : ""}

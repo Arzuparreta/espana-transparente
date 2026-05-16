@@ -70,7 +70,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
       />
 
       <InfoPanel title="Fuente">
-        Fuente: Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
+        Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
         API pública en infosubvenciones.es. Solo se muestran concesiones a organizaciones; los beneficiarios individuales
         están anonimizados en la fuente original y no se almacenan.
       </InfoPanel>

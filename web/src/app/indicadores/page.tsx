@@ -62,7 +62,7 @@ export default async function IndicadoresPage() {
       )}
 
       <InfoPanel title="Fuente">
-        Fuente: INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
+        INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
       </InfoPanel>
     </div>
   )

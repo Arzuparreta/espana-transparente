@@ -68,7 +68,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       />
 
       <InfoPanel title="Fuente">
-        Fuente: Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
+        Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
         Datos actualizados mensualmente. Solo se muestran licitaciones cuyo importe supera el umbral de publicación.
       </InfoPanel>
     </div>
