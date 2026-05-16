@@ -17,6 +17,7 @@ const navGroups: NavGroup[] = [
     label: "Personas",
     items: [
       { href: "/diputados", label: "Diputados" },
+      { href: "/senado", label: "Senado" },
       { href: "/partidos", label: "Partidos" },
       { href: "/gobierno", label: "Gobierno" },
       { href: "/instituciones", label: "Instituciones" },

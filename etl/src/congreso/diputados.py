@@ -181,19 +181,19 @@ def run():
             if row:
                 party_id = row[0]
 
-        # Membership upsert
+        # Membership upsert — chamber='congress' (constraint: politician_id, legislature_id, chamber)
         cur.execute("""
             INSERT INTO politician_memberships
                 (politician_id, legislature_id, party_id, constituency,
-                 is_active, group_parliamentary, start_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (politician_id, legislature_id) DO UPDATE SET
+                 is_active, group_parliamentary, start_date, chamber)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (politician_id, legislature_id, chamber) DO UPDATE SET
                 party_id = EXCLUDED.party_id,
                 constituency = EXCLUDED.constituency,
                 is_active = EXCLUDED.is_active,
                 group_parliamentary = EXCLUDED.group_parliamentary,
                 start_date = EXCLUDED.start_date
-        """, (pol_id, xv_leg_id, party_id, constituency, True, party_name, parse_date(fecha_alta)))
+        """, (pol_id, xv_leg_id, party_id, constituency, True, party_name, parse_date(fecha_alta), "congress"))
         mem_count += 1
 
     conn.commit()

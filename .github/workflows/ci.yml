@@ -124,3 +124,6 @@ jobs:
       - run: PYTHONPATH=src python -m src.kohesio.fondos_ue
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.senado.senadores
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

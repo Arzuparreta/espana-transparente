@@ -113,7 +113,7 @@ divergencias del frontend.
 - [x] Búsqueda global full-text: función RPC `search_global` (tsvector + unaccent) sobre 5 entidades; página `/buscar`; atajo ⌘K en header.
 - [x] Cobertura institucional — Gobierno: página `/gobierno` con vista `v_gobierno_actual`, gabinete completo con partido, gasto por ministerio y enlace a fichas de diputados.
 - [x] Home rediseñada como dashboard: búsqueda, snapshot del gobierno, votaciones recientes con badge de divergencias, puertas giratorias verificadas.
-- [ ] Senado — datos abiertos evaluados: no tiene API equivalente al Congreso. Pendiente de scraping HTML o fuente alternativa.
+- [x] Senado — ETL implementado: scraping HTML letra a letra (A-Z+Ñ) del portal del Senado + ficha individual vía meta tags. Migración `senate_chamber` añade `senate_id` a `politicians` y `chamber` a `politician_memberships`. Página `/senado` desplegada. Cron semanal añadido.
 - [x] Cobertura institucional: Tribunal Constitucional, CGPJ, RTVE, SEPI — 63 nombramientos activos con partido, organismo proponente y fuente BOE. Página `/instituciones` con cross-link a puertas giratorias.
 
 ### Mejoras recientes del 15 mayo 2026

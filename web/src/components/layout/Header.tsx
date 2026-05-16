@@ -29,6 +29,7 @@ export function Header() {
           <nav className="hidden sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-1.5">
             {/* Personas */}
             <ResponsiveLink href="/diputados" prefetch className={pill}>Diputados</ResponsiveLink>
+            <ResponsiveLink href="/senado" prefetch className={pill}>Senado</ResponsiveLink>
             <ResponsiveLink href="/partidos" prefetch className={pill}>Partidos</ResponsiveLink>
             <ResponsiveLink href="/gobierno" prefetch className={pill}>Gobierno</ResponsiveLink>
             <ResponsiveLink href="/instituciones" prefetch className={pill}>Instituciones</ResponsiveLink>
