@@ -24,6 +24,7 @@ interface Contrato {
 
 interface ContratosClientProps {
   activeType: string
+  activeMinistry?: string | null
   contracts: Contrato[]
   page: number
   total: number
@@ -66,7 +67,7 @@ const TYPE_TABS = [
   { value: "Suministros", label: "Suministros" },
 ]
 
-function ContratoCard({ c }: { c: Contrato }) {
+function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: string | null }) {
   const dateStr = c.date
     ? new Date(c.date).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
     : null
@@ -87,7 +88,10 @@ function ContratoCard({ c }: { c: Contrato }) {
                 {c.contract_type}
               </span>
             ) : null}
-            <ResponsibleChip responsible={c.responsible} />
+            <ResponsibleChip
+              responsible={c.responsible}
+              ministryHref={c.responsible?.ministry && !activeMinistry ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}` : null}
+            />
           </div>
           <div className="text-sm font-medium leading-snug text-balance">{c.title}</div>
           <div className="text-xs text-muted-foreground">
@@ -125,16 +129,18 @@ function ContratoCard({ c }: { c: Contrato }) {
   )
 }
 
-function contractsHref(type: string, page = 1) {
+function contractsHref(type: string, page = 1, ministry?: string | null) {
   const params = new URLSearchParams()
   if (type !== "all") params.set("type", type)
   if (page > 1) params.set("page", String(page))
+  if (ministry) params.set("ministry", ministry)
   const query = params.toString()
   return query ? `/contratos?${query}` : "/contratos"
 }
 
 export function ContratosClient({
   activeType,
+  activeMinistry,
   contracts,
   page,
   total,
@@ -145,11 +151,24 @@ export function ContratosClient({
       <LinkTabs
         ariaLabel="Tipo de contrato"
         tabs={TYPE_TABS.map((tab) => ({
-          href: contractsHref(tab.value),
+          href: contractsHref(tab.value, 1, activeMinistry),
           label: tab.label,
           active: activeType === tab.value,
         }))}
       />
+
+      {activeMinistry && (
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Ministerio:</span>
+          <span className="font-medium">{activeMinistry}</span>
+          <a
+            href={contractsHref(activeType)}
+            className="ml-auto text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Quitar filtro ×
+          </a>
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
@@ -161,11 +180,11 @@ export function ContratosClient({
             description={<>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.contratacion.contratos</code></>}
           />
         ) : (
-          contracts.map((c) => <ContratoCard key={c.id} c={c} />)
+          contracts.map((c) => <ContratoCard key={c.id} c={c} activeMinistry={activeMinistry} />)
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => contractsHref(activeType, nextPage)} />
+      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => contractsHref(activeType, nextPage, activeMinistry)} />
     </div>
   )
 }

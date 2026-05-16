@@ -3,7 +3,7 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
-import { PAGE_SIZE, getContractPage, getMoneyDatasetSummary, parsePage } from "@/lib/data"
+import { PAGE_SIZE, getContractPage, getContractPageFiltered, getMoneyDatasetSummary, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -11,6 +11,7 @@ interface PageProps {
   searchParams?: {
     page?: string
     type?: string
+    ministry?: string
   }
 }
 
@@ -20,10 +21,17 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const activeType = ["all", "Servicios", "Obras", "Suministros"].includes(requestedType)
     ? requestedType
     : "all"
-  const [{ contracts, total, statsRows }, summary] = await Promise.all([
+  const activeMinistry = searchParams?.ministry?.trim() || null
+
+  const [baseData, filteredData, summary] = await Promise.all([
     getContractPage(page, activeType),
+    activeMinistry ? getContractPageFiltered(page, activeType, activeMinistry) : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
   ])
+
+  const { contracts, total, statsRows } = activeMinistry && filteredData
+    ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
+    : baseData
 
   const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
   const formatted =
@@ -52,6 +60,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
 
       <ContratosClient
         activeType={activeType}
+        activeMinistry={activeMinistry}
         contracts={contracts}
         page={page}
         total={total}

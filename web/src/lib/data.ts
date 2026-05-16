@@ -944,3 +944,208 @@ export async function searchGlobal(query: string, maxPerType = 5): Promise<Searc
   })
   return (data ?? []) as SearchResult[]
 }
+
+// ME-1: party voting sessions
+export const getPartyVotingSessions = unstable_cache(
+  async (partyId: string) => {
+    const { data: members } = await supabase
+      .from("politician_memberships")
+      .select("politician_id")
+      .eq("party_id", partyId)
+      .eq("is_active", true)
+
+    if (!members || members.length === 0) return []
+
+    const memberIds = members.map((m) => m.politician_id)
+
+    const { data: sessions } = await supabase
+      .from("v_voting_session_summary")
+      .select("id, title, date, divergence_count, votes_yes, votes_no, votes_abstain, votes_no_vote")
+      .order("date", { ascending: false })
+      .limit(30)
+
+    if (!sessions || sessions.length === 0) return []
+
+    const sessionIds = sessions.map((s) => s.id as string)
+
+    const { data: votes } = await supabase
+      .from("votes")
+      .select("voting_session_id, vote")
+      .in("politician_id", memberIds)
+      .in("voting_session_id", sessionIds)
+
+    const bySession = new Map<string, Record<string, number>>()
+    for (const v of votes ?? []) {
+      const sid = v.voting_session_id as string
+      const map = bySession.get(sid) ?? {}
+      const key = String(v.vote ?? "")
+      map[key] = (map[key] ?? 0) + 1
+      bySession.set(sid, map)
+    }
+
+    return sessions.map((s) => ({
+      id: s.id as string,
+      title: s.title as string,
+      date: s.date as string,
+      divergence_count: (s.divergence_count as number) ?? 0,
+      partyVotes: bySession.get(s.id as string) ?? {},
+    }))
+  },
+  ["party-voting-sessions"],
+  { revalidate: HOUR }
+)
+
+// ME-2: initiative detail
+export const getInitiativeDetail = unstable_cache(
+  async (id: string) => {
+    const { data: initiative } = await supabase
+      .from("initiatives")
+      .select("id, type, number, title, proposer_group, status, source_url, legislature_id")
+      .eq("id", id)
+      .single()
+
+    if (!initiative) return { initiative: null, sessions: [] }
+
+    const { data: sessions } = await supabase
+      .from("v_voting_session_summary")
+      .select("id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count")
+      .eq("initiative_number", initiative.number)
+      .order("date", { ascending: false })
+
+    return { initiative, sessions: sessions ?? [] }
+  },
+  ["initiative-detail"],
+  { revalidate: HOUR }
+)
+
+// ME-3: deputy attendance session list
+export const getDeputyAttendanceSessions = unstable_cache(
+  async (politicianId: string, page: number) => {
+    const PAGE = 50
+    const offset = (page - 1) * PAGE
+    const { data, count } = await supabase
+      .from("v_session_attendance")
+      .select("session_number, session_date, was_present, votes_cast, total_votaciones", { count: "exact" })
+      .eq("politician_id", politicianId)
+      .order("session_date", { ascending: false, nullsFirst: false })
+      .range(offset, offset + PAGE - 1)
+    return { sessions: data ?? [], total: count ?? 0, pageSize: PAGE }
+  },
+  ["deputy-attendance-sessions"],
+  { revalidate: HOUR }
+)
+
+// ME-4: ETL pipeline freshness
+export const getEtlPipelineStatus = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("v_etl_pipeline_status")
+      .select("pipeline, last_status, last_finished_at, last_rows_inserted, last_rows_updated, last_error_summary")
+      .order("pipeline")
+    return data ?? []
+  },
+  ["etl-pipeline-status"],
+  { revalidate: HOUR }
+)
+
+// ME-6: contract page with optional minister filter
+export const getContractPageFiltered = unstable_cache(
+  async (page: number, type: string, ministry: string | null) => {
+    const from = (page - 1) * PAGE_SIZE.contracts
+    const to = from + PAGE_SIZE.contracts - 1
+    let query = supabase
+      .from("contracts")
+      .select(
+        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url",
+        { count: "exact" }
+      )
+      .order("amount", { ascending: false, nullsFirst: false })
+
+    if (type !== "all") query = query.eq("contract_type", type)
+    if (ministry) query = query.eq("ministry_normalized", ministry)
+
+    const { data, count } = await query.range(from, to)
+    const contractIds = (data ?? []).map((row) => row.id)
+    const responsibilities =
+      contractIds.length > 0
+        ? await supabase
+            .from("v_contract_responsibility")
+            .select("contract_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .in("contract_id", contractIds)
+        : { data: [] }
+
+    const responsibleByContract = new Map(
+      ((responsibilities.data ?? []) as ContractResponsibilityRow[]).map((row) => [
+        row.contract_id,
+        {
+          person_name: row.person_name,
+          politician_id: row.politician_id,
+          ministry: row.ministry,
+          government: row.government,
+          political_party: row.political_party,
+          administration_level: row.administration_level,
+          territory_name: row.territory_name,
+          match_method: row.match_method,
+        },
+      ])
+    )
+
+    return {
+      contracts: (data ?? []).map((row) => ({ ...row, responsible: responsibleByContract.get(row.id) ?? null })),
+      total: count ?? 0,
+    }
+  },
+  ["contract-page-filtered"],
+  { revalidate: HOUR }
+)
+
+// ME-6: subsidy page with optional ministry filter
+export const getSubvencionPageFiltered = unstable_cache(
+  async (page: number, nivel1: string, ministry: string | null) => {
+    const from = (page - 1) * PAGE_SIZE_SUBSIDIES
+    const to = from + PAGE_SIZE_SUBSIDIES - 1
+    let query = supabase
+      .from("subsidies")
+      .select(
+        "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, nivel1, nivel2, nivel3, beneficiary_organization_id, granting_body_organization_id, source_url",
+        { count: "exact" }
+      )
+      .order("importe", { ascending: false, nullsFirst: false })
+
+    if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
+    if (ministry) query = query.eq("ministry_normalized", ministry)
+
+    const { data, count } = await query.range(from, to)
+    const subsidyIds = (data ?? []).map((row) => row.id)
+    const responsibilities =
+      subsidyIds.length > 0
+        ? await supabase
+            .from("v_subsidy_responsibility")
+            .select("subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .in("subsidy_id", subsidyIds)
+        : { data: [] }
+
+    const responsibleBySubsidy = new Map(
+      ((responsibilities.data ?? []) as SubsidyResponsibilityRow[]).map((row) => [
+        row.subsidy_id,
+        {
+          person_name: row.person_name,
+          politician_id: row.politician_id,
+          ministry: row.ministry,
+          government: row.government,
+          political_party: row.political_party,
+          administration_level: row.administration_level,
+          territory_name: row.territory_name,
+          match_method: row.match_method,
+        },
+      ])
+    )
+
+    return {
+      subsidies: (data ?? []).map((row) => ({ ...row, responsible: responsibleBySubsidy.get(row.id) ?? null })),
+      total: count ?? 0,
+    }
+  },
+  ["subsidy-page-filtered"],
+  { revalidate: HOUR }
+)

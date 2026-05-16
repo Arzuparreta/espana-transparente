@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getMoneyDataOverview } from "@/lib/data"
+import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -31,8 +31,26 @@ function datasetLabel(value: string) {
   return value === "contracts" ? "Contratos" : "Subvenciones"
 }
 
+const PIPELINE_LABELS: Record<string, string> = {
+  "congreso.diputados": "Diputados",
+  "congreso.asistencia": "Asistencia y votaciones",
+  "congreso.cods": "Expedientes (CODs)",
+  "congreso.declaraciones": "Declaraciones económicas",
+  "congreso.gobierno": "Gobierno",
+  "congreso.responsables": "Responsables",
+  "ine.indicadores": "Indicadores INE",
+  "contratacion.contratos": "Contratos PCSP",
+  "bdns.subvenciones": "Subvenciones BDNS",
+  "photos.run": "Fotos",
+  "puertas_giratorias": "Puertas giratorias",
+  "kohesio": "Fondos UE",
+}
+
 export default async function EstadoDatosPage() {
-  const { coverage, examples } = await getMoneyDataOverview()
+  const [{ coverage, examples }, pipelines] = await Promise.all([
+    getMoneyDataOverview(),
+    getEtlPipelineStatus(),
+  ])
   const coverageByDataset = coverage.reduce<Record<string, typeof coverage>>((acc, row) => {
     acc[row.dataset] = [...(acc[row.dataset] ?? []), row]
     return acc
@@ -47,8 +65,59 @@ export default async function EstadoDatosPage() {
     <div className="mx-auto max-w-5xl space-y-8">
       <PageHeader
         title="Estado de datos"
-        description="Cobertura histórica, resolución de responsable, conflictos abiertos y frescura de contratos y subvenciones."
+        description="Frescura de pipelines ETL, cobertura histórica y conflictos de resolución de responsable."
       />
+
+      {/* ETL pipeline freshness */}
+      {pipelines.length > 0 && (
+        <section className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+          <h2 className="text-xl font-semibold">Pipelines ETL</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="text-left text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                <tr>
+                  <th className="pb-2 pr-4">Pipeline</th>
+                  <th className="pb-2 pr-4">Estado</th>
+                  <th className="pb-2 pr-4">Último éxito</th>
+                  <th className="pb-2 pr-4">Filas insertadas</th>
+                  <th className="pb-2">Filas actualizadas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pipelines.map((p) => {
+                  const label = PIPELINE_LABELS[p.pipeline as string] ?? String(p.pipeline)
+                  const status = p.last_status as string
+                  const finishedAt = p.last_finished_at as string | null
+                  const dateStr = finishedAt
+                    ? new Date(finishedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
+                    : "—"
+                  const statusClass =
+                    status === "succeeded"
+                      ? "text-green-600 dark:text-green-400"
+                      : status === "failed"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-muted-foreground"
+
+                  return (
+                    <tr key={String(p.pipeline)} className="border-t border-border/60">
+                      <td className="py-3 pr-4 font-medium">{label}</td>
+                      <td className={`py-3 pr-4 ${statusClass}`}>
+                        {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
+                      </td>
+                      <td className="py-3 pr-4">{dateStr}</td>
+                      <td className="py-3 pr-4 tabular-nums">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      <td className="py-3 tabular-nums">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          {pipelines.length === 0 && (
+            <p className="text-sm text-muted-foreground">No hay ejecuciones de ETL registradas.</p>
+          )}
+        </section>
+      )}
 
       {(["contracts", "subsidies"] as const).map((dataset) => {
         const rows = coverageByDataset[dataset] ?? []

@@ -27,6 +27,7 @@ interface Subvencion {
 
 interface SubvencionesClientProps {
   activeNivel: string
+  activeMinistry?: string | null
   subsidies: Subvencion[]
   page: number
   total: number
@@ -67,15 +68,16 @@ function nivelClass(nivel1: string | null): string {
   }
 }
 
-function subvencionesHref(nivel: string, page = 1) {
+function subvencionesHref(nivel: string, page = 1, ministry?: string | null) {
   const params = new URLSearchParams()
   if (nivel !== "all") params.set("nivel", nivel)
   if (page > 1) params.set("page", String(page))
+  if (ministry) params.set("ministry", ministry)
   const query = params.toString()
   return query ? `/subvenciones?${query}` : "/subvenciones"
 }
 
-function SubvencionCard({ s }: { s: Subvencion }) {
+function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?: string | null }) {
   const dateStr = s.fecha_concesion
     ? new Date(s.fecha_concesion).toLocaleDateString("es-ES", {
         day: "numeric",
@@ -95,7 +97,10 @@ function SubvencionCard({ s }: { s: Subvencion }) {
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${nivelClass(s.nivel1)}`}>
               {nivelLabel}
             </span>
-            <ResponsibleChip responsible={s.responsible} />
+            <ResponsibleChip
+              responsible={s.responsible}
+              ministryHref={s.responsible?.ministry && !activeMinistry ? `/subvenciones?ministry=${encodeURIComponent(s.responsible.ministry)}` : null}
+            />
           </div>
           <div className="text-sm font-medium leading-snug">
             {s.beneficiary_organization_id ? (
@@ -147,6 +152,7 @@ function SubvencionCard({ s }: { s: Subvencion }) {
 
 export function SubvencionesClient({
   activeNivel,
+  activeMinistry,
   subsidies,
   page,
   total,
@@ -157,11 +163,24 @@ export function SubvencionesClient({
       <LinkTabs
         ariaLabel="Nivel administrativo"
         tabs={NIVEL_TABS.map((tab) => ({
-          href: subvencionesHref(tab.value),
+          href: subvencionesHref(tab.value, 1, activeMinistry),
           label: tab.label,
           active: activeNivel === tab.value,
         }))}
       />
+
+      {activeMinistry && (
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Ministerio:</span>
+          <span className="font-medium">{activeMinistry}</span>
+          <a
+            href={subvencionesHref(activeNivel)}
+            className="ml-auto text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Quitar filtro ×
+          </a>
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
@@ -173,11 +192,11 @@ export function SubvencionesClient({
             description={<>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.bdns.subvenciones</code></>}
           />
         ) : (
-          subsidies.map((s) => <SubvencionCard key={s.id} s={s} />)
+          subsidies.map((s) => <SubvencionCard key={s.id} s={s} activeMinistry={activeMinistry} />)
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => subvencionesHref(activeNivel, nextPage)} />
+      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => subvencionesHref(activeNivel, nextPage, activeMinistry)} />
     </div>
   )
 }

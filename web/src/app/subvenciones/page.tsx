@@ -3,7 +3,7 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
-import { PAGE_SIZE_SUBSIDIES, getMoneyDatasetSummary, getSubvencionPage, parsePage } from "@/lib/data"
+import { PAGE_SIZE_SUBSIDIES, getMoneyDatasetSummary, getSubvencionPage, getSubvencionPageFiltered, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -13,6 +13,7 @@ interface PageProps {
   searchParams?: {
     page?: string
     nivel?: string
+    ministry?: string
   }
 }
 
@@ -20,11 +21,17 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const page = parsePage(searchParams?.page)
   const requestedNivel = searchParams?.nivel || "all"
   const activeNivel = VALID_NIVELES.includes(requestedNivel) ? requestedNivel : "all"
+  const activeMinistry = searchParams?.ministry?.trim() || null
 
-  const [{ subsidies, total, statsRows }, summary] = await Promise.all([
+  const [baseData, filteredData, summary] = await Promise.all([
     getSubvencionPage(page, activeNivel),
+    activeMinistry ? getSubvencionPageFiltered(page, activeNivel, activeMinistry) : Promise.resolve(null),
     getMoneyDatasetSummary("subsidies"),
   ])
+
+  const { subsidies, total, statsRows } = activeMinistry && filteredData
+    ? { subsidies: filteredData.subsidies, total: filteredData.total, statsRows: baseData.statsRows }
+    : baseData
 
   const totalAmount = statsRows.reduce((sum, s) => sum + ((s as { importe?: number }).importe ?? 0), 0)
   const formatted =
@@ -55,6 +62,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
 
       <SubvencionesClient
         activeNivel={activeNivel}
+        activeMinistry={activeMinistry}
         subsidies={subsidies}
         page={page}
         total={total}

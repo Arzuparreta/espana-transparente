@@ -73,6 +73,10 @@ interface Props {
   powerRels: Record<string, unknown>[]
   revolvingDoors: Record<string, unknown>[]
   attendance: AttendanceSummary | null
+  attendanceSessions?: Record<string, unknown>[]
+  attendanceTotal?: number
+  attendancePage?: number
+  attendancePageSize?: number
   divergentSessionIds?: string[]
   govPosition?: GovPosition | null
   ministryContracts?: MinistryContract[]
@@ -87,6 +91,10 @@ export function PoliticianProfile({
   powerRels: pr,
   revolvingDoors: rd,
   attendance,
+  attendanceSessions = [],
+  attendanceTotal = 0,
+  attendancePage = 1,
+  attendancePageSize = 50,
   divergentSessionIds,
   govPosition,
   ministryContracts = [],
@@ -110,6 +118,7 @@ export function PoliticianProfile({
   const tabs = [
     { value: "power", label: "Poder" },
     { value: "votes", label: "Votos", count: totalVotes ?? 0 },
+    ...(attendanceTotal > 0 ? [{ value: "asistencia", label: "Asistencia", count: attendanceTotal }] : []),
     { value: "trajectory", label: "Trayectoria" },
     ...(bio ? [{ value: "bio", label: "Biografía" }] : []),
     ...(econDecls.length ? [{ value: "declarations", label: "Declaraciones" }] : []),
@@ -488,6 +497,71 @@ export function PoliticianProfile({
                       <span />
                     )}
                   </div>
+                )}
+              </div>
+            ) : null}
+
+            {active === "asistencia" ? (
+              <div className="space-y-3">
+                {attendanceSessions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sin datos de asistencia registrados.</p>
+                ) : (
+                  <>
+                    <div className="overflow-hidden rounded-xl border border-border/70 bg-card/80">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border/50 text-xs text-muted-foreground">
+                            <th className="px-4 py-2 text-left font-medium">Sesión</th>
+                            <th className="px-4 py-2 text-left font-medium">Fecha</th>
+                            <th className="px-4 py-2 text-right font-medium">Asistencia</th>
+                            <th className="hidden px-4 py-2 text-right font-medium sm:table-cell">Votos emitidos</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                          {attendanceSessions.map((s, i) => {
+                            const dateStr = s.session_date
+                              ? new Date(s.session_date as string).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
+                              : "—"
+                            return (
+                              <tr key={i} className="text-sm">
+                                <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                                  Pleno {String(s.session_number ?? "—")}
+                                </td>
+                                <td className="px-4 py-2 text-muted-foreground">{dateStr}</td>
+                                <td className="px-4 py-2 text-right">
+                                  {s.was_present ? (
+                                    <span className="text-green-600 dark:text-green-400">Presente</span>
+                                  ) : (
+                                    <span className="text-red-600 dark:text-red-400">Ausente</span>
+                                  )}
+                                </td>
+                                <td className="hidden px-4 py-2 text-right tabular-nums text-muted-foreground sm:table-cell">
+                                  {s.was_present ? String(s.votes_cast ?? 0) : "—"}
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {attendanceTotal > attendancePageSize && (
+                      <div className="flex items-center justify-between text-sm">
+                        {attendancePage > 1 ? (
+                          <a href={`?apage=${attendancePage - 1}#asistencia`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                            ← Anteriores
+                          </a>
+                        ) : <span />}
+                        <span className="text-xs text-muted-foreground">
+                          {(attendancePage - 1) * attendancePageSize + 1}–{Math.min(attendancePage * attendancePageSize, attendanceTotal)} de {attendanceTotal}
+                        </span>
+                        {attendancePage * attendancePageSize < attendanceTotal ? (
+                          <a href={`?apage=${attendancePage + 1}#asistencia`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                            Siguientes →
+                          </a>
+                        ) : <span />}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ) : null}
