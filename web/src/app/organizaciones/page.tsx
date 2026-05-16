@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { Pagination } from "@/components/domain/Pagination"
 import { getOrganizationsList, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
@@ -70,33 +71,11 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          {page > 1 ? (
-            <Link
-              href={`?page=${page - 1}`}
-              className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-            >
-              ← Anterior
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-xs text-muted-foreground">
-            Página {page} de {totalPages}
-          </span>
-          {page < totalPages ? (
-            <Link
-              href={`?page=${page + 1}`}
-              className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-            >
-              Siguiente →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        hrefForPage={(p) => `?page=${p}`}
+      />
     </div>
   )
 }

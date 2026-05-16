@@ -33,6 +33,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm run ui:audit
+      - run: npm run content:audit
       - run: npm run build
 
   etl-check:
