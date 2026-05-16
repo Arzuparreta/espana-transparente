@@ -22,7 +22,7 @@ const navGroups = [
     ],
   },
   {
-    label: "Dinero público",
+    label: "Dinero",
     items: [
       { href: "/presupuestos", label: "Presupuestos" },
       { href: "/contratos", label: "Contratos" },
@@ -41,9 +41,9 @@ const navGroups = [
 ] as const
 
 const navLinkBase =
-  "relative inline-flex shrink-0 items-center text-[14px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:text-foreground"
+  "relative inline-flex shrink-0 items-center text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:text-foreground"
 const navLinkActive =
-  "text-foreground after:absolute after:-bottom-[11px] after:left-0 after:right-0 after:h-[2px] after:bg-foreground"
+  "text-foreground after:absolute after:-bottom-[15px] after:left-0 after:right-0 after:h-[2px] after:bg-foreground"
 
 export function Header() {
   const pathname = usePathname()
@@ -54,28 +54,43 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      {/* Masthead */}
-      <div className="ui-shell flex items-center gap-4 py-4 sm:py-5">
+      <div className="ui-shell flex h-14 items-center gap-4 lg:gap-6">
         <ResponsiveLink
           href="/"
           prefetch
-          className="group flex min-w-0 items-center gap-3 sm:gap-4"
+          className="group flex min-w-0 shrink-0 items-center gap-2.5"
         >
-          <span className="grid h-11 w-11 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground sm:h-12 sm:w-12">
-            <LogoMark className="h-7 w-7 sm:h-8 sm:w-8" variant="inverse" />
+          <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
+            <LogoMark className="h-5 w-5" variant="inverse" />
           </span>
-          <div className="min-w-0">
-            <div className="font-display truncate text-[22px] font-bold leading-none tracking-tight text-foreground sm:text-[28px]">
-              {BRAND_NAME}
-            </div>
-            <div className="mt-2 hidden truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground sm:block">
-              Datos públicos · Política española
-            </div>
-          </div>
+          <span className="font-display truncate text-[17px] font-bold leading-none tracking-tight text-foreground sm:text-[18px]">
+            {BRAND_NAME}
+          </span>
         </ResponsiveLink>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-          <div className="hidden sm:flex sm:items-center sm:gap-1">
+        <nav className="ml-2 hidden min-w-0 flex-1 items-center gap-x-3 lg:flex lg:gap-x-4 xl:gap-x-5">
+          {navGroups.map((group, gi) => (
+            <Fragment key={group.label}>
+              {gi > 0 && (
+                <span className="h-4 w-px shrink-0 bg-border" aria-hidden />
+              )}
+              {group.items.map((item) => (
+                <ResponsiveLink
+                  key={item.href}
+                  href={item.href}
+                  prefetch
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={cn(navLinkBase, isActive(item.href) && navLinkActive)}
+                >
+                  {item.label}
+                </ResponsiveLink>
+              ))}
+            </Fragment>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <div className="hidden items-center gap-1 lg:flex">
             <SearchTrigger />
             <a
               href={GITHUB_URL}
@@ -93,35 +108,6 @@ export function Header() {
           <MobileNavDropdown />
         </div>
       </div>
-
-      {/* Nav ribbon (desktop) */}
-      <nav className="hidden border-t border-border/60 sm:block">
-        <div className="ui-shell flex items-center gap-x-5 overflow-x-auto py-3 lg:gap-x-7">
-          {navGroups.map((group, gi) => (
-            <Fragment key={group.label}>
-              {gi > 0 && (
-                <span
-                  className="h-5 w-px shrink-0 bg-border"
-                  aria-hidden
-                />
-              )}
-              <div className="flex shrink-0 items-center gap-x-4 lg:gap-x-5">
-                {group.items.map((item) => (
-                  <ResponsiveLink
-                    key={item.href}
-                    href={item.href}
-                    prefetch
-                    aria-current={isActive(item.href) ? "page" : undefined}
-                    className={cn(navLinkBase, isActive(item.href) && navLinkActive)}
-                  >
-                    {item.label}
-                  </ResponsiveLink>
-                ))}
-              </div>
-            </Fragment>
-          ))}
-        </div>
-      </nav>
     </header>
   )
 }
