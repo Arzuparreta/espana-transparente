@@ -9,10 +9,15 @@ on:
     - cron: "0 4 * * *"  # Daily at 4am UTC
     - cron: "0 5 * * 1"  # Mondays at 5am UTC (slow weekly pipelines)
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   web:
     name: Web (Next.js)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: web
@@ -33,6 +38,7 @@ jobs:
   etl-check:
     name: ETL (install + tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: etl
@@ -50,6 +56,7 @@ jobs:
     name: ETL daily pipelines
     if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: etl
@@ -85,6 +92,7 @@ jobs:
     name: ETL weekly pipelines
     if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1'
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: etl
