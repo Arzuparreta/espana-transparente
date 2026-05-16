@@ -35,7 +35,9 @@ SELECT
   COALESCE(sp.total_amount, 0) AS total_amount_eur
 FROM responsibility_positions rp
 JOIN current_gov cg ON rp.government = cg.government
-LEFT JOIN parties par ON lower(par.acronym) = lower(rp.political_party)
+LEFT JOIN LATERAL (
+  SELECT color FROM parties WHERE lower(acronym) = lower(rp.political_party) LIMIT 1
+) par ON true
 LEFT JOIN spending sp ON sp.ministry_key = lower(rp.organization_name)
 WHERE rp.end_date IS NULL
   AND rp.administration_level = 'state'
