@@ -68,7 +68,7 @@ export function Header() {
           </span>
         </ResponsiveLink>
 
-        <nav className="ml-2 hidden min-w-0 flex-1 items-center gap-x-3 lg:flex lg:gap-x-4 xl:gap-x-5">
+        <nav className="ml-2 hidden min-w-0 flex-1 items-center gap-x-3 xl:flex xl:gap-x-4 2xl:gap-x-5">
           {navGroups.map((group, gi) => (
             <Fragment key={group.label}>
               {gi > 0 && (
@@ -90,7 +90,7 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-1">
-          <div className="hidden items-center gap-1 lg:flex">
+          <div className="hidden items-center gap-1 xl:flex">
             <SearchTrigger />
             <a
               href={GITHUB_URL}

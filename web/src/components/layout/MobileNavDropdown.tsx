@@ -56,7 +56,7 @@ export function MobileNavDropdown() {
   const pathname = usePathname()
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <DialogPrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
         <DialogPrimitive.Trigger
           aria-label="Abrir menú"
