@@ -31,6 +31,14 @@ function normalizePartyName(acronym: string | null | undefined, name: string | n
   return name ?? acronym ?? "Sin partido"
 }
 
+type PartyRow = { id: string; acronym: string | null; color: string | null; name: string }
+
+function unwrapParty(value: unknown): PartyRow | null {
+  if (!value) return null
+  if (Array.isArray(value)) return (value[0] as PartyRow | undefined) ?? null
+  return value as PartyRow
+}
+
 export const PAGE_SIZE = {
   votingSessions: 30,
   contracts: 50,
@@ -161,7 +169,7 @@ export const getParties = unstable_cache(
     >()
 
     for (const row of data ?? []) {
-      const party = row.party as { id: string; acronym: string | null; color: string | null; name: string } | null
+      const party = unwrapParty(row.party)
       if (!party) continue
 
       const key = party.acronym ?? party.id
@@ -187,7 +195,7 @@ export const getParties = unstable_cache(
       })
     }
 
-    return [...grouped.values()].sort((a, b) => a.name.localeCompare(b.name, "es"))
+    return Array.from(grouped.values()).sort((a, b) => a.name.localeCompare(b.name, "es"))
   },
   ["parties"],
   { revalidate: HOUR }
