@@ -86,11 +86,10 @@ export function MobileNavDropdown() {
 
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
-          <DialogPrimitive.Popup className="fixed top-2 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 rounded-xl border border-border/70 bg-card p-3 shadow-lg data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-top-2">
-            <nav className="flex flex-col gap-0.5">
+          <DialogPrimitive.Popup className="fixed top-2 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 rounded-none border border-border/70 bg-card p-3 shadow-lg data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-top-2">
+            <nav className="flex flex-col">
               {navGroups.map((group, gi) => (
-                <div key={group.label}>
-                  {gi > 0 && <div className="my-1.5 h-px bg-border/60" />}
+                <div key={group.label} className={gi > 0 ? "mt-2 border-t border-border/60 pt-2" : undefined}>
                   <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
                     {group.label}
                   </div>
@@ -105,10 +104,10 @@ export function MobileNavDropdown() {
                         href={item.href}
                         onClick={() => setIsOpen(false)}
                         className={cn(
-                          "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium select-none",
+                          "flex items-center px-3 py-2 text-sm font-semibold select-none transition-colors",
                           isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground active:bg-muted active:text-foreground"
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground active:text-foreground"
                         )}
                       >
                         {item.label}
