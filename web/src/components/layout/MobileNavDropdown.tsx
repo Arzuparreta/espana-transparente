@@ -59,7 +59,7 @@ export function MobileNavDropdown() {
     <div className="sm:hidden">
       <DialogPrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
         <DialogPrimitive.Trigger
-          className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm select-none active:bg-muted active:text-foreground"
+          className="flex items-center gap-2 px-1 py-1 text-sm font-semibold text-foreground transition-opacity select-none active:opacity-70"
         >
           <span className="flex h-5 w-5 flex-col justify-center gap-1">
             <span
