@@ -28,7 +28,7 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
     getDeputyAttendanceSessions(id, attendancePage),
   ])
 
-  const { pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergentSessionIds, govPosition, ministryContracts } = profile
+  const { pol, votes, totalVotes, powerRels, subordinates, revolvingDoors, attendance, divergentSessionIds, govPosition, ministryContracts } = profile
   if (!pol) notFound()
 
   const displayVotes = pagedVotes ?? votes
@@ -41,6 +41,7 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
       votePage={votePage}
       votePageSize={PAGE_SIZE.deputyVotes}
       powerRels={powerRels as Record<string, unknown>[]}
+      subordinates={subordinates as Record<string, unknown>[]}
       revolvingDoors={revolvingDoors as Record<string, unknown>[]}
       attendance={attendance as { total_sessions: number; sessions_present: number; attendance_pct: number } | null}
       attendanceSessions={attendanceData.sessions as Record<string, unknown>[]}

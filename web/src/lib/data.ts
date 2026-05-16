@@ -222,7 +222,7 @@ export const getVotingDetailData = unstable_cache(
 
 export const getPoliticianProfileData = unstable_cache(
   async (id: string) => {
-    const [pol, votes, totalVotes, powerRels, revolvingDoors, attendance, divergences, govPosition] =
+    const [pol, votes, totalVotes, powerRels, subordinates, revolvingDoors, attendance, divergences, govPosition] =
       await Promise.all([
         supabase
           .from("politicians")
@@ -245,6 +245,11 @@ export const getPoliticianProfileData = unstable_cache(
           .from("power_relationships")
           .select("*, superior:superior_id(full_name), party:parties(acronym, color)")
           .eq("person_id", id),
+        supabase
+          .from("power_relationships")
+          .select("relationship_type, party:parties(acronym, color)")
+          .eq("superior_id", id)
+          .limit(1),
         supabase.from("v_revolving_door_public").select("*").eq("person_id", id),
         supabase
           .from("v_attendance_summary")
@@ -287,6 +292,7 @@ export const getPoliticianProfileData = unstable_cache(
       votes: votes.data ?? [],
       totalVotes: totalVotes.count,
       powerRels: powerRels.data ?? [],
+      subordinates: subordinates.data ?? [],
       revolvingDoors: revolvingDoors.data ?? legacyRevolvingDoors?.data ?? [],
       attendance: attendance.data,
       divergentSessionIds: (divergences.data ?? []).map(
@@ -1148,4 +1154,84 @@ export const getSubvencionPageFiltered = unstable_cache(
   },
   ["subsidy-page-filtered"],
   { revalidate: HOUR }
+)
+
+// ── Senado ────────────────────────────────────────────────────────────────────
+
+export type Senator = {
+  id: string
+  full_name: string
+  first_name: string
+  last_name: string
+  photo_url: string | null
+  senate_id: string | null
+  politician_memberships: {
+    id: string
+    constituency: string | null
+    group_parliamentary: string | null
+    is_active: boolean
+    raw_data: Record<string, unknown> | null
+    party: { id: string; acronym: string | null; color: string | null; name: string } | null
+  }[]
+}
+
+export const getSenators = unstable_cache(
+  async () => {
+    const { data, error } = await supabase
+      .from("politicians")
+      .select(
+        "id, full_name, first_name, last_name, photo_url, senate_id, politician_memberships!inner(id, constituency, group_parliamentary, is_active, raw_data, party:parties(id, acronym, color, name))"
+      )
+      .eq("politician_memberships.is_active", true)
+      .eq("politician_memberships.chamber", "senate")
+      .order("last_name")
+
+    if (error) {
+      console.error("getSenators:", error.message)
+      return [] as Senator[]
+    }
+    return (data ?? []) as unknown as Senator[]
+  },
+  ["senators-list"],
+  { revalidate: HOUR * 6 }
+)
+
+export const getSenatorStats = unstable_cache(
+  async () => {
+    const { data: senators } = await supabase
+      .from("politician_memberships")
+      .select("id, constituency, raw_data, party:parties(acronym, color, name)")
+      .eq("chamber", "senate")
+      .eq("is_active", true)
+
+    type PartyObj = { acronym: string | null; color: string | null; name: string } | null
+    const byGroup = new Map<string, { party: PartyObj; count: number }>()
+    for (const m of senators ?? []) {
+      const party = (m.party as unknown) as PartyObj
+      const key = party?.name ?? "Mixto"
+      const existing = byGroup.get(key)
+      if (existing) {
+        existing.count++
+      } else {
+        byGroup.set(key, { party, count: 1 })
+      }
+    }
+
+    const byType = { elected: 0, designated: 0 }
+    for (const m of senators ?? []) {
+      const rd = (m.raw_data as unknown) as { tipo_procedencia?: string } | null
+      if (rd?.tipo_procedencia === "DESIGNADO") byType.designated++
+      else byType.elected++
+    }
+
+    return {
+      total: senators?.length ?? 0,
+      byGroup: Array.from(byGroup.entries())
+        .map(([name, v]) => ({ name, ...v }))
+        .sort((a, b) => b.count - a.count),
+      byType,
+    }
+  },
+  ["senator-stats"],
+  { revalidate: HOUR * 6 }
 )

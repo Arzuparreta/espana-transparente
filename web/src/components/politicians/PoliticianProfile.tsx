@@ -71,6 +71,7 @@ interface Props {
   votePage?: number
   votePageSize?: number
   powerRels: Record<string, unknown>[]
+  subordinates: Record<string, unknown>[]
   revolvingDoors: Record<string, unknown>[]
   attendance: AttendanceSummary | null
   attendanceSessions?: Record<string, unknown>[]
@@ -89,6 +90,7 @@ export function PoliticianProfile({
   votePage = 1,
   votePageSize = 30,
   powerRels: pr,
+  subordinates,
   revolvingDoors: rd,
   attendance,
   attendanceSessions = [],
@@ -356,7 +358,52 @@ export function PoliticianProfile({
                       )
                     })}
                   </div>
-                ) : (
+                ) : govPosition ? (
+                  <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 shadow-sm space-y-1">
+                    <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
+                    </span>
+                    <p className="text-sm font-medium">
+                      {govPosition.organization_name}
+                      {govPosition.government ? ` — ${govPosition.government}` : ""}
+                    </p>
+                    {govPosition.start_date ? (
+                      <p className="text-xs text-muted-foreground">
+                        Desde {formatProfileDate(govPosition.start_date)}
+                      </p>
+                    ) : null}
+                    <p className="text-xs text-muted-foreground pt-1">
+                      Máxima autoridad en su ámbito — no tiene superior en el ejecutivo.
+                    </p>
+                  </div>
+                ) : subordinates.length > 0 ? (() => {
+                  const sub = subordinates[0] as Record<string, unknown>
+                  const subType = String(sub.relationship_type || "")
+                  const subParty = sub.party as Record<string, string> | undefined
+                  const roleLabel = subType === "spokesperson"
+                    ? "Portavoz del grupo parlamentario"
+                    : "Líder del grupo parlamentario"
+                  return (
+                    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 shadow-sm space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {subParty ? (
+                          <PartyBadge
+                            acronym={subParty.acronym}
+                            color={subParty.color}
+                            className="text-[11px]"
+                          />
+                        ) : null}
+                        <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {roleLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Encabeza la cadena de mando de su grupo parlamentario.
+                        Los diputados{subParty ? ` del ${subParty.acronym}` : ""} rinden cuentas ante este cargo.
+                      </p>
+                    </div>
+                  )
+                })() : (
                   <p className="text-sm italic text-muted-foreground">
                     Sin datos de cadena de mando.
                   </p>
