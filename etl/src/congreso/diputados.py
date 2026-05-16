@@ -31,6 +31,23 @@ PARTY_COLORS = {
     "PRC": "#DDE223",
 }
 
+CANONICAL_PARTY_NAMES = {
+    "PP": "Partido Popular",
+    "PSOE": "Partido Socialista Obrero Español",
+    "VOX": "VOX",
+    "SUMAR": "SUMAR",
+    "ERC": "Esquerra Republicana de Catalunya",
+    "JUNTS": "Junts per Catalunya",
+    "EH Bildu": "EH Bildu",
+    "EAJ-PNV": "Partido Nacionalista Vasco",
+    "UPN": "Unión del Pueblo Navarro",
+    "CCa": "Coalición Canaria",
+    "BNG": "Bloque Nacionalista Galego",
+    "Podemos": "Podemos",
+    "Ciudadanos": "Ciudadanos",
+    "PRC": "Partido Regionalista de Cantabria",
+}
+
 EXACT_PARTY_MAP = {
     "PP": "PP", "PSOE": "PSOE", "VOX": "VOX",
     "SUMAR": "SUMAR", "ERC": "ERC", "EH Bildu": "EH Bildu",
@@ -65,6 +82,13 @@ def extract_acronym(formacion: str, grupo: str) -> str:
     # Fallback to group name first word
     words = upper_g.split() if upper_g else upper_f.split()
     return words[0][:15] if words else "Desconocido"
+
+
+def canonical_party_name(formacion: str, grupo: str) -> str:
+    acronym = extract_acronym(formacion, grupo)
+    if acronym in CANONICAL_PARTY_NAMES:
+        return CANONICAL_PARTY_NAMES[acronym]
+    return formacion or grupo or acronym
 
 
 def get_conn():
@@ -160,23 +184,24 @@ def run():
         pol_count += 1
 
         # Party
-        party_name = grupo or formacion
+        party_name = canonical_party_name(formacion, grupo)
+        group_name = grupo or party_name
         acronym = extract_acronym(formacion, grupo)
-        if acronym and acronym not in parties_done:
+        if party_name and party_name not in parties_done:
             cur.execute("""
                 INSERT INTO parties (name, acronym, color)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (name) DO UPDATE SET acronym = EXCLUDED.acronym, color = EXCLUDED.color
             """, (party_name, acronym, PARTY_COLORS.get(acronym, "#718096")))
-            parties_done.add(acronym)
+            parties_done.add(party_name)
 
         # Get IDs
         cur.execute("SELECT id FROM politicians WHERE congress_id = %s", (cid,))
         pol_id = cur.fetchone()[0]
 
         party_id = None
-        if acronym:
-            cur.execute("SELECT id FROM parties WHERE acronym = %s", (acronym,))
+        if party_name:
+            cur.execute("SELECT id FROM parties WHERE name = %s", (party_name,))
             row = cur.fetchone()
             if row:
                 party_id = row[0]
@@ -193,7 +218,7 @@ def run():
                 is_active = EXCLUDED.is_active,
                 group_parliamentary = EXCLUDED.group_parliamentary,
                 start_date = EXCLUDED.start_date
-        """, (pol_id, xv_leg_id, party_id, constituency, True, party_name, parse_date(fecha_alta), "congress"))
+        """, (pol_id, xv_leg_id, party_id, constituency, True, group_name, parse_date(fecha_alta), "congress"))
         mem_count += 1
 
     conn.commit()

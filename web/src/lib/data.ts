@@ -4,6 +4,33 @@ import { supabase } from "@/lib/supabase/client"
 const HOUR = 3600
 const PHOTOS_CACHE_VERSION = "photos-v2"
 
+const CANONICAL_PARTY_NAMES: Record<string, string> = {
+  PP: "Partido Popular",
+  PSOE: "Partido Socialista Obrero Español",
+  VOX: "VOX",
+  SUMAR: "SUMAR",
+  ERC: "Esquerra Republicana de Catalunya",
+  JUNTS: "Junts per Catalunya",
+  "EH Bildu": "EH Bildu",
+  "EAJ-PNV": "Partido Nacionalista Vasco",
+  UPN: "Unión del Pueblo Navarro",
+  BNG: "Bloque Nacionalista Galego",
+  CCa: "Coalición Canaria",
+  Podemos: "Podemos",
+  Ciudadanos: "Ciudadanos",
+  PRC: "Partido Regionalista de Cantabria",
+}
+
+function isParliamentaryGroupName(value: string | null | undefined) {
+  return /^grupo parlamentario\b/i.test(value ?? "")
+}
+
+function normalizePartyName(acronym: string | null | undefined, name: string | null | undefined) {
+  if (acronym && CANONICAL_PARTY_NAMES[acronym]) return CANONICAL_PARTY_NAMES[acronym]
+  if (name && !isParliamentaryGroupName(name)) return name
+  return name ?? acronym ?? "Sin partido"
+}
+
 export const PAGE_SIZE = {
   votingSessions: 30,
   contracts: 50,
@@ -116,21 +143,51 @@ export const getDeputyCards = unstable_cache(
 
 export const getParties = unstable_cache(
   async () => {
-    const [parties, memberships] = await Promise.all([
-      supabase.from("parties").select("*").order("acronym"),
-      supabase
-        .from("politician_memberships")
-        .select("party_id")
-        .eq("is_active", true),
-    ])
-    const countByParty = new Map<string, number>()
-    for (const m of memberships.data ?? []) {
-      countByParty.set(m.party_id, (countByParty.get(m.party_id) ?? 0) + 1)
+    const { data } = await supabase
+      .from("politician_memberships")
+      .select("party:parties(id, acronym, color, name)")
+      .eq("is_active", true)
+      .eq("chamber", "congress")
+
+    const grouped = new Map<
+      string,
+      {
+        id: string
+        name: string
+        acronym: string | null
+        color: string | null
+        stats: { deputy_count: number }
+      }
+    >()
+
+    for (const row of data ?? []) {
+      const party = row.party as { id: string; acronym: string | null; color: string | null; name: string } | null
+      if (!party) continue
+
+      const key = party.acronym ?? party.id
+      const normalizedName = normalizePartyName(party.acronym, party.name)
+      const existing = grouped.get(key)
+
+      if (existing) {
+        existing.stats.deputy_count += 1
+        if (isParliamentaryGroupName(existing.name) && !isParliamentaryGroupName(normalizedName)) {
+          existing.id = party.id
+          existing.name = normalizedName
+          existing.color = party.color
+        }
+        continue
+      }
+
+      grouped.set(key, {
+        id: party.id,
+        name: normalizedName,
+        acronym: party.acronym,
+        color: party.color,
+        stats: { deputy_count: 1 },
+      })
     }
-    return (parties.data ?? []).map((p) => ({
-      ...p,
-      stats: { deputy_count: countByParty.get(p.id) ?? 0 },
-    }))
+
+    return [...grouped.values()].sort((a, b) => a.name.localeCompare(b.name, "es"))
   },
   ["parties"],
   { revalidate: HOUR }
@@ -147,6 +204,7 @@ export const getPartyPageData = unstable_cache(
         )
         .eq("party_id", id)
         .eq("is_active", true)
+        .eq("chamber", "congress")
         .order("constituency"),
       supabase
         .from("v_party_stats")
@@ -156,7 +214,12 @@ export const getPartyPageData = unstable_cache(
     ])
 
     return {
-      party: party.data,
+      party: party.data
+        ? {
+            ...party.data,
+            name: normalizePartyName(party.data.acronym, party.data.name),
+          }
+        : null,
       memberships: memberships.data ?? [],
       stats: stats.data ?? null,
     }
@@ -996,6 +1059,7 @@ export const getPartyVotingSessions = unstable_cache(
       .select("politician_id")
       .eq("party_id", partyId)
       .eq("is_active", true)
+      .eq("chamber", "congress")
 
     if (!members || members.length === 0) return []
 

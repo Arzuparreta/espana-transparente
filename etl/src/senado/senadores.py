@@ -51,6 +51,20 @@ PARTY_COLORS = {
     "BNG": "#6CB6FF",
 }
 
+CANONICAL_PARTY_NAMES = {
+    "PP": "Partido Popular",
+    "PSOE": "Partido Socialista Obrero Español",
+    "VOX": "VOX",
+    "SUMAR": "SUMAR",
+    "ERC": "Esquerra Republicana de Catalunya",
+    "JUNTS": "Junts per Catalunya",
+    "EH Bildu": "EH Bildu",
+    "EAJ-PNV": "Partido Nacionalista Vasco",
+    "UPN": "Unión del Pueblo Navarro",
+    "CCa": "Coalición Canaria",
+    "BNG": "Bloque Nacionalista Galego",
+}
+
 
 def _fetch(url: str) -> str:
     result = subprocess.run(
@@ -213,6 +227,13 @@ def acronym_from_party(partido: str, grupo: str) -> str:
     return words[0][:15] if words else "Otro"
 
 
+def canonical_party_name(partido: str, grupo: str) -> str:
+    acronym = acronym_from_party(partido, grupo)
+    if acronym in CANONICAL_PARTY_NAMES:
+        return CANONICAL_PARTY_NAMES[acronym]
+    return partido or grupo or acronym
+
+
 def run(dry_run: bool = False) -> None:
     conn = get_pg_conn()
     cur = conn.cursor()
@@ -265,14 +286,16 @@ def run(dry_run: bool = False) -> None:
             print(f"  DRY RUN: {full_name} | {acr} | {procedencia} | {tipo} | photo={photo_url}")
             continue
 
+        party_name = canonical_party_name(partido, grupo)
+
         # Party upsert
         cur.execute("""
             INSERT INTO parties (name, acronym, color)
             VALUES (%s, %s, %s)
             ON CONFLICT (name) DO UPDATE SET acronym = EXCLUDED.acronym, color = EXCLUDED.color
-        """, (partido or grupo, acr, PARTY_COLORS.get(acr, "#718096")))
+        """, (party_name, acr, PARTY_COLORS.get(acr, "#718096")))
 
-        cur.execute("SELECT id FROM parties WHERE name = %s", (partido or grupo,))
+        cur.execute("SELECT id FROM parties WHERE name = %s", (party_name,))
         row = cur.fetchone()
         party_id = row[0] if row else None
 
