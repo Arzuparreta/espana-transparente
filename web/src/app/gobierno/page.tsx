@@ -55,6 +55,13 @@ function MemberCard({ member }: { member: GobiernoMember }) {
     </div>
   )
 
+  if (member.position_type === "ministro" || member.position_type === "vicepresidente") {
+    return (
+      <Link href={`/ministerios/${member.id}`} className="block">
+        {inner}
+      </Link>
+    )
+  }
   if (member.politician_id) {
     return (
       <Link href={`/diputados/${member.politician_id}`} className="block">
