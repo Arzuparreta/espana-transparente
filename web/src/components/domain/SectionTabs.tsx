@@ -13,10 +13,11 @@ interface TabItem {
 interface SectionTabsProps {
   tabs: TabItem[]
   defaultTab: string
-  children: (activeTab: string) => ReactNode
+  panels?: Record<string, ReactNode>
+  children?: (activeTab: string) => ReactNode
 }
 
-export function SectionTabs({ tabs, defaultTab, children }: SectionTabsProps) {
+export function SectionTabs({ tabs, defaultTab, panels, children }: SectionTabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   return (
@@ -49,7 +50,7 @@ export function SectionTabs({ tabs, defaultTab, children }: SectionTabsProps) {
           })}
         </div>
       </div>
-      {children(activeTab)}
+      {panels ? panels[activeTab] : children?.(activeTab)}
     </div>
   )
 }

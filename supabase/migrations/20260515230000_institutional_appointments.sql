@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS institutional_appointments (
   nominating_body  text,       -- Congreso, Senado, CGPJ, Gobierno
   appointment_date date,
   end_date         date,
-  is_active        boolean     GENERATED ALWAYS AS (end_date IS NULL OR end_date >= CURRENT_DATE) STORED,
   source_url       text,
   raw_data         jsonb       NOT NULL DEFAULT '{}',
   created_at       timestamptz NOT NULL DEFAULT now(),
@@ -23,7 +22,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_ia_person_institution
   ON institutional_appointments (lower(person_name), institution, COALESCE(appointment_date, '1900-01-01'));
 
 CREATE INDEX IF NOT EXISTS idx_ia_institution ON institutional_appointments (institution);
-CREATE INDEX IF NOT EXISTS idx_ia_active      ON institutional_appointments (institution) WHERE is_active;
+CREATE INDEX IF NOT EXISTS idx_ia_active      ON institutional_appointments (institution, end_date);
 CREATE INDEX IF NOT EXISTS idx_ia_politician  ON institutional_appointments (politician_id) WHERE politician_id IS NOT NULL;
 
 -- Vista pública para el frontend
@@ -55,10 +54,10 @@ SELECT
 FROM institutional_appointments ia
 LEFT JOIN politicians p ON p.id = ia.politician_id
 LEFT JOIN parties pr_abbr
-  ON lower(pr_abbr.abbreviation) = lower(ia.political_party)
+  ON lower(pr_abbr.acronym) = lower(ia.political_party)
 LEFT JOIN parties pr_name
   ON lower(pr_name.name) = lower(ia.political_party)
-WHERE ia.is_active
+WHERE ia.end_date IS NULL OR ia.end_date >= CURRENT_DATE
 ORDER BY ia.institution, ia.appointment_date;
 
 GRANT SELECT ON v_instituciones_actuales TO anon, authenticated;

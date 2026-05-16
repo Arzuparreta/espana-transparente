@@ -28,3 +28,6 @@ SELECT
   SUM(number_projects)        AS total_projects
 FROM eu_funds
 WHERE country_code = 'ES';
+
+GRANT SELECT ON eu_funds TO anon, authenticated;
+GRANT SELECT ON v_eu_funds_summary TO anon, authenticated;
