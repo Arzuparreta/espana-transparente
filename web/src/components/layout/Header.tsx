@@ -92,6 +92,16 @@ export function Header() {
         </Menubar>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <ResponsiveLink
+            href="/estado-datos"
+            prefetch
+            className={cn(
+              "hidden text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline-block",
+              isItemActive("/estado-datos") && "text-foreground"
+            )}
+          >
+            Fuentes
+          </ResponsiveLink>
           <div className="hidden lg:flex">
             <SearchTrigger variant="pill" />
           </div>

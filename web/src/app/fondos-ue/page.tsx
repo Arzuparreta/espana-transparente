@@ -90,7 +90,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Fondos europeos"
-        description="Beneficiarios españoles de los fondos estructurales y de inversión europeos (ESIF) 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
+        description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
       />
 
       {summary && (

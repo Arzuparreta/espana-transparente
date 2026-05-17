@@ -1,21 +1,11 @@
-import type { PoliticianWithMemberships } from "@/types"
-import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { LogoHero } from "@/components/layout/LogoHero"
 import { EntityLink } from "@/components/domain/EntityLink"
-import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getHomeData } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600
-
-function formatBig(n: number): string {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(0)}B €`
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)}M €`
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K €`
-  return `${Math.round(n)} €`
-}
 
 function formatAmount(n: number): string {
   return new Intl.NumberFormat("es-ES", {
@@ -54,13 +44,8 @@ function SectionHeader({
 
 export default async function HomePage() {
   const {
-    politicians,
-    politicianCount,
     parties,
     contractCount,
-    subsidyCount,
-    sessionCount,
-    currentBudget,
     recentSessions,
     revolvingDoorCases,
     gobierno,
@@ -71,31 +56,24 @@ export default async function HomePage() {
     featuredSubsidyIsRecent,
   } = await getHomeData()
 
-  const stats = [
-    { label: "Diputados activos", value: `${politicianCount}` },
-    { label: "Licitaciones publicadas", value: contractCount.toLocaleString("es-ES") },
-    { label: "Subvenciones registradas", value: subsidyCount.toLocaleString("es-ES") },
-    { label: "Votaciones en el Congreso", value: sessionCount.toLocaleString("es-ES") },
-    ...(currentBudget
-      ? [{ label: `Presupuesto ${currentBudget.year}`, value: formatBig(currentBudget.total) }]
-      : []),
-  ]
-
   return (
     <div className="space-y-10 sm:space-y-14">
       <LogoHero parties={parties ?? []} />
 
-      {/* Hero: dato de impacto */}
+      {/* Hero: contratos publicados — voz cotidiana */}
       {contractCount > 0 && (
         <section className="rounded-2xl border border-border/60 bg-card/60 px-6 py-8 sm:px-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Licitaciones publicadas en el sector público español
+            Contratos del sector público español
           </p>
           <p className="mt-2 text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl">
             {contractCount.toLocaleString("es-ES")}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Fuente: Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí están: quién compra, a qué empresa, por cuánto.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Fuente: Plataforma de Contratación del Sector Público (PCSP).
           </p>
           <ResponsiveLink
             href="/contratos"
@@ -105,8 +83,6 @@ export default async function HomePage() {
           </ResponsiveLink>
         </section>
       )}
-
-      <StatGrid items={stats} />
 
       {/* Datos destacados: 3 tarjetas automáticas */}
       {(featuredContract ?? featuredSession ?? featuredSubsidy) && (
@@ -270,20 +246,6 @@ export default async function HomePage() {
           </ul>
         </section>
       )}
-
-      {/* Diputados */}
-      <section>
-        <SectionHeader
-          title="Diputados"
-          subtitle="Las 350 personas que aprueban las leyes y el presupuesto del Estado"
-          href="/diputados"
-        />
-        <div className="ui-grid-cards">
-          {(politicians as unknown as PoliticianWithMemberships[]).map((p) => (
-            <PoliticianCard key={p.id} politician={p} />
-          ))}
-        </div>
-      </section>
 
       {/* Puertas giratorias */}
       {revolvingDoorCases.length > 0 && (

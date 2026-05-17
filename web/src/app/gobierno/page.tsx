@@ -102,7 +102,7 @@ export default async function GobiernoPage() {
     <div className="mx-auto max-w-5xl space-y-8">
       <PageHeader
         title="Gobierno"
-        description={`Composición del ${government}. Cargos actuales, partido y contratos públicos adjudicados por ministerio.`}
+        description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. A qué partido pertenecen y qué contratos adjudica cada ministerio.`}
       />
 
       <StatGrid

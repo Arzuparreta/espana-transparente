@@ -1,10 +1,10 @@
 export const BRAND_NAME = "España Transparente"
 
 export const BRAND_DESCRIPTION =
-  "Datos públicos para seguir quién decidió qué en la política española."
+  "Quién decide qué en España, con los datos oficiales del Estado."
 
 export const BRAND_LONG_DESCRIPTION =
-  "Datos públicos de la política española: diputados, votaciones, contratos, subvenciones y trayectorias enlazadas por persona y fuente."
+  "Quién decide qué en España, con los datos oficiales del Estado: diputados, votaciones, contratos, subvenciones, y las personas que conectan unos con otros."
 
 export const BRAND_URL = "https://xn--espaatransparente-ixb.site"
 

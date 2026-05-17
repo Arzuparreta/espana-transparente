@@ -23,7 +23,7 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         title="Organizaciones"
-        description={`${total.toLocaleString("es-ES")} entidades enlazadas a contratos, subvenciones y puertas giratorias.`}
+        description={`Empresas, fundaciones y organismos mencionados en contratos, subvenciones o nombramientos. Un catálogo de ${total.toLocaleString("es-ES")} entidades.`}
       />
 
       {organizations.length === 0 ? (

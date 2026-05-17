@@ -143,7 +143,7 @@ export default async function InstitucionesPage() {
     <div className="mx-auto max-w-5xl space-y-10">
       <PageHeader
         title="Organismos institucionales"
-        description="Magistrados, vocales y consejeros designados por partidos políticos en el Tribunal Constitucional, el CGPJ, RTVE y la SEPI."
+        description="Personas nombradas para dirigir organismos públicos clave —Tribunal Constitucional, Consejo General del Poder Judicial, RTVE, SEPI— y por qué partido fue propuesta cada una."
       />
 
       <StatGrid

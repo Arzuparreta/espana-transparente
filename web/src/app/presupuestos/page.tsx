@@ -40,7 +40,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Presupuestos"
-        description="Créditos de los Presupuestos Generales del Estado, por sección ministerial y programa."
+        description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Aprobado por el Congreso cada año."
       />
 
       {meta ? (

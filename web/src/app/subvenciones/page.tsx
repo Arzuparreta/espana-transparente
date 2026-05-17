@@ -50,7 +50,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Subvenciones"
-        description="Concesiones publicadas en la Base de Datos Nacional de Subvenciones (BDNS). Solo organizaciones — beneficiarios individuales están anonimizados en la fuente."
+        description="Dinero que reparte el Estado a empresas, fundaciones u organismos para fines concretos. Quién lo recibe, cuánto, y para qué. Beneficiarios individuales aparecen anonimizados en la fuente oficial."
       />
 
       {statsRows.length > 0 ? (

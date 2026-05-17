@@ -48,7 +48,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Contratos públicos"
-        description="Licitaciones publicadas en la Plataforma de Contratación del Sector Público (PCSP). Ordenadas por importe sin IVA."
+        description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí ves quién compra, a qué empresa, y por cuánto. Ordenados por importe sin IVA."
       />
 
       {statsRows.length > 0 ? (
