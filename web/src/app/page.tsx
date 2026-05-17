@@ -1,8 +1,13 @@
 import { LogoHero } from "@/components/layout/LogoHero"
+import { AnchorCard } from "@/components/domain/AnchorCard"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getHomeData } from "@/lib/data"
+import {
+  getHomeData,
+  getTopContractOfMonth,
+  getTopDivergenceSessionOfMonth,
+} from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600
@@ -13,6 +18,21 @@ function formatAmount(n: number): string {
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(n)
+}
+
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+function windowLabel(days: 30 | 60 | 90 | null): string {
+  if (days === 30) return "últimos 30 días"
+  if (days === 60) return "últimos 60 días"
+  if (days === 90) return "últimos 90 días"
+  return "histórico"
 }
 
 function SectionHeader({
@@ -43,132 +63,86 @@ function SectionHeader({
 }
 
 export default async function HomePage() {
-  const {
-    parties,
-    contractCount,
-    recentSessions,
-    revolvingDoorCases,
-    gobierno,
-    featuredContract,
-    featuredContractIsRecent,
-    featuredSession,
-    featuredSubsidy,
-    featuredSubsidyIsRecent,
-  } = await getHomeData()
+  const [
+    { parties, contractCount, recentSessions, revolvingDoorCases, gobierno },
+    topContract,
+    topDivergenceSession,
+  ] = await Promise.all([
+    getHomeData(),
+    getTopContractOfMonth(),
+    getTopDivergenceSessionOfMonth(),
+  ])
 
   return (
     <div className="space-y-10 sm:space-y-14">
       <LogoHero parties={parties ?? []} />
 
-      {/* Hero: contratos publicados — voz cotidiana */}
-      {contractCount > 0 && (
-        <section className="rounded-2xl border border-border/60 bg-card/60 px-6 py-8 sm:px-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Contratos del sector público español
-          </p>
-          <p className="mt-2 text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl">
-            {contractCount.toLocaleString("es-ES")}
-          </p>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí están: quién compra, a qué empresa, por cuánto.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Fuente: Plataforma de Contratación del Sector Público (PCSP).
-          </p>
-          <ResponsiveLink
+      {/* Anclas hero — mismo primitive, identidad por repetición */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {contractCount > 0 && (
+          <AnchorCard
+            label="Contratos del sector público"
+            value={contractCount.toLocaleString("es-ES")}
+            description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Quién compra, a qué empresa, por cuánto."
+            source="Fuente: Plataforma de Contratación del Sector Público (PCSP)."
             href="/contratos"
-            className="mt-4 inline-block text-sm font-medium underline underline-offset-4 hover:text-foreground"
-          >
-            Ver contratos por importe →
-          </ResponsiveLink>
-        </section>
-      )}
+            linkLabel="Ver contratos →"
+          />
+        )}
 
-      {/* Datos destacados: 3 tarjetas automáticas */}
-      {(featuredContract ?? featuredSession ?? featuredSubsidy) && (
-        <section>
-          <h2 className="mb-4 text-xl font-semibold tracking-tight">Datos destacados</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {/* Contrato */}
-            {featuredContract && (
-              <EntityLink
-                kind="contract"
-                id={featuredContract.id as string}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Contrato · {featuredContractIsRecent ? "Último mes" : "Histórico"}
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {featuredContract.amount != null ? formatAmount(featuredContract.amount as number) : "—"}
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {featuredContract.title as string}
-                </p>
-                {featuredContract.awarding_body && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {featuredContract.awarding_body as string}
-                  </p>
-                )}
-              </EntityLink>
-            )}
+        {topContract && topContract.amount != null && (
+          <AnchorCard
+            label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
+            value={formatAmount(topContract.amount)}
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  {topContract.title}
+                </span>
+                {topContract.awarding_body ? (
+                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    {topContract.awarding_body}
+                    {topContract.date ? ` · ${formatDate(topContract.date)}` : ""}
+                  </span>
+                ) : null}
+              </>
+            }
+            href={`/contratos/${topContract.id}`}
+            linkLabel="Ver contrato →"
+          />
+        )}
 
-            {/* Votación más divergente */}
-            {featuredSession && (
-              <EntityLink
-                kind="voting-session"
-                id={featuredSession.id as string}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Votación · Mayor divergencia
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {(featuredSession.divergence_count as number) ?? 0}{" "}
-                  <span className="text-base font-normal text-muted-foreground">divergencias</span>
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {featuredSession.title as string}
-                </p>
-                {featuredSession.date && (
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(featuredSession.date as string).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                )}
-              </EntityLink>
-            )}
-
-            {/* Subvención */}
-            {featuredSubsidy && (
-              <ResponsiveLink
-                href="/subvenciones"
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Subvención · {featuredSubsidyIsRecent ? "Último mes" : "Histórico"}
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {featuredSubsidy.importe != null ? formatAmount(featuredSubsidy.importe as number) : "—"}
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {(featuredSubsidy.convocatoria as string | null) ??
-                    (featuredSubsidy.beneficiario as string | null) ??
-                    "Subvención pública"}
-                </p>
-                {featuredSubsidy.beneficiario && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {featuredSubsidy.beneficiario as string}
-                  </p>
-                )}
-              </ResponsiveLink>
-            )}
-          </div>
-        </section>
-      )}
+        {topDivergenceSession && (topDivergenceSession.divergence_count ?? 0) > 0 && (
+          <AnchorCard
+            label={`Mayor divergencia · ${
+              topDivergenceSession.isRecent ? "últimos 30 días" : "histórico"
+            }`}
+            value={
+              <>
+                {topDivergenceSession.divergence_count}{" "}
+                <span className="text-lg font-normal text-muted-foreground">
+                  diputados
+                </span>
+              </>
+            }
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  votaron diferente a su grupo en
+                </span>
+                <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">
+                  {topDivergenceSession.title}
+                  {topDivergenceSession.date
+                    ? ` · ${formatDate(topDivergenceSession.date)}`
+                    : ""}
+                </span>
+              </>
+            }
+            href={`/votaciones/${topDivergenceSession.id}`}
+            linkLabel="Ver votación →"
+          />
+        )}
+      </div>
 
       {/* Gobierno */}
       {gobierno.length > 0 && (

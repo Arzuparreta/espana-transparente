@@ -194,6 +194,80 @@ export const getHomeData = unstable_cache(
   { revalidate: HOUR }
 )
 
+export type TopContractAncla = {
+  id: string
+  title: string
+  amount: number | null
+  awarding_body: string | null
+  contractor: string | null
+  date: string | null
+  /** Días hacia atrás de la ventana que devolvió este registro (30, 60, 90) o null si vino del all-time fallback. */
+  windowDays: 30 | 60 | 90 | null
+}
+
+export const getTopContractOfMonth = unstable_cache(
+  async (): Promise<TopContractAncla | null> => {
+    const windows: Array<30 | 60 | 90> = [30, 60, 90]
+    for (const days of windows) {
+      const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      const { data } = await supabase
+        .from("contracts")
+        .select("id, title, amount, awarding_body, contractor, date")
+        .gte("date", from)
+        .order("amount", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle()
+      if (data) return { ...(data as Omit<TopContractAncla, "windowDays">), windowDays: days }
+    }
+    const { data } = await supabase
+      .from("contracts")
+      .select("id, title, amount, awarding_body, contractor, date")
+      .order("amount", { ascending: false, nullsFirst: false })
+      .limit(1)
+      .maybeSingle()
+    return data ? { ...(data as Omit<TopContractAncla, "windowDays">), windowDays: null } : null
+  },
+  ["top-contract-of-month"],
+  { revalidate: HOUR }
+)
+
+export type TopDivergenceSessionAncla = {
+  id: string
+  title: string
+  date: string | null
+  divergence_count: number | null
+  isRecent: boolean
+}
+
+export const getTopDivergenceSessionOfMonth = unstable_cache(
+  async (): Promise<TopDivergenceSessionAncla | null> => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const recent = await supabase
+      .from("v_voting_session_summary")
+      .select("id, title, date, divergence_count")
+      .gte("date", thirtyDaysAgo)
+      .gt("divergence_count", 0)
+      .order("divergence_count", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (recent.data) {
+      return { ...(recent.data as Omit<TopDivergenceSessionAncla, "isRecent">), isRecent: true }
+    }
+    const allTime = await supabase
+      .from("v_voting_session_summary")
+      .select("id, title, date, divergence_count")
+      .gt("divergence_count", 0)
+      .order("divergence_count", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    return allTime.data
+      ? { ...(allTime.data as Omit<TopDivergenceSessionAncla, "isRecent">), isRecent: false }
+      : null
+  },
+  ["top-divergence-session-of-month"],
+  { revalidate: HOUR }
+)
+
 export const getDeputyCards = unstable_cache(
   async () => {
     const { data } = await supabase
