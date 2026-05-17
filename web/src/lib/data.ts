@@ -57,7 +57,6 @@ export function parsePage(value: string | string[] | undefined) {
 export const getHomeData = unstable_cache(
   async () => {
     const currentBudgetYear = new Date().getFullYear()
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
     const [
       politicians,
@@ -70,9 +69,7 @@ export const getHomeData = unstable_cache(
       sessionCount,
       revolvingDoorCases,
       gobierno,
-      featuredContractRecent,
-      featuredSession,
-      featuredSubsidyRecent,
+      deudaPublica,
     ] = await Promise.all([
       supabase
         .from("politicians")
@@ -106,27 +103,12 @@ export const getHomeData = unstable_cache(
         .select("id, person_name, organization_name, political_party, party_color, politician_id, position_type")
         .in("position_type", ["presidente_gobierno", "vicepresidente"])
         .limit(6),
-      // Tarjeta contrato: mayor importe últimos 30 días
+      // Deuda pública: dato más reciente
       supabase
-        .from("contracts")
-        .select("id, title, amount, awarding_body, contractor, date")
-        .gte("date", thirtyDaysAgo)
-        .order("amount", { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle(),
-      // Tarjeta votación: sesión con más divergencias (sin ventana temporal)
-      supabase
-        .from("v_voting_session_summary")
-        .select("id, title, date, divergence_count")
-        .order("divergence_count", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      // Tarjeta subvención: mayor importe últimos 30 días
-      supabase
-        .from("subsidies")
-        .select("id, beneficiario, importe, fecha_concesion, convocatoria")
-        .gte("fecha_concesion", thirtyDaysAgo)
-        .order("importe", { ascending: false, nullsFirst: false })
+        .from("economic_indicators")
+        .select("period, value, unit")
+        .eq("indicator_code", "DEUDA_PUBLICA")
+        .order("period", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ])
@@ -140,30 +122,13 @@ export const getHomeData = unstable_cache(
         ? String(budgetSummaryRows.data[0].budget_type)
         : null
 
-    // Fallback a all-time si no hay datos recientes
-    const [featuredContractAllTime, featuredSubsidyAllTime] = await Promise.all([
-      featuredContractRecent.data
-        ? Promise.resolve({ data: null })
-        : supabase
-            .from("contracts")
-            .select("id, title, amount, awarding_body, contractor, date")
-            .order("amount", { ascending: false, nullsFirst: false })
-            .limit(1)
-            .maybeSingle(),
-      featuredSubsidyRecent.data
-        ? Promise.resolve({ data: null })
-        : supabase
-            .from("subsidies")
-            .select("id, beneficiario, importe, fecha_concesion, convocatoria")
-            .order("importe", { ascending: false, nullsFirst: false })
-            .limit(1)
-            .maybeSingle(),
-    ])
-
-    const featuredContract = featuredContractRecent.data ?? featuredContractAllTime.data
-    const featuredContractIsRecent = !!featuredContractRecent.data
-    const featuredSubsidy = featuredSubsidyRecent.data ?? featuredSubsidyAllTime.data
-    const featuredSubsidyIsRecent = !!featuredSubsidyRecent.data
+    const deudaRow = deudaPublica.data
+    const POBLACION_ESPANA = 47_400_000
+    const deudaPerCapita =
+      deudaRow?.value != null
+        ? Math.round((deudaRow.value as number) * 1_000_000 / POBLACION_ESPANA)
+        : null
+    const deudaYear = deudaRow?.period ? String(deudaRow.period).slice(0, 4) : null
 
     return {
       politicians: politicians.data ?? [],
@@ -183,11 +148,8 @@ export const getHomeData = unstable_cache(
       recentSessions: recentSessions.data ?? [],
       revolvingDoorCases: revolvingDoorCases.data ?? [],
       gobierno: gobierno.data ?? [],
-      featuredContract,
-      featuredContractIsRecent,
-      featuredSession: featuredSession.data ?? null,
-      featuredSubsidy,
-      featuredSubsidyIsRecent,
+      deudaPerCapita,
+      deudaYear,
     }
   },
   ["home-data", PHOTOS_CACHE_VERSION],

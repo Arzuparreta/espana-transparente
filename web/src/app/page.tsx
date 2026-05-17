@@ -17,13 +17,6 @@ function formatBig(n: number): string {
   return `${Math.round(n)} €`
 }
 
-function formatAmount(n: number): string {
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(n)
-}
 
 function SectionHeader({
   title,
@@ -64,11 +57,8 @@ export default async function HomePage() {
     recentSessions,
     revolvingDoorCases,
     gobierno,
-    featuredContract,
-    featuredContractIsRecent,
-    featuredSession,
-    featuredSubsidy,
-    featuredSubsidyIsRecent,
+    deudaPerCapita,
+    deudaYear,
   } = await getHomeData()
 
   const stats = [
@@ -85,114 +75,29 @@ export default async function HomePage() {
     <div className="space-y-10 sm:space-y-14">
       <LogoHero parties={parties ?? []} />
 
-      {/* Hero: dato de impacto */}
-      {contractCount > 0 && (
+      {/* Hero: deuda pública per cápita */}
+      {deudaPerCapita != null && (
         <section className="rounded-2xl border border-border/60 bg-card/60 px-6 py-8 sm:px-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Licitaciones publicadas en el sector público español
+            Deuda pública del Estado español por ciudadano{deudaYear ? ` · ${deudaYear}` : ""}
           </p>
           <p className="mt-2 text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl">
-            {contractCount.toLocaleString("es-ES")}
+            {deudaPerCapita.toLocaleString("es-ES")} €
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Fuente: Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda
+            Fuente: Eurostat · Administraciones Públicas (S13) · Criterio de Maastricht
           </p>
           <ResponsiveLink
-            href="/contratos"
+            href="/indicadores"
             className="mt-4 inline-block text-sm font-medium underline underline-offset-4 hover:text-foreground"
           >
-            Ver contratos por importe →
+            Ver indicadores económicos →
           </ResponsiveLink>
         </section>
       )}
 
       <StatGrid items={stats} />
 
-      {/* Datos destacados: 3 tarjetas automáticas */}
-      {(featuredContract ?? featuredSession ?? featuredSubsidy) && (
-        <section>
-          <h2 className="mb-4 text-xl font-semibold tracking-tight">Datos destacados</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {/* Contrato */}
-            {featuredContract && (
-              <EntityLink
-                kind="contract"
-                id={featuredContract.id as string}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Contrato · {featuredContractIsRecent ? "Último mes" : "Histórico"}
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {featuredContract.amount != null ? formatAmount(featuredContract.amount as number) : "—"}
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {featuredContract.title as string}
-                </p>
-                {featuredContract.awarding_body && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {featuredContract.awarding_body as string}
-                  </p>
-                )}
-              </EntityLink>
-            )}
-
-            {/* Votación más divergente */}
-            {featuredSession && (
-              <EntityLink
-                kind="voting-session"
-                id={featuredSession.id as string}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Votación · Mayor divergencia
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {(featuredSession.divergence_count as number) ?? 0}{" "}
-                  <span className="text-base font-normal text-muted-foreground">divergencias</span>
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {featuredSession.title as string}
-                </p>
-                {featuredSession.date && (
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(featuredSession.date as string).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                )}
-              </EntityLink>
-            )}
-
-            {/* Subvención */}
-            {featuredSubsidy && (
-              <ResponsiveLink
-                href="/subvenciones"
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 p-4 transition-colors hover:border-border hover:bg-card"
-              >
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Subvención · {featuredSubsidyIsRecent ? "Último mes" : "Histórico"}
-                </p>
-                <p className="text-2xl font-bold tabular-nums">
-                  {featuredSubsidy.importe != null ? formatAmount(featuredSubsidy.importe as number) : "—"}
-                </p>
-                <p className="min-w-0 line-clamp-2 text-sm font-medium leading-snug">
-                  {(featuredSubsidy.convocatoria as string | null) ??
-                    (featuredSubsidy.beneficiario as string | null) ??
-                    "Subvención pública"}
-                </p>
-                {featuredSubsidy.beneficiario && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {featuredSubsidy.beneficiario as string}
-                  </p>
-                )}
-              </ResponsiveLink>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* Gobierno */}
       {gobierno.length > 0 && (
