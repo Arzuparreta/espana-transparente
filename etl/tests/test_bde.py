@@ -3,25 +3,19 @@
 import json
 from pathlib import Path
 
-from ine.bde import BDE_INDICATORS, parse_deuda_records
+from ine.bde import EUROSTAT_URL, parse_deuda_records
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def _load_fixture() -> list[dict]:
+def _load_fixture() -> dict:
     return json.loads((FIXTURES / "bde_response.json").read_text())
 
 
-def test_indicators_dict_has_deuda_code():
-    assert "DEUDA_PUBLICA" in BDE_INDICATORS
-
-
-def test_indicators_have_required_fields():
-    for key, meta in BDE_INDICATORS.items():
-        assert "code" in meta, f"{key} missing 'code'"
-        assert "name" in meta, f"{key} missing 'name'"
-        assert "unit" in meta, f"{key} missing 'unit'"
-        assert "source" in meta, f"{key} missing 'source'"
+def test_eurostat_url_is_set():
+    assert EUROSTAT_URL.startswith("https://ec.europa.eu/eurostat")
+    assert "gov_10dd_edpt1" in EUROSTAT_URL
+    assert "geo=ES" in EUROSTAT_URL
 
 
 def test_fixture_parses_records():
@@ -50,16 +44,28 @@ def test_fixture_latest_value():
     data = _load_fixture()
     records = parse_deuda_records(data)
     _, latest_value = records[-1]
-    assert latest_value == 1635000.0
+    assert latest_value == 1698224.6
+
+
+def test_fixture_earliest_year():
+    data = _load_fixture()
+    records = parse_deuda_records(data)
+    earliest_period, _ = records[0]
+    assert earliest_period == "2021"
 
 
 def test_parse_ignores_null_values():
-    data = [
-        {"periodo": "2024-Q1", "valor": 1000.0},
-        {"periodo": None, "valor": 2000.0},
-        {"periodo": "2024-Q2", "valor": None},
-        {"periodo": "2024-Q3", "valor": "bad"},
-    ]
+    data = {
+        "value": {"0": 1500000.0, "1": None, "2": 1600000.0},
+        "dimension": {
+            "time": {
+                "category": {
+                    "index": {"2022": 0, "2023": 1, "2024": 2}
+                }
+            }
+        },
+    }
     records = parse_deuda_records(data)
-    assert len(records) == 1
-    assert records[0][0] == "2024-Q1"
+    assert len(records) == 2
+    assert records[0][0] == "2022"
+    assert records[1][0] == "2024"
