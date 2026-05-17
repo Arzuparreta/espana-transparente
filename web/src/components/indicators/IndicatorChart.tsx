@@ -12,6 +12,7 @@ import {
 } from "recharts"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 interface IndicatorPoint {
   period: string
@@ -21,6 +22,10 @@ interface IndicatorPoint {
 interface IndicatorChartProps {
   data: IndicatorPoint[]
   unit: string
+  title?: string
+  variant?: "card" | "stage"
+  className?: string
+  heightClassName?: string
 }
 
 const longMonthFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -73,7 +78,14 @@ function formatPeriod(period: string, mode: "short" | "long") {
   return formatted.replace(".", "")
 }
 
-export function IndicatorChart({ data, unit }: IndicatorChartProps) {
+export function IndicatorChart({
+  data,
+  unit,
+  title = "Evolución",
+  variant = "card",
+  className,
+  heightClassName,
+}: IndicatorChartProps) {
   const gradientId = useId().replace(/:/g, "")
   const formatTooltipValue = (value: number) => value.toFixed(2)
   const tickPeriods = data
@@ -85,67 +97,74 @@ export function IndicatorChart({ data, unit }: IndicatorChartProps) {
     tickPeriods.push(lastPeriod)
   }
 
-  return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="text-lg">Evolución</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[250px] w-full md:h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={data}
-              margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="currentColor" stopOpacity={0.28} />
-                  <stop offset="95%" stopColor="currentColor" stopOpacity={0.04} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.08} />
-              <XAxis
-                dataKey="period"
-                ticks={tickPeriods}
-                tickLine={false}
-                axisLine={false}
-                minTickGap={24}
-                tickMargin={10}
-                tick={{ fontSize: 12, fill: "currentColor" }}
-                tickFormatter={(value: string) => formatPeriod(value, "short")}
-              />
-              <YAxis
-                domain={["auto", "auto"]}
-                tickLine={false}
-                axisLine={false}
-                width={72}
-                tick={{ fontSize: 12, fill: "currentColor" }}
-                tickFormatter={(value: number) => numberFormatter.format(value)}
-              />
-              <Tooltip
-                cursor={{ stroke: "currentColor", strokeOpacity: 0.16 }}
-                content={({ active, label, payload }) => {
-                  if (!active || !payload?.length) return null
+  const chart = (
+    <div className={cn("h-[250px] w-full md:h-[350px]", heightClassName)}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={data}
+          margin={variant === "stage" ? { top: 16, right: 16, left: -8, bottom: 4 } : { top: 8, right: 8, left: -16, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="currentColor" stopOpacity={variant === "stage" ? 0.36 : 0.28} />
+              <stop offset="95%" stopColor="currentColor" stopOpacity={variant === "stage" ? 0.06 : 0.04} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={variant === "stage" ? 0.12 : 0.08} />
+          <XAxis
+            dataKey="period"
+            ticks={tickPeriods}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={24}
+            tickMargin={10}
+            tick={{ fontSize: 12, fill: "currentColor" }}
+            tickFormatter={(value: string) => formatPeriod(value, "short")}
+          />
+          <YAxis
+            domain={["auto", "auto"]}
+            tickLine={false}
+            axisLine={false}
+            width={variant === "stage" ? 82 : 72}
+            tick={{ fontSize: 12, fill: "currentColor" }}
+            tickFormatter={(value: number) => numberFormatter.format(value)}
+          />
+          <Tooltip
+            cursor={{ stroke: "currentColor", strokeOpacity: 0.16 }}
+            content={({ active, label, payload }) => {
+              if (!active || !payload?.length) return null
 
-                  return (
-                    <div className="rounded-lg border border-border bg-background px-3 py-2 text-xs shadow-sm">
-                      {`${formatPeriod(String(label), "long")} · ${formatTooltipValue(Number(payload[0].value))} ${unit}`}
-                    </div>
-                  )
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="currentColor"
-                strokeWidth={2}
-                fill={`url(#${gradientId})`}
-                className="text-foreground"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
+              return (
+                <div className="rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground shadow-sm">
+                  {`${formatPeriod(String(label), "long")} · ${formatTooltipValue(Number(payload[0].value))} ${unit}`}
+                </div>
+              )
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke="currentColor"
+            strokeWidth={variant === "stage" ? 2.5 : 2}
+            fill={`url(#${gradientId})`}
+            className={variant === "stage" ? "text-white" : "text-foreground"}
+            animationDuration={1100}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+
+  if (variant === "stage") {
+    return <div className={cn("w-full", className)}>{chart}</div>
+  }
+
+  return (
+    <Card className={cn("mb-6", className)}>
+      <CardHeader>
+        <CardTitle className="text-lg">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>{chart}</CardContent>
     </Card>
   )
 }
