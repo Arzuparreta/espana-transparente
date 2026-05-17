@@ -111,12 +111,8 @@ export default async function HomePage() {
                 .map((s: string) => s.trim())
                 .reverse()
                 .join(" ")
-              const card = (
-                <div
-                  key={m.id as string}
-                  className="rounded-xl border bg-card/80 p-4"
-                  style={{ borderColor: `${color}28` }}
-                >
+              const cardContent = (
+                <>
                   <p className="text-xs text-muted-foreground line-clamp-1">
                     {m.organization_name as string}
                   </p>
@@ -127,14 +123,21 @@ export default async function HomePage() {
                       color={m.party_color as string | undefined}
                     />
                   </div>
-                </div>
+                </>
               )
               return m.politician_id ? (
-                <EntityLink key={m.id as string} kind="politician" id={m.politician_id as string}>
-                  {card}
-                </EntityLink>
+                <div key={m.id as string} className="relative rounded-xl border bg-card/80 p-4" style={{ borderColor: `${color}28` }}>
+                  {cardContent}
+                  <ResponsiveLink
+                    href={`/diputados/${m.politician_id as string}`}
+                    className="absolute inset-0 rounded-xl"
+                    aria-label={nameFormatted}
+                  />
+                </div>
               ) : (
-                <div key={m.id as string}>{card}</div>
+                <div key={m.id as string} className="rounded-xl border bg-card/80 p-4" style={{ borderColor: `${color}28` }}>
+                  {cardContent}
+                </div>
               )
             })}
           </div>

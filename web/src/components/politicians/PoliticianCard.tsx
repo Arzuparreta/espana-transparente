@@ -1,7 +1,7 @@
+import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getResponsivePhoto } from "@/lib/photos"
 import type { PoliticianWithMemberships } from "@/types"
 
@@ -16,7 +16,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
   const photo = getResponsivePhoto(politician.photo_url, politician.photo_variants)
 
   return (
-    <ResponsiveLink href={`/diputados/${politician.id}`}>
+    <div className="relative">
       <Card className="h-full">
         <CardHeader className="space-y-3">
           <div className="flex items-start gap-3">
@@ -52,6 +52,12 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
           ) : null}
         </CardHeader>
       </Card>
-    </ResponsiveLink>
+      <Link
+        href={`/diputados/${politician.id}`}
+        className="absolute inset-0 rounded-xl"
+        aria-label={politician.full_name}
+        prefetch={false}
+      />
+    </div>
   )
 }
