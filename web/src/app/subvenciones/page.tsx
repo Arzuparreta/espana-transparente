@@ -3,7 +3,7 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
-import { PAGE_SIZE_SUBSIDIES, getMoneyDatasetSummary, getSubvencionPage, getSubvencionPageFiltered, parsePage } from "@/lib/data"
+import { PAGE_SIZE, getMoneyDatasetSummary, getSubvencionPage, getSubvencionPageFiltered, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -71,7 +71,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
         subsidies={subsidies}
         page={page}
         total={total}
-        totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE_SUBSIDIES))}
+        totalPages={Math.max(1, Math.ceil(total / PAGE_SIZE.subsidies))}
       />
 
       <InfoPanel title="Fuente">

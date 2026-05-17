@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { EmptyState } from "@/components/domain/EmptyState"
+import { EntityLink } from "@/components/domain/EntityLink"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -77,7 +78,10 @@ export default async function PartyPage({ params }: PageProps) {
           votaciones: (
             <div className="space-y-2">
               {votingSessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sin votaciones registradas.</p>
+                <EmptyState
+                  title="Sin votaciones"
+                  description="No hay sesiones registradas para este grupo en la muestra actual."
+                />
               ) : (
                 votingSessions.map((s) => {
                   const total = Object.values(s.partyVotes).reduce((a, b) => a + b, 0)
@@ -87,9 +91,10 @@ export default async function PartyPage({ params }: PageProps) {
                   const dateStr = new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
 
                   return (
-                    <Link
+                    <EntityLink
                       key={s.id}
-                      href={`/votaciones/${s.id}`}
+                      kind="voting-session"
+                      id={s.id}
                       className="flex min-w-0 items-start justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
                     >
                       <div className="min-w-0">
@@ -112,7 +117,7 @@ export default async function PartyPage({ params }: PageProps) {
                           </p>
                         )}
                       </div>
-                    </Link>
+                    </EntityLink>
                   )
                 })
               )}

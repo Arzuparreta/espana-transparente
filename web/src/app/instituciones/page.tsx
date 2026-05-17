@@ -1,9 +1,10 @@
-import Link from "next/link"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getInstitucionesActuales, getPartyAcronymMap, type InstitucionMember } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -88,12 +89,12 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
         />
         <div className="flex shrink-0 items-center gap-2">
           {member.has_revolving_door && (
-            <Link
+            <ResponsiveLink
               href="/puertas-giratorias"
               className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
             >
               Puerta giratoria →
-            </Link>
+            </ResponsiveLink>
           )}
           {member.source_url && (
             <a
@@ -184,9 +185,10 @@ export default async function InstitucionesPage() {
       })}
 
       {members.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          Sin datos disponibles. El ETL aún no ha cargado el YAML de nombramientos.
-        </p>
+        <EmptyState
+          title="Sin datos"
+          description="El ETL aún no ha cargado el YAML de nombramientos."
+        />
       )}
 
       <InfoPanel title="Fuente y metodología">

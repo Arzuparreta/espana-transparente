@@ -43,6 +43,9 @@ export const PAGE_SIZE = {
   votingSessions: 30,
   contracts: 50,
   deputyVotes: 30,
+  subsidies: 50,
+  euFunds: 50,
+  organizations: 50,
 }
 
 export function parsePage(value: string | string[] | undefined) {
@@ -434,8 +437,6 @@ export const getIndicatorPoints = unstable_cache(
   { revalidate: HOUR }
 )
 
-export const PAGE_SIZE_SUBSIDIES = 50
-
 type Responsibility = {
   person_name: string | null
   politician_id: string | null
@@ -494,8 +495,8 @@ type UnresolvedMoneyExampleRow = {
 
 export const getSubvencionPage = unstable_cache(
   async (page: number, nivel1: string) => {
-    const from = (page - 1) * PAGE_SIZE_SUBSIDIES
-    const to = from + PAGE_SIZE_SUBSIDIES - 1
+    const from = (page - 1) * PAGE_SIZE.subsidies
+    const to = from + PAGE_SIZE.subsidies - 1
 
     let query = supabase
       .from("subsidies")
@@ -1048,8 +1049,6 @@ export interface SearchResult {
   url: string
 }
 
-export const PAGE_SIZE_EU_FUNDS = 50
-
 export interface EuFundRow {
   id: string
   label: string
@@ -1069,8 +1068,8 @@ export interface EuFundsSummary {
 
 export const getEuFundsPage = unstable_cache(
   async (page: number) => {
-    const from = (page - 1) * PAGE_SIZE_EU_FUNDS
-    const to = from + PAGE_SIZE_EU_FUNDS - 1
+    const from = (page - 1) * PAGE_SIZE.euFunds
+    const to = from + PAGE_SIZE.euFunds - 1
     const { data, count } = await supabase
       .from("eu_funds")
       .select("id, label, eu_budget, total_budget, cofinancing_rate, number_projects, wikidata_link", {
@@ -1260,8 +1259,8 @@ export const getContractPageFiltered = unstable_cache(
 // ME-6: subsidy page with optional ministry filter
 export const getSubvencionPageFiltered = unstable_cache(
   async (page: number, nivel1: string, ministry: string | null) => {
-    const from = (page - 1) * PAGE_SIZE_SUBSIDIES
-    const to = from + PAGE_SIZE_SUBSIDIES - 1
+    const from = (page - 1) * PAGE_SIZE.subsidies
+    const to = from + PAGE_SIZE.subsidies - 1
     let query = supabase
       .from("subsidies")
       .select(

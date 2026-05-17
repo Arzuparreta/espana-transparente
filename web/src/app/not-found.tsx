@@ -1,7 +1,7 @@
-import Link from "next/link"
 import type { Metadata } from "next"
 import { buttonVariants } from "@/components/ui/button"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 
 export const metadata: Metadata = {
   title: "Página no encontrada",
@@ -16,12 +16,12 @@ export default function NotFound() {
       />
       <div className="rounded-xl border border-border/80 bg-card/80 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/" className={buttonVariants({ variant: "default" })}>
+          <ResponsiveLink href="/" className={buttonVariants({ variant: "default" })}>
             Volver al inicio
-          </Link>
-          <Link href="/buscar" className={buttonVariants({ variant: "outline" })}>
+          </ResponsiveLink>
+          <ResponsiveLink href="/buscar" className={buttonVariants({ variant: "outline" })}>
             Buscar
-          </Link>
+          </ResponsiveLink>
         </div>
       </div>
     </div>

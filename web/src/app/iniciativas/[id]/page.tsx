@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { EmptyState } from "@/components/domain/EmptyState"
+import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
-import { InfoPanel } from "@/components/domain/InfoPanel"
+import { getVoteColor } from "@/lib/domain-style"
 import { getInitiativeDetail } from "@/lib/data"
 
 export const revalidate = 3600
@@ -38,9 +39,9 @@ function VoteBar({ yes, no, abs, absent }: { yes: number; no: number; abs: numbe
   if (total === 0) return null
   return (
     <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-      <div style={{ width: `${(yes / total) * 100}%`, backgroundColor: "#22c55e" }} />
-      <div style={{ width: `${(no / total) * 100}%`, backgroundColor: "#ef4444" }} />
-      <div style={{ width: `${(abs / total) * 100}%`, backgroundColor: "#f59e0b" }} />
+      <div style={{ width: `${(yes / total) * 100}%`, backgroundColor: getVoteColor("Sí") }} />
+      <div style={{ width: `${(no / total) * 100}%`, backgroundColor: getVoteColor("No") }} />
+      <div style={{ width: `${(abs / total) * 100}%`, backgroundColor: getVoteColor("Abstención") }} />
     </div>
   )
 }
@@ -119,9 +120,10 @@ export default async function IniciativaPage({ params }: PageProps) {
               : ""
 
             return (
-              <Link
+              <EntityLink
                 key={s.id as string}
-                href={`/votaciones/${s.id}`}
+                kind="voting-session"
+                id={s.id as string}
                 className="block rounded-xl border border-border/60 bg-card/80 px-4 py-4 transition-colors hover:border-border hover:bg-card"
               >
                 <p className="text-sm font-medium leading-snug">{s.title as string}</p>
@@ -139,16 +141,17 @@ export default async function IniciativaPage({ params }: PageProps) {
                     )}
                   </div>
                 </div>
-              </Link>
+              </EntityLink>
             )
           })}
         </section>
       )}
 
       {sessions.length === 0 && (
-        <InfoPanel title="Sin votaciones vinculadas">
-          No se han registrado votaciones nominales vinculadas a esta iniciativa.
-        </InfoPanel>
+        <EmptyState
+          title="Sin votaciones vinculadas"
+          description="No se han registrado votaciones nominales vinculadas a esta iniciativa."
+        />
       )}
     </div>
   )

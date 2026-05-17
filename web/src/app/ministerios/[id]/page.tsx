@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMinistrioDetail, getPartyAcronymMap, type MinistrioContract } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -29,8 +29,9 @@ function formatAmount(eur: number): string {
 
 function ContractRow({ contract }: { contract: MinistrioContract }) {
   return (
-    <Link
-      href={`/contratos/${contract.id}`}
+    <EntityLink
+      kind="contract"
+      id={contract.id}
       className="flex min-w-0 items-start justify-between gap-4 border-t border-border/50 py-3 text-sm first:border-0 hover:bg-muted/40 -mx-4 px-4 transition-colors"
     >
       <div className="min-w-0">
@@ -49,7 +50,7 @@ function ContractRow({ contract }: { contract: MinistrioContract }) {
           </p>
         )}
       </div>
-    </Link>
+    </EntityLink>
   )
 }
 
@@ -130,12 +131,12 @@ export default async function MinistrioPage({ params }: PageProps) {
           </div>
           <p className="text-right text-xs text-muted-foreground">
             Mostrando los 20 contratos de mayor importe.{" "}
-            <Link
-              href={`/contratos?ministerio=${encodeURIComponent(member.organization_name)}`}
+            <ResponsiveLink
+              href={`/contratos?ministry=${encodeURIComponent(member.organization_name)}`}
               className="underline underline-offset-2"
             >
               Ver todos →
-            </Link>
+            </ResponsiveLink>
           </p>
         </section>
       )}

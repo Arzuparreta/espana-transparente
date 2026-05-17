@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import type { SearchResult } from "@/lib/data"
 import { EmptyState } from "@/components/domain/EmptyState"
 
@@ -60,7 +60,7 @@ export function SearchResults({ query, results }: Props) {
           <ul className="space-y-1">
             {byType.get(type)!.map((result) => (
               <li key={`${result.entity_type}-${result.id}`}>
-                <Link
+                <ResponsiveLink
                   href={result.url}
                   className="flex min-w-0 items-baseline justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
                 >
@@ -68,7 +68,7 @@ export function SearchResults({ query, results }: Props) {
                   {result.subtitle ? (
                     <span className="shrink-0 text-xs text-muted-foreground">{result.subtitle}</span>
                   ) : null}
-                </Link>
+                </ResponsiveLink>
               </li>
             ))}
           </ul>

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { getContractDetail } from "@/lib/data"
@@ -76,12 +76,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
           {contract.awarding_body && (
             <Row label="Órgano convocante">
               {contract.awarding_body_organization_id ? (
-                <Link
-                  href={`/organizaciones/${contract.awarding_body_organization_id}`}
+                <EntityLink
+                  kind="organization"
+                  id={contract.awarding_body_organization_id}
                   className="underline-offset-2 hover:underline"
                 >
                   {contract.awarding_body}
-                </Link>
+                </EntityLink>
               ) : (
                 contract.awarding_body
               )}
@@ -117,12 +118,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
           <div className="flex min-w-0 items-start justify-between gap-4">
             <div className="min-w-0">
               {responsible.politician_id ? (
-                <Link
-                  href={`/diputados/${responsible.politician_id}`}
+                <EntityLink
+                  kind="politician"
+                  id={responsible.politician_id}
                   className="font-semibold underline-offset-2 hover:underline"
                 >
                   {responsible.person_name}
-                </Link>
+                </EntityLink>
               ) : (
                 <p className="font-semibold">{responsible.person_name}</p>
               )}

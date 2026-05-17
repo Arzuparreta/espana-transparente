@@ -1,9 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect } from "react"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 
 export default function GlobalError({
   error,
@@ -25,9 +25,9 @@ export default function GlobalError({
       <div className="rounded-xl border border-border/80 bg-card/80 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={reset}>Reintentar</Button>
-          <Link href="/" className={buttonVariants({ variant: "outline" })}>
+          <ResponsiveLink href="/" className={buttonVariants({ variant: "outline" })}>
             Volver al inicio
-          </Link>
+          </ResponsiveLink>
           {error.digest ? (
             <code className="rounded bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">
               ref: {error.digest}

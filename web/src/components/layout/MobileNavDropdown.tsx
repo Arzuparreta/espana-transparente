@@ -4,52 +4,10 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { GITHUB_URL } from "@/lib/brand"
+import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 
-interface NavGroup {
-  label: string
-  items: { href: string; label: string }[]
-}
-
-const navGroups: NavGroup[] = [
-  {
-    label: "Personas",
-    items: [
-      { href: "/diputados", label: "Diputados" },
-      { href: "/senado", label: "Senado" },
-      { href: "/partidos", label: "Partidos" },
-      { href: "/gobierno", label: "Gobierno" },
-      { href: "/instituciones", label: "Instituciones" },
-      { href: "/votaciones", label: "Votaciones" },
-    ],
-  },
-  {
-    label: "Dinero público",
-    items: [
-      { href: "/presupuestos", label: "Presupuestos" },
-      { href: "/contratos", label: "Contratos públicos" },
-      { href: "/subvenciones", label: "Subvenciones" },
-      { href: "/fondos-ue", label: "Fondos europeos" },
-      { href: "/organizaciones", label: "Organizaciones" },
-    ],
-  },
-  {
-    label: "Contexto",
-    items: [
-      { href: "/indicadores", label: "Indicadores económicos" },
-      { href: "/puertas-giratorias", label: "Puertas giratorias" },
-    ],
-  },
-  {
-    label: "Más",
-    items: [
-      { href: "/buscar", label: "Búsqueda" },
-      { href: "/estado-datos", label: "Estado de los datos" },
-      { href: GITHUB_URL, label: "GitHub" },
-    ],
-  },
-]
+const navGroups = [...PRIMARY_NAV, SECONDARY_NAV]
 
 export function MobileNavDropdown() {
   const [isOpen, setIsOpen] = useState(false)
@@ -123,7 +81,7 @@ export function MobileNavDropdown() {
                               : "text-muted-foreground active:text-foreground"
                           )}
                         >
-                          {item.label}
+                          {item.longLabel ?? item.label}
                         </ResponsiveLink>
                       )
                     })}

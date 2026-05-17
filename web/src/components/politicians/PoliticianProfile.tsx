@@ -1,14 +1,17 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { AnnotationPanel } from "@/components/annotations/AnnotationPanel"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionTabs } from "@/components/domain/SectionTabs"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { VoteBadge } from "@/components/domain/VoteBadge"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getVoteColor } from "@/lib/domain-style"
 import { getResponsivePhoto } from "@/lib/photos"
 import { EconomicDeclarationList } from "@/components/politicians/EconomicDeclaration"
@@ -101,6 +104,18 @@ export function PoliticianProfile({
   govPosition,
   ministryContracts = [],
 }: Props) {
+  const searchParams = useSearchParams()
+
+  function tabHref(updates: Record<string, string | null>) {
+    const params = new URLSearchParams(searchParams.toString())
+    for (const [k, v] of Object.entries(updates)) {
+      if (v === null) params.delete(k)
+      else params.set(k, v)
+    }
+    const query = params.toString()
+    return query ? `?${query}` : "?"
+  }
+
   const fullName = String(p.full_name || "")
   const photoUrl = p.photo_url as string | undefined
   const photoVariants = (p.photo_variants as Record<string, string> | undefined) ?? undefined
@@ -464,11 +479,10 @@ export function PoliticianProfile({
             {active === "votes" ? (
               <div className="space-y-3">
                 {v.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
-                      No hay votaciones registradas.
-                    </CardContent>
-                  </Card>
+                  <EmptyState
+                    title="Sin votaciones registradas"
+                    description="Aún no hay votos individuales capturados para esta persona."
+                  />
                 ) : (
                   v.map((vote: Record<string, unknown>, index: number) => {
                     const session = vote.voting_sessions as Record<string, string> | undefined
@@ -521,12 +535,13 @@ export function PoliticianProfile({
                 {totalVotes !== null && totalVotes > votePageSize && (
                   <div className="flex items-center justify-between pt-2 text-sm">
                     {votePage > 1 ? (
-                      <a
-                        href={`?page=${votePage - 1}#votos`}
+                      <ResponsiveLink
+                        href={tabHref({ tab: "votes", page: String(votePage - 1) })}
+                        scroll={false}
                         className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                       >
                         ← Anteriores
-                      </a>
+                      </ResponsiveLink>
                     ) : (
                       <span />
                     )}
@@ -534,12 +549,13 @@ export function PoliticianProfile({
                       {(votePage - 1) * votePageSize + 1}–{Math.min(votePage * votePageSize, totalVotes)} de {totalVotes}
                     </span>
                     {votePage * votePageSize < totalVotes ? (
-                      <a
-                        href={`?page=${votePage + 1}#votos`}
+                      <ResponsiveLink
+                        href={tabHref({ tab: "votes", page: String(votePage + 1) })}
+                        scroll={false}
                         className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
                       >
                         Siguientes →
-                      </a>
+                      </ResponsiveLink>
                     ) : (
                       <span />
                     )}
@@ -551,7 +567,10 @@ export function PoliticianProfile({
             {active === "asistencia" ? (
               <div className="space-y-3">
                 {attendanceSessions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sin datos de asistencia registrados.</p>
+                  <EmptyState
+                    title="Sin datos de asistencia"
+                    description="No hay sesiones nominales registradas para esta persona en la legislatura activa."
+                  />
                 ) : (
                   <>
                     <div className="overflow-hidden rounded-xl border border-border/70 bg-card/80">
@@ -594,17 +613,25 @@ export function PoliticianProfile({
                     {attendanceTotal > attendancePageSize && (
                       <div className="flex items-center justify-between text-sm">
                         {attendancePage > 1 ? (
-                          <a href={`?apage=${attendancePage - 1}#asistencia`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                          <ResponsiveLink
+                            href={tabHref({ tab: "asistencia", apage: String(attendancePage - 1) })}
+                            scroll={false}
+                            className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                          >
                             ← Anteriores
-                          </a>
+                          </ResponsiveLink>
                         ) : <span />}
                         <span className="text-xs text-muted-foreground">
                           {(attendancePage - 1) * attendancePageSize + 1}–{Math.min(attendancePage * attendancePageSize, attendanceTotal)} de {attendanceTotal}
                         </span>
                         {attendancePage * attendancePageSize < attendanceTotal ? (
-                          <a href={`?apage=${attendancePage + 1}#asistencia`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                          <ResponsiveLink
+                            href={tabHref({ tab: "asistencia", apage: String(attendancePage + 1) })}
+                            scroll={false}
+                            className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                          >
                             Siguientes →
-                          </a>
+                          </ResponsiveLink>
                         ) : <span />}
                       </div>
                     )}

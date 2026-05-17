@@ -1,9 +1,10 @@
-import Link from "next/link"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { Pagination } from "@/components/domain/Pagination"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import {
-  PAGE_SIZE_EU_FUNDS,
+  PAGE_SIZE,
   getEuFundsPage,
   getEuFundsSummary,
   parsePage,
@@ -75,42 +76,6 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
   )
 }
 
-function Pagination({
-  page,
-  totalPages,
-}: {
-  page: number
-  totalPages: number
-}) {
-  if (totalPages <= 1) return null
-  const prev = page > 1 ? page - 1 : null
-  const next = page < totalPages ? page + 1 : null
-  const linkClass =
-    "rounded-lg border border-border/60 bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-
-  return (
-    <div className="flex items-center justify-between gap-4">
-      {prev ? (
-        <Link href={`?page=${prev}`} className={linkClass}>
-          ← Anterior
-        </Link>
-      ) : (
-        <span />
-      )}
-      <span className="text-xs text-muted-foreground">
-        Página {page} de {totalPages.toLocaleString("es-ES")}
-      </span>
-      {next ? (
-        <Link href={`?page=${next}`} className={linkClass}>
-          Siguiente →
-        </Link>
-      ) : (
-        <span />
-      )}
-    </div>
-  )
-}
-
 export default async function FondosUEPage({ searchParams }: PageProps) {
   const page = parsePage(searchParams?.page)
   const [{ funds, total }, summary] = await Promise.all([
@@ -118,8 +83,8 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
     getEuFundsSummary(),
   ])
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE_EU_FUNDS))
-  const offset = (page - 1) * PAGE_SIZE_EU_FUNDS
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.euFunds))
+  const offset = (page - 1) * PAGE_SIZE.euFunds
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -154,9 +119,10 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
       )}
 
       {funds.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Sin datos. El ETL de Kohesio aún no ha ejecutado.
-        </p>
+        <EmptyState
+          title="Sin datos"
+          description="El ETL de Kohesio aún no ha ejecutado."
+        />
       ) : (
         <div className="space-y-2">
           {funds.map((fund, i) => (
@@ -165,7 +131,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} />
+      <Pagination page={page} totalPages={totalPages} hrefForPage={(p) => `?page=${p}`} />
 
       <InfoPanel title="Fuente y metodología">
         Datos extraídos de{" "}

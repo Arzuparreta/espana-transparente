@@ -5,41 +5,11 @@ import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
 import { BRAND_NAME } from "@/lib/brand"
+import { PRIMARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 import { Menu } from "@base-ui/react/menu"
 import { Menubar } from "@base-ui/react/menubar"
 import { usePathname } from "next/navigation"
-
-const navGroups = [
-  {
-    label: "Personas",
-    items: [
-      { href: "/diputados", label: "Diputados" },
-      { href: "/senado", label: "Senado" },
-      { href: "/partidos", label: "Partidos" },
-      { href: "/gobierno", label: "Gobierno" },
-      { href: "/instituciones", label: "Instituciones" },
-      { href: "/votaciones", label: "Votaciones" },
-    ],
-  },
-  {
-    label: "Dinero público",
-    items: [
-      { href: "/presupuestos", label: "Presupuestos" },
-      { href: "/contratos", label: "Contratos" },
-      { href: "/subvenciones", label: "Subvenciones" },
-      { href: "/fondos-ue", label: "Fondos UE" },
-      { href: "/organizaciones", label: "Organizaciones" },
-    ],
-  },
-  {
-    label: "Contexto",
-    items: [
-      { href: "/indicadores", label: "Indicadores" },
-      { href: "/puertas-giratorias", label: "Puertas giratorias" },
-    ],
-  },
-] as const
 
 const triggerBase =
   "relative inline-flex h-9 shrink-0 items-center gap-1 rounded-md px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground"
@@ -80,7 +50,7 @@ export function Header() {
         </ResponsiveLink>
 
         <Menubar className="hidden min-w-0 flex-1 items-center gap-1 lg:flex" modal={false}>
-          {navGroups.map((group) => {
+          {PRIMARY_NAV.map((group) => {
             const active = isGroupActive(group.items)
             return (
               <Menu.Root key={group.label} modal={false}>

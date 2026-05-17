@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { cn } from "@/lib/utils"
 
 interface SearchTriggerProps {
@@ -25,7 +26,7 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
 
   if (variant === "pill") {
     return (
-      <a
+      <ResponsiveLink
         href="/buscar"
         aria-label="Buscar (⌘K)"
         title="Buscar (⌘K)"
@@ -42,12 +43,12 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
           <span className="text-[11px] leading-none">⌘</span>
           <span className="leading-none">K</span>
         </kbd>
-      </a>
+      </ResponsiveLink>
     )
   }
 
   return (
-    <a
+    <ResponsiveLink
       href="/buscar"
       aria-label="Buscar (⌘K)"
       title="Buscar (⌘K)"
@@ -59,6 +60,6 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden>
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
       </svg>
-    </a>
+    </ResponsiveLink>
   )
 }

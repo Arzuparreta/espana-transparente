@@ -1,6 +1,7 @@
 "use client"
 
 import { EmptyState } from "@/components/domain/EmptyState"
+import { FilterChip } from "@/components/domain/FilterChip"
 import { LinkTabs } from "@/components/domain/LinkTabs"
 import { Pagination } from "@/components/domain/Pagination"
 import { Card, CardContent } from "@/components/ui/card"
@@ -181,16 +182,11 @@ export function SubvencionesClient({
       />
 
       {activeMinistry && (
-        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm">
-          <span className="text-muted-foreground">Ministerio:</span>
-          <span className="font-medium">{activeMinistry}</span>
-          <a
-            href={subvencionesHref(activeNivel)}
-            className="ml-auto text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-          >
-            Quitar filtro ×
-          </a>
-        </div>
+        <FilterChip
+          label="Ministerio"
+          value={activeMinistry}
+          clearHref={subvencionesHref(activeNivel)}
+        />
       )}
 
       <div className="space-y-2">

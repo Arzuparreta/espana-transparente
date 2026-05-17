@@ -1,12 +1,12 @@
 import type { PoliticianWithMemberships } from "@/types"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { LogoHero } from "@/components/layout/LogoHero"
+import { EntityLink } from "@/components/domain/EntityLink"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getHomeData } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
-import Link from "next/link"
 
 export const revalidate = 3600
 
@@ -100,9 +100,9 @@ export default async function HomePage() {
                 </div>
               )
               return m.politician_id ? (
-                <Link key={m.id as string} href={`/diputados/${m.politician_id}`}>
+                <EntityLink key={m.id as string} kind="politician" id={m.politician_id as string}>
                   {card}
-                </Link>
+                </EntityLink>
               ) : (
                 <div key={m.id as string}>{card}</div>
               )
@@ -118,8 +118,9 @@ export default async function HomePage() {
           <ul className="space-y-2">
             {recentSessions.map((s) => (
               <li key={s.id as string}>
-                <Link
-                  href={`/votaciones/${s.id}`}
+                <EntityLink
+                  kind="voting-session"
+                  id={s.id as string}
                   className="flex min-w-0 items-baseline justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
                 >
                   <span className="min-w-0 truncate font-medium">{s.title as string}</span>
@@ -134,7 +135,7 @@ export default async function HomePage() {
                       month: "short",
                     })}
                   </span>
-                </Link>
+                </EntityLink>
               </li>
             ))}
           </ul>
@@ -157,7 +158,7 @@ export default async function HomePage() {
           <SectionHeader title="Puertas giratorias verificadas" href="/puertas-giratorias" />
           <div className="grid gap-3 sm:grid-cols-2">
             {revolvingDoorCases.map((c) => (
-              <Link
+              <ResponsiveLink
                 key={c.id as string}
                 href={c.person_id ? `/diputados/${c.person_id as string}` : "/puertas-giratorias"}
                 className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border hover:bg-card"
@@ -169,7 +170,7 @@ export default async function HomePage() {
                 {c.sector && (
                   <p className="mt-1 text-xs text-muted-foreground">{c.sector as string}</p>
                 )}
-              </Link>
+              </ResponsiveLink>
             ))}
           </div>
         </section>
