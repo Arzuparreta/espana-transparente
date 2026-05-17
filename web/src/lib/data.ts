@@ -77,9 +77,14 @@ export const getHomeData = unstable_cache(
           "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
         )
         .eq("politician_memberships.is_active", true)
+        .eq("politician_memberships.chamber", "congress")
         .order("full_name")
         .limit(12),
-      supabase.from("politicians").select("*", { count: "exact", head: true }),
+      supabase
+        .from("politician_memberships")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true)
+        .eq("chamber", "congress"),
       supabase.from("parties").select("acronym, color, name").order("acronym"),
       supabase.from("contracts").select("*", { count: "exact", head: true }),
       supabase.from("subsidies").select("*", { count: "exact", head: true }),
@@ -164,6 +169,7 @@ export const getDeputyCards = unstable_cache(
         "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
       )
       .eq("politician_memberships.is_active", true)
+      .eq("politician_memberships.chamber", "congress")
       .order("full_name")
 
     return data ?? []
