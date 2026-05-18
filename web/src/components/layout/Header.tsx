@@ -35,11 +35,11 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="flex h-14 w-full items-center gap-4 px-4 sm:px-6 lg:gap-6">
+      <div className="relative flex h-14 w-full items-center px-4 sm:px-6">
         <ResponsiveLink
           href="/"
           prefetch
-          className="group flex min-w-0 shrink-0 items-center gap-2.5"
+          className="group absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
         >
           <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
             <LogoMark className="h-5 w-5" variant="inverse" />
