@@ -5,9 +5,8 @@ import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
-  getTopBudgetSectionAnchor,
+  getLatestInflationAnchor,
   getTopContractOfMonth,
-  getTopDivergenceSessionOfMonth,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -19,21 +18,6 @@ function formatAmount(n: number): string {
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(n)
-}
-
-function formatBudgetAmount(eur: number): string {
-  if (eur >= 1_000_000_000) {
-    return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-  }
-  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
-  return formatAmount(eur)
-}
-
-function budgetAnchorYearLabel(year: number, statusLabel: string | null): string {
-  if (statusLabel && statusLabel !== "Aprobado") {
-    return `${year} · ${statusLabel}`
-  }
-  return String(year)
 }
 
 function formatDate(d: string): string {
@@ -49,6 +33,23 @@ function windowLabel(days: 30 | 60 | 90 | null): string {
   if (days === 60) return "últimos 60 días"
   if (days === 90) return "últimos 90 días"
   return "histórico"
+}
+
+function formatPercent(value: number): string {
+  const sign = value > 0 ? "+" : ""
+  return `${sign}${value.toLocaleString("es-ES", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}%`
+}
+
+function formatPeriod(period: string): string {
+  const [year, month] = period.split("-")
+  const date = new Date(Number(year), Number(month) - 1, 1)
+  return date.toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric",
+  })
 }
 
 function SectionHeader({
@@ -82,17 +83,12 @@ export default async function HomePage() {
   const [
     { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
     topContract,
-    topDivergenceSession,
-    topBudgetSection,
+    inflation,
   ] = await Promise.all([
     getHomeData(),
     getTopContractOfMonth(),
-    getTopDivergenceSessionOfMonth(),
-    getTopBudgetSectionAnchor(),
+    getLatestInflationAnchor(),
   ])
-
-  const showDivergenceAnchor =
-    topDivergenceSession != null && (topDivergenceSession.divergence_count ?? 0) > 0
 
   return (
     <div className="space-y-10 sm:space-y-14">
@@ -133,61 +129,26 @@ export default async function HomePage() {
           />
         )}
 
-        {showDivergenceAnchor && topDivergenceSession ? (
+        {inflation ? (
           <AnchorCard
-            label={`Mayor divergencia · ${
-              topDivergenceSession.isRecent ? "últimos 30 días" : "histórico"
-            }`}
-            value={
-              <>
-                {topDivergenceSession.divergence_count}{" "}
-                <span className="text-lg font-normal text-muted-foreground">
-                  diputados
-                </span>
-              </>
-            }
+            label={`IPC mensual · ${formatPeriod(inflation.period)}`}
+            value={formatPercent(inflation.monthlyValue)}
             description={
               <>
                 <span className="line-clamp-2 font-medium text-foreground">
-                  votaron diferente a su grupo en
+                  Variación mensual del índice general de precios.
                 </span>
-                <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">
-                  {topDivergenceSession.title}
-                  {topDivergenceSession.date
-                    ? ` · ${formatDate(topDivergenceSession.date)}`
-                    : ""}
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {inflation.annualValue != null
+                    ? `Variación anual: ${formatPercent(inflation.annualValue)}`
+                    : "Serie mensual nacional"}
+                  {inflation.dataType ? ` · ${inflation.dataType}` : ""}
                 </span>
               </>
             }
-            href={`/votaciones/${topDivergenceSession.id}`}
-            linkLabel="Ver votación →"
-          />
-        ) : topBudgetSection ? (
-          <AnchorCard
-            label={`Mayor crédito PGE · ${budgetAnchorYearLabel(
-              topBudgetSection.year,
-              topBudgetSection.statusLabel
-            )}`}
-            value={formatBudgetAmount(topBudgetSection.total_credit_initial)}
-            description={
-              <>
-                <span className="line-clamp-2 font-medium text-foreground">
-                  {topBudgetSection.section_name}
-                </span>
-                {topBudgetSection.minister_name ? (
-                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
-                    Responsable: {topBudgetSection.minister_name}
-                  </span>
-                ) : topBudgetSection.ministry_normalized ? (
-                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
-                    {topBudgetSection.ministry_normalized}
-                  </span>
-                ) : null}
-              </>
-            }
-            source="Fuente: SEPG · datos Civio (PGE)."
-            href={`/presupuestos/${encodeURIComponent(topBudgetSection.section_code)}?year=${topBudgetSection.year}`}
-            linkLabel="Ver presupuesto →"
+            source="Fuente: INE, serie nacional del IPC."
+            href="/indicadores/IPC_VAR_MENSUAL"
+            linkLabel="Ver serie →"
           />
         ) : null}
       </div>

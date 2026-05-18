@@ -1,19 +1,25 @@
 [
   {
-    "COD": "IPC251852",
-    "Nombre": "Índice general",
+    "COD": "IPC290751",
+    "Nombre": "Nacional. Índice general. Índice. ",
     "Data": [
-      {"Anyo": 2025, "FK_Periodo": 1, "Valor": 113.5, "NombrePeriodo": "Enero"},
-      {"Anyo": 2025, "FK_Periodo": 2, "Valor": 113.9, "NombrePeriodo": "Febrero"},
-      {"Anyo": 2024, "FK_Periodo": 12, "Valor": 112.8, "NombrePeriodo": "Diciembre"}
+      {"Fecha": "2026-03-01T00:00:00.000+01:00", "T3_TipoDato": "Definitivo", "T3_Periodo": "M03", "Anyo": 2026, "Valor": 102.474},
+      {"Fecha": "2026-04-01T00:00:00.000+02:00", "T3_TipoDato": "Definitivo", "T3_Periodo": "M04", "Anyo": 2026, "Valor": 102.883}
     ]
   },
   {
-    "COD": "IPC251855",
-    "Nombre": "Variación mensual",
+    "COD": "IPC290752",
+    "Nombre": "Nacional. Índice general. Variación mensual. ",
     "Data": [
-      {"Anyo": 2025, "FK_Periodo": 1, "Valor": 0.4, "NombrePeriodo": "Enero"},
-      {"Anyo": 2025, "FK_Periodo": 2, "Valor": 0.3, "NombrePeriodo": "Febrero"}
+      {"Fecha": "2026-03-01T00:00:00.000+01:00", "T3_TipoDato": "Definitivo", "T3_Periodo": "M03", "Anyo": 2026, "Valor": 1.2},
+      {"Fecha": "2026-04-01T00:00:00.000+02:00", "T3_TipoDato": "Definitivo", "T3_Periodo": "M04", "Anyo": 2026, "Valor": 0.4}
+    ]
+  },
+  {
+    "COD": "IPC290750",
+    "Nombre": "Nacional. Índice general. Variación anual. ",
+    "Data": [
+      {"Fecha": "2026-04-01T00:00:00.000+02:00", "T3_TipoDato": "Definitivo", "T3_Periodo": "M04", "Anyo": 2026, "Valor": 3.2}
     ]
   }
 ]

@@ -235,6 +235,51 @@ export const getTopDivergenceSessionOfMonth = unstable_cache(
   { revalidate: HOUR }
 )
 
+export type InflationAnchor = {
+  period: string
+  monthlyValue: number
+  annualValue: number | null
+  dataType: string | null
+}
+
+export const getLatestInflationAnchor = unstable_cache(
+  async (): Promise<InflationAnchor | null> => {
+    const monthly = await supabase
+      .from("economic_indicators")
+      .select("period, value, raw_data")
+      .eq("indicator_code", "IPC_VAR_MENSUAL")
+      .order("period", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (monthly.data?.value == null || monthly.data.period == null) {
+      return null
+    }
+
+    const annual = await supabase
+      .from("economic_indicators")
+      .select("period, value")
+      .eq("indicator_code", "IPC_VAR_ANUAL")
+      .eq("period", monthly.data.period as string)
+      .limit(1)
+      .maybeSingle()
+
+    const rawData = monthly.data.raw_data as
+      | { point?: { T3_TipoDato?: string | null } }
+      | null
+      | undefined
+
+    return {
+      period: monthly.data.period as string,
+      monthlyValue: Number(monthly.data.value),
+      annualValue: annual.data?.value != null ? Number(annual.data.value) : null,
+      dataType: rawData?.point?.T3_TipoDato ?? null,
+    }
+  },
+  ["latest-inflation-anchor"],
+  { revalidate: HOUR }
+)
+
 export const getDeputyCards = unstable_cache(
   async () => {
     const { data } = await supabase
@@ -1548,4 +1593,3 @@ export const getPartyAcronymMap = unstable_cache(
   ["party-acronym-map"],
   { revalidate: HOUR * 24 }
 )
-

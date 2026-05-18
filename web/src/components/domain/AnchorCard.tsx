@@ -24,14 +24,14 @@ export function AnchorCard({
   return (
     <section
       className={cn(
-        "flex flex-col rounded-2xl border border-border/60 bg-card/60 px-6 py-7 sm:px-8 sm:py-8",
+        "flex min-h-[260px] flex-col rounded-2xl border border-border/70 bg-card/85 px-6 py-6 shadow-sm sm:px-7 sm:py-7",
         className
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <div className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-foreground sm:text-4xl">
+      <div className="mt-3 font-display text-3xl font-semibold tabular-nums tracking-[-0.045em] text-foreground sm:text-4xl">
         {value}
       </div>
       {description ? (
@@ -40,12 +40,12 @@ export function AnchorCard({
         </p>
       ) : null}
       {source ? (
-        <p className="mt-2 text-xs text-muted-foreground">{source}</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">{source}</p>
       ) : null}
       {href ? (
         <ResponsiveLink
           href={href}
-          className="mt-3 inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4 hover:text-foreground"
+          className="mt-auto inline-flex min-h-11 items-end pt-4 text-sm font-semibold underline underline-offset-4 hover:text-foreground"
         >
           {linkLabel}
         </ResponsiveLink>
