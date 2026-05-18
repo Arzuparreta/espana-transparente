@@ -57,7 +57,6 @@ export function parsePage(value: string | string[] | undefined) {
 export const getHomeData = unstable_cache(
   async () => {
     const currentBudgetYear = new Date().getFullYear()
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
     const [
       politicians,
@@ -70,9 +69,7 @@ export const getHomeData = unstable_cache(
       sessionCount,
       revolvingDoorCases,
       gobierno,
-      featuredContractRecent,
-      featuredSession,
-      featuredSubsidyRecent,
+      deudaPublica,
     ] = await Promise.all([
       supabase
         .from("politicians")
@@ -80,9 +77,14 @@ export const getHomeData = unstable_cache(
           "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
         )
         .eq("politician_memberships.is_active", true)
+        .eq("politician_memberships.chamber", "congress")
         .order("full_name")
         .limit(12),
-      supabase.from("politicians").select("*", { count: "exact", head: true }),
+      supabase
+        .from("politician_memberships")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true)
+        .eq("chamber", "congress"),
       supabase.from("parties").select("acronym, color, name").order("acronym"),
       supabase.from("contracts").select("*", { count: "exact", head: true }),
       supabase.from("subsidies").select("*", { count: "exact", head: true }),
@@ -106,27 +108,12 @@ export const getHomeData = unstable_cache(
         .select("id, person_name, organization_name, political_party, party_color, politician_id, position_type")
         .in("position_type", ["presidente_gobierno", "vicepresidente"])
         .limit(6),
-      // Tarjeta contrato: mayor importe últimos 30 días
+      // Deuda pública: dato más reciente
       supabase
-        .from("contracts")
-        .select("id, title, amount, awarding_body, contractor, date")
-        .gte("date", thirtyDaysAgo)
-        .order("amount", { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle(),
-      // Tarjeta votación: sesión con más divergencias (sin ventana temporal)
-      supabase
-        .from("v_voting_session_summary")
-        .select("id, title, date, divergence_count")
-        .order("divergence_count", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      // Tarjeta subvención: mayor importe últimos 30 días
-      supabase
-        .from("subsidies")
-        .select("id, beneficiario, importe, fecha_concesion, convocatoria")
-        .gte("fecha_concesion", thirtyDaysAgo)
-        .order("importe", { ascending: false, nullsFirst: false })
+        .from("economic_indicators")
+        .select("period, value, unit")
+        .eq("indicator_code", "DEUDA_PUBLICA")
+        .order("period", { ascending: false })
         .limit(1)
         .maybeSingle(),
     ])
@@ -140,30 +127,13 @@ export const getHomeData = unstable_cache(
         ? String(budgetSummaryRows.data[0].budget_type)
         : null
 
-    // Fallback a all-time si no hay datos recientes
-    const [featuredContractAllTime, featuredSubsidyAllTime] = await Promise.all([
-      featuredContractRecent.data
-        ? Promise.resolve({ data: null })
-        : supabase
-            .from("contracts")
-            .select("id, title, amount, awarding_body, contractor, date")
-            .order("amount", { ascending: false, nullsFirst: false })
-            .limit(1)
-            .maybeSingle(),
-      featuredSubsidyRecent.data
-        ? Promise.resolve({ data: null })
-        : supabase
-            .from("subsidies")
-            .select("id, beneficiario, importe, fecha_concesion, convocatoria")
-            .order("importe", { ascending: false, nullsFirst: false })
-            .limit(1)
-            .maybeSingle(),
-    ])
-
-    const featuredContract = featuredContractRecent.data ?? featuredContractAllTime.data
-    const featuredContractIsRecent = !!featuredContractRecent.data
-    const featuredSubsidy = featuredSubsidyRecent.data ?? featuredSubsidyAllTime.data
-    const featuredSubsidyIsRecent = !!featuredSubsidyRecent.data
+    const deudaRow = deudaPublica.data
+    const POBLACION_ESPANA = 47_400_000
+    const deudaPerCapita =
+      deudaRow?.value != null
+        ? Math.round((deudaRow.value as number) * 1_000_000 / POBLACION_ESPANA)
+        : null
+    const deudaYear = deudaRow?.period ? String(deudaRow.period).slice(0, 4) : null
 
     return {
       politicians: politicians.data ?? [],
@@ -183,11 +153,8 @@ export const getHomeData = unstable_cache(
       recentSessions: recentSessions.data ?? [],
       revolvingDoorCases: revolvingDoorCases.data ?? [],
       gobierno: gobierno.data ?? [],
-      featuredContract,
-      featuredContractIsRecent,
-      featuredSession: featuredSession.data ?? null,
-      featuredSubsidy,
-      featuredSubsidyIsRecent,
+      deudaPerCapita,
+      deudaYear,
     }
   },
   ["home-data", PHOTOS_CACHE_VERSION],
@@ -265,6 +232,51 @@ export const getTopDivergenceSessionOfMonth = unstable_cache(
       : null
   },
   ["top-divergence-session-of-month"],
+  { revalidate: HOUR }
+)
+
+export type InflationAnchor = {
+  period: string
+  monthlyValue: number
+  annualValue: number | null
+  dataType: string | null
+}
+
+export const getLatestInflationAnchor = unstable_cache(
+  async (): Promise<InflationAnchor | null> => {
+    const monthly = await supabase
+      .from("economic_indicators")
+      .select("period, value, raw_data")
+      .eq("indicator_code", "IPC_VAR_MENSUAL")
+      .order("period", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (monthly.data?.value == null || monthly.data.period == null) {
+      return null
+    }
+
+    const annual = await supabase
+      .from("economic_indicators")
+      .select("period, value")
+      .eq("indicator_code", "IPC_VAR_ANUAL")
+      .eq("period", monthly.data.period as string)
+      .limit(1)
+      .maybeSingle()
+
+    const rawData = monthly.data.raw_data as
+      | { point?: { T3_TipoDato?: string | null } }
+      | null
+      | undefined
+
+    return {
+      period: monthly.data.period as string,
+      monthlyValue: Number(monthly.data.value),
+      annualValue: annual.data?.value != null ? Number(annual.data.value) : null,
+      dataType: rawData?.point?.T3_TipoDato ?? null,
+    }
+  },
+  ["latest-inflation-anchor"],
   { revalidate: HOUR }
 )
 
@@ -1039,6 +1051,54 @@ export const getBudgetMinister = unstable_cache(
   { revalidate: HOUR }
 )
 
+export type TopBudgetSectionAncla = {
+  year: number
+  budget_type: string | null
+  section_code: string
+  section_name: string
+  ministry_normalized: string | null
+  total_credit_initial: number
+  minister_name: string | null
+  statusLabel: string | null
+}
+
+export const getTopBudgetSectionAnchor = unstable_cache(
+  async (): Promise<TopBudgetSectionAncla | null> => {
+    for (let i = BUDGET_YEARS.length - 1; i >= 0; i--) {
+      const year = BUDGET_YEARS[i]
+      const { data } = await supabase
+        .from("v_budget_summary")
+        .select(
+          "year, budget_type, section_code, section_name, ministry_normalized, total_credit_initial"
+        )
+        .eq("year", year)
+        .gt("total_credit_initial", 0)
+        .order("total_credit_initial", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!data?.total_credit_initial) continue
+
+      const minister = await getBudgetMinister(year, data.section_code as string)
+      const meta = getBudgetYearMeta(year)
+
+      return {
+        year,
+        budget_type: (data.budget_type as string | null) ?? null,
+        section_code: data.section_code as string,
+        section_name: data.section_name as string,
+        ministry_normalized: (data.ministry_normalized as string | null) ?? null,
+        total_credit_initial: data.total_credit_initial as number,
+        minister_name: (minister?.minister_name as string | null) ?? null,
+        statusLabel: meta?.label ?? null,
+      }
+    }
+    return null
+  },
+  ["top-budget-section-anchor"],
+  { revalidate: HOUR }
+)
+
 export const getMoneyDatasetSummary = unstable_cache(
   async (dataset: "contracts" | "subsidies") => {
     const { data } = await supabase
@@ -1533,4 +1593,3 @@ export const getPartyAcronymMap = unstable_cache(
   ["party-acronym-map"],
   { revalidate: HOUR * 24 }
 )
-

@@ -151,6 +151,7 @@ export function ContratosClient({
     <div className="space-y-6">
       <LinkTabs
         ariaLabel="Tipo de contrato"
+        scroll={false}
         tabs={TYPE_TABS.map((tab) => ({
           href: contractsHref(tab.value, 1, activeMinistry),
           label: tab.label,

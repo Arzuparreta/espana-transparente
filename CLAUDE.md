@@ -67,6 +67,9 @@ Pipelines are independent modules under `etl/src/`:
 - `photos/` — versioned politician photo pipeline with official Congreso portraits first and Wikidata as fallback; uploads immutable responsive variants to Supabase Storage.
 - `puertas_giratorias/` — 3-phase research pipeline (see below).
 - `presupuestos/` — placeholder for PGE budget ETL (Fase 2).
+- `senado/` — Senate scrapers (active senators + memberships, `chamber='senate'`). Same 1.5s rate-limit policy as Congreso.
+- `instituciones/` — institutional appointments (TC, CGPJ, RTVE, SEPI) loaded from `etl/data/instituciones_nombramientos.yml`; fuzzy-matches names to `politicians` (confidence ≥ 0.85).
+- `kohesio/` — EU fund beneficiaries for Spain from the Kohesio API (ESIF 2014-2027); the API only serves `offset=0`, so each run ingests up to ~30K records.
 - `common/` — shared `db.py`, `responsibility.py` (admin-level normalization & money traceability helpers), `organizations.py`, `etl_runs.py`, `utils.py`.
 
 The Congress portal (`congreso.es`) rate-limits aggressively and returns 403 after bursts. Scrapers use `curl` via `subprocess` with a `Mozilla/5.0` UA and a `REQUEST_DELAY = 1.5s`. `searchDiputados` is now the canonical source for active deputy identity and `codParlamentario`, but it is still served by the same rate-limited domain. **Do not lower the delay or parallelize Congress requests.** INE and `datos.gob.es` do not have this constraint.

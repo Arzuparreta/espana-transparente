@@ -76,6 +76,7 @@ export function PresupuestosClient({ year, rows }: PresupuestosClientProps) {
     <div className="space-y-6">
       <LinkTabs
         ariaLabel="Años presupuestarios"
+        scroll={false}
         tabs={BUDGET_YEARS.map((y) => ({
           href: budgetHref(y),
           label: String(y),

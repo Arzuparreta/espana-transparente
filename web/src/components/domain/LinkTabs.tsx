@@ -13,9 +13,11 @@ interface LinkTabsProps {
   tabs: LinkTab[]
   ariaLabel: string
   className?: string
+  /** Pass false to keep scroll position when navigating between tabs (default: true) */
+  scroll?: boolean
 }
 
-export function LinkTabs({ tabs, ariaLabel, className }: LinkTabsProps) {
+export function LinkTabs({ tabs, ariaLabel, className, scroll }: LinkTabsProps) {
   return (
     <nav aria-label={ariaLabel} className={cn("-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0", className)}>
       <div className="inline-flex min-w-full gap-2 border-b border-border/80 pb-1">
@@ -23,6 +25,7 @@ export function LinkTabs({ tabs, ariaLabel, className }: LinkTabsProps) {
           <ResponsiveLink
             key={`${tab.href}-${tab.label}`}
             href={tab.href}
+            scroll={scroll}
             aria-current={tab.active ? "page" : undefined}
             className={cn(
               "inline-flex min-h-11 shrink-0 items-center gap-2 rounded px-3 py-2 text-sm font-medium transition-colors",

@@ -5,8 +5,8 @@ import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
+  getLatestInflationAnchor,
   getTopContractOfMonth,
-  getTopDivergenceSessionOfMonth,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -33,6 +33,23 @@ function windowLabel(days: 30 | 60 | 90 | null): string {
   if (days === 60) return "últimos 60 días"
   if (days === 90) return "últimos 90 días"
   return "histórico"
+}
+
+function formatPercent(value: number): string {
+  const sign = value > 0 ? "+" : ""
+  return `${sign}${value.toLocaleString("es-ES", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}%`
+}
+
+function formatPeriod(period: string): string {
+  const [year, month] = period.split("-")
+  const date = new Date(Number(year), Number(month) - 1, 1)
+  return date.toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric",
+  })
 }
 
 function SectionHeader({
@@ -64,13 +81,13 @@ function SectionHeader({
 
 export default async function HomePage() {
   const [
-    { parties, contractCount, recentSessions, revolvingDoorCases, gobierno },
+    { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
     topContract,
-    topDivergenceSession,
+    inflation,
   ] = await Promise.all([
     getHomeData(),
     getTopContractOfMonth(),
-    getTopDivergenceSessionOfMonth(),
+    getLatestInflationAnchor(),
   ])
 
   return (
@@ -79,14 +96,14 @@ export default async function HomePage() {
 
       {/* Anclas hero — mismo primitive, identidad por repetición */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {contractCount > 0 && (
+        {deudaPerCapita != null && (
           <AnchorCard
-            label="Contratos del sector público"
-            value={contractCount.toLocaleString("es-ES")}
-            description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Quién compra, a qué empresa, por cuánto."
-            source="Fuente: Plataforma de Contratación del Sector Público (PCSP)."
-            href="/contratos"
-            linkLabel="Ver contratos →"
+            label={`Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`}
+            value={`${deudaPerCapita.toLocaleString("es-ES")} €`}
+            description="Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población."
+            source="Fuente: Eurostat (criterio de Maastricht)."
+            href="/indicadores"
+            linkLabel="Ver indicadores →"
           />
         )}
 
@@ -112,36 +129,28 @@ export default async function HomePage() {
           />
         )}
 
-        {topDivergenceSession && (topDivergenceSession.divergence_count ?? 0) > 0 && (
+        {inflation ? (
           <AnchorCard
-            label={`Mayor divergencia · ${
-              topDivergenceSession.isRecent ? "últimos 30 días" : "histórico"
-            }`}
-            value={
-              <>
-                {topDivergenceSession.divergence_count}{" "}
-                <span className="text-lg font-normal text-muted-foreground">
-                  diputados
-                </span>
-              </>
-            }
+            label={`IPC mensual · ${formatPeriod(inflation.period)}`}
+            value={formatPercent(inflation.monthlyValue)}
             description={
               <>
                 <span className="line-clamp-2 font-medium text-foreground">
-                  votaron diferente a su grupo en
+                  Variación mensual del índice general de precios.
                 </span>
-                <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">
-                  {topDivergenceSession.title}
-                  {topDivergenceSession.date
-                    ? ` · ${formatDate(topDivergenceSession.date)}`
-                    : ""}
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {inflation.annualValue != null
+                    ? `Variación anual: ${formatPercent(inflation.annualValue)}`
+                    : "Serie mensual nacional"}
+                  {inflation.dataType ? ` · ${inflation.dataType}` : ""}
                 </span>
               </>
             }
-            href={`/votaciones/${topDivergenceSession.id}`}
-            linkLabel="Ver votación →"
+            source="Fuente: INE, serie nacional del IPC."
+            href="/indicadores/IPC_VAR_MENSUAL"
+            linkLabel="Ver serie →"
           />
-        )}
+        ) : null}
       </div>
 
       {/* Gobierno */}
@@ -156,12 +165,8 @@ export default async function HomePage() {
                 .map((s: string) => s.trim())
                 .reverse()
                 .join(" ")
-              const card = (
-                <div
-                  key={m.id as string}
-                  className="rounded border bg-card p-4"
-                  style={{ borderColor: `${color}28` }}
-                >
+              const cardContent = (
+                <>
                   <p className="text-xs text-muted-foreground line-clamp-1">
                     {m.organization_name as string}
                   </p>
@@ -172,14 +177,21 @@ export default async function HomePage() {
                       color={m.party_color as string | undefined}
                     />
                   </div>
-                </div>
+                </>
               )
               return m.politician_id ? (
-                <EntityLink key={m.id as string} kind="politician" id={m.politician_id as string}>
-                  {card}
-                </EntityLink>
+                <div key={m.id as string} className="relative rounded border bg-card p-4" style={{ borderColor: `${color}28` }}>
+                  {cardContent}
+                  <ResponsiveLink
+                    href={`/diputados/${m.politician_id as string}`}
+                    className="absolute inset-0 rounded"
+                    aria-label={nameFormatted}
+                  />
+                </div>
               ) : (
-                <div key={m.id as string}>{card}</div>
+                <div key={m.id as string} className="rounded border bg-card p-4" style={{ borderColor: `${color}28` }}>
+                  {cardContent}
+                </div>
               )
             })}
           </div>

@@ -174,6 +174,7 @@ export function SubvencionesClient({
     <div className="space-y-6">
       <LinkTabs
         ariaLabel="Nivel administrativo"
+        scroll={false}
         tabs={NIVEL_TABS.map((tab) => ({
           href: subvencionesHref(tab.value, 1, activeMinistry),
           label: tab.label,

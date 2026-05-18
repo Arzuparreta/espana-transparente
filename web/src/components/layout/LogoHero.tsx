@@ -16,9 +16,9 @@ export function LogoHero({ parties }: LogoHeroProps) {
   return (
     <section className="relative overflow-hidden rounded border border-border bg-card px-5 py-6 sm:px-8 sm:py-8">
       <div className="relative flex flex-col gap-5">
-        <p className="font-display max-w-4xl text-balance text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-6xl lg:text-7xl">
+        <h1 className="font-display max-w-4xl text-balance text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-6xl lg:text-7xl">
           {BRAND_DESCRIPTION}
-        </p>
+        </h1>
         <SearchBox />
       </div>
 

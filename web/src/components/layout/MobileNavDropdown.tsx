@@ -18,7 +18,7 @@ export function MobileNavDropdown() {
       <DialogPrimitive.Root open={isOpen} onOpenChange={setIsOpen}>
         <DialogPrimitive.Trigger
           aria-label="Abrir menú"
-          className="flex h-10 w-10 items-center justify-center text-foreground transition-opacity select-none active:opacity-70"
+          className="flex h-11 w-11 items-center justify-center text-foreground transition-opacity select-none active:opacity-70"
         >
           <span className="flex h-4 w-6 flex-col justify-between">
             <span
@@ -49,7 +49,7 @@ export function MobileNavDropdown() {
               <span className="min-w-0 truncate font-display text-lg font-bold tracking-tight">Menú</span>
               <DialogPrimitive.Close
                 aria-label="Cerrar menú"
-                className="flex h-10 w-10 items-center justify-center text-foreground active:opacity-70"
+                className="flex h-11 w-11 items-center justify-center text-foreground active:opacity-70"
               >
                 <span className="relative flex h-4 w-6 items-center justify-center">
                   <span className="absolute h-[2px] w-full rotate-45 bg-foreground" />
@@ -75,7 +75,7 @@ export function MobileNavDropdown() {
                           href={item.href}
                           onClick={() => setIsOpen(false)}
                           className={cn(
-                            "py-2.5 text-[17px] font-semibold tracking-tight select-none transition-colors",
+                            "flex min-h-11 items-center text-[17px] font-semibold tracking-tight select-none transition-colors",
                             isActive
                               ? "text-foreground"
                               : "text-muted-foreground active:text-foreground"

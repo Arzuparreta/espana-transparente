@@ -19,11 +19,26 @@ function formatAmount(amount: number | null): string {
 
 export default async function Image({ params }: Props) {
   const { id } = await params
-  const { contract } = await getContractDetail(id)
 
-  const title = contract?.title ?? "Contrato público"
-  const amount = contract?.amount ? formatAmount(contract.amount) : null
-  const body = contract?.awarding_body ?? null
+  let contract = null
+  try {
+    const result = await getContractDetail(id)
+    contract = result.contract
+  } catch {
+    // DB error or timeout — render brand fallback below
+  }
+
+  // Contract not found or DB error: redirect to static brand og-image
+  if (!contract) {
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `${BRAND_URL}/brand/og-image.png` },
+    })
+  }
+
+  const title = contract.title ?? "Contrato público"
+  const amount = contract.amount ? formatAmount(contract.amount) : null
+  const body = contract.awarding_body ?? null
 
   return new ImageResponse(
     (
