@@ -96,7 +96,7 @@ export function Header() {
             href="/estado-datos"
             prefetch
             className={cn(
-              "hidden text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline-block",
+              "hidden h-9 items-center text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline-flex",
               isItemActive("/estado-datos") && "text-foreground"
             )}
           >
