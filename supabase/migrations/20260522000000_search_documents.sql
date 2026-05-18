@@ -1,4 +1,4 @@
--- Canonical public search corpus and broader RPC for answer-backed search.
+-- Canonical public search corpus and broader deterministic search RPC.
 -- The corpus is derived from public tables; raw source chunks can be added by ETLs.
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -84,19 +84,7 @@ CREATE TABLE IF NOT EXISTS source_document_chunks (
 CREATE INDEX IF NOT EXISTS source_document_chunks_vector_idx
   ON source_document_chunks USING gin (search_vector);
 
-CREATE TABLE IF NOT EXISTS search_answer_cache (
-  id                 uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  normalized_query   text        NOT NULL,
-  filters_hash       text        NOT NULL DEFAULT '',
-  corpus_version     text        NOT NULL,
-  answer_json        jsonb       NOT NULL,
-  created_at         timestamptz NOT NULL DEFAULT now(),
-  expires_at         timestamptz NOT NULL DEFAULT (now() + interval '7 days'),
-  UNIQUE (normalized_query, filters_hash, corpus_version)
-);
-
-CREATE INDEX IF NOT EXISTS search_answer_cache_expires_idx
-  ON search_answer_cache (expires_at);
+DROP TABLE IF EXISTS search_answer_cache;
 
 CREATE OR REPLACE FUNCTION refresh_search_documents()
 RETURNS integer AS $$
@@ -134,12 +122,26 @@ BEGIN
     src.weight,
     src.metadata,
     setweight(to_tsvector('simple', unaccent(coalesce(src.title, ''))), 'A') ||
+      setweight(to_tsvector('simple', unaccent(coalesce(src.subtitle, ''))), 'B') ||
       setweight(to_tsvector('spanish', unaccent(coalesce(src.subtitle, ''))), 'B') ||
+      setweight(to_tsvector('simple', unaccent(coalesce(src.key_fact, ''))), 'B') ||
       setweight(to_tsvector('spanish', unaccent(coalesce(src.key_fact, ''))), 'B') ||
+      setweight(to_tsvector('simple', unaccent(coalesce(src.body, ''))), 'C') ||
       setweight(to_tsvector('spanish', unaccent(coalesce(src.body, ''))), 'C'),
     'v1',
     now()
   FROM (
+    SELECT DISTINCT ON (all_src.entity_type, all_src.entity_id)
+      all_src.*
+    FROM (
+      WITH divergence_counts AS (
+        SELECT
+          d.initiative,
+          d.date,
+          count(*) AS divergence_count
+        FROM get_divergences() d
+        GROUP BY d.initiative, d.date
+      )
     SELECT
       CASE WHEN pm.chamber = 'senate' THEN 'senator' ELSE 'politician' END AS entity_type,
       p.id::text AS entity_id,
@@ -232,15 +234,35 @@ BEGIN
       vs.id::text,
       vs.title,
       coalesce(to_char(vs.date, 'DD/MM/YYYY'), ''),
-      concat_ws(' ', vs.title, vs.initiative_number, vs.initiative_type),
-      concat_ws(' · ', 'Sesión ' || vs.session_number::text, vs.initiative_number),
+      concat_ws(' ', vs.title, vs.initiative_number, vs.initiative_type, 'votacion votación divergencias grupo votos'),
+      concat_ws(' · ', 'Sesión ' || vs.session_number::text, vs.initiative_number, dc.divergence_count::text || ' divergencias'),
       '/votaciones/' || vs.id::text,
       NULL::text,
       vs.date,
       NULL::numeric,
       8,
-      jsonb_build_object('session_number', vs.session_number, 'initiative_number', vs.initiative_number)
+      jsonb_build_object('session_number', vs.session_number, 'initiative_number', vs.initiative_number, 'divergence_count', dc.divergence_count)
     FROM voting_sessions vs
+    LEFT JOIN divergence_counts dc ON dc.initiative = vs.title AND dc.date = vs.date
+
+    UNION ALL
+
+    SELECT
+      'vote_divergence',
+      md5(d.full_name || '|' || d.initiative || '|' || d.date::text),
+      d.full_name,
+      concat_ws(' · ', d.acronym, d.date::text),
+      concat_ws(' ', d.full_name, d.acronym, d.initiative, d.voted, d.party_voted, 'voto distinto grupo divergencia votacion votación'),
+      concat_ws(' · ', 'Votó ' || d.voted, 'Grupo: ' || d.party_voted),
+      coalesce('/votaciones/' || vs.id::text, '/diputados/' || p.id::text),
+      NULL::text,
+      d.date,
+      NULL::numeric,
+      9,
+      jsonb_build_object('party', d.acronym, 'voted', d.voted, 'party_voted', d.party_voted, 'initiative', d.initiative, 'politician_id', p.id, 'voting_session_id', vs.id)
+    FROM get_divergences() d
+    LEFT JOIN politicians p ON p.full_name = d.full_name
+    LEFT JOIN voting_sessions vs ON vs.title = d.initiative AND vs.date = d.date
 
     UNION ALL
 
@@ -402,9 +424,11 @@ BEGIN
       NULL::numeric,
       4,
       sd.metadata
-    FROM source_documents sd
+      FROM source_documents sd
+    ) all_src
+    WHERE all_src.title IS NOT NULL AND trim(all_src.title) <> ''
+    ORDER BY all_src.entity_type, all_src.entity_id, all_src.weight DESC, all_src.document_date DESC NULLS LAST
   ) src
-  WHERE src.title IS NOT NULL AND trim(src.title) <> ''
   ON CONFLICT (entity_type, entity_id) DO UPDATE SET
     title = EXCLUDED.title,
     subtitle = EXCLUDED.subtitle,
@@ -447,11 +471,20 @@ RETURNS TABLE (
 DECLARE
   ts_q tsquery;
   normalized_query text;
+  search_text text;
 BEGIN
-  normalized_query := lower(unaccent(trim(coalesce(query_text, ''))));
+  search_text := lower(unaccent(trim(coalesce(query_text, ''))));
+  search_text := regexp_replace(
+    search_text,
+    '\m(quien|que|cual|cuales|cuando|donde|como|a|al|de|del|la|las|el|los|un|una|unos|unas|su|sus|en|por|para|con|sobre|mayor|menor|importe|ultimo|ultima|ultimos|ultimas|contrato|contratos|subvencion|subvenciones|presupuesto|presupuestos|indicador|indicadores|iniciativa|iniciativas|votacion|votaciones)\M',
+    ' ',
+    'gi'
+  );
+  search_text := regexp_replace(search_text, '\s+', ' ', 'g');
+  normalized_query := trim(search_text);
   IF length(normalized_query) < 2 THEN RETURN; END IF;
 
-  ts_q := _build_search_query(query_text);
+  ts_q := _build_search_query(search_text);
 
   RETURN QUERY
   SELECT
@@ -556,7 +589,6 @@ ALTER TABLE search_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE search_aliases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE source_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE source_document_chunks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE search_answer_cache ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "search_documents_public_read" ON search_documents;
 CREATE POLICY "search_documents_public_read" ON search_documents FOR SELECT USING (true);

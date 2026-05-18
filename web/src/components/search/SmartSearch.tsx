@@ -7,10 +7,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { cn } from "@/lib/utils"
 import type { SearchResult } from "@/lib/data"
 
-type SearchAnswer = {
-  answer: string | null
-  confidence: "high" | "medium" | "low" | "unavailable"
-  caveats: string[]
+type SearchPayload = {
   citations: {
     title: string
     url: string
@@ -23,7 +20,6 @@ type SearchAnswer = {
     label: string
     entityTypes: SearchResult["entity_type"][]
   }[]
-  followUps: string[]
 }
 
 const TYPE_LABEL: Record<SearchResult["entity_type"], string> = {
@@ -34,6 +30,7 @@ const TYPE_LABEL: Record<SearchResult["entity_type"], string> = {
   institution: "Instituciones",
   organization: "Organizaciones",
   voting_session: "Votaciones",
+  vote_divergence: "Divergencias",
   contract: "Contratos",
   subsidy: "Subvenciones",
   initiative: "Iniciativas",
@@ -50,6 +47,7 @@ const TYPE_ORDER: SearchResult["entity_type"][] = [
   "senator",
   "government_position",
   "institution",
+  "vote_divergence",
   "voting_session",
   "initiative",
   "contract",
@@ -128,9 +126,10 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
   const [query, setQuery] = useState(initialQuery)
   const [open, setOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<SearchResult[]>(initialResults)
-  const [answer, setAnswer] = useState<SearchAnswer | null>(null)
+  const [filters, setFilters] = useState<SearchPayload["suggestedFilters"]>([])
+  const [pageResults, setPageResults] = useState<SearchResult[]>(initialResults)
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
-  const [loadingAnswer, setLoadingAnswer] = useState(false)
+  const [loadingSearch, setLoadingSearch] = useState(false)
   const [isNavigating, startNavigation] = useTransition()
   const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
@@ -144,7 +143,7 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
   useEffect(() => {
     if (query.trim().length < 2) {
       setSuggestions([])
-      setAnswer(null)
+      setPageResults([])
       return
     }
 
@@ -152,15 +151,19 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
     const timer = window.setTimeout(async () => {
       setLoadingSuggestions(true)
       try {
-        const response = await fetch("/api/search/answer", {
+        const response = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, includeAnswer: false, limit: isPage ? 18 : 10 }),
+          body: JSON.stringify({ query, limit: isPage ? 18 : 10 }),
           signal: controller.signal,
         })
         if (!response.ok) return
-        const payload = (await response.json()) as SearchAnswer
+        const payload = (await response.json()) as SearchPayload
         setSuggestions(payload.resultCards ?? [])
+        if (isPage) {
+          setPageResults(payload.resultCards ?? [])
+          setFilters(payload.suggestedFilters ?? [])
+        }
       } finally {
         setLoadingSuggestions(false)
       }
@@ -173,10 +176,8 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
   }, [query, isPage])
 
   useEffect(() => {
-    if (!isPage || initialQuery.trim().length < 2) return
-    void requestAnswer(initialQuery)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPage, initialQuery])
+    setPageResults(initialResults)
+  }, [initialResults])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -186,36 +187,37 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
     return () => document.removeEventListener("mousedown", handleClick)
   }, [])
 
-  async function requestAnswer(value = query) {
+  async function runSearch(value = query, entityTypes?: SearchResult["entity_type"][]) {
     const q = value.trim()
     if (q.length < 2) return
-    setLoadingAnswer(true)
+    setLoadingSearch(true)
     startNavigation(() => {
       if (isPage) router.replace(`/buscar?q=${encodeURIComponent(q)}`)
       else router.push(`/buscar?q=${encodeURIComponent(q)}`)
     })
     try {
-      const response = await fetch("/api/search/answer", {
+      const response = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, includeAnswer: true, limit: 24 }),
+        body: JSON.stringify({ query: q, entityTypes, limit: 24 }),
       })
       if (!response.ok) return
-      setAnswer((await response.json()) as SearchAnswer)
+      const payload = (await response.json()) as SearchPayload
+      setPageResults(payload.resultCards ?? [])
+      setFilters(payload.suggestedFilters ?? [])
       setOpen(false)
     } finally {
-      setLoadingAnswer(false)
+      setLoadingSearch(false)
     }
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    void requestAnswer()
+    void runSearch()
   }
 
   const groups = useMemo(() => groupedResults(suggestions), [suggestions])
-  const answerResults = answer?.resultCards?.length ? answer.resultCards : suggestions
-  const answerGroups = useMemo(() => groupedResults(answerResults), [answerResults])
+  const pageGroups = useMemo(() => groupedResults(pageResults.length ? pageResults : suggestions), [pageResults, suggestions])
   const meaningful = query.trim().length >= 2
 
   return (
@@ -235,7 +237,7 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
               onFocus={() => setOpen(true)}
               placeholder="Pregunta por personas, votaciones, contratos, subvenciones, presupuestos o indicadores"
               aria-label="Buscar o preguntar"
-              aria-busy={loadingSuggestions || loadingAnswer || isNavigating}
+              aria-busy={loadingSuggestions || loadingSearch || isNavigating}
               autoComplete="off"
               className={cn(
                 "w-full rounded border border-border bg-card pl-10 pr-3 outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
@@ -245,11 +247,11 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
           </div>
           <button
             type="submit"
-            disabled={!meaningful || loadingAnswer}
+            disabled={!meaningful || loadingSearch}
             className="inline-flex h-11 shrink-0 items-center gap-2 rounded border border-border bg-foreground px-4 text-sm font-semibold text-background transition-colors hover:bg-foreground/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loadingAnswer ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            <span className="hidden sm:inline">Responder</span>
+            {loadingSearch ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            <span className="hidden sm:inline">Buscar</span>
           </button>
         </div>
       </form>
@@ -258,11 +260,11 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
         <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded border border-border bg-card shadow-lg">
           <button
             type="button"
-            onClick={() => void requestAnswer()}
+            onClick={() => void runSearch()}
             className="flex w-full items-center justify-between gap-3 border-b border-border px-4 py-3 text-left text-sm font-semibold transition-colors hover:bg-muted"
           >
-            <span className="truncate">Responder pregunta: {query.trim()}</span>
-            {loadingAnswer ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            <span className="truncate">Ver resultados para: {query.trim()}</span>
+            {loadingSearch ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
           </button>
           {groups.length > 0 ? (
             <div className="max-h-[28rem] overflow-y-auto p-2">
@@ -289,62 +291,31 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
 
       {isPage && (
         <div className="space-y-6">
-          {meaningful ? (
-            <section className="rounded border border-border bg-card/80 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">Respuesta</h2>
-                {loadingAnswer ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
-              </div>
-              {answer?.answer ? (
-                <p className="mt-3 text-base leading-7 text-foreground">{answer.answer}</p>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {loadingAnswer ? "Preparando respuesta con evidencia…" : "Respuesta no disponible. Se muestran resultados relacionados."}
-                </p>
-              )}
-              {answer?.caveats?.length ? (
-                <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-                  {answer.caveats.map((caveat) => (
-                    <p key={caveat}>{caveat}</p>
-                  ))}
-                </div>
-              ) : null}
-              {answer?.citations?.length ? (
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {answer.citations.slice(0, 4).map((citation) => (
-                    <ResponsiveLink
-                      key={`${citation.entityType}-${citation.title}`}
-                      href={citation.url || citation.sourceUrl || "/buscar"}
-                      className="rounded border border-border/70 px-3 py-2 text-xs hover:bg-muted"
-                    >
-                      <span className="block font-medium line-clamp-1">{citation.title}</span>
-                      <span className="mt-1 block text-muted-foreground">{TYPE_LABEL[citation.entityType]}</span>
-                    </ResponsiveLink>
-                  ))}
-                </div>
-              ) : null}
-            </section>
-          ) : (
+          {!meaningful ? (
             <p className="text-sm text-muted-foreground">Escribe al menos 2 caracteres para buscar.</p>
-          )}
+          ) : null}
 
-          {meaningful && answer?.suggestedFilters?.length ? (
+          {meaningful && filters.length ? (
             <div className="flex flex-wrap gap-2">
-              {answer.suggestedFilters.map((filter) => (
+              {filters.map((filter) => (
                 <button
                   key={filter.id}
                   type="button"
                   onClick={async () => {
-                    setLoadingAnswer(true)
+                    setLoadingSearch(true)
                     try {
-                      const response = await fetch("/api/search/answer", {
+                      const response = await fetch("/api/search", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ query, entityTypes: filter.entityTypes, includeAnswer: true, limit: 24 }),
+                        body: JSON.stringify({ query, entityTypes: filter.entityTypes, limit: 24 }),
                       })
-                      if (response.ok) setAnswer((await response.json()) as SearchAnswer)
+                      if (response.ok) {
+                        const payload = (await response.json()) as SearchPayload
+                        setPageResults(payload.resultCards ?? [])
+                        setFilters(payload.suggestedFilters ?? [])
+                      }
                     } finally {
-                      setLoadingAnswer(false)
+                      setLoadingSearch(false)
                     }
                   }}
                   className="rounded border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -357,8 +328,8 @@ export function SmartSearch({ initialQuery = "", initialResults = [], mode = "he
 
           {meaningful && (
             <div className="space-y-5">
-              {answerGroups.length > 0 ? (
-                answerGroups.map((group) => (
+              {pageGroups.length > 0 ? (
+                pageGroups.map((group) => (
                   <section key={group.type}>
                     <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                       {group.label}

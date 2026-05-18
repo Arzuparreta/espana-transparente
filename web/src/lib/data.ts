@@ -1246,6 +1246,7 @@ export interface SearchResult {
     | "institution"
     | "organization"
     | "voting_session"
+    | "vote_divergence"
     | "contract"
     | "subsidy"
     | "initiative"
@@ -1265,6 +1266,27 @@ export interface SearchResult {
   source_url?: string | null
   metadata?: Record<string, unknown> | null
   rank?: number
+}
+
+function inferSearchEntityTypes(query: string): SearchResult["entity_type"][] | null {
+  const normalized = query
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+
+  if (/\b(subvencion|subvenciones|bdns)\b/.test(normalized)) return ["subsidy"]
+  if (/\b(contrato|contratos|licitacion|pcsp)\b/.test(normalized)) return ["contract"]
+  if (/\b(presupuesto|presupuestos|pge|programa)\b/.test(normalized)) return ["budget", "budget_program"]
+  if (/\b(indicador|indicadores|ipc|deuda|pib)\b/.test(normalized)) return ["indicator"]
+  if (/\b(iniciativa|iniciativas|ley|boe|normativa)\b/.test(normalized)) return ["initiative", "source_document"]
+  if (/\b(voto|vota|voto|votacion|votaciones|grupo|divergencia|divergencias)\b/.test(normalized)) {
+    return ["vote_divergence", "voting_session"]
+  }
+  if (/\b(senador|senadora|senado)\b/.test(normalized)) return ["senator"]
+  if (/\b(diputado|diputada|persona|personas)\b/.test(normalized)) {
+    return ["politician", "senator", "government_position", "institution"]
+  }
+  return null
 }
 
 export interface EuFundRow {
@@ -1324,9 +1346,10 @@ export async function searchDocuments(
   options: { entityTypes?: SearchResult["entity_type"][]; filters?: Record<string, unknown>; limit?: number } = {}
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) return []
+  const entityTypes = options.entityTypes ?? inferSearchEntityTypes(query)
   const { data, error } = await supabase.rpc("search_documents", {
     query_text: query.trim(),
-    entity_types: options.entityTypes ?? null,
+    entity_types: entityTypes,
     filters: options.filters ?? {},
     limit_count: options.limit ?? 24,
   })
