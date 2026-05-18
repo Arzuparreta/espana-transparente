@@ -1235,11 +1235,33 @@ export const getInstitucionesActuales = unstable_cache(
 )
 
 export interface SearchResult {
-  entity_type: "politician" | "organization" | "voting_session" | "contract" | "revolving_door"
+  entity_type:
+    | "politician"
+    | "senator"
+    | "party"
+    | "government_position"
+    | "institution"
+    | "organization"
+    | "voting_session"
+    | "contract"
+    | "subsidy"
+    | "initiative"
+    | "budget"
+    | "budget_program"
+    | "indicator"
+    | "eu_fund"
+    | "revolving_door"
+    | "source_document"
   id: string
   title: string
-  subtitle: string
+  subtitle: string | null
   url: string
+  key_fact?: string | null
+  document_date?: string | null
+  amount?: number | null
+  source_url?: string | null
+  metadata?: Record<string, unknown> | null
+  rank?: number
 }
 
 export interface EuFundRow {
@@ -1291,6 +1313,24 @@ export async function searchGlobal(query: string, maxPerType = 5): Promise<Searc
     query_text: query.trim(),
     max_per_type: maxPerType,
   })
+  return (data ?? []) as SearchResult[]
+}
+
+export async function searchDocuments(
+  query: string,
+  options: { entityTypes?: SearchResult["entity_type"][]; filters?: Record<string, unknown>; limit?: number } = {}
+): Promise<SearchResult[]> {
+  if (!query || query.trim().length < 2) return []
+  const { data, error } = await supabase.rpc("search_documents", {
+    query_text: query.trim(),
+    entity_types: options.entityTypes ?? null,
+    filters: options.filters ?? {},
+    limit_count: options.limit ?? 24,
+  })
+  if (error) {
+    console.error("searchDocuments:", error.message)
+    return searchGlobal(query, Math.max(1, Math.ceil((options.limit ?? 24) / 8)))
+  }
   return (data ?? []) as SearchResult[]
 }
 

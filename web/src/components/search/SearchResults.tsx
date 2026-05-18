@@ -4,18 +4,40 @@ import { EmptyState } from "@/components/domain/EmptyState"
 
 const TYPE_LABEL: Record<SearchResult["entity_type"], string> = {
   politician: "Diputados",
+  senator: "Senado",
+  party: "Partidos",
+  government_position: "Gobierno",
+  institution: "Instituciones",
   organization: "Organizaciones",
   voting_session: "Votaciones",
   contract: "Contratos",
+  subsidy: "Subvenciones",
+  initiative: "Iniciativas",
+  budget: "Presupuestos",
+  budget_program: "Programas",
+  indicator: "Indicadores",
+  eu_fund: "Fondos UE",
   revolving_door: "Puertas giratorias",
+  source_document: "Fuentes",
 }
 
 const TYPE_ORDER: SearchResult["entity_type"][] = [
   "politician",
-  "revolving_door",
+  "senator",
+  "government_position",
+  "institution",
   "voting_session",
+  "initiative",
   "contract",
+  "subsidy",
+  "budget",
+  "budget_program",
+  "indicator",
   "organization",
+  "party",
+  "eu_fund",
+  "revolving_door",
+  "source_document",
 ]
 
 interface Props {

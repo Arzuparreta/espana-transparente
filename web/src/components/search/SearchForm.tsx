@@ -52,7 +52,7 @@ export function SearchForm({ initialQuery = "", autoFocus = false, compact = fal
             name="q"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="Buscar diputado, votación, contrato…"
+            placeholder="Pregunta por personas, votaciones, contratos, subvenciones, presupuestos o indicadores"
             aria-label="Buscar"
             autoComplete="off"
             className="h-10 w-full rounded-lg border border-border/70 bg-card/80 pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
