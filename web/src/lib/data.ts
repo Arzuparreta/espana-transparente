@@ -1360,6 +1360,19 @@ export async function searchDocuments(
   return (data ?? []) as SearchResult[]
 }
 
+export async function searchSuggestions(query: string, limit = 12): Promise<SearchResult[]> {
+  if (!query || query.trim().length < 2) return []
+  const { data, error } = await supabase.rpc("search_suggestions", {
+    query_text: query.trim(),
+    limit_count: limit,
+  })
+  if (error) {
+    console.error("searchSuggestions:", error.message)
+    return searchDocuments(query, { limit })
+  }
+  return (data ?? []) as SearchResult[]
+}
+
 // ME-1: party voting sessions
 export const getPartyVotingSessions = unstable_cache(
   async (partyId: string) => {
