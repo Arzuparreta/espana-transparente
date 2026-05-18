@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/domain/PageHeader"
-import { SmartSearch } from "@/components/search/SmartSearch"
+import { SearchForm } from "@/components/search/SearchForm"
+import { SearchResults } from "@/components/search/SearchResults"
 import { searchDocuments } from "@/lib/data"
 
 interface PageProps {
@@ -23,7 +24,8 @@ export default async function BuscarPage({ searchParams }: PageProps) {
         title="Búsqueda"
         description="Personas, votaciones, contratos, subvenciones, presupuestos, indicadores y fuentes públicas."
       />
-      <SmartSearch initialQuery={query} initialResults={results} mode="page" autoFocus />
+      <SearchForm initialQuery={query} autoFocus />
+      <SearchResults query={query} results={results} />
     </div>
   )
 }

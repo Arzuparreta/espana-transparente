@@ -1,15 +1,25 @@
 "use client"
 
+import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface Props {
   initialQuery?: string
   autoFocus?: boolean
   compact?: boolean
+  size?: "default" | "hero"
+  className?: string
 }
 
-export function SearchForm({ initialQuery = "", autoFocus = false, compact = false }: Props) {
+export function SearchForm({
+  initialQuery = "",
+  autoFocus = false,
+  compact = false,
+  size = "default",
+  className,
+}: Props) {
   const router = useRouter()
   const [value, setValue] = useState(initialQuery)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -33,19 +43,10 @@ export function SearchForm({ initialQuery = "", autoFocus = false, compact = fal
   }
 
   return (
-    <form onSubmit={handleSubmit} role="search" className={compact ? "" : "w-full"}>
+    <form onSubmit={handleSubmit} role="search" className={cn(compact ? "" : "w-full", className)}>
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
-          <svg
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
             ref={inputRef}
             type="search"
@@ -55,12 +56,18 @@ export function SearchForm({ initialQuery = "", autoFocus = false, compact = fal
             placeholder="Pregunta por personas, votaciones, contratos, subvenciones, presupuestos o indicadores"
             aria-label="Buscar"
             autoComplete="off"
-            className="h-10 w-full rounded-lg border border-border/70 bg-card/80 pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+            className={cn(
+              "w-full rounded border border-border/70 bg-card/80 pl-9 pr-3 outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
+              size === "hero" ? "h-12 text-base sm:text-lg" : "h-10 text-sm"
+            )}
           />
         </div>
         <button
           type="submit"
-          className="shrink-0 rounded-lg border border-border/70 bg-card px-4 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className={cn(
+            "shrink-0 rounded border border-border/70 bg-card px-4 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+            size === "hero" ? "h-12" : "h-10"
+          )}
         >
           Buscar
         </button>

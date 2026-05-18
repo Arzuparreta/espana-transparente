@@ -84,8 +84,6 @@ CREATE TABLE IF NOT EXISTS source_document_chunks (
 CREATE INDEX IF NOT EXISTS source_document_chunks_vector_idx
   ON source_document_chunks USING gin (search_vector);
 
-DROP TABLE IF EXISTS search_answer_cache;
-
 CREATE OR REPLACE FUNCTION refresh_search_documents()
 RETURNS integer AS $$
 DECLARE

@@ -1,7 +1,11 @@
 "use client"
 
-import { SmartSearch } from "@/components/search/SmartSearch"
+import { SearchForm } from "@/components/search/SearchForm"
 
 export function SearchBox() {
-  return <SmartSearch mode="hero" />
+  return (
+    <div className="mx-auto max-w-xl">
+      <SearchForm size="hero" />
+    </div>
+  )
 }
