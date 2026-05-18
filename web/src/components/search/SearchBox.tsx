@@ -87,7 +87,7 @@ export function SearchBox() {
     <div ref={ref} className="relative max-w-xl mx-auto w-full">
       <Input
         type="search"
-        placeholder="Busca personas, partidos o votaciones..."
+        placeholder="¿Quién es tu diputado? ¿A qué empresa va el dinero?"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)

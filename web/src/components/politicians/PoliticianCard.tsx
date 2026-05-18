@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { getResponsivePhoto } from "@/lib/photos"
+import { toTitleCaseIfShouting } from "@/lib/text"
 import type { PoliticianWithMemberships } from "@/types"
 
 interface PoliticianCardProps {
@@ -14,6 +15,13 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
   const party = membership?.party
   const initials = `${politician.first_name[0] ?? ""}${politician.last_name[0] ?? ""}`.toUpperCase()
   const photo = getResponsivePhoto(politician.photo_url, politician.photo_variants)
+  const displayName = toTitleCaseIfShouting(politician.full_name)
+  const displayConstituency = membership?.constituency
+    ? toTitleCaseIfShouting(membership.constituency)
+    : null
+  const displayGroup = membership?.group_parliamentary
+    ? toTitleCaseIfShouting(membership.group_parliamentary)
+    : null
 
   return (
     <div className="relative">
@@ -32,9 +40,9 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 space-y-1">
-              <CardTitle className="text-base text-balance sm:text-lg">{politician.full_name}</CardTitle>
-              {membership?.constituency && (
-                <CardDescription className="text-sm">{membership.constituency}</CardDescription>
+              <CardTitle className="text-base text-balance sm:text-lg">{displayName}</CardTitle>
+              {displayConstituency && (
+                <CardDescription className="text-sm">{displayConstituency}</CardDescription>
               )}
             </div>
             {party && (
@@ -45,9 +53,9 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
               />
             )}
           </div>
-          {membership?.group_parliamentary ? (
+          {displayGroup ? (
             <div className="rounded-xl bg-muted/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-              Grupo parlamentario: {membership.group_parliamentary}
+              Grupo parlamentario: {displayGroup}
             </div>
           ) : null}
         </CardHeader>

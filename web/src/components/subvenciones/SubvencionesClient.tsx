@@ -50,7 +50,7 @@ const NIVEL_TABS = [
 
 function formatAmount(eur: number | null): string {
   if (eur == null) return "—"
-  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)}B €`
+  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
   if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(1)}M €`
   if (eur >= 1_000) return `${Math.round(eur / 1_000)}K €`
   return `${Math.round(eur).toLocaleString("es-ES")} €`

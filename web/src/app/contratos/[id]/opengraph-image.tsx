@@ -12,7 +12,7 @@ interface Props {
 
 function formatAmount(amount: number | null): string {
   if (amount == null) return "—"
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B €`
+  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M €`
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount)
 }

@@ -17,7 +17,7 @@ export default async function PartidosPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
         title="Partidos"
-        description="Partidos con representación en el Congreso de la XV Legislatura."
+        description="Los partidos con representación en el Congreso. Cuántos diputados tienen, en qué provincias, y cómo votan."
       />
       <div className="space-y-2">
         {withDeputies.map((p) => (

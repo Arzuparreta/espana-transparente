@@ -1,22 +1,39 @@
-import type { PoliticianWithMemberships } from "@/types"
-import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { LogoHero } from "@/components/layout/LogoHero"
+import { AnchorCard } from "@/components/domain/AnchorCard"
 import { EntityLink } from "@/components/domain/EntityLink"
-import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getHomeData } from "@/lib/data"
+import {
+  getHomeData,
+  getTopContractOfMonth,
+  getTopDivergenceSessionOfMonth,
+} from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600
 
-function formatBig(n: number): string {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(0)}B €`
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)}M €`
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K €`
-  return `${Math.round(n)} €`
+function formatAmount(n: number): string {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n)
 }
 
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+function windowLabel(days: 30 | 60 | 90 | null): string {
+  if (days === 30) return "últimos 30 días"
+  if (days === 60) return "últimos 60 días"
+  if (days === 90) return "últimos 90 días"
+  return "histórico"
+}
 
 function SectionHeader({
   title,
@@ -46,58 +63,86 @@ function SectionHeader({
 }
 
 export default async function HomePage() {
-  const {
-    politicians,
-    politicianCount,
-    parties,
-    contractCount,
-    subsidyCount,
-    sessionCount,
-    currentBudget,
-    recentSessions,
-    revolvingDoorCases,
-    gobierno,
-    deudaPerCapita,
-    deudaYear,
-  } = await getHomeData()
-
-  const stats = [
-    { label: "Diputados activos", value: `${politicianCount}` },
-    { label: "Licitaciones publicadas", value: contractCount.toLocaleString("es-ES") },
-    { label: "Subvenciones registradas", value: subsidyCount.toLocaleString("es-ES") },
-    { label: "Votaciones en el Congreso", value: sessionCount.toLocaleString("es-ES") },
-    ...(currentBudget
-      ? [{ label: `Presupuesto ${currentBudget.year}`, value: formatBig(currentBudget.total) }]
-      : []),
-  ]
+  const [
+    { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
+    topContract,
+    topDivergenceSession,
+  ] = await Promise.all([
+    getHomeData(),
+    getTopContractOfMonth(),
+    getTopDivergenceSessionOfMonth(),
+  ])
 
   return (
     <div className="space-y-10 sm:space-y-14">
       <LogoHero parties={parties ?? []} />
 
-      {/* Hero: deuda pública per cápita */}
-      {deudaPerCapita != null && (
-        <section className="rounded-2xl border border-border/60 bg-card/60 px-6 py-8 sm:px-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Deuda pública del Estado español por ciudadano{deudaYear ? ` · ${deudaYear}` : ""}
-          </p>
-          <p className="mt-2 text-4xl font-extrabold tabular-nums tracking-tight sm:text-5xl">
-            {deudaPerCapita.toLocaleString("es-ES")} €
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Fuente: Eurostat · Administraciones Públicas (S13) · Criterio de Maastricht
-          </p>
-          <ResponsiveLink
+      {/* Anclas hero — mismo primitive, identidad por repetición */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {deudaPerCapita != null && (
+          <AnchorCard
+            label={`Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`}
+            value={`${deudaPerCapita.toLocaleString("es-ES")} €`}
+            description="Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población."
+            source="Fuente: Eurostat (criterio de Maastricht)."
             href="/indicadores"
-            className="mt-4 inline-block text-sm font-medium underline underline-offset-4 hover:text-foreground"
-          >
-            Ver indicadores económicos →
-          </ResponsiveLink>
-        </section>
-      )}
+            linkLabel="Ver indicadores →"
+          />
+        )}
 
-      <StatGrid items={stats} />
+        {topContract && topContract.amount != null && (
+          <AnchorCard
+            label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
+            value={formatAmount(topContract.amount)}
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  {topContract.title}
+                </span>
+                {topContract.awarding_body ? (
+                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    {topContract.awarding_body}
+                    {topContract.date ? ` · ${formatDate(topContract.date)}` : ""}
+                  </span>
+                ) : null}
+              </>
+            }
+            href={`/contratos/${topContract.id}`}
+            linkLabel="Ver contrato →"
+          />
+        )}
 
+        {topDivergenceSession && (topDivergenceSession.divergence_count ?? 0) > 0 && (
+          <AnchorCard
+            label={`Mayor divergencia · ${
+              topDivergenceSession.isRecent ? "últimos 30 días" : "histórico"
+            }`}
+            value={
+              <>
+                {topDivergenceSession.divergence_count}{" "}
+                <span className="text-lg font-normal text-muted-foreground">
+                  diputados
+                </span>
+              </>
+            }
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  votaron diferente a su grupo en
+                </span>
+                <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">
+                  {topDivergenceSession.title}
+                  {topDivergenceSession.date
+                    ? ` · ${formatDate(topDivergenceSession.date)}`
+                    : ""}
+                </span>
+              </>
+            }
+            href={`/votaciones/${topDivergenceSession.id}`}
+            linkLabel="Ver votación →"
+          />
+        )}
+      </div>
 
       {/* Gobierno */}
       {gobierno.length > 0 && (
@@ -178,20 +223,6 @@ export default async function HomePage() {
           </ul>
         </section>
       )}
-
-      {/* Diputados */}
-      <section>
-        <SectionHeader
-          title="Diputados"
-          subtitle="Las 350 personas que aprueban las leyes y el presupuesto del Estado"
-          href="/diputados"
-        />
-        <div className="ui-grid-cards">
-          {(politicians as unknown as PoliticianWithMemberships[]).map((p) => (
-            <PoliticianCard key={p.id} politician={p} />
-          ))}
-        </div>
-      </section>
 
       {/* Puertas giratorias */}
       {revolvingDoorCases.length > 0 && (

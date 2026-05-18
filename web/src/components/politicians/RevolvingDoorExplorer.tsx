@@ -25,7 +25,7 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Puertas giratorias"
-        description={`${uniquePeople} personas · ${cases.length} movimientos documentados con fuente pública.`}
+        description={`Personas que ocuparon un cargo público y después pasaron a trabajar en empresas relacionadas con decisiones tomadas durante ese cargo. ${uniquePeople} personas · ${cases.length} movimientos documentados con fuente pública.`}
       />
 
       <SectionTabs tabs={tabs} defaultTab="all">

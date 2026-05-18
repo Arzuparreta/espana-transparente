@@ -41,14 +41,14 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
   const formatted =
     totalAmount >= 1_000_000_000
-      ? `${(totalAmount / 1_000_000_000).toFixed(1)}B €`
+      ? `${(totalAmount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
       : `${(totalAmount / 1_000_000).toFixed(0)}M €`
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Contratos públicos"
-        description="Licitaciones publicadas en la Plataforma de Contratación del Sector Público (PCSP). Ordenadas por importe sin IVA."
+        description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí ves quién compra, a qué empresa, y por cuánto. Ordenados por importe sin IVA."
       />
 
       {statsRows.length > 0 ? (

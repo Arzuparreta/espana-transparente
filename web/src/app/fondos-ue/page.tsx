@@ -24,7 +24,7 @@ interface PageProps {
 
 function formatEuros(amount: number | null): string {
   if (amount == null) return "—"
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(2)} B €`
+  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(2).replace(".", ",")} mil M €`
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M €`
   return `${amount.toLocaleString("es-ES")} €`
 }
@@ -90,7 +90,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Fondos europeos"
-        description="Beneficiarios españoles de los fondos estructurales y de inversión europeos (ESIF) 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
+        description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
       />
 
       {summary && (

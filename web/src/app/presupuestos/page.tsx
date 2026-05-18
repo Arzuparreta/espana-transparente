@@ -31,7 +31,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   const programCount = rows.reduce((sum, r) => sum + (r.program_count ?? 0), 0)
 
   function formatAmount(eur: number): string {
-    if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)}B €`
+    if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
     if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
     return `${Math.round(eur)} €`
   }
@@ -40,7 +40,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Presupuestos"
-        description="Créditos de los Presupuestos Generales del Estado, por sección ministerial y programa."
+        description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Aprobado por el Congreso cada año."
       />
 
       {meta ? (

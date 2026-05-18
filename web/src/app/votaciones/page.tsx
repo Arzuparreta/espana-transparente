@@ -40,7 +40,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Votaciones"
-        description="Sesiones de votación de la XV Legislatura. Cada sesión incluye el voto individual de cada diputado y las divergencias detectadas respecto a la mayoría de su grupo parlamentario."
+        description="Cada vez que el Congreso aprueba o rechaza una ley o una propuesta, lo hace votando. Aquí ves quién votó qué, y qué diputados votaron diferente a su grupo."
         actions={
           <ResponsiveLink
             href="/distorsion"

@@ -66,7 +66,7 @@ export default async function IndicadoresPage() {
       <div className="relative z-10 mx-auto max-w-6xl space-y-6">
         <PageHeader
           title="Indicadores económicos"
-          description="Series históricas del Instituto Nacional de Estadística (INE). IPC, PIB, EPA, deuda pública y otros indicadores económicos."
+          description="Datos económicos generales del país: cuánto sube el IPC, cuánto crece el PIB, cuánta gente trabaja, cuánta deuda hay. Series del Instituto Nacional de Estadística (INE)."
         />
 
         {indicators.length === 0 ? (

@@ -18,27 +18,27 @@ export const PRIMARY_NAV: NavGroup[] = [
     items: [
       { href: "/diputados", label: "Diputados" },
       { href: "/senado", label: "Senado" },
-      { href: "/partidos", label: "Partidos" },
       { href: "/gobierno", label: "Gobierno" },
+      { href: "/partidos", label: "Partidos" },
       { href: "/instituciones", label: "Instituciones" },
-      { href: "/votaciones", label: "Votaciones" },
     ],
   },
   {
-    label: "Dinero público",
+    label: "Dinero y leyes",
     items: [
+      { href: "/votaciones", label: "Votaciones" },
       { href: "/presupuestos", label: "Presupuestos" },
       { href: "/contratos", label: "Contratos", longLabel: "Contratos públicos" },
       { href: "/subvenciones", label: "Subvenciones" },
       { href: "/fondos-ue", label: "Fondos UE", longLabel: "Fondos europeos" },
-      { href: "/organizaciones", label: "Organizaciones" },
     ],
   },
   {
-    label: "Contexto",
+    label: "Conexiones y contexto",
     items: [
-      { href: "/indicadores", label: "Indicadores", longLabel: "Indicadores económicos" },
       { href: "/puertas-giratorias", label: "Puertas giratorias" },
+      { href: "/organizaciones", label: "Organizaciones" },
+      { href: "/indicadores", label: "Indicadores", longLabel: "Indicadores económicos" },
     ],
   },
 ]

@@ -108,7 +108,7 @@ export default async function SenadoPage() {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Senado de España"
-        description="Senadores y senadoras en activo de la XV Legislatura — electos y designados por comunidades autónomas."
+        description="La cámara alta del parlamento: 265 senadores que revisan y pueden vetar las leyes que vienen del Congreso. Electos por provincia y designados por las comunidades autónomas."
       />
 
       <StatGrid
