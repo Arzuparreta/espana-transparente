@@ -146,7 +146,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                         </span>
                         <span className="pb-1 text-xs text-muted-foreground">{indicator.unit}</span>
                       </div>
-                      <div className={cn("mt-1 text-xs font-semibold", trendClass)}>
+                      <div className={cn("mt-1 font-mono text-xs font-semibold", trendClass)}>
                         {formatDelta(indicator.deltaPct)}
                       </div>
                     </div>
