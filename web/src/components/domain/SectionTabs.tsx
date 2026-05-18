@@ -32,7 +32,7 @@ function TabRow({
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0"
+      className="relative -mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0 [mask-image:linear-gradient(to_right,black_0%,black_85%,transparent_100%)] sm:[mask-image:none]"
     >
       <div className="inline-flex min-w-full gap-2 border-b border-border/80 pb-1">
         {tabs.map((tab) => {
