@@ -1,5 +1,5 @@
 import type { PoliticianWithMemberships } from "@/types"
-import { PoliticianCard } from "@/components/politicians/PoliticianCard"
+import { DiputadosFilter } from "@/components/politicians/DiputadosFilter"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { getDeputyCards } from "@/lib/data"
 
@@ -19,11 +19,7 @@ export default async function DiputadosPage() {
         title="Diputados"
         description="Las 350 personas elegidas en las últimas elecciones generales. Aprueban o rechazan las leyes que afectan a tu día a día: impuestos, sanidad, vivienda, justicia. Aquí su partido, provincia e historial de voto."
       />
-      <div className="ui-grid-cards">
-        {(politicians as unknown as PoliticianWithMemberships[]).map((p) => (
-          <PoliticianCard key={p.id} politician={p} />
-        ))}
-      </div>
+      <DiputadosFilter politicians={politicians as unknown as PoliticianWithMemberships[]} />
     </div>
   )
 }
