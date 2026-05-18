@@ -17,9 +17,9 @@ export function LogoHero({ parties }: LogoHeroProps) {
     <section className="relative overflow-hidden rounded-xl border border-border/80 bg-card px-5 py-6 shadow-sm sm:px-8 sm:py-8">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--brand-signal)/0.06),transparent_32%)]" />
       <div className="relative flex flex-col gap-5">
-        <p className="font-display max-w-3xl text-balance text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
+        <h1 className="font-display max-w-3xl text-balance text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
           {BRAND_DESCRIPTION}
-        </p>
+        </h1>
         <SearchBox />
       </div>
 
