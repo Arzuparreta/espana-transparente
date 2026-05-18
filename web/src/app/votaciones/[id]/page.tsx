@@ -192,25 +192,23 @@ export default async function VotacionPage({ params }: PageProps) {
         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
           Ver voto individual de cada diputado
         </summary>
-        <div className="mt-3 max-h-96 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/70 p-3">
-          {sorted.map(([acronym, group]) => (
-            <div key={acronym}>
-              <div className="mb-2">
-                <PartyBadge acronym={acronym} color={group.color} className="text-[11px]" partyId={group.partyId} />
-              </div>
-              {group.deputies.map((deputy, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between gap-3 border-b border-muted/30 py-1 last:border-0"
-                >
-                  <EntityLink kind="politician" id={deputy.politicianId} className="min-w-0 flex-1 truncate text-xs underline-offset-2 hover:underline">
+        <div className="mt-3 max-h-96 overflow-y-auto rounded-2xl border border-border/70 bg-card/70 p-3">
+          {sorted.flatMap(([acronym, group]) =>
+            group.deputies.map((deputy, index) => (
+              <div
+                key={`${acronym}-${index}`}
+                className="flex items-center justify-between gap-3 border-b border-muted/30 py-1 last:border-0"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <EntityLink kind="politician" id={deputy.politicianId} className="min-w-0 truncate text-xs underline-offset-2 hover:underline">
                     {deputy.name}
                   </EntityLink>
-                  <VoteBadge vote={deputy.vote} className="text-[11px]" />
+                  <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-[10px]" />
                 </div>
-              ))}
-            </div>
-          ))}
+                <VoteBadge vote={deputy.vote} className="shrink-0 text-[11px]" />
+              </div>
+            ))
+          )}
         </div>
       </details>
     </div>
