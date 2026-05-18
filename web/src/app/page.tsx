@@ -71,7 +71,7 @@ function SectionHeader({
       </div>
       <ResponsiveLink
         href={href}
-        className="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        className="inline-flex shrink-0 items-center py-2.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
       >
         {linkLabel}
       </ResponsiveLink>
