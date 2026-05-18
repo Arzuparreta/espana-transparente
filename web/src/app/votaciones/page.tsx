@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
@@ -20,8 +19,6 @@ interface SessionRow {
   session_number: number
   date: string
   initiative_number?: string
-  votes: Array<{ count: number }>
-  vote_count?: number
   divergence_count?: number
 }
 
@@ -60,7 +57,6 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
             ? new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
             : ""
           const divCount = s.divergence_count ?? 0
-          const voteCount = s.vote_count ?? s.votes?.[0]?.count ?? 0
 
           return (
             <ResponsiveLink key={s.id} href={`/votaciones/${s.id}`}>
@@ -69,12 +65,9 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
                   <div className="min-w-0 flex-1">
                     <div className="text-base font-medium leading-6 text-balance">{s.title}</div>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="shrink-0 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                         Sesión {s.session_number} · {dateStr}
                       </span>
-                      <Badge variant="outline" className="h-5 shrink-0 text-[10px]">
-                        {voteCount} votos
-                      </Badge>
                     </div>
                   </div>
                   {divCount > 0 && (
