@@ -84,10 +84,10 @@ export function SearchBox() {
   }
 
   return (
-    <div ref={ref} className="relative w-full max-w-xl">
+    <div ref={ref} className="relative mx-auto w-full max-w-xl">
       <Input
         type="search"
-        placeholder="¿Quién es tu diputado? ¿A qué empresa va el dinero?"
+        placeholder="¿Qué necesitas saber sobre lo que no te cuentan?"
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
