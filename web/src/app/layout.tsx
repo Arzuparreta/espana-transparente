@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import { cn } from "@/lib/utils"
+import { ClientProviders } from "@/components/layout/ClientProviders"
 import { Header } from "@/components/layout/Header"
 import { NavigationProgress } from "@/components/navigation/NavigationProgress"
 import {
@@ -89,11 +90,13 @@ export default function RootLayout({
       <body
         className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
       >
-        <NavigationProgress />
-        <Header />
-        <main className="ui-shell overflow-x-hidden py-5 sm:py-8">
-          {children}
-        </main>
+        <ClientProviders>
+          <NavigationProgress />
+          <Header />
+          <main className="ui-shell overflow-x-hidden py-5 sm:py-8">
+            {children}
+          </main>
+        </ClientProviders>
       </body>
     </html>
   )

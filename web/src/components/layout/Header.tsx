@@ -4,6 +4,7 @@ import { LogoMark } from "@/components/brand/LogoMark"
 import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { BRAND_NAME } from "@/lib/brand"
 import { PRIMARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
@@ -24,6 +25,7 @@ const itemActive = "text-foreground"
 
 export function Header() {
   const pathname = usePathname()
+  const { user, loading: authLoading, openModal, signOut } = useAuth()
 
   function isItemActive(href: string) {
     return pathname === href || (href !== "/" && pathname?.startsWith(href))
@@ -105,6 +107,33 @@ export function Header() {
           <div className="hidden lg:flex">
             <SearchTrigger variant="pill" />
           </div>
+          {!authLoading && (
+            user ? (
+              <div className="hidden lg:flex items-center gap-2">
+                <span
+                  title={user.email}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-[#1D1D1A] border border-[#2A2A27] font-mono text-[11px] font-semibold text-[#C8FF00] select-none"
+                >
+                  {(user.email ?? "?")[0].toUpperCase()}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="text-[12px] font-medium text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openModal("login")}
+                className="hidden lg:inline-flex h-9 items-center rounded-[2px] border border-[#2A2A27] bg-transparent px-3 text-[12px] font-semibold text-[#999992] transition-colors hover:border-[#C8FF00] hover:text-[#C8FF00]"
+              >
+                Iniciar sesión
+              </button>
+            )
+          )}
           <MobileNavDropdown />
         </div>
       </div>

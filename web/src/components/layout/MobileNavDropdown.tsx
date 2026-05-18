@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 
@@ -12,6 +13,7 @@ const navGroups = [...PRIMARY_NAV, SECONDARY_NAV]
 export function MobileNavDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { user, openModal, signOut } = useAuth()
 
   return (
     <div className="lg:hidden">
@@ -89,6 +91,31 @@ export function MobileNavDropdown() {
                 </div>
               ))}
             </nav>
+
+            <div className="border-t border-border/60 px-5 py-4">
+              {user ? (
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#999992]">
+                    {user.email}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { signOut(); setIsOpen(false) }}
+                    className="text-[12px] font-semibold text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { openModal("login"); setIsOpen(false) }}
+                  className="w-full rounded-[2px] border border-[#2A2A27] py-2 text-[13px] font-semibold text-[#C8FF00] transition-colors hover:border-[#C8FF00]"
+                >
+                  Iniciar sesión
+                </button>
+              )}
+            </div>
           </DialogPrimitive.Popup>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
