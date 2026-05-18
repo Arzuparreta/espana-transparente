@@ -5,6 +5,7 @@ import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
+  getTopBudgetSectionAnchor,
   getTopContractOfMonth,
   getTopDivergenceSessionOfMonth,
 } from "@/lib/data"
@@ -18,6 +19,21 @@ function formatAmount(n: number): string {
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(n)
+}
+
+function formatBudgetAmount(eur: number): string {
+  if (eur >= 1_000_000_000) {
+    return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
+  }
+  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
+  return formatAmount(eur)
+}
+
+function budgetAnchorYearLabel(year: number, statusLabel: string | null): string {
+  if (statusLabel && statusLabel !== "Aprobado") {
+    return `${year} · ${statusLabel}`
+  }
+  return String(year)
 }
 
 function formatDate(d: string): string {
@@ -67,11 +83,16 @@ export default async function HomePage() {
     { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
     topContract,
     topDivergenceSession,
+    topBudgetSection,
   ] = await Promise.all([
     getHomeData(),
     getTopContractOfMonth(),
     getTopDivergenceSessionOfMonth(),
+    getTopBudgetSectionAnchor(),
   ])
+
+  const showDivergenceAnchor =
+    topDivergenceSession != null && (topDivergenceSession.divergence_count ?? 0) > 0
 
   return (
     <div className="space-y-10 sm:space-y-14">
@@ -112,7 +133,7 @@ export default async function HomePage() {
           />
         )}
 
-        {topDivergenceSession && (topDivergenceSession.divergence_count ?? 0) > 0 && (
+        {showDivergenceAnchor && topDivergenceSession ? (
           <AnchorCard
             label={`Mayor divergencia · ${
               topDivergenceSession.isRecent ? "últimos 30 días" : "histórico"
@@ -141,7 +162,34 @@ export default async function HomePage() {
             href={`/votaciones/${topDivergenceSession.id}`}
             linkLabel="Ver votación →"
           />
-        )}
+        ) : topBudgetSection ? (
+          <AnchorCard
+            label={`Mayor crédito PGE · ${budgetAnchorYearLabel(
+              topBudgetSection.year,
+              topBudgetSection.statusLabel
+            )}`}
+            value={formatBudgetAmount(topBudgetSection.total_credit_initial)}
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  {topBudgetSection.section_name}
+                </span>
+                {topBudgetSection.minister_name ? (
+                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    Responsable: {topBudgetSection.minister_name}
+                  </span>
+                ) : topBudgetSection.ministry_normalized ? (
+                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    {topBudgetSection.ministry_normalized}
+                  </span>
+                ) : null}
+              </>
+            }
+            source="Fuente: SEPG · datos Civio (PGE)."
+            href={`/presupuestos/${encodeURIComponent(topBudgetSection.section_code)}?year=${topBudgetSection.year}`}
+            linkLabel="Ver presupuesto →"
+          />
+        ) : null}
       </div>
 
       {/* Gobierno */}

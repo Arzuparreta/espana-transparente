@@ -1006,6 +1006,54 @@ export const getBudgetMinister = unstable_cache(
   { revalidate: HOUR }
 )
 
+export type TopBudgetSectionAncla = {
+  year: number
+  budget_type: string | null
+  section_code: string
+  section_name: string
+  ministry_normalized: string | null
+  total_credit_initial: number
+  minister_name: string | null
+  statusLabel: string | null
+}
+
+export const getTopBudgetSectionAnchor = unstable_cache(
+  async (): Promise<TopBudgetSectionAncla | null> => {
+    for (let i = BUDGET_YEARS.length - 1; i >= 0; i--) {
+      const year = BUDGET_YEARS[i]
+      const { data } = await supabase
+        .from("v_budget_summary")
+        .select(
+          "year, budget_type, section_code, section_name, ministry_normalized, total_credit_initial"
+        )
+        .eq("year", year)
+        .gt("total_credit_initial", 0)
+        .order("total_credit_initial", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!data?.total_credit_initial) continue
+
+      const minister = await getBudgetMinister(year, data.section_code as string)
+      const meta = getBudgetYearMeta(year)
+
+      return {
+        year,
+        budget_type: (data.budget_type as string | null) ?? null,
+        section_code: data.section_code as string,
+        section_name: data.section_name as string,
+        ministry_normalized: (data.ministry_normalized as string | null) ?? null,
+        total_credit_initial: data.total_credit_initial as number,
+        minister_name: (minister?.minister_name as string | null) ?? null,
+        statusLabel: meta?.label ?? null,
+      }
+    }
+    return null
+  },
+  ["top-budget-section-anchor"],
+  { revalidate: HOUR }
+)
+
 export const getMoneyDatasetSummary = unstable_cache(
   async (dataset: "contracts" | "subsidies") => {
     const { data } = await supabase
