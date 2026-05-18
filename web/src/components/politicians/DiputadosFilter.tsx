@@ -13,16 +13,17 @@ export function DiputadosFilter({ politicians }: Props) {
   const [activeParty, setActiveParty] = useState<string | null>(null)
 
   const parties = useMemo(() => {
-    const seen = new Set<string>()
-    const result: { acronym: string; color: string | null }[] = []
+    const counts = new Map<string, { color: string | null; n: number }>()
     for (const p of politicians) {
       const party = p.politician_memberships?.[0]?.party
-      if (party?.acronym && !seen.has(party.acronym)) {
-        seen.add(party.acronym)
-        result.push({ acronym: party.acronym, color: party.color ?? null })
+      if (party?.acronym) {
+        const prev = counts.get(party.acronym)
+        counts.set(party.acronym, { color: party.color ?? null, n: (prev?.n ?? 0) + 1 })
       }
     }
-    return result.sort((a, b) => a.acronym.localeCompare(b.acronym))
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1].n - a[1].n)
+      .map(([acronym, { color }]) => ({ acronym, color }))
   }, [politicians])
 
   const filtered = useMemo(() => {
