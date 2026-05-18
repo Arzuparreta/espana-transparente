@@ -84,7 +84,7 @@ export function SearchBox() {
   }
 
   return (
-    <div ref={ref} className="relative max-w-xl mx-auto w-full">
+    <div ref={ref} className="relative w-full max-w-xl">
       <Input
         type="search"
         placeholder="¿Quién es tu diputado? ¿A qué empresa va el dinero?"
@@ -94,14 +94,14 @@ export function SearchBox() {
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
-        className="h-12 rounded-2xl border-border/70 bg-card px-4 text-base shadow-sm sm:text-lg"
+        className="h-12 rounded border-border bg-card px-4 text-base sm:text-lg"
         aria-busy={isNavigating}
       />
       {open && query.length >= 2 && hasResults && (
-        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl">
+        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded border border-border bg-card">
           {results.length > 0 && (
             <div className="border-b last:border-b-0">
-              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 Personas
               </div>
               {results.map((r) => {
@@ -134,7 +134,7 @@ export function SearchBox() {
 
           {partyResults.length > 0 && (
             <div className="border-b last:border-b-0">
-              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 Partidos
               </div>
               {partyResults.map((party) => (
@@ -154,7 +154,7 @@ export function SearchBox() {
 
           {sessionResults.length > 0 && (
             <div>
-              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 Votaciones
               </div>
               {sessionResults.map((session) => (

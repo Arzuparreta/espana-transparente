@@ -75,7 +75,7 @@ export default async function EstadoDatosPage() {
 
       {/* ETL pipeline freshness */}
       {pipelines.length > 0 && (
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+        <section className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
           <h2 className="text-xl font-semibold">Pipelines ETL</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -129,7 +129,7 @@ export default async function EstadoDatosPage() {
         const examplesRows = examplesByDataset[dataset] ?? []
 
         return (
-          <section key={dataset} className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+          <section key={dataset} className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <h2 className="text-xl font-semibold">{datasetLabel(dataset)}</h2>

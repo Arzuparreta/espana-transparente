@@ -85,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={cn("font-sans", geistSans.variable, geistMono.variable)}>
+    <html lang="es" className={cn("dark font-sans", geistSans.variable, geistMono.variable)}>
       <body
         className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
       >

@@ -1,10 +1,10 @@
 const FALLBACK_PARTY_COLOR = "#64748b"
-const FALLBACK_VOTE_COLOR = "#9ca3af"
+const FALLBACK_VOTE_COLOR = "#4b5563"
 
 export const VOTE_COLORS: Record<string, string> = {
-  Sí: "#15803d",
-  No: "#b91c1c",
-  Abstención: "#b45309",
+  Sí: "#22c55e",
+  No: "#ef4444",
+  Abstención: "#f59e0b",
   "No vota": FALLBACK_VOTE_COLOR,
 }
 

@@ -135,7 +135,7 @@ export default async function IniciativaPage({ params }: PageProps) {
                     <span className="text-red-600 dark:text-red-400">{no} no</span>
                     {abs > 0 && <span className="text-amber-600 dark:text-amber-400">{abs} abs</span>}
                     {(s.divergence_count as number) > 0 && (
-                      <span className="ml-auto rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                      <span className="ml-auto rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
                         {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
                       </span>
                     )}

@@ -46,7 +46,7 @@ function TabRow({
               aria-current={isActive ? "page" : undefined}
               onClick={() => onChange(tab.value)}
               className={cn(
-                "min-h-11 shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+                "min-h-11 shrink-0 rounded px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"

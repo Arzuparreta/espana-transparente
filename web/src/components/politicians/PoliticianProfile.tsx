@@ -356,7 +356,7 @@ export function PoliticianProfile({
                       return (
                         <div
                           key={index}
-                          className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3 text-sm shadow-sm"
+                          className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3 text-sm"
                         >
                           {party ? (
                             <PartyBadge
@@ -374,7 +374,7 @@ export function PoliticianProfile({
                     })}
                   </div>
                 ) : govPosition ? (
-                  <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 shadow-sm space-y-1">
+                  <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 space-y-1">
                     <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
                     </span>
@@ -399,7 +399,7 @@ export function PoliticianProfile({
                     ? "Portavoz del grupo parlamentario"
                     : "Líder del grupo parlamentario"
                   return (
-                    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 shadow-sm space-y-2">
+                    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         {subParty ? (
                           <PartyBadge
@@ -510,7 +510,7 @@ export function PoliticianProfile({
                               <span>· Exp. {session.initiative_number}</span>
                             )}
                             {isDivergent && (
-                              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                              <span className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
                                 Votó distinto a su grupo
                               </span>
                             )}
@@ -728,4 +728,3 @@ export function PoliticianProfile({
     </div>
   )
 }
-

@@ -135,7 +135,7 @@ export function IndicatorChart({
               if (!active || !payload?.length) return null
 
               return (
-                <div className="rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground shadow-sm">
+                <div className="rounded border border-border bg-background px-3 py-2 font-mono text-xs text-foreground">
                   {`${formatPeriod(String(label), "long")} · ${formatTooltipValue(Number(payload[0].value))} ${unit}`}
                 </div>
               )
@@ -148,7 +148,7 @@ export function IndicatorChart({
             strokeWidth={variant === "stage" ? 2.5 : 2}
             fill={`url(#${gradientId})`}
             className="text-foreground"
-            animationDuration={1100}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>

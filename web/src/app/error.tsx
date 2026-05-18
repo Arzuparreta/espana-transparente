@@ -22,7 +22,7 @@ export default function GlobalError({
         title="Algo ha fallado"
         description="No hemos podido cargar esta página. Es probable que sea un problema temporal de la base de datos pública o de una fuente externa."
       />
-      <div className="rounded-xl border border-border/80 bg-card/80 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+      <div className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={reset}>Reintentar</Button>
           <ResponsiveLink href="/" className={buttonVariants({ variant: "outline" })}>

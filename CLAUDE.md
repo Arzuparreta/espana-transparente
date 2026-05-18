@@ -154,3 +154,19 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
+
+## Design System
+
+Always read `DESIGN.md` before making any visual or UI decisions.
+All font choices, colors, spacing, border radius, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+In QA mode, flag any code that doesn't match `DESIGN.md`.
+
+Key rules derived from DESIGN.md:
+- Dark mode is the **default** — do not flip this without approval
+- Signal color is `#C8FF00` (acid green) — not crimson, not red
+- All numeric data (amounts, counts, IDs, dates) must use `font-family: var(--font-mono)` (Geist Mono)
+- Display/hero type uses Cabinet Grotesk (load from Fontshare CDN)
+- Border radius max 2px — no rounded cards
+- Remove card hover-float animations — they conflict with the aesthetic
+- Background grid pattern is removed — no `background-image` grid on `body`

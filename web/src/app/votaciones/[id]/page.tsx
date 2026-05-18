@@ -117,7 +117,7 @@ export default async function VotacionPage({ params }: PageProps) {
       />
 
       {divergences.length > 0 ? (
-        <Card className="border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/20">
+        <Card className="border-accent/35 bg-accent/10">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="text-base">Divergencias relevantes</CardTitle>
@@ -128,7 +128,7 @@ export default async function VotacionPage({ params }: PageProps) {
             {divergences.map((divergence, index) => (
               <div
                 key={index}
-                className="flex flex-wrap items-center gap-2 border-l-2 border-amber-300 pl-3 text-sm"
+                className="flex flex-wrap items-center gap-2 border-l-2 border-accent pl-3 text-sm"
               >
                 <EntityLink kind="politician" id={divergence.politicianId} className="font-medium underline-offset-2 hover:underline">
                   {divergence.name}

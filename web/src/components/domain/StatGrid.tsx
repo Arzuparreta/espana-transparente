@@ -31,10 +31,10 @@ export function StatGrid({ items, className }: StatGridProps) {
       {items.map((item) => (
         <Card key={item.label} className="min-w-0">
           <CardContent className="min-w-0 space-y-1 px-4 py-4">
-            <div className="break-words text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="break-words font-mono text-[11px] font-normal uppercase tracking-[0.1em] text-muted-foreground">
               {item.label}
             </div>
-            <div className={cn("break-words font-display text-3xl font-semibold tracking-[-0.045em]", item.valueClassName)}>
+            <div data-value className={cn("break-words font-mono text-3xl font-medium tracking-[-0.03em]", item.valueClassName)}>
               {item.value}
             </div>
             {item.hint ? (

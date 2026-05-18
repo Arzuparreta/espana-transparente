@@ -66,28 +66,28 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
 
   return (
     <div className="space-y-5">
-      <section className="hidden overflow-hidden rounded-xl border border-border/80 bg-card/80 p-4 shadow-sm sm:block sm:p-5">
+      <section className="hidden overflow-hidden rounded border border-border bg-card p-4 sm:block sm:p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Series</div>
-            <div className="mt-1 font-display text-3xl font-semibold tracking-tight">{indicators.length}</div>
+          <div className="rounded border border-border bg-background/60 px-3 py-3">
+            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Series</div>
+            <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{indicators.length}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Observaciones</div>
-            <div className="mt-1 font-display text-3xl font-semibold tracking-tight">{totalObservations}</div>
+          <div className="rounded border border-border bg-background/60 px-3 py-3">
+            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Observaciones</div>
+            <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{totalObservations}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Último periodo</div>
-            <div className="mt-1 font-display text-3xl font-semibold tracking-tight">{latestPeriod ?? "N/D"}</div>
+          <div className="rounded border border-border bg-background/60 px-3 py-3">
+            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Último periodo</div>
+            <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{latestPeriod ?? "N/D"}</div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Fuente</div>
-            <div className="mt-1 font-display text-3xl font-semibold tracking-tight">INE</div>
+          <div className="rounded border border-border bg-background/60 px-3 py-3">
+            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Fuente</div>
+            <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">INE</div>
           </div>
         </div>
       </section>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/80 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="text-sm font-semibold">Panel de indicadores</div>
           <div className="text-xs leading-5 text-muted-foreground">
@@ -107,7 +107,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card/70 px-4 py-10 text-center text-sm text-muted-foreground">
+        <div className="rounded border border-dashed border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
           No hay indicadores que coincidan con la búsqueda.
         </div>
       ) : (
@@ -117,18 +117,18 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
               indicator.deltaPct === null
                 ? "text-muted-foreground"
                 : indicator.deltaPct >= 0
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-green-700 dark:text-green-400"
+                  ? "text-accent"
+                  : "text-muted-foreground"
 
             return (
               <ResponsiveLink
                 key={indicator.code}
                 href={`/indicadores/${indicator.code}`}
-                className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="group block h-full rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
               >
                 <article
                   data-slot="card"
-                  className="flex h-full min-h-[230px] flex-col justify-between rounded-xl border border-border/80 bg-card/90 p-4 shadow-sm transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-foreground/25 group-hover:shadow-md"
+                  className="flex h-full min-h-[230px] flex-col justify-between rounded border border-border bg-card p-4 transition-colors duration-150 group-hover:border-foreground/30"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-3">
@@ -141,7 +141,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
 
                     <div>
                       <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-                        <span className="font-display text-4xl font-semibold tracking-tight">
+                        <span data-value className="font-mono text-4xl font-medium tracking-tight">
                           {formatValue(indicator.latestValue)}
                         </span>
                         <span className="pb-1 text-xs text-muted-foreground">{indicator.unit}</span>
@@ -156,7 +156,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                     <IndicatorSparkline points={indicator.points} className="text-foreground/85" />
                     <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
                       <span>Ver serie</span>
-                      <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </div>
                   </div>
                 </article>

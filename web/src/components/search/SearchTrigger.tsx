@@ -31,7 +31,7 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
         aria-label="Buscar (⌘K)"
         title="Buscar (⌘K)"
         className={cn(
-          "group inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-border/70 bg-background/40 px-3 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:border-foreground focus-visible:text-foreground",
+          "group inline-flex h-9 shrink-0 items-center gap-2 rounded border border-border bg-background/40 px-3 text-[13px] text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:border-foreground focus-visible:text-foreground",
           className
         )}
       >

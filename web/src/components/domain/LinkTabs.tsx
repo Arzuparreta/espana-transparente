@@ -25,7 +25,7 @@ export function LinkTabs({ tabs, ariaLabel, className }: LinkTabsProps) {
             href={tab.href}
             aria-current={tab.active ? "page" : undefined}
             className={cn(
-              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
+              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded px-3 py-2 text-sm font-medium transition-colors",
               tab.active
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

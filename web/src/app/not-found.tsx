@@ -14,7 +14,7 @@ export default function NotFound() {
         title="Página no encontrada"
         description="La ruta solicitada no existe o se movió. Desde el inicio puedes navegar a diputados, votaciones, contratos, subvenciones y el resto de áreas del portal."
       />
-      <div className="rounded-xl border border-border/80 bg-card/80 px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+      <div className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center gap-3">
           <ResponsiveLink href="/" className={buttonVariants({ variant: "default" })}>
             Volver al inicio

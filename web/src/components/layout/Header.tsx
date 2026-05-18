@@ -12,7 +12,7 @@ import { Menubar } from "@base-ui/react/menubar"
 import { usePathname } from "next/navigation"
 
 const triggerBase =
-  "relative inline-flex h-9 shrink-0 items-center gap-1 rounded-md px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground"
+  "relative inline-flex h-9 shrink-0 items-center gap-1 rounded px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground"
 
 const triggerActive =
   "text-foreground after:absolute after:-bottom-[11px] after:left-3 after:right-3 after:h-[2px] after:bg-foreground"
@@ -72,7 +72,7 @@ export function Header() {
                 </Menu.Trigger>
                 <Menu.Portal>
                   <Menu.Positioner sideOffset={10} align="start" className="z-50">
-                    <Menu.Popup className="min-w-[200px] rounded-md border border-border bg-popover p-1 shadow-lg outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
+                    <Menu.Popup className="min-w-[200px] rounded border border-border bg-popover p-1 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
                       {group.items.map((item) => (
                         <Menu.LinkItem
                           key={item.href}

@@ -49,7 +49,7 @@ function SectionHeader({
   return (
     <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
       <div className="min-w-0">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="font-display text-2xl font-black uppercase tracking-[-0.02em]">{title}</h2>
         {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       <ResponsiveLink
@@ -159,7 +159,7 @@ export default async function HomePage() {
               const card = (
                 <div
                   key={m.id as string}
-                  className="rounded-xl border bg-card/80 p-4"
+                  className="rounded border bg-card p-4"
                   style={{ borderColor: `${color}28` }}
                 >
                   <p className="text-xs text-muted-foreground line-clamp-1">
@@ -205,7 +205,7 @@ export default async function HomePage() {
                   <span className="min-w-0 truncate font-medium">{s.title as string}</span>
                   <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
                     {(s.divergence_count as number) > 0 && (
-                      <span className="mr-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                      <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
                         {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
                       </span>
                     )}
@@ -234,7 +234,7 @@ export default async function HomePage() {
               <ResponsiveLink
                 key={c.id as string}
                 href={c.person_id ? `/diputados/${c.person_id as string}` : "/puertas-giratorias"}
-                className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border hover:bg-card"
+                className="rounded border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
               >
                 <p className="font-semibold">{c.person_name as string}</p>
                 <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">

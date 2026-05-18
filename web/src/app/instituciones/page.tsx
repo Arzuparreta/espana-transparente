@@ -91,7 +91,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
           {member.has_revolving_door && (
             <ResponsiveLink
               href="/puertas-giratorias"
-              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+              className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent"
             >
               Puerta giratoria →
             </ResponsiveLink>
@@ -191,12 +191,12 @@ export default async function InstitucionesPage() {
         />
       )}
 
-      <InfoPanel title="Fuente y metodología">
+      <InfoPanel title="Fuente">
         Los nombramientos se extraen del BOE y de las webs oficiales de cada organismo.
         El partido asociado corresponde al que respaldó la candidatura en el Congreso, el Senado,
         el CGPJ o el Gobierno según el caso. Las tarjetas con enlace dirigen a la ficha del/la
         diputado/a cuando la persona forma o ha formado parte del Congreso. El badge{" "}
-        <span className="font-medium text-amber-700 dark:text-amber-400">Puerta giratoria</span>{" "}
+        <span className="font-medium text-accent">Puerta giratoria</span>{" "}
         indica que existe un caso publicado y verificado en nuestra base de datos.
       </InfoPanel>
     </div>

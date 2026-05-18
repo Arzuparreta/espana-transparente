@@ -24,14 +24,14 @@ export function AnchorCard({
   return (
     <section
       className={cn(
-        "flex flex-col rounded-2xl border border-border/60 bg-card/60 px-6 py-7 sm:px-8 sm:py-8",
+        "flex flex-col rounded border border-border bg-card px-5 py-6 sm:px-6 sm:py-7",
         className
       )}
     >
-      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+      <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>
-      <div className="mt-2 font-display text-3xl font-extrabold tabular-nums tracking-tight text-foreground sm:text-4xl">
+      <div data-value className="mt-2 font-mono text-3xl font-medium tabular-nums tracking-[-0.03em] text-foreground sm:text-4xl">
         {value}
       </div>
       {description ? (

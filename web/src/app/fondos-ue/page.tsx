@@ -133,7 +133,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
 
       <Pagination page={page} totalPages={totalPages} hrefForPage={(p) => `?page=${p}`} />
 
-      <InfoPanel title="Fuente y metodología">
+      <InfoPanel title="Fuente">
         Datos extraídos de{" "}
         <a
           href="https://kohesio.ec.europa.eu"
