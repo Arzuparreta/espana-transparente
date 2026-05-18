@@ -3,6 +3,7 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { Card, CardContent } from "@/components/ui/card"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BUDGET_YEARS, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
 import { notFound } from "next/navigation"
 
@@ -61,7 +62,17 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
           <>
             {minister?.minister_name ? (
               <span className="text-xs text-muted-foreground">
-                Ministro/a responsable: <span className="font-medium text-foreground">{minister.minister_name}</span>
+                Ministro/a responsable:{" "}
+                {minister.responsibility_position_id ? (
+                  <ResponsiveLink
+                    href={`/ministerios/${minister.responsibility_position_id}`}
+                    className="font-medium text-foreground underline-offset-2 hover:underline"
+                  >
+                    {minister.minister_name}
+                  </ResponsiveLink>
+                ) : (
+                  <span className="font-medium text-foreground">{minister.minister_name}</span>
+                )}
               </span>
             ) : null}
           </>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getSubsidyDetail } from "@/lib/data"
 
 export const revalidate = 3600
@@ -97,7 +98,14 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
           )}
           {subsidy.nivel2 && <Row label="Territorio">{subsidy.nivel2}</Row>}
           {subsidy.ministry_normalized && (
-            <Row label="Ministerio">{subsidy.ministry_normalized}</Row>
+            <Row label="Ministerio">
+              <ResponsiveLink
+                href={`/subvenciones?ministry=${encodeURIComponent(subsidy.ministry_normalized)}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {subsidy.ministry_normalized}
+              </ResponsiveLink>
+            </Row>
           )}
           {subsidy.numero_convocatoria && (
             <Row label="Convocatoria">{subsidy.numero_convocatoria}</Row>

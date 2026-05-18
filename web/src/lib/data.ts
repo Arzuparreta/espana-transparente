@@ -480,7 +480,7 @@ export const getPoliticianProfileData = unstable_cache(
         supabase.rpc("get_politician_divergences", { p_politician_id: id }),
         supabase
           .from("responsibility_positions")
-          .select("position_type, organization_name, government, start_date, source_url")
+          .select("id, position_type, organization_name, government, start_date, source_url")
           .eq("politician_id", id)
           .is("end_date", null)
           .eq("administration_level", "state")

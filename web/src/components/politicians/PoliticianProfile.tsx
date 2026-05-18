@@ -52,6 +52,7 @@ interface AttendanceSummary {
 }
 
 interface GovPosition {
+  id: string
   position_type: string
   organization_name: string
   government: string
@@ -256,7 +257,14 @@ export function PoliticianProfile({
                 <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
                 </div>
-                <div className="mt-0.5 font-semibold">{govPosition.organization_name}</div>
+                <div className="mt-0.5 font-semibold">
+                  <ResponsiveLink
+                    href={`/ministerios/${govPosition.id}`}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {govPosition.organization_name}
+                  </ResponsiveLink>
+                </div>
                 <div className="mt-0.5 text-xs text-muted-foreground">
                   {govPosition.government}
                   {govPosition.start_date ? ` · desde ${formatProfileDate(govPosition.start_date)}` : ""}
@@ -351,6 +359,7 @@ export function PoliticianProfile({
                     {pr.map((relation: Record<string, unknown>, index: number) => {
                       const party = relation.party as Record<string, string> | undefined
                       const superior = relation.superior as Record<string, string> | undefined
+                      const superiorId = relation.superior_id as string | undefined
                       const relType = String(relation.relationship_type || "")
 
                       return (
@@ -368,7 +377,16 @@ export function PoliticianProfile({
                           <span className="text-xs text-muted-foreground">
                             {RELATION_LABELS[relType] || relType}
                           </span>
-                          <span className="font-medium">{superior?.full_name || "—"}</span>
+                          {superiorId ? (
+                            <ResponsiveLink
+                              href={`/diputados/${superiorId}`}
+                              className="font-medium underline-offset-2 hover:underline"
+                            >
+                              {superior?.full_name || "—"}
+                            </ResponsiveLink>
+                          ) : (
+                            <span className="font-medium">{superior?.full_name || "—"}</span>
+                          )}
                         </div>
                       )
                     })}
@@ -379,7 +397,12 @@ export function PoliticianProfile({
                       {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
                     </span>
                     <p className="text-sm font-medium">
-                      {govPosition.organization_name}
+                      <ResponsiveLink
+                        href={`/ministerios/${govPosition.id}`}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        {govPosition.organization_name}
+                      </ResponsiveLink>
                       {govPosition.government ? ` — ${govPosition.government}` : ""}
                     </p>
                     {govPosition.start_date ? (

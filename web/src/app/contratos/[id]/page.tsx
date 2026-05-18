@@ -3,6 +3,7 @@ import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { ShareButton } from "@/components/domain/ShareButton"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getContractDetail } from "@/lib/data"
 import { BRAND_URL } from "@/lib/brand"
 
@@ -105,7 +106,14 @@ export default async function ContractDetailPage({ params }: PageProps) {
           )}
           {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
           {contract.ministry_normalized && (
-            <Row label="Ministerio">{contract.ministry_normalized}</Row>
+            <Row label="Ministerio">
+              <ResponsiveLink
+                href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {contract.ministry_normalized}
+              </ResponsiveLink>
+            </Row>
           )}
           {contract.region && <Row label="Región">{contract.region}</Row>}
           {contract.administration_level && (
