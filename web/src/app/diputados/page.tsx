@@ -17,7 +17,7 @@ export default async function DiputadosPage() {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Diputados"
-        description="Las 350 personas elegidas en las últimas elecciones generales. Aprueban o rechazan las leyes que afectan a tu día a día: impuestos, sanidad, vivienda, justicia. Aquí su partido, circunscripción e historial de voto."
+        description="Las 350 personas elegidas en las últimas elecciones generales. Aprueban o rechazan las leyes que afectan a tu día a día: impuestos, sanidad, vivienda, justicia. Aquí su partido, provincia e historial de voto."
       />
       <div className="ui-grid-cards">
         {(politicians as unknown as PoliticianWithMemberships[]).map((p) => (

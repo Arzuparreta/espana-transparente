@@ -41,7 +41,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
   const formatted =
     totalAmount >= 1_000_000_000
-      ? `${(totalAmount / 1_000_000_000).toFixed(1)}B €`
+      ? `${(totalAmount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
       : `${(totalAmount / 1_000_000).toFixed(0)}M €`
 
   return (

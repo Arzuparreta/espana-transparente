@@ -273,9 +273,10 @@ export const getDeputyCards = unstable_cache(
     const { data } = await supabase
       .from("politicians")
       .select(
-        "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
+        "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, chamber, party:parties(id, acronym, color, name))"
       )
       .eq("politician_memberships.is_active", true)
+      .eq("politician_memberships.chamber", "congress")
       .order("full_name")
 
     return data ?? []

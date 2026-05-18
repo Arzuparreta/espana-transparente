@@ -31,7 +31,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   const programCount = rows.reduce((sum, r) => sum + (r.program_count ?? 0), 0)
 
   function formatAmount(eur: number): string {
-    if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1)}B €`
+    if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
     if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
     return `${Math.round(eur)} €`
   }
