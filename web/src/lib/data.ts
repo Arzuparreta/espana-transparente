@@ -285,7 +285,7 @@ export const getDeputyCards = unstable_cache(
     const { data } = await supabase
       .from("politicians")
       .select(
-        "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, chamber, party:parties(id, acronym, color, name))"
+        "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, chamber, party:parties(id, acronym, color, name, logo_url))"
       )
       .eq("politician_memberships.is_active", true)
       .eq("politician_memberships.chamber", "congress")
@@ -301,7 +301,7 @@ export const getParties = unstable_cache(
   async () => {
     const { data } = await supabase
       .from("politician_memberships")
-      .select("party:parties(id, acronym, color, name)")
+      .select("party:parties(id, acronym, color, name, logo_url)")
       .eq("is_active", true)
       .eq("chamber", "congress")
 
@@ -312,6 +312,7 @@ export const getParties = unstable_cache(
         name: string
         acronym: string | null
         color: string | null
+        logo_url: string | null
         stats: { deputy_count: number }
       }
     >()
@@ -330,6 +331,7 @@ export const getParties = unstable_cache(
           existing.id = party.id
           existing.name = normalizedName
           existing.color = party.color
+          existing.logo_url = (party as { logo_url?: string | null }).logo_url ?? null
         }
         continue
       }
@@ -339,6 +341,7 @@ export const getParties = unstable_cache(
         name: normalizedName,
         acronym: party.acronym,
         color: party.color,
+        logo_url: (party as { logo_url?: string | null }).logo_url ?? null,
         stats: { deputy_count: 1 },
       })
     }

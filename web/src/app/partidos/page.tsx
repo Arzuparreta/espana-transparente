@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/domain/PageHeader"
+import { PartyLogo } from "@/components/domain/PartyLogo"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getParties } from "@/lib/data"
 import type { Party } from "@/types"
@@ -23,9 +24,11 @@ export default async function PartidosPage() {
         {withDeputies.map((p) => (
           <ResponsiveLink key={(p as Party).id} href={`/partidos/${(p as Party).id}`}>
             <div className="flex min-w-0 items-center gap-4 rounded-xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border hover:bg-card">
-              <div
-                className="h-8 w-8 shrink-0 rounded-full border border-border/40"
-                style={{ backgroundColor: (p as Party).color }}
+              <PartyLogo
+                src={(p as unknown as { logo_url?: string | null }).logo_url}
+                color={(p as Party).color}
+                acronym={(p as Party).acronym ?? ""}
+                size="md"
               />
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-baseline justify-between gap-3">

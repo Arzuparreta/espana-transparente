@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import type { PoliticianWithMemberships } from "@/types"
 
@@ -13,17 +14,21 @@ export function DiputadosFilter({ politicians }: Props) {
   const [activeParty, setActiveParty] = useState<string | null>(null)
 
   const parties = useMemo(() => {
-    const counts = new Map<string, { color: string | null; n: number }>()
+    const counts = new Map<string, { color: string | null; logo_url: string | null; n: number }>()
     for (const p of politicians) {
-      const party = p.politician_memberships?.[0]?.party
+      const party = p.politician_memberships?.[0]?.party as (typeof p.politician_memberships[0]["party"] & { logo_url?: string | null }) | undefined
       if (party?.acronym) {
         const prev = counts.get(party.acronym)
-        counts.set(party.acronym, { color: party.color ?? null, n: (prev?.n ?? 0) + 1 })
+        counts.set(party.acronym, {
+          color: party.color ?? null,
+          logo_url: party.logo_url ?? null,
+          n: (prev?.n ?? 0) + 1,
+        })
       }
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1].n - a[1].n)
-      .map(([acronym, { color }]) => ({ acronym, color }))
+      .map(([acronym, { color, logo_url }]) => ({ acronym, color, logo_url }))
   }, [politicians])
 
   const filtered = useMemo(() => {
@@ -70,7 +75,7 @@ export function DiputadosFilter({ politicians }: Props) {
         >
           Todos
         </button>
-        {parties.map(({ acronym, color }) => (
+        {parties.map(({ acronym, color, logo_url }) => (
           <button
             key={acronym}
             type="button"
@@ -80,12 +85,13 @@ export function DiputadosFilter({ politicians }: Props) {
                 ? { backgroundColor: color, color: "#0B0B0A", borderColor: color }
                 : {}
             }
-            className={`rounded border px-2.5 py-1 font-mono text-xs transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors ${
               activeParty === acronym
                 ? "border-transparent"
                 : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
+            <PartyLogo src={logo_url} color={color} acronym={acronym} size="sm" />
             {acronym}
           </button>
         ))}

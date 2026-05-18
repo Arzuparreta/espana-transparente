@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -46,9 +47,11 @@ export default async function PartyPage({ params }: PageProps) {
         title={party.acronym}
         description={party.name}
         eyebrow={
-          <div
-            className="h-3 w-3 rounded-full border border-border/60"
-            style={{ backgroundColor: party.color }}
+          <PartyLogo
+            src={party.logo_url}
+            color={party.color}
+            acronym={party.acronym}
+            size="lg"
           />
         }
       />
