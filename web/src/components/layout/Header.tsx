@@ -53,7 +53,7 @@ export function Header() {
           {PRIMARY_NAV.map((group) => {
             const active = isGroupActive(group.items)
             return (
-              <Menu.Root key={group.label} modal={false}>
+              <Menu.Root key={group.label}>
                 <Menu.Trigger
                   className={cn(triggerBase, active && triggerActive)}
                   aria-current={active ? "page" : undefined}
