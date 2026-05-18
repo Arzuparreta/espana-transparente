@@ -95,7 +95,7 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
       <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
-            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${nivelClass(s.nivel1)}`}>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${nivelClass(s.nivel1)}`}>
               {nivelLabel}
             </span>
             <ResponsibleChip
@@ -128,9 +128,9 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
             )}
           </div>
           {s.convocatoria ? (
-            <div className="text-[11px] text-muted-foreground line-clamp-1">{s.convocatoria}</div>
+            <div className="text-xs text-muted-foreground line-clamp-1">{s.convocatoria}</div>
           ) : null}
-          {dateStr ? <div className="text-[11px] text-muted-foreground">{dateStr}</div> : null}
+          {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
           <ResponsiveLink
@@ -141,7 +141,7 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
           </ResponsiveLink>
           <ResponsiveLink
             href={`/subvenciones/${s.id}`}
-            className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+            className="text-xs text-muted-foreground underline-offset-2 hover:underline"
           >
             Detalle →
           </ResponsiveLink>
@@ -150,7 +150,7 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
               href={s.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               Ver convocatoria →

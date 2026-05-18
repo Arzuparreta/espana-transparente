@@ -110,7 +110,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                     {chapters.length > 0 ? (
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1">
                         {chapters.map(([ch, v]) => (
-                          <span key={ch} className="text-[11px] text-muted-foreground">
+                          <span key={ch} className="text-xs text-muted-foreground">
                             {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatAmount(v.initial)}
                           </span>
                         ))}
@@ -123,7 +123,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                     </div>
                     {p.total_credit_final != null &&
                     Math.abs(p.total_credit_final - (p.total_credit_initial ?? 0)) > 1 ? (
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         def: {formatAmount(p.total_credit_final)}
                       </div>
                     ) : null}

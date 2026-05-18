@@ -62,12 +62,12 @@ export function DistorsionTabs({ withVotesPerSeat, maxVotesPerSeat, minVotesPerS
                             borderLeft: `3px solid ${result.color}`,
                           }}
                         />
-                        <span className="shrink-0 text-right text-[10px] tabular-nums sm:w-16 sm:text-xs">
+                        <span className="shrink-0 text-right text-xs tabular-nums sm:w-16">
                           {result.votesPerSeat.toLocaleString()}
                         </span>
                       </div>
                     </div>
-                    <span className="w-8 shrink-0 text-right text-[10px] text-muted-foreground sm:w-12 sm:text-xs">
+                    <span className="w-8 shrink-0 text-right text-xs text-muted-foreground sm:w-12">
                       {result.seats} esc.
                     </span>
                   </div>
@@ -102,9 +102,9 @@ export function DistorsionTabs({ withVotesPerSeat, maxVotesPerSeat, minVotesPerS
                         {result.party}
                       </span>
                       <span className="w-14 text-right sm:w-16">{result.pctVote.toFixed(1)}% votos</span>
-                      <span className="text-[10px]">→</span>
+                      <span className="text-xs">→</span>
                       <span className="w-14 font-medium sm:w-16">{result.pctSeats.toFixed(1)}% esc.</span>
-                      <span className={`ml-1 text-[10px] sm:text-xs ${cls}`}>
+                      <span className={`ml-1 text-xs ${cls}`}>
                         {diff > 0 ? "+" : ""}
                         {diff.toFixed(1)}%
                       </span>

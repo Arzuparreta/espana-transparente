@@ -80,12 +80,12 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
             <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${statusClass(c.status)}`}
+              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(c.status)}`}
             >
               {STATUS_LABELS[c.status ?? ""] ?? c.status ?? "—"}
             </span>
             {c.contract_type ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {c.contract_type}
               </span>
             ) : null}
@@ -108,7 +108,7 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
             )}
             {c.region ? ` · ${c.region}` : ""}
           </div>
-          {dateStr ? <div className="text-[11px] text-muted-foreground">{dateStr}</div> : null}
+          {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
           <div className="text-base font-semibold tabular-nums">{formatAmount(c.amount)}</div>
@@ -117,7 +117,7 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
               href={c.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               Ver expediente →

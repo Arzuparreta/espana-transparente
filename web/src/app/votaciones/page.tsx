@@ -67,7 +67,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
                 <CardContent className="flex items-start gap-3 py-4 sm:gap-4">
                   <div className="min-w-0 flex-1">
                     {tipo ? (
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                         {tipo}
                       </p>
                     ) : null}

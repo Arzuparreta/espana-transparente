@@ -34,8 +34,8 @@
 | Card title | Geist | 18px | 600 | 0 |
 | Body | Geist | 15px | 400 | 0 |
 | Data value | Geist Mono | 13–28px | 400–500 | 0 |
-| Field label | Geist Mono | 10–11px | 400 | 0.10em |
-| Caption/meta | Geist Mono | 11px | 400 | 0.08em |
+| Field label | Geist Mono | 12px | 400 | 0.10em |
+| Caption/meta | Geist Mono | 12px | 400 | 0.08em |
 
 ## Color
 
@@ -47,7 +47,7 @@
 | Surface | `#141412` | Cards, tables, panels |
 | Surface Alt | `#1D1D1A` | Table row hover, secondary panels, header bar |
 | Text | `#EEEDE9` | Primary text — off-white with slight warmth (aged paper inverted) |
-| Muted | `#6B6B65` | Metadata, timestamps, secondary labels |
+| Muted | `#999992` | Metadata, timestamps, secondary labels |
 | Signal | `#C8FF00` | Acid yellow-green — divergences, exceptions, highlights. Zero political valence: no red-PSOE, no blue-PP association. Pure forensic highlighter energy. |
 | Signal dim | `rgba(200,255,0,0.12)` | Signal backgrounds, alert panels |
 | Border | `#2A2A27` | All dividers and card borders |
@@ -80,7 +80,7 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 - **Base unit:** 8px
 - **Density:** Dense on data pages (table row height ~32–36px, padding 10px 20px). More open on landing and profile pages.
 - **Scale:** 2xs(4) · xs(8) · sm(12) · md(16) · lg(24) · xl(32) · 2xl(48) · 3xl(64)
-- **Container:** max-width 1200px, padding 0 32px
+- **Container:** max-width 1700px, padding 0 32px
 
 ## Layout
 
@@ -88,7 +88,7 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 - **Homepage first viewport:** One oversized number or name, cold eyebrow label above it, data label below. The number appears before the user knows what it means — the label resolves it. This discomfort is intentional.
 - **Every page is a case sheet:** Hero line → trace chain (person → vote/contract → source document).
 - **Grid:** Single fluid column on mobile; structured multi-column on desktop.
-- **Max content width:** 1200px
+- **Max content width:** 1700px
 - **Border radius:** 2px maximum. Near-sharp edges everywhere. No softness.
 
 ## Motion

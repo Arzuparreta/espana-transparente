@@ -133,7 +133,7 @@ export default async function VotacionPage({ params }: PageProps) {
                 <EntityLink kind="politician" id={divergence.politicianId} className="font-medium underline-offset-2 hover:underline">
                   {divergence.name}
                 </EntityLink>
-                <PartyBadge acronym={divergence.party} className="text-[11px]" partyId={divergence.partyId} />
+                <PartyBadge acronym={divergence.party} className="text-xs" partyId={divergence.partyId} />
                 <span className="text-xs">
                   votó <b style={{ color: getVoteColor(divergence.voted) }}>{divergence.voted}</b> ≠{" "}
                   <b style={{ color: getVoteColor(divergence.partyVoted) }}>
@@ -203,9 +203,9 @@ export default async function VotacionPage({ params }: PageProps) {
                   <EntityLink kind="politician" id={deputy.politicianId} className="min-w-0 truncate text-xs underline-offset-2 hover:underline">
                     {deputy.name}
                   </EntityLink>
-                  <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-[10px]" />
+                  <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-xs" />
                 </div>
-                <VoteBadge vote={deputy.vote} className="shrink-0 text-[11px]" />
+                <VoteBadge vote={deputy.vote} className="shrink-0 text-xs" />
               </div>
             ))
           )}

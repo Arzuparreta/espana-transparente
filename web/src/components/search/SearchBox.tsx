@@ -101,7 +101,7 @@ export function SearchBox() {
         <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded border border-border bg-card">
           {results.length > 0 && (
             <div className="border-b last:border-b-0">
-              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 Personas
               </div>
               {results.map((r) => {
@@ -134,7 +134,7 @@ export function SearchBox() {
 
           {partyResults.length > 0 && (
             <div className="border-b last:border-b-0">
-              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 Partidos
               </div>
               {partyResults.map((party) => (
@@ -154,7 +154,7 @@ export function SearchBox() {
 
           {sessionResults.length > 0 && (
             <div>
-              <div className="px-4 py-2 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              <div className="px-4 py-2 font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
                 Votaciones
               </div>
               {sessionResults.map((session) => (

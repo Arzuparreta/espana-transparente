@@ -60,7 +60,7 @@ export function MobileNavDropdown() {
             <nav className="flex flex-col px-5 pb-8 pt-2">
               {navGroups.map((group) => (
                 <div key={group.label} className="border-b border-border/40 py-4 last:border-b-0">
-                  <div className="pb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                  <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
                     {group.label}
                   </div>
                   <div className="flex flex-col">

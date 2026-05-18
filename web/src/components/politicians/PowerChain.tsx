@@ -30,7 +30,7 @@ export async function PowerChain({ politicianId }: { politicianId: string }) {
     <div className="space-y-2">
       {(rels as unknown as PRRow[]).map((r) => (
         <div key={r.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3 text-sm">
-          {r.party ? <PartyBadge acronym={r.party.acronym} color={r.party.color} className="text-[11px]" partyId={r.party.id} /> : null}
+          {r.party ? <PartyBadge acronym={r.party.acronym} color={r.party.color} className="text-xs" partyId={r.party.id} /> : null}
           <span className="text-muted-foreground text-xs">{REL_LABELS[r.relationship_type] || r.relationship_type}</span>
           {r.superior_id ? (
             <EntityLink kind="politician" id={r.superior_id} className="font-medium underline-offset-2 hover:underline">

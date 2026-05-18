@@ -130,12 +130,12 @@ export default async function IniciativaPage({ params }: PageProps) {
                 <p className="mt-1 text-xs text-muted-foreground">{dateStr}</p>
                 <div className="mt-2 space-y-1">
                   <VoteBar yes={yes} no={no} abs={abs} absent={absent} />
-                  <div className="flex gap-4 text-[11px] text-muted-foreground">
+                  <div className="flex gap-4 text-xs text-muted-foreground">
                     <span className="text-green-600 dark:text-green-400">{yes} sí</span>
                     <span className="text-red-600 dark:text-red-400">{no} no</span>
                     {abs > 0 && <span className="text-amber-600 dark:text-amber-400">{abs} abs</span>}
                     {(s.divergence_count as number) > 0 && (
-                      <span className="ml-auto rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+                      <span className="ml-auto rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
                         {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
                       </span>
                     )}

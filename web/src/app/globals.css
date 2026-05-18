@@ -21,7 +21,7 @@
     --secondary: 60 5% 11%;
     --secondary-foreground: 60 14% 92%;
     --muted: 60 5% 11%;
-    --muted-foreground: 60 3% 41%;
+    --muted-foreground: 60 5% 60%;
     --accent: 73 100% 50%;
     --accent-foreground: 60 5% 4%;
     --destructive: 0 84.2% 60.2%;
@@ -47,7 +47,7 @@
     --secondary: 60 11% 95%;
     --secondary-foreground: 60 18% 3%;
     --muted: 60 11% 95%;
-    --muted-foreground: 60 3% 45%;
+    --muted-foreground: 60 5% 35%;
     --accent: 74 100% 24%;
     --accent-foreground: 60 10% 94%;
     --border: 60 8% 88%;
@@ -70,7 +70,7 @@
     --secondary: 60 5% 11%;
     --secondary-foreground: 60 14% 92%;
     --muted: 60 5% 11%;
-    --muted-foreground: 60 3% 41%;
+    --muted-foreground: 60 5% 60%;
     --accent: 73 100% 50%;
     --accent-foreground: 60 5% 4%;
     --destructive: 0 72% 51%;
@@ -123,7 +123,7 @@
   }
 
   .ui-shell {
-    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-8;
+    @apply mx-auto w-full max-w-[1700px] px-4 sm:px-8;
   }
 
   .ui-grid-cards {

@@ -362,7 +362,7 @@ export function PoliticianProfile({
                             <PartyBadge
                               acronym={party.acronym}
                               color={party.color}
-                              className="text-[11px]"
+                              className="text-xs"
                             />
                           ) : null}
                           <span className="text-xs text-muted-foreground">
@@ -405,7 +405,7 @@ export function PoliticianProfile({
                           <PartyBadge
                             acronym={subParty.acronym}
                             color={subParty.color}
-                            className="text-[11px]"
+                            className="text-xs"
                           />
                         ) : null}
                         <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -510,7 +510,7 @@ export function PoliticianProfile({
                               <span>· Exp. {session.initiative_number}</span>
                             )}
                             {isDivergent && (
-                              <span className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+                              <span className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
                                 Votó distinto a su grupo
                               </span>
                             )}
@@ -687,13 +687,13 @@ export function PoliticianProfile({
                             <PartyBadge
                               acronym={party.acronym}
                               color={party.color}
-                              className="text-[11px]"
+                              className="text-xs"
                             />
                           ) : null}
                           {membership.is_active ? (
                             <Badge
                               variant="outline"
-                              className="shrink-0 border-green-300 bg-green-100 text-[11px] text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
+                              className="shrink-0 border-green-300 bg-green-100 text-xs text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300"
                             >
                               Activo
                             </Badge>

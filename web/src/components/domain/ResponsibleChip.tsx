@@ -21,7 +21,7 @@ export function ResponsibleChip({ responsible, ministryHref }: ResponsibleChipPr
   const name = responsible.person_name
 
   return (
-    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-[11px] leading-none text-emerald-900 ring-1 ring-emerald-200 dark:bg-emerald-950/35 dark:text-emerald-100 dark:ring-emerald-900/60">
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-1 text-xs leading-none text-emerald-900 ring-1 ring-emerald-200 dark:bg-emerald-950/35 dark:text-emerald-100 dark:ring-emerald-900/60">
       {ministryHref && responsible.ministry ? (
         <ResponsiveLink
           href={ministryHref}

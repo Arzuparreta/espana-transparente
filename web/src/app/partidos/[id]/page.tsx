@@ -112,7 +112,7 @@ export default async function PartyPage({ params }: PageProps) {
                       <div className="shrink-0 text-right">
                         <span className="text-xs text-muted-foreground">{dateStr}</span>
                         {s.divergence_count > 0 && (
-                          <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+                          <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
                             {s.divergence_count} div.
                           </p>
                         )}
