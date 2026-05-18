@@ -105,7 +105,7 @@ BEGIN
       coalesce(par.acronym, pm.group_parliamentary, 'Sin partido') AS subtitle,
       concat_ws(' ', p.full_name, pm.constituency, pm.group_parliamentary, par.name, par.acronym) AS body,
       nullif(concat_ws(' · ', pm.constituency, par.acronym), '') AS key_fact,
-      CASE WHEN pm.chamber = 'senate' THEN '/senado' ELSE '/diputados/' || p.id::text END AS route,
+      '/diputados/' || p.id::text AS route,
       p.website AS source_url,
       pm.start_date AS document_date,
       NULL::numeric AS amount,
