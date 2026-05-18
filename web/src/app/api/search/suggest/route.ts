@@ -37,7 +37,7 @@ function cleanResults(results: SearchResult[], query: string, limit: number) {
   const deduped: SearchResult[] = []
 
   for (const result of results) {
-    const key = `${result.entity_type}:${result.title}`
+    const key = `${result.entity_type}:${result.id}`
     if (seen.has(key)) continue
     seen.add(key)
     deduped.push(result)

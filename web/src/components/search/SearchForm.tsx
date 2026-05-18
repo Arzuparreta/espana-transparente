@@ -204,6 +204,10 @@ export function SearchForm({
                   <div className="space-y-1">
                     {group.results.map((result) => {
                       const meta = [formatDate(result.document_date), formatAmount(result.amount)].filter(Boolean).join(" · ")
+                      const secondary =
+                        result.official_name && result.official_name !== result.title
+                          ? result.official_name
+                          : result.key_fact ?? result.subtitle
                       return (
                         <ResponsiveLink
                           key={`${result.entity_type}-${result.id}`}
@@ -214,10 +218,8 @@ export function SearchForm({
                           <div className="flex min-w-0 items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="truncate text-sm font-semibold">{result.title}</p>
-                              {result.key_fact || result.subtitle ? (
-                                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                                  {result.key_fact ?? result.subtitle}
-                                </p>
+                              {secondary ? (
+                                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{secondary}</p>
                               ) : null}
                             </div>
                             {meta ? (

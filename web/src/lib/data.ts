@@ -1265,7 +1265,34 @@ export interface SearchResult {
   amount?: number | null
   source_url?: string | null
   metadata?: Record<string, unknown> | null
+  official_name?: string | null
   rank?: number
+}
+
+function mapSearchResult(row: SearchResult): SearchResult {
+  const official =
+    typeof row.metadata?.official_name === "string" ? row.metadata.official_name : row.official_name ?? null
+  return official ? { ...row, official_name: official } : row
+}
+
+function isNameLikeQuery(normalized: string): boolean {
+  if (/\d/.test(normalized)) return false
+  if (
+    /\b(subvencion|subvenciones|bdns|contrato|contratos|licitacion|pcsp|presupuesto|presupuestos|pge|importe)\b/.test(
+      normalized
+    )
+  ) {
+    return false
+  }
+  const tokens = normalized.split(/\s+/).filter(Boolean)
+  if (tokens.length === 0 || tokens.length > 3) return false
+  if (tokens.length === 1) {
+    const token = tokens[0]
+    if (token.length < 5) return false
+    if (token === token.toUpperCase() && token.length <= 5) return false
+    return /^[a-z-]+$/.test(token)
+  }
+  return tokens.every((token) => /^[a-z-]+$/.test(token))
 }
 
 function inferSearchEntityTypes(query: string): SearchResult["entity_type"][] | null {
@@ -1273,6 +1300,10 @@ function inferSearchEntityTypes(query: string): SearchResult["entity_type"][] | 
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+
+  if (isNameLikeQuery(normalized)) {
+    return ["politician", "senator", "government_position", "institution"]
+  }
 
   if (/\b(subvencion|subvenciones|bdns)\b/.test(normalized)) return ["subsidy"]
   if (/\b(contrato|contratos|licitacion|pcsp)\b/.test(normalized)) return ["contract"]
@@ -1338,7 +1369,7 @@ export async function searchGlobal(query: string, maxPerType = 5): Promise<Searc
     query_text: query.trim(),
     max_per_type: maxPerType,
   })
-  return (data ?? []) as SearchResult[]
+  return ((data ?? []) as SearchResult[]).map(mapSearchResult)
 }
 
 export async function searchDocuments(
@@ -1357,7 +1388,7 @@ export async function searchDocuments(
     console.error("searchDocuments:", error.message)
     return searchGlobal(query, Math.max(1, Math.ceil((options.limit ?? 24) / 8)))
   }
-  return (data ?? []) as SearchResult[]
+  return ((data ?? []) as SearchResult[]).map(mapSearchResult)
 }
 
 export async function searchSuggestions(query: string, limit = 12): Promise<SearchResult[]> {
@@ -1370,7 +1401,7 @@ export async function searchSuggestions(query: string, limit = 12): Promise<Sear
     console.error("searchSuggestions:", error.message)
     return searchDocuments(query, { limit })
   }
-  return (data ?? []) as SearchResult[]
+  return ((data ?? []) as SearchResult[]).map(mapSearchResult)
 }
 
 // ME-1: party voting sessions

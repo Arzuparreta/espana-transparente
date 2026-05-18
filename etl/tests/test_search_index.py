@@ -1,4 +1,5 @@
 from common.search_index import build_search_document, chunk_text, content_hash, normalize_alias
+from common.utils import search_display_name
 
 
 def test_normalize_alias_removes_accents_punctuation_and_case():
@@ -18,6 +19,11 @@ def test_chunk_text_is_stable_and_overlapping():
 def test_content_hash_ignores_spacing_and_accents():
     assert content_hash("Presupuesto de Defensa") == content_hash(" presupuesto   de defensa ")
     assert content_hash("Sanidad") == content_hash("Sánidad")
+
+
+def test_search_display_name_inverts_spanish_official_format():
+    assert search_display_name("Sánchez Pérez-Castejón, Pedro") == "Pedro Sánchez Pérez-Castejón"
+    assert search_display_name("Nombre Apellido") == "Nombre Apellido"
 
 
 def test_build_search_document_skips_empty_titles_and_keeps_public_route():

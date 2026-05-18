@@ -89,6 +89,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - run: PYTHONPATH=src python -m common.search_refresh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   etl-weekly:
     name: ETL weekly pipelines
@@ -135,5 +138,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.senado.senadores
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m common.search_refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
