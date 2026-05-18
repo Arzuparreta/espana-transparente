@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 18 80 68">
-  <title>España Transparente</title>
-  <polygon points="14.00,22.00 86.00,22.00 80.71,30.82 19.29,30.82" fill="#1A1612"/>
-  <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#1A1612"/>
-  <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#1A1612"/>
-  <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#1A1612"/>
-  <polygon points="44.71,73.18 55.29,73.18 50.00,82.00 50.00,82.00" fill="#A1242C"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Espana Transparente">
+  <rect width="100" height="100" rx="16" fill="#0B0B0A"/>
+  <polygon points="14.00,22.00 86.00,22.00 80.71,30.82 19.29,30.82" fill="#EEEDE9"/>
+  <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#EEEDE9"/>
+  <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#EEEDE9"/>
+  <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#EEEDE9"/>
+  <polygon points="44.71,73.18 55.29,73.18 50.00,82.00 50.00,82.00" fill="#C8FF00"/>
 </svg>
