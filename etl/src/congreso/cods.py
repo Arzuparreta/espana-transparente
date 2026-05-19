@@ -19,7 +19,10 @@ from congreso.directory import active_directory_index, normalize_name
 
 
 def run(*, dry_run: bool = False, resume: bool = False) -> None:
-    del resume  # legacy flag kept for workflow compatibility
+    # --resume accepted for backward compatibility with CI workflows.
+    # The current implementation uses searchDiputados which always fetches
+    # all 350 active deputies in a single call — no resume state needed.
+    _ = resume
 
     directory = active_directory_index()
     conn = get_pg_conn()

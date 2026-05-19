@@ -1,4 +1,7 @@
-"""Legacy wrapper for loading state government positions into the canonical table."""
+"""Load state government positions into the canonical responsibility_positions table.
+
+Reads gobierno_historico.yml and upserts into responsibility_positions.
+Runs weekly in CI."""
 
 from __future__ import annotations
 
