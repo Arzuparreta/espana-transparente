@@ -5,7 +5,6 @@ import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
 import { useAuth } from "@/lib/auth/AuthContext"
-import { BRAND_NAME } from "@/lib/brand"
 import { PRIMARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 import { Menu } from "@base-ui/react/menu"
@@ -46,8 +45,9 @@ export function Header() {
           <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
             <LogoMark className="h-5 w-5" variant="inverse" />
           </span>
-          <span className="font-display truncate text-[17px] font-bold leading-none tracking-tight text-foreground sm:text-[18px]">
-            {BRAND_NAME}
+          <span className="font-display inline-flex items-baseline gap-[0.4em] whitespace-nowrap leading-none tracking-[-0.02em]">
+            <span className="text-[16px] font-semibold text-foreground/50 sm:text-[17px]">España</span>
+            <span className="text-[16px] font-black text-foreground sm:text-[17px]">Transparente</span>
           </span>
         </ResponsiveLink>
 
