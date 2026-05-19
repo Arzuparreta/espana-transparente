@@ -72,7 +72,7 @@ export function AuthModal() {
       }}
     >
       <DialogContent
-        className="rounded-[2px] border border-[#2A2A27] bg-[#141412] p-0 shadow-2xl sm:max-w-[380px]"
+        className="rounded-[2px] border border-[#2A2A27] bg-[#141412] p-0 shadow-2xl sm:max-w-sm"
         showCloseButton={false}
       >
         <div className="border-b border-[#2A2A27] px-6 py-4">

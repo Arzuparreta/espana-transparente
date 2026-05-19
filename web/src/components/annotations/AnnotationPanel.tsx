@@ -89,7 +89,7 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
               {error && (
                 <p className="text-[12px] text-red-400">{error}</p>
               )}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between min-w-0">
                 <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#999992]">
                   {user.email}
                 </span>
@@ -132,7 +132,7 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
               className="group border-l-2 border-[#2A2A27] bg-[#141412] px-4 py-3 hover:border-[#C8FF00]/40 transition-colors"
             >
               <p className="text-[13px] leading-relaxed text-[#EEEDE9]">{a.body}</p>
-              <div className="mt-1.5 flex items-center justify-between">
+              <div className="mt-1.5 flex items-center justify-between min-w-0">
                 <span className="font-mono text-[10px] text-[#999992]">
                   {new Date(a.created_at).toLocaleDateString("es-ES", {
                     day: "numeric",
