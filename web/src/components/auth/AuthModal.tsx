@@ -45,7 +45,12 @@ export function AuthModal() {
         closeModal()
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const origin = typeof window !== "undefined" ? window.location.origin : ""
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${origin}/auth/callback` },
+      })
       if (error) {
         setError(translateError(error.message))
         setLoading(false)
