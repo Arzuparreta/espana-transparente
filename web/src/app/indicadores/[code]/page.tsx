@@ -4,7 +4,6 @@ import { ArrowLeft, Database } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IndicatorChart } from "@/components/indicators/IndicatorChart"
-import { IndicatorsBackdrop } from "@/components/indicators/IndicatorsBackdrop"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getIndicatorPoints } from "@/lib/data"
 
@@ -72,9 +71,7 @@ export default async function IndicadorPage({ params }: PageProps) {
   ]
 
   return (
-    <>
-      <IndicatorsBackdrop />
-      <div className="relative z-10 mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
         <section className="relative min-h-[calc(100svh-7.5rem)] overflow-hidden rounded border border-border bg-card p-3 sm:p-4">
           <div className="relative flex min-h-[calc(100svh-9.5rem)] flex-col gap-3">
             <div className="flex flex-col gap-3 rounded border border-border bg-background/60 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
@@ -166,7 +163,6 @@ export default async function IndicadorPage({ params }: PageProps) {
             </CardContent>
           </Card>
         </details>
-      </div>
-    </>
+    </div>
   )
 }
