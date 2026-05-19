@@ -145,9 +145,8 @@ export default async function SenadoPage() {
       )}
 
       {senators.length === 0 ? (
-        <InfoPanel title="Datos pendientes de ingestión">
-          El ETL de senadores aún no ha ejecutado. Lanza:{" "}
-          <code>python -m src.senado.senadores</code>
+        <InfoPanel title="Datos del Senado no disponibles todavía">
+          Los datos de senadores se están ingiriendo automáticamente cada semana. Si esta página aparece vacía, el primer ciclo de ingestión aún no se ha completado.
         </InfoPanel>
       ) : (
         <section>
