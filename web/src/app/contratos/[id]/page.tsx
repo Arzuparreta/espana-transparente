@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
@@ -71,6 +72,12 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: "Contratos", href: "/contratos" },
+          { label: contract.title },
+        ]}
+      />
       <PageHeader
         title={contract.title}
         description={contract.contract_folder_id ? `Expediente ${contract.contract_folder_id}` : "Detalle del contrato público"}

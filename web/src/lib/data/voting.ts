@@ -43,7 +43,18 @@ export const getVotingDetailData = unstable_cache(
         .eq("voting_session_id", id),
     ])
 
-    return { session: session.data, votes: votes.data ?? [] }
+    let initiative: { id: string; title: string | null; type: string | null } | null = null
+    const initiativeNumber = session.data?.initiative_number as string | null | undefined
+    if (initiativeNumber) {
+      const { data } = await supabase
+        .from("initiatives")
+        .select("id, title, type")
+        .eq("number", initiativeNumber)
+        .maybeSingle()
+      if (data) initiative = data
+    }
+
+    return { session: session.data, votes: votes.data ?? [], initiative }
   },
   ["voting-detail-data"],
   { revalidate: HOUR }

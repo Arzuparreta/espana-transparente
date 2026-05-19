@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
@@ -43,6 +44,12 @@ export default async function OrganizacionPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: "Organizaciones", href: "/organizaciones" },
+          { label: organization.name },
+        ]}
+      />
       <PageHeader
         title={organization.name}
         description="Ficha de organización enlazada a contratos, subvenciones y movimientos público-privados detectados en la base."

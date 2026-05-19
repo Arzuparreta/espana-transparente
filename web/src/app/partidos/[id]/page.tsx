@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyLogo } from "@/components/domain/PartyLogo"
@@ -43,6 +44,12 @@ export default async function PartyPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
+      <Breadcrumbs
+        items={[
+          { label: "Partidos", href: "/partidos" },
+          { label: party.name ?? party.acronym },
+        ]}
+      />
       <PageHeader
         title={party.acronym}
         description={party.name}

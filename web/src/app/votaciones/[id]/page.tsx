@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
@@ -30,7 +31,7 @@ interface VoteRow {
 
 export default async function VotacionPage({ params }: PageProps) {
   const { id } = await params
-  const { session, votes } = await getVotingDetailData(id)
+  const { session, votes, initiative } = await getVotingDetailData(id)
   if (!session) notFound()
 
   const partyGroups: Record<
@@ -99,6 +100,12 @@ export default async function VotacionPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: "Votaciones", href: "/votaciones" },
+          { label: session.title },
+        ]}
+      />
       <PageHeader
         title={session.title}
         description={
@@ -115,6 +122,21 @@ export default async function VotacionPage({ params }: PageProps) {
           </>
         }
       />
+
+      {initiative ? (
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-2 py-3 text-sm">
+            <span className="text-xs uppercase tracking-widest text-muted-foreground">Iniciativa origen</span>
+            <EntityLink
+              kind="initiative"
+              id={initiative.id}
+              className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
+            >
+              {initiative.title ?? `Exp. ${session.initiative_number}`}
+            </EntityLink>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {divergences.length > 0 ? (
         <Card className="border-accent/35 bg-accent/10">

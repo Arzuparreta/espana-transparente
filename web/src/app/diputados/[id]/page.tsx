@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { PoliticianProfile } from "@/components/politicians/PoliticianProfile"
 import { getPoliticianProfileData, getDeputyVotes, getDeputyAttendanceSessions, parsePage, PAGE_SIZE } from "@/lib/data"
 
@@ -34,7 +35,15 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
   const displayVotes = pagedVotes ?? votes
 
   return (
-    <PoliticianProfile
+    <>
+      <Breadcrumbs
+        className="mx-auto max-w-5xl"
+        items={[
+          { label: "Diputados", href: "/diputados" },
+          { label: (pol as { full_name?: string }).full_name ?? "Diputado" },
+        ]}
+      />
+      <PoliticianProfile
       pol={pol as Record<string, unknown>}
       votes={displayVotes as Record<string, unknown>[]}
       totalVotes={totalVotes}
@@ -52,5 +61,6 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
       govPosition={govPosition as Parameters<typeof PoliticianProfile>[0]["govPosition"]}
       ministryContracts={ministryContracts as Parameters<typeof PoliticianProfile>[0]["ministryContracts"]}
     />
+    </>
   )
 }

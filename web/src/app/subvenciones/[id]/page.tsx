@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
@@ -59,6 +60,12 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: "Subvenciones", href: "/subvenciones" },
+          { label: titleText },
+        ]}
+      />
       <PageHeader
         title={titleText}
         description={`BDNS ${subsidy.bdns_id}${subsidy.cod_concesion ? ` · ${subsidy.cod_concesion}` : ""}`}
