@@ -40,7 +40,7 @@ export function Header() {
         <ResponsiveLink
           href="/"
           prefetch
-          className="group absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5"
+          className="group mr-6 flex shrink-0 items-center gap-2.5"
         >
           <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
             <LogoMark className="h-5 w-5" variant="inverse" />
