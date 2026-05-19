@@ -171,7 +171,7 @@ export function SearchForm({
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Pregunta por personas, votaciones, contratos, subvenciones, presupuestos o indicadores"
+            placeholder="Busca diputados, votaciones, contratos…"
             aria-label="Buscar"
             aria-busy={live ? loading : undefined}
             autoComplete="off"
