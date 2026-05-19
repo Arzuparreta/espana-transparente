@@ -1,34 +1,164 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <title>España Transparente - datos públicos de la política española</title>
+  <title>España Transparente — datos públicos de la política española</title>
+
   <defs>
-    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
-      <path d="M44 0H0V44" fill="none" stroke="#1A1612" stroke-opacity=".055"/>
-    </pattern>
-    <radialGradient id="signal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(930 114) rotate(136) scale(520 360)">
-      <stop stop-color="#A1242C" stop-opacity=".18"/>
-      <stop offset=".7" stop-color="#A1242C" stop-opacity=".035"/>
-      <stop offset="1" stop-color="#A1242C" stop-opacity="0"/>
-    </radialGradient>
+    <linearGradient id="fade-panel-bottom" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F0F0D" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0F0F0D" stop-opacity="1"/>
+    </linearGradient>
   </defs>
-  <rect width="1200" height="630" fill="#FAFAF7"/>
-  <rect width="1200" height="630" fill="url(#grid)"/>
-  <rect width="1200" height="630" fill="url(#signal)"/>
-  <rect x="64" y="64" width="1072" height="502" rx="34" fill="#FFFFFF" fill-opacity=".72" stroke="#D7C9BB" stroke-width="2"/>
-  <g transform="translate(92 94) scale(1.32)">
-    <polygon points="14,22 86,22 80.71,30.82 19.29,30.82" fill="#1A1612"/>
-    <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#1A1612"/>
-    <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#1A1612"/>
-    <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#1A1612"/>
-    <polygon points="44.71,73.18 55.29,73.18 50,82 50,82" fill="#A1242C"/>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0B0B0A"/>
+
+  <!-- Right data panel -->
+  <rect x="840" y="0" width="360" height="630" fill="#0F0F0D"/>
+  <rect x="840" y="0" width="1" height="630" fill="#2A2A27"/>
+
+  <!-- Logo mark (pyramid): body = off-white, tip = acid green -->
+  <g transform="translate(64, 80) scale(1.5)">
+    <polygon points="14,22 86,22 80.71,30.82 19.29,30.82" fill="#EEEDE9"/>
+    <polygon points="21.68,34.79 78.32,34.79 73.03,43.62 26.97,43.62" fill="#EEEDE9"/>
+    <polygon points="29.35,47.59 70.65,47.59 65.35,56.41 34.65,56.41" fill="#EEEDE9"/>
+    <polygon points="37.03,60.38 62.97,60.38 57.68,69.21 42.32,69.21" fill="#EEEDE9"/>
+    <polygon points="44.71,73.18 55.29,73.18 50,82 50,82" fill="#C8FF00"/>
   </g>
-  <text x="92" y="294" fill="#1A1612" font-family="Georgia, 'Times New Roman', serif" font-size="76" font-weight="700" letter-spacing="-2.6">España Transparente</text>
-  <text x="97" y="354" fill="#6F6258" font-family="Arial, Helvetica, sans-serif" font-size="25" letter-spacing="2.4">DATOS PÚBLICOS DE LA POLÍTICA ESPAÑOLA</text>
-  <path d="M98 386H612" stroke="#A1242C" stroke-width="4" stroke-linecap="round"/>
-  <g transform="translate(832 130)">
-    <rect width="252" height="332" rx="20" fill="#FAFAF7" stroke="#D7C9BB" stroke-width="2"/>
-    <path d="M34 64H218M34 114H218M34 164H160M34 236H218" stroke="#1A1612" stroke-opacity=".18" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="196" cy="164" r="10" fill="#A1242C"/>
-    <circle cx="160" cy="236" r="10" fill="#1A1612"/>
-    <path d="M196 174V226L170 236" fill="none" stroke="#A1242C" stroke-width="4" stroke-linecap="round"/>
-  </g>
+
+  <!-- Eyebrow label -->
+  <text x="64" y="252"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="13"
+        letter-spacing="3">PORTAL DE TRANSPARENCIA PÚBLICA</text>
+
+  <!-- Main brand name -->
+  <text x="62" y="376"
+        fill="#EEEDE9"
+        font-family="Open Sans Condensed ExtraBold, Open Sans, Liberation Sans, sans-serif"
+        font-size="96"
+        font-weight="800"
+        letter-spacing="-2">España Transparente</text>
+
+  <!-- Tagline -->
+  <text x="64" y="432"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="20"
+        letter-spacing="4.5">EL ESTADO ESPAÑOL. SIN FILTROS.</text>
+
+  <!-- Acid green accent line -->
+  <rect x="64" y="460" width="490" height="3" fill="#C8FF00"/>
+
+  <!-- Stats row -->
+  <text x="64" y="552"
+        fill="#C8FF00"
+        font-family="Noto Sans Mono, monospace"
+        font-size="30">350</text>
+  <text x="64" y="576"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="11"
+        letter-spacing="2.5">DIPUTADOS</text>
+
+  <text x="196" y="552"
+        fill="#EEEDE9"
+        font-family="Noto Sans Mono, monospace"
+        font-size="30">50K+</text>
+  <text x="196" y="576"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="11"
+        letter-spacing="2.5">VOTACIONES</text>
+
+  <text x="360" y="552"
+        fill="#EEEDE9"
+        font-family="Noto Sans Mono, monospace"
+        font-size="30">14K+</text>
+  <text x="360" y="576"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="11"
+        letter-spacing="2.5">CONTRATOS</text>
+
+  <!-- Right panel: divergence data rows -->
+  <text x="862" y="80"
+        fill="#999992"
+        font-family="Noto Sans Mono, monospace"
+        font-size="10"
+        letter-spacing="2.5">DIVERGENCIAS · CONGRESO 2025</text>
+  <rect x="862" y="92" width="296" height="1" fill="#2A2A27"/>
+
+  <!-- Row 1 — highlighted -->
+  <rect x="862" y="100" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="100" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="120" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">FERNÁNDEZ G., José</text>
+  <text x="1106" y="120" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 2 -->
+  <rect x="862" y="131" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="151" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">MARTÍNEZ R., Ana</text>
+  <text x="1134" y="151" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Row 3 — highlighted -->
+  <rect x="862" y="161" width="296" height="1" fill="#1D1D1A"/>
+  <rect x="862" y="162" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="162" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="182" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">RODRÍGUEZ P., Carlos</text>
+  <text x="1106" y="182" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 4 -->
+  <rect x="862" y="193" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="213" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">LÓPEZ S., María</text>
+  <text x="1134" y="213" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Row 5 — highlighted -->
+  <rect x="862" y="223" width="296" height="1" fill="#1D1D1A"/>
+  <rect x="862" y="224" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="224" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="244" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">GÓMEZ H., Luis</text>
+  <text x="1106" y="244" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 6 -->
+  <rect x="862" y="255" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="275" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">JIMÉNEZ M., Sara</text>
+  <text x="1134" y="275" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Row 7 — highlighted -->
+  <rect x="862" y="285" width="296" height="1" fill="#1D1D1A"/>
+  <rect x="862" y="286" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="286" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="306" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">DÍAZ C., Pedro</text>
+  <text x="1106" y="306" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 8 -->
+  <rect x="862" y="317" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="337" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">ÁLVAREZ T., Isabel</text>
+  <text x="1134" y="337" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Row 9 — highlighted -->
+  <rect x="862" y="347" width="296" height="1" fill="#1D1D1A"/>
+  <rect x="862" y="348" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="348" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="368" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">ROMERO B., Antonio</text>
+  <text x="1106" y="368" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 10 -->
+  <rect x="862" y="379" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="399" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">NAVARRO C., Elena</text>
+  <text x="1134" y="399" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Row 11 — highlighted -->
+  <rect x="862" y="409" width="296" height="1" fill="#1D1D1A"/>
+  <rect x="862" y="410" width="296" height="30" rx="2" fill="#C8FF00" fill-opacity="0.05"/>
+  <rect x="862" y="410" width="2" height="30" fill="#C8FF00"/>
+  <text x="872" y="430" fill="#EEEDE9" font-family="Noto Sans Mono, monospace" font-size="11">SERRANO V., Miguel</text>
+  <text x="1106" y="430" fill="#C8FF00" font-family="Noto Sans Mono, monospace" font-size="11">▲ DIV</text>
+
+  <!-- Row 12 -->
+  <rect x="862" y="441" width="296" height="1" fill="#1D1D1A"/>
+  <text x="868" y="461" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">GUERRERO S., Carmen</text>
+  <text x="1134" y="461" fill="#6A6A63" font-family="Noto Sans Mono, monospace" font-size="11">—</text>
+
+  <!-- Bottom fade on right panel -->
+  <rect x="840" y="430" width="360" height="200" fill="url(#fade-panel-bottom)"/>
 </svg>
