@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
@@ -100,10 +100,38 @@ export default async function VotacionPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: "Votaciones", href: "/votaciones" },
-          { label: session.title },
+      <ContextTrail
+        section={{ href: "/votaciones", label: "Votaciones" }}
+        current={session.title}
+        meta={[
+          session.session_number ? `Sesión ${session.session_number}` : null,
+          session.initiative_number ? `Exp. ${session.initiative_number}` : null,
+        ].filter(Boolean).join(" · ") || undefined}
+        fallbackHref="/votaciones"
+        fallbackLabel="Volver a Votaciones"
+        related={[
+          initiative
+            ? {
+                href: `/iniciativas/${initiative.id}`,
+                label: "Iniciativa",
+                meta: initiative.type ?? undefined,
+              }
+            : null,
+          divergences.length > 0
+            ? {
+                href: `#divergencias`,
+                label: "Diputados divergentes",
+                meta: String(divergences.length),
+              }
+            : null,
+          sorted.length > 0
+            ? {
+                href: `#resultado-por-grupo`,
+                label: "Resultado por grupo",
+                meta: String(sorted.length),
+              }
+            : null,
+          { href: "/votaciones", label: "Listado" },
         ]}
       />
       <PageHeader
@@ -139,7 +167,7 @@ export default async function VotacionPage({ params }: PageProps) {
       ) : null}
 
       {divergences.length > 0 ? (
-        <Card className="border-accent/35 bg-accent/10">
+        <Card id="divergencias" className="scroll-mt-24 border-accent/35 bg-accent/10">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="text-base">Divergencias relevantes</CardTitle>
@@ -169,7 +197,7 @@ export default async function VotacionPage({ params }: PageProps) {
         </Card>
       ) : null}
 
-      <div className="space-y-2">
+      <div id="resultado-por-grupo" className="scroll-mt-24 space-y-2">
         {sorted.map(([acronym, group]) => (
           <Card key={acronym}>
             <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
