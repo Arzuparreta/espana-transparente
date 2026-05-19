@@ -487,14 +487,6 @@ export const getPoliticianProfileData = unstable_cache(
           .maybeSingle(),
       ])
 
-    let legacyRevolvingDoors = null
-    if (revolvingDoors.error) {
-      legacyRevolvingDoors = await supabase
-        .from("revolving_door")
-        .select("*")
-        .eq("person_id", id)
-    }
-
     // If this person is a minister, fetch recent contracts from their ministry
     const govPos = govPosition.data ?? null
     let ministryContracts: unknown[] = []
@@ -514,7 +506,7 @@ export const getPoliticianProfileData = unstable_cache(
       totalVotes: totalVotes.count,
       powerRels: powerRels.data ?? [],
       subordinates: subordinates.data ?? [],
-      revolvingDoors: revolvingDoors.data ?? legacyRevolvingDoors?.data ?? [],
+      revolvingDoors: revolvingDoors.data ?? [],
       attendance: attendance.data,
       divergentSessionIds: (divergences.data ?? []).map(
         (d: { voting_session_id: string }) => d.voting_session_id
@@ -775,33 +767,7 @@ export const getRevolvingDoorCases = unstable_cache(
       )
       .order("person_name")
 
-    if (!error) return data ?? []
-
-    const { data: legacyData } = await supabase
-      .from("revolving_door")
-      .select(
-        "id, person_name, political_party, public_role, public_organization, private_role, private_organization, sector, person_id, source_url"
-      )
-      .order("person_name")
-
-    return ((legacyData as Record<string, unknown>[] | null) ?? []).map((entry) => ({
-      id: String(entry.id || `${entry.person_name}-${entry.private_organization}`),
-      person_name: String(entry.person_name || ""),
-      political_party: String(entry.political_party || ""),
-      public_role: String(entry.public_role || ""),
-      public_organization: String(entry.public_organization || ""),
-      public_exit_date: null,
-      private_role: String(entry.private_role || ""),
-      private_organization: String(entry.private_organization || ""),
-      private_start_date: null,
-      authorization_date: null,
-      cooling_off_months: null,
-      sector: String(entry.sector || "Sin clasificar"),
-      person_id: (entry.person_id as string | null) || null,
-      primary_source_url: null,
-      source_url: (entry.source_url as string | null) || null,
-      sources: [],
-    }))
+    return data ?? []
   },
   ["revolving-door-cases"],
   { revalidate: HOUR }
