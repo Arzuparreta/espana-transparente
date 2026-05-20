@@ -78,6 +78,8 @@ export const SECTION_META: SectionMeta[] = [
   { key: "estado-datos", href: "/estado-datos", label: "Estado de los datos" },
   { key: "iniciativas", href: "/iniciativas", label: "Iniciativas" },
   { key: "ministerios", href: "/ministerios", label: "Ministerios" },
+  { key: "perfil", href: "/perfil", label: "Perfil" },
+  { key: "usuarios", href: "/usuarios", label: "Usuarios" },
 ]
 
 export function getSectionForPath(pathname: string): SectionMeta | null {

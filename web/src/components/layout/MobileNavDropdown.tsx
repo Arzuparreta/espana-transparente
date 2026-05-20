@@ -94,10 +94,14 @@ export function MobileNavDropdown() {
 
             <div className="border-t border-border/60 px-5 py-4">
               {user ? (
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[#999992]">
-                    {user.email}
-                  </span>
+                <div className="flex min-w-0 items-center justify-between gap-4">
+                  <ResponsiveLink
+                    href="/perfil"
+                    onClick={() => setIsOpen(false)}
+                    className="min-w-0 text-[13px] font-semibold text-[#EEEDE9] transition-colors hover:text-[#C8FF00]"
+                  >
+                    Perfil
+                  </ResponsiveLink>
                   <button
                     type="button"
                     onClick={() => { signOut(); setIsOpen(false) }}

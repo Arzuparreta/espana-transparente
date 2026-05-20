@@ -79,3 +79,29 @@ export interface Annotation {
 export interface PoliticianWithMemberships extends Politician {
   politician_memberships: PoliticianMembership[]
 }
+
+export interface PublicProfileOptions {
+  show_recent_annotations: boolean
+  show_avatar: boolean
+}
+
+export interface UserProfile {
+  id: string
+  handle: string | null
+  display_name: string | null
+  bio: string | null
+  website_url: string | null
+  location: string | null
+  avatar_path: string | null
+  is_public: boolean
+  public_options: PublicProfileOptions
+  created_at: string
+  updated_at: string
+}
+
+export interface UserProfileSettings {
+  user_id: string
+  settings: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}

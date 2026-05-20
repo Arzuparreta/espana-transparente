@@ -3,12 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth/AuthContext"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 
 interface Annotation {
   id: string
   body: string
   created_at: string
   user_id: string
+}
+
+interface PublicProfileSummary {
+  id: string
+  handle: string | null
+  display_name: string | null
 }
 
 interface AnnotationPanelProps {
@@ -19,6 +26,7 @@ interface AnnotationPanelProps {
 export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) {
   const { user, openModal } = useAuth()
   const [annotations, setAnnotations] = useState<Annotation[]>([])
+  const [profilesByUserId, setProfilesByUserId] = useState<Record<string, PublicProfileSummary>>({})
   const [newBody, setNewBody] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -32,6 +40,22 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
       .eq("entity_id", entityId)
       .order("created_at", { ascending: false })
     if (data) setAnnotations(data)
+
+    const userIds = Array.from(new Set((data ?? []).map((item) => item.user_id)))
+    if (userIds.length === 0) {
+      setProfilesByUserId({})
+      return
+    }
+
+    const { data: profiles } = await supabase
+      .from("user_profiles")
+      .select("id, handle, display_name")
+      .in("id", userIds)
+      .eq("is_public", true)
+
+    setProfilesByUserId(
+      Object.fromEntries((profiles ?? []).map((profile) => [profile.id, profile as PublicProfileSummary]))
+    )
   }, [entityType, entityId])
 
   useEffect(() => {
@@ -133,13 +157,26 @@ export function AnnotationPanel({ entityType, entityId }: AnnotationPanelProps) 
             >
               <p className="text-[13px] leading-relaxed text-[#EEEDE9]">{a.body}</p>
               <div className="mt-1.5 flex items-center justify-between min-w-0">
-                <span className="font-mono text-[10px] text-[#999992]">
-                  {new Date(a.created_at).toLocaleDateString("es-ES", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
+                <div className="min-w-0 text-[10px] text-[#999992]">
+                  {profilesByUserId[a.user_id]?.handle ? (
+                    <ResponsiveLink
+                      href={`/usuarios/${profilesByUserId[a.user_id].handle}`}
+                      className="font-mono uppercase tracking-[0.08em] transition-colors hover:text-[#EEEDE9]"
+                    >
+                      {profilesByUserId[a.user_id].display_name ?? `@${profilesByUserId[a.user_id].handle}`}
+                    </ResponsiveLink>
+                  ) : (
+                    <span className="font-mono uppercase tracking-[0.08em]">Usuario</span>
+                  )}
+                  <span className="mx-1.5">·</span>
+                  <span className="font-mono">
+                    {new Date(a.created_at).toLocaleDateString("es-ES", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
                 {user?.id === a.user_id && (
                   <button
                     type="button"

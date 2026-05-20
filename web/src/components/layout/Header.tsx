@@ -110,12 +110,14 @@ export function Header() {
           {!authLoading && (
             user ? (
               <div className="hidden lg:flex items-center gap-2">
-                <span
-                  title={user.email}
+                <ResponsiveLink
+                  href="/perfil"
+                  prefetch
+                  aria-label="Abrir perfil"
                   className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-[#1D1D1A] border border-[#2A2A27] font-mono text-[11px] font-semibold text-[#C8FF00] select-none"
                 >
                   {(user.email ?? "?")[0].toUpperCase()}
-                </span>
+                </ResponsiveLink>
                 <button
                   type="button"
                   onClick={() => signOut()}
