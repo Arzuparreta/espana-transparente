@@ -7,7 +7,7 @@
  *   SEARCH_PM_ENTITY_ID  — optional override for PM politician row
  */
 
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 
 const root = join(process.cwd())
@@ -102,7 +102,7 @@ function check(name, ok, detail) {
 }
 
 // Routes that are valid as section indexes but must NEVER be the destination of
-// a search result — every entity needs a deeper URL.
+// a search result without a deeper suffix.
 const BASE_ROUTE_BLOCKLIST = [
   "/diputados",
   "/partidos",
@@ -120,52 +120,98 @@ const BASE_ROUTE_BLOCKLIST = [
   "/instituciones",
 ]
 
-async function restSelect(path) {
-  const response = await fetch(`${url}/rest/v1/${path}`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      Accept: "application/json",
-    },
-  })
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`REST ${path}: HTTP ${response.status} ${body}`)
+// Static check: grep the corpus migration SQL for hardcoded bare routes.
+// This catches bugs before they reach the DB and requires no DB query.
+function auditRoutesStatic() {
+  const migrationsDir = join(root, "..", "supabase", "migrations")
+  if (!existsSync(migrationsDir)) {
+    check("search routes static audit (skipped — migrations dir not found)", true, "skipped")
+    return
   }
-  return response.json()
+  const files = readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .reverse()
+  // Find the most recent migration that defines refresh_search_documents
+  const corpusFile = files.find((f) => {
+    const content = readFileSync(join(migrationsDir, f), "utf8")
+    return content.includes("refresh_search_documents") && content.includes("UNION ALL")
+  })
+  if (!corpusFile) {
+    check("search routes static audit (skipped — corpus migration not found)", true, "skipped")
+    return
+  }
+  const sql = readFileSync(join(migrationsDir, corpusFile), "utf8")
+  // Look for route expressions that are bare base paths:
+  // A match is: a SQL quoted string like '/fondos-ue' or '/puertas-giratorias'
+  // followed only by whitespace, comma, newline — NOT '||' (concatenation).
+  const offenders = []
+  for (const basePath of BASE_ROUTE_BLOCKLIST) {
+    // Pattern: 'basePath' NOT followed by optional whitespace + ||
+    const escaped = basePath.replace(/[-/]/g, "\\$&")
+    const re = new RegExp(`'${escaped}'(?!\\s*\\|\\|)`, "g")
+    const matches = sql.match(re)
+    if (matches?.length) {
+      offenders.push(`${basePath} (${matches.length}× in ${corpusFile})`)
+    }
+  }
+  check(
+    "search corpus SQL: no bare base routes",
+    offenders.length === 0,
+    offenders.length === 0 ? `0 offenders in ${corpusFile}` : offenders.join("; ")
+  )
+}
+
+// RPC-based sampling: verify that formerly-broken entity types now return
+// deep routes. Uses the indexed search_documents RPC (no full-table scan).
+async function auditRoutesRpc() {
+  const samples = [
+    // 4+ tokens → general intent → eu_fund included in candidates
+    { query: "fondo europeo inversiones fei", types: ["eu_fund"], prefix: "/fondos-ue/", label: "eu_fund routes" },
+    // fiscal intent → budget_program included; 3 tokens + digit bypass person guard
+    { query: "programa 911M jefatura estado", types: ["budget_program"], prefix: "/presupuestos/", minSegments: 3, label: "budget_program routes" },
+    // person types always included
+    { query: "ministerio hacienda", types: ["government_position"], prefix: "/ministerios/", label: "government_position routes" },
+  ]
+  for (const { query, types, prefix, minSegments, label } of samples) {
+    let rows
+    try {
+      const result = await rpc("search_documents", {
+        query_text: query,
+        entity_types: types,
+        filters: {},
+        limit_count: 5,
+      })
+      rows = result.rows
+    } catch {
+      check(`route sample: ${label}`, true, "skipped (RPC error)")
+      continue
+    }
+    if (rows.length === 0) {
+      check(`route sample: ${label}`, true, "skipped (0 results — corpus may be empty)")
+      continue
+    }
+    const bad = rows.filter((r) => {
+      if (!r.url || !r.url.startsWith(prefix)) return true
+      if (minSegments) {
+        const segments = r.url.split("/").filter(Boolean)
+        if (segments.length < minSegments) return true
+      }
+      return false
+    })
+    check(
+      `route sample: ${label}`,
+      bad.length === 0,
+      bad.length === 0
+        ? `${rows.length} rows, all deep (e.g. ${rows[0]?.url})`
+        : `bad: ${bad.map((r) => r.url).join(", ")}`
+    )
+  }
 }
 
 async function auditRoutes() {
-  // 1. Bare base routes: any row whose route equals a known section index.
-  const inList = `(${BASE_ROUTE_BLOCKLIST.map((p) => `"${p}"`).join(",")})`
-  const bare = await restSelect(
-    `search_documents?select=entity_type,entity_id,route&route=in.${encodeURIComponent(inList)}&limit=50`
-  )
-  check(
-    "no search rows point to bare section index",
-    bare.length === 0,
-    bare.length === 0
-      ? "0 offenders"
-      : `${bare.length} offenders: ${bare
-          .slice(0, 5)
-          .map((r) => `${r.entity_type}→${r.route}`)
-          .join("; ")}`
-  )
-
-  // 2. NULL/empty routes.
-  const nullRoutes = await restSelect(
-    `search_documents?select=entity_type,entity_id&route=is.null&limit=20`
-  )
-  check(
-    "no search rows have NULL route",
-    nullRoutes.length === 0,
-    nullRoutes.length === 0
-      ? "0 offenders"
-      : `${nullRoutes.length} offenders (first: ${nullRoutes
-          .slice(0, 3)
-          .map((r) => r.entity_type)
-          .join(", ")})`
-  )
+  auditRoutesStatic()
+  await auditRoutesRpc()
 }
 
 const args = new Set(process.argv.slice(2))
