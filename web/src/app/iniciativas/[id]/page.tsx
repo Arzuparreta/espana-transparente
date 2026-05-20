@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
@@ -56,6 +57,21 @@ export default async function IniciativaPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <ContextTrail
+        section={{ href: "/iniciativas", label: "Iniciativas" }}
+        current={initiative.title ?? initiative.number}
+        meta={initiative.number ? `Exp. ${initiative.number}` : undefined}
+        fallbackHref="/iniciativas"
+        fallbackLabel="Volver a Iniciativas"
+        related={[
+          sessions.length > 0
+            ? { href: `/votaciones/${sessions[0].id}`, label: "Votación más reciente", meta: "Votaciones" }
+            : null,
+          initiative.source_url
+            ? { href: initiative.source_url, label: "Ficha en Congreso.es", external: true }
+            : null,
+        ]}
+      />
       <PageHeader
         title={initiative.title ?? initiative.number}
         description={[typeLabel, statusLabel ? `Estado: ${statusLabel}` : null].filter(Boolean).join(" · ")}

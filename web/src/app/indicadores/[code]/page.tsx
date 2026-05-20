@@ -4,6 +4,7 @@ import { ArrowLeft, Database } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IndicatorChart } from "@/components/indicators/IndicatorChart"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getIndicatorPoints } from "@/lib/data"
 
@@ -72,6 +73,16 @@ export default async function IndicadorPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+        <ContextTrail
+          section={{ href: "/indicadores", label: "Indicadores" }}
+          current={name}
+          meta={code}
+          fallbackHref="/indicadores"
+          fallbackLabel="Volver a Indicadores"
+          related={[
+            { href: "/estado-datos", label: "Estado de los datos" },
+          ]}
+        />
         <section className="relative min-h-[calc(100svh-7.5rem)] overflow-hidden rounded border border-border bg-card p-3 sm:p-4">
           <div className="relative flex min-h-[calc(100svh-9.5rem)] flex-col gap-3">
             <div className="flex flex-col gap-3 rounded border border-border bg-background/60 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">

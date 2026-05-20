@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
@@ -60,10 +60,32 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: "Subvenciones", href: "/subvenciones" },
-          { label: titleText },
+      <ContextTrail
+        section={{ href: "/subvenciones", label: "Subvenciones" }}
+        current={titleText}
+        meta={subsidy.bdns_id ? `BDNS ${subsidy.bdns_id}` : undefined}
+        fallbackHref="/subvenciones"
+        fallbackLabel="Volver a Subvenciones"
+        related={[
+          beneficiaryOrg
+            ? { href: `/organizaciones/${beneficiaryOrg.id}`, label: beneficiaryOrg.name, meta: "Beneficiario" }
+            : null,
+          grantingOrg
+            ? { href: `/organizaciones/${grantingOrg.id}`, label: grantingOrg.name, meta: "Concedente" }
+            : null,
+          responsible?.politician_id
+            ? { href: `/diputados/${responsible.politician_id}`, label: responsible.person_name ?? "Responsable", meta: "Responsable" }
+            : null,
+          subsidy.ministry_normalized
+            ? {
+                href: `/subvenciones?ministry=${encodeURIComponent(subsidy.ministry_normalized)}`,
+                label: subsidy.ministry_normalized,
+                meta: "Ministerio",
+              }
+            : null,
+          subsidy.source_url
+            ? { href: subsidy.source_url, label: "Convocatoria oficial", external: true }
+            : null,
         ]}
       />
       <PageHeader
