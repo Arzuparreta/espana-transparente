@@ -113,12 +113,16 @@ counts have been measured in the database.
 
 ### CCAA And Municipal Drilldowns
 
-Current `/ccaa` and `/municipios` pages are summary/funnel pages.
+Current `/ccaa` and `/municipios` expose drilldowns built from published
+territory fields. The remaining work is data-quality hardening, not creating
+the routes themselves.
 
-- Build drilldowns by territory only when source fields support it.
+- Keep grouping strictly tied to source literals (`nivel2` in BDNS, `region`
+  in PCSP) unless a better territory bridge is added explicitly.
 - Keep route labels factual: community, municipality, contracts, subsidies,
   source, date, amount.
-- Surface coverage limitations rather than hiding unresolved rows.
+- Continue surfacing unresolved territorial coverage instead of silently
+  dropping those records.
 
 ### Profiles And Annotations
 

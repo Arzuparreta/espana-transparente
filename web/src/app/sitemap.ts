@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 import { BRAND_URL } from "@/lib/brand"
 import { getDeputyCards, getParties } from "@/lib/data"
+import { getAutonomicTerritoryKeys, getMunicipalTerritoryKeys } from "@/lib/data/multilevel"
 import {
   getSitemapBudgetProgramPaths,
   getSitemapBudgetSectionPaths,
@@ -84,6 +85,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     budgetSections,
     budgetPrograms,
     initiatives,
+    autonomicTerritories,
+    municipalTerritories,
   ] = await Promise.all([
     tryGet(
       async () =>
@@ -106,6 +109,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tryGet(() => getSitemapBudgetSectionPaths(), [] as { year: number; section_code: string }[]),
     tryGet(() => getSitemapBudgetProgramPaths(), [] as { section_code: string; program_code: string }[]),
     tryGet(() => getSitemapInitiativeIds(), [] as { id: string }[]),
+    tryGet(() => getAutonomicTerritoryKeys(), [] as { territoryKey: string }[]),
+    tryGet(() => getMunicipalTerritoryKeys(), [] as { territoryKey: string }[]),
   ])
 
   const deputyEntries: MetadataRoute.Sitemap = (deputies as { id: string }[]).map((d) => ({
@@ -199,6 +204,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }))
 
+  const autonomicTerritoryEntries: MetadataRoute.Sitemap = autonomicTerritories.map((territory) => ({
+    url: url(`/ccaa/${encodeURIComponent(territory.territoryKey)}`),
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }))
+
+  const municipalTerritoryEntries: MetadataRoute.Sitemap = municipalTerritories.map((territory) => ({
+    url: url(`/municipios/${encodeURIComponent(territory.territoryKey)}`),
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }))
+
   return [
     ...staticEntries,
     ...deputyEntries,
@@ -214,5 +233,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...budgetSectionEntries,
     ...budgetProgramEntries,
     ...initiativeEntries,
+    ...autonomicTerritoryEntries,
+    ...municipalTerritoryEntries,
   ]
 }
