@@ -1,4 +1,6 @@
+import { cookies } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { AdminLoginForm } from "./login-form"
 
 export const dynamic = "force-dynamic"
 
@@ -206,11 +208,29 @@ async function fetchPipelines(): Promise<PipelineRow[]> {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const [annotations, signups, pipelines] = await Promise.all([
-    fetchAnnotations(),
-    fetchSignups(),
-    fetchPipelines(),
-  ])
+  const cookieStore = await cookies()
+  const token = cookieStore.get("admin_token")?.value
+  const adminPassword = process.env.ADMIN_PASSWORD
+
+  if (!adminPassword || token !== adminPassword) {
+    return <AdminLoginForm />
+  }
+
+  let annotations: AnnotationRow[] = []
+  let signups: SignupRow[] = []
+  let pipelines: PipelineRow[] = []
+  let fetchError: string | null = null
+
+  try {
+    [annotations, signups, pipelines] = await Promise.all([
+      fetchAnnotations(),
+      fetchSignups(),
+      fetchPipelines(),
+    ])
+  } catch (e) {
+    fetchError = e instanceof Error ? e.message : "Error al conectar con la base de datos"
+    console.error("Admin fetch error:", e)
+  }
 
   // ── Derived metrics ────────────────────────────────────────────────────────
 
@@ -266,7 +286,7 @@ export default async function AdminPage() {
   let siteLatency = 0
   try {
     const t0 = Date.now()
-    const res = await fetch("https://espana-transparente.vercel.app", { next: { revalidate: 0 } })
+    const res = await fetch("https://espana-transparente.vercel.app/api/health", { next: { revalidate: 0 } })
     siteLatency = Date.now() - t0
     siteStatus = res.ok ? "ok" : "error"
   } catch {
@@ -275,6 +295,16 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
+      {fetchError && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.10em] text-red-400">
+            Error de conexión
+          </p>
+          <p className="mt-1 font-mono text-[12px] leading-relaxed text-red-300/80">
+            {fetchError}
+          </p>
+        </div>
+      )}
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
@@ -348,12 +378,12 @@ export default async function AdminPage() {
         <div className="rounded-xl border border-border/70 bg-card/80 p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">ETL</p>
           <p className={`mt-1 text-2xl font-semibold tabular-nums ${
-            failedPipelines.length === 0 ? "text-green-500" : "text-red-500"
+            pipelines.length === 0 ? "text-[#999992]" : failedPipelines.length === 0 ? "text-green-500" : "text-red-500"
           }`}>
-            {pipelines.filter((p) => p.last_status === "succeeded").length}/{pipelines.length}
+            {pipelines.length === 0 ? "—" : `${pipelines.filter((p) => p.last_status === "succeeded").length}/${pipelines.length}`}
           </p>
           <p className="mt-0.5 text-[12px] text-[#999992]">
-            {failedPipelines.length > 0 ? `${failedPipelines.length} con error` : "Todos OK"}
+            {pipelines.length === 0 ? "Sin datos" : failedPipelines.length > 0 ? `${failedPipelines.length} con error` : "Todos OK"}
           </p>
         </div>
       </div>
