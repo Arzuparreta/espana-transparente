@@ -1,0 +1,56 @@
+-- Extend v_ministry_top_beneficiaries to bridge contracts through
+-- v_contract_responsibility when ministry_normalized is not set directly.
+-- This expands contract coverage from 25 to ~216 rows and adds 11 ministries.
+CREATE OR REPLACE VIEW v_ministry_top_beneficiaries AS
+WITH contracts_with_ministry AS (
+  SELECT
+    COALESCE(c.ministry_normalized, r.ministry) AS ministry_normalized,
+    c.contractor                                 AS name,
+    c.amount
+  FROM contracts c
+  LEFT JOIN v_contract_responsibility r
+         ON r.contract_id = c.id
+        AND r.administration_level = 'state'
+        AND r.ministry IS NOT NULL
+  WHERE COALESCE(c.ministry_normalized, r.ministry) IS NOT NULL
+    AND c.contractor IS NOT NULL
+    AND trim(c.contractor) <> ''
+),
+contractor_agg AS (
+  SELECT
+    ministry_normalized,
+    name,
+    'contract'::text                  AS source_type,
+    COUNT(*)::integer                 AS record_count,
+    COALESCE(SUM(amount), 0)          AS total_amount,
+    ROW_NUMBER() OVER (
+      PARTITION BY ministry_normalized
+      ORDER BY COALESCE(SUM(amount), 0) DESC NULLS LAST
+    )                                 AS rnk
+  FROM contracts_with_ministry
+  GROUP BY ministry_normalized, name
+),
+subsidy_agg AS (
+  SELECT
+    ministry_normalized,
+    beneficiario                      AS name,
+    'subsidy'::text                   AS source_type,
+    COUNT(*)::integer                 AS record_count,
+    COALESCE(SUM(importe), 0)         AS total_amount,
+    ROW_NUMBER() OVER (
+      PARTITION BY ministry_normalized
+      ORDER BY COALESCE(SUM(importe), 0) DESC NULLS LAST
+    )                                 AS rnk
+  FROM subsidies
+  WHERE ministry_normalized IS NOT NULL
+    AND beneficiario IS NOT NULL
+    AND trim(beneficiario) <> ''
+  GROUP BY ministry_normalized, beneficiario
+)
+SELECT ministry_normalized, name, source_type, record_count, total_amount
+FROM contractor_agg WHERE rnk <= 5
+UNION ALL
+SELECT ministry_normalized, name, source_type, record_count, total_amount
+FROM subsidy_agg WHERE rnk <= 5;
+
+GRANT SELECT ON v_ministry_top_beneficiaries TO anon, authenticated;
