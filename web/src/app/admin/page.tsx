@@ -1,4 +1,4 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { AdminLoginForm } from "./login-form"
 
@@ -281,14 +281,20 @@ export default async function AdminPage() {
   // Pipeline failures
   const failedPipelines = pipelines.filter((p) => p.last_status === "failed")
 
-  // Health metric: site alive
-  let siteStatus = "unknown"
+  // Health metric: site alive (use request host to avoid Vercel self-fetch redirects)
+  let siteStatus: string = "unknown"
   let siteLatency = 0
   try {
+    const headersList = await headers()
+    const host = headersList.get("host") || "espana-transparente.vercel.app"
+    const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
     const t0 = Date.now()
-    const res = await fetch("https://espana-transparente.vercel.app/api/health", { next: { revalidate: 0 } })
+    const res = await fetch(`${protocol}://${host}/api/health`, {
+      next: { revalidate: 0 },
+      headers: { "x-vercel-skip-toolbar": "1" },
+    })
     siteLatency = Date.now() - t0
-    siteStatus = res.ok ? "ok" : "error"
+    siteStatus = res.ok ? "ok" : `${res.status}`
   } catch {
     siteStatus = "down"
   }
@@ -369,9 +375,9 @@ export default async function AdminPage() {
         <div className="rounded-xl border border-border/70 bg-card/80 p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Site</p>
           <p className={`mt-1 text-2xl font-semibold tabular-nums ${
-            siteStatus === "ok" ? "text-green-500" : siteStatus === "error" ? "text-yellow-500" : "text-red-500"
+            siteStatus === "ok" ? "text-green-500" : siteStatus === "down" ? "text-red-500" : "text-yellow-500"
           }`}>
-            {siteStatus === "ok" ? "OK" : siteStatus === "error" ? "Error" : "Down"}
+            {siteStatus === "ok" ? "OK" : siteStatus === "down" ? "Down" : siteStatus}
           </p>
           <p className="mt-0.5 text-[12px] text-[#999992]">{siteLatency}ms</p>
         </div>
