@@ -59,9 +59,6 @@ These are the next work items before large expansion.
 - Add `--resume` compatibility to `src.congreso.asistencia`. The pipeline
   already skips existing sessions; the CLI should accept the flag so long runs
   are operationally consistent with contracts, subsidies, budgets, and Senate.
-- Extend ETL status coverage. High-priority pipelines for status visibility:
-  `congreso.asistencia`, `senado.votaciones`, `kohesio.fondos_ue`, and
-  `common.search_refresh`.
 - Keep Congress/Senate request delays at 1.5s and do not parallelize those
   portals. They rate-limit aggressively.
 
@@ -116,12 +113,16 @@ counts have been measured in the database.
 
 ### CCAA And Municipal Drilldowns
 
-Current `/ccaa` and `/municipios` pages are summary/funnel pages.
+Current `/ccaa` and `/municipios` expose drilldowns built from published
+territory fields. The remaining work is data-quality hardening, not creating
+the routes themselves.
 
-- Build drilldowns by territory only when source fields support it.
+- Keep grouping strictly tied to source literals (`nivel2` in BDNS, `region`
+  in PCSP) unless a better territory bridge is added explicitly.
 - Keep route labels factual: community, municipality, contracts, subsidies,
   source, date, amount.
-- Surface coverage limitations rather than hiding unresolved rows.
+- Continue surfacing unresolved territorial coverage instead of silently
+  dropping those records.
 
 ### Profiles And Annotations
 

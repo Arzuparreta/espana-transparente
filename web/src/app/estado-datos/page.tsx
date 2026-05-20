@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
+import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
 
 export const revalidate = 3600
 
@@ -35,23 +36,6 @@ function levelLabel(value: string) {
 
 function datasetLabel(value: string) {
   return value === "contracts" ? "Contratos" : "Subvenciones"
-}
-
-const PIPELINE_LABELS: Record<string, string> = {
-  "congreso.diputados": "Diputados",
-  "congreso.asistencia": "Asistencia y votaciones",
-  "congreso.cods": "Expedientes (CODs)",
-  "congreso.declaraciones": "Declaraciones económicas",
-  "congreso.gobierno": "Gobierno",
-  "congreso.responsables": "Responsables",
-  "ine.indicadores": "Indicadores INE",
-  "contratacion.contratos": "Contratos PCSP",
-  "bdns.subvenciones": "Subvenciones BDNS",
-  "photos.run": "Fotos",
-  "puertas_giratorias": "Puertas giratorias",
-  "kohesio.fondos_ue": "Fondos UE",
-  "senado.votaciones": "Sesiones Senado",
-  "common.search_refresh": "Búsqueda (actualización)",
 }
 
 export default async function EstadoDatosPage() {
@@ -107,7 +91,7 @@ export default async function EstadoDatosPage() {
               </thead>
               <tbody>
                 {pipelines.map((p) => {
-                  const label = PIPELINE_LABELS[p.pipeline as string] ?? String(p.pipeline)
+                  const label = getEtlPipelineLabel(String(p.pipeline))
                   const status = p.last_status as string
                   const finishedAt = p.last_finished_at as string | null
                   const dateStr = finishedAt
@@ -117,8 +101,8 @@ export default async function EstadoDatosPage() {
                     status === "succeeded"
                       ? "text-green-600 dark:text-green-400"
                       : status === "failed"
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-muted-foreground"
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-muted-foreground"
 
                   return (
                     <tr key={String(p.pipeline)} className="border-t border-border/60">

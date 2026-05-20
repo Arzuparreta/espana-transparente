@@ -24,6 +24,7 @@ export type TopBeneficiary = {
   source_type: "contract" | "subsidy"
   record_count: number
   total_amount: number
+  organization_id: string | null
 }
 
 export type MoneyFlowSection = {
@@ -65,14 +66,14 @@ export const getMoneyFlowYear = unstable_cache(
         .order("total_credit_initial", { ascending: false, nullsFirst: false }),
       supabase
         .from("v_ministry_top_beneficiaries")
-        .select("ministry_normalized, name, source_type, record_count, total_amount"),
+        .select("ministry_normalized, name, source_type, record_count, total_amount, organization_id"),
     ])
 
     if (error || !data) return []
     const rows = data as MoneyFlowRow[]
 
     // Index beneficiaries by ministry
-    type BenRow = { ministry_normalized: string; name: string; source_type: string; record_count: number; total_amount: number }
+    type BenRow = { ministry_normalized: string; name: string; source_type: string; record_count: number; total_amount: number; organization_id: string | null }
     const contractorsByMinistry = new Map<string, TopBeneficiary[]>()
     const subsidyBenByMinistry = new Map<string, TopBeneficiary[]>()
     for (const b of (benData ?? []) as BenRow[]) {
@@ -81,6 +82,7 @@ export const getMoneyFlowYear = unstable_cache(
         source_type: b.source_type as "contract" | "subsidy",
         record_count: Number(b.record_count),
         total_amount: Number(b.total_amount),
+        organization_id: b.organization_id ?? null,
       }
       const map = b.source_type === "contract" ? contractorsByMinistry : subsidyBenByMinistry
       const key = b.ministry_normalized
