@@ -12,6 +12,13 @@ export interface NavGroup {
   items: NavItem[]
 }
 
+export interface SectionMeta {
+  key: string
+  href: string
+  label: string
+  shortLabel?: string
+}
+
 export const PRIMARY_NAV: NavGroup[] = [
   {
     label: "Personas",
@@ -51,4 +58,35 @@ export const SECONDARY_NAV: NavGroup = {
     { href: "/estado-datos", label: "Estado de los datos" },
     { href: GITHUB_URL, label: "GitHub" },
   ],
+}
+
+export const SECTION_META: SectionMeta[] = [
+  { key: "diputados", href: "/diputados", label: "Diputados" },
+  { key: "senado", href: "/senado", label: "Senado" },
+  { key: "gobierno", href: "/gobierno", label: "Gobierno" },
+  { key: "partidos", href: "/partidos", label: "Partidos" },
+  { key: "instituciones", href: "/instituciones", label: "Instituciones" },
+  { key: "votaciones", href: "/votaciones", label: "Votaciones" },
+  { key: "presupuestos", href: "/presupuestos", label: "Presupuestos" },
+  { key: "contratos", href: "/contratos", label: "Contratos" },
+  { key: "subvenciones", href: "/subvenciones", label: "Subvenciones" },
+  { key: "fondos-ue", href: "/fondos-ue", label: "Fondos UE" },
+  { key: "puertas-giratorias", href: "/puertas-giratorias", label: "Puertas giratorias" },
+  { key: "organizaciones", href: "/organizaciones", label: "Organizaciones" },
+  { key: "indicadores", href: "/indicadores", label: "Indicadores" },
+  { key: "buscar", href: "/buscar", label: "Resultados", shortLabel: "resultados" },
+  { key: "estado-datos", href: "/estado-datos", label: "Estado de los datos" },
+  { key: "iniciativas", href: "/iniciativas", label: "Iniciativas" },
+  { key: "ministerios", href: "/ministerios", label: "Ministerios" },
+  { key: "perfil", href: "/perfil", label: "Perfil" },
+  { key: "usuarios", href: "/usuarios", label: "Usuarios" },
+]
+
+export function getSectionForPath(pathname: string): SectionMeta | null {
+  const cleanPath = pathname.split("?")[0]?.replace(/\/$/, "") || "/"
+  return (
+    SECTION_META
+      .filter((section) => cleanPath === section.href || cleanPath.startsWith(`${section.href}/`))
+      .sort((a, b) => b.href.length - a.href.length)[0] ?? null
+  )
 }

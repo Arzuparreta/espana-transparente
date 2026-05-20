@@ -4,7 +4,7 @@ import { LogoMark } from "@/components/brand/LogoMark"
 import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
-import { BRAND_NAME } from "@/lib/brand"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { PRIMARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 import { Menu } from "@base-ui/react/menu"
@@ -24,6 +24,7 @@ const itemActive = "text-foreground"
 
 export function Header() {
   const pathname = usePathname()
+  const { user, loading: authLoading, openModal, signOut } = useAuth()
 
   function isItemActive(href: string) {
     return pathname === href || (href !== "/" && pathname?.startsWith(href))
@@ -35,17 +36,18 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="flex h-14 w-full items-center gap-4 px-4 sm:px-6 lg:gap-6">
+      <div className="relative flex h-14 w-full items-center px-4 sm:px-6">
         <ResponsiveLink
           href="/"
           prefetch
-          className="group flex min-w-0 shrink-0 items-center gap-2.5"
+          className="group mr-6 flex shrink-0 items-center gap-2.5"
         >
           <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
             <LogoMark className="h-5 w-5" variant="inverse" />
           </span>
-          <span className="font-display truncate text-[17px] font-bold leading-none tracking-tight text-foreground sm:text-[18px]">
-            {BRAND_NAME}
+          <span className="font-display inline-flex items-baseline gap-[0.4em] whitespace-nowrap leading-none tracking-[-0.02em]">
+            <span className="text-[16px] font-semibold text-foreground/50 sm:text-[17px]">España</span>
+            <span className="text-[16px] font-black text-foreground sm:text-[17px]">Transparente</span>
           </span>
         </ResponsiveLink>
 
@@ -53,7 +55,7 @@ export function Header() {
           {PRIMARY_NAV.map((group) => {
             const active = isGroupActive(group.items)
             return (
-              <Menu.Root key={group.label} modal={false}>
+              <Menu.Root key={group.label}>
                 <Menu.Trigger
                   className={cn(triggerBase, active && triggerActive)}
                   aria-current={active ? "page" : undefined}
@@ -96,7 +98,7 @@ export function Header() {
             href="/estado-datos"
             prefetch
             className={cn(
-              "hidden text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline-block",
+              "hidden h-9 items-center text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline-flex",
               isItemActive("/estado-datos") && "text-foreground"
             )}
           >
@@ -105,6 +107,35 @@ export function Header() {
           <div className="hidden lg:flex">
             <SearchTrigger variant="pill" />
           </div>
+          {!authLoading && (
+            user ? (
+              <div className="hidden lg:flex items-center gap-2">
+                <ResponsiveLink
+                  href="/perfil"
+                  prefetch
+                  aria-label="Abrir perfil"
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-[#1D1D1A] border border-[#2A2A27] font-mono text-[11px] font-semibold text-[#C8FF00] select-none"
+                >
+                  {(user.email ?? "?")[0].toUpperCase()}
+                </ResponsiveLink>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="text-[12px] font-medium text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openModal("login")}
+                className="hidden lg:inline-flex h-9 items-center rounded-[2px] border border-[#2A2A27] bg-transparent px-3 text-[12px] font-semibold text-[#999992] transition-colors hover:border-[#C8FF00] hover:text-[#C8FF00]"
+              >
+                Iniciar sesión
+              </button>
+            )
+          )}
           <MobileNavDropdown />
         </div>
       </div>

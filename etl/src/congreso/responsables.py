@@ -106,13 +106,13 @@ def upsert_positions(dry_run: bool) -> tuple[int, int]:
 
     conn = get_pg_conn()
     cur = conn.cursor()
-    matched = 0
+
+    # Pass 1: insert new rows (ON CONFLICT DO NOTHING for existing)
+    inserted = 0
     for row in rows:
         politician_id = None
         politician_score = 0.0
         politician_id, _party, politician_score = match_politician(cur, row.person_name)
-        if politician_id:
-            matched += 1
 
         cur.execute(
             """
@@ -151,13 +151,44 @@ def upsert_positions(dry_run: bool) -> tuple[int, int]:
                 row.source_url,
             ),
         )
-        if politician_id is None and politician_score:
-            print(f"warning: no politician match for {row.person_name} ({politician_score:.2f})")
+        if cur.rowcount > 0:
+            inserted += 1
+
+    # Pass 2: backfill politician_id for existing rows that were previously unmatched
+    backfilled = 0
+    for row in rows:
+        politician_id, _party, score = match_politician(cur, row.person_name)
+        if politician_id:
+            cur.execute(
+                """
+                UPDATE responsibility_positions
+                SET politician_id = %s, updated_at = now()
+                WHERE administration_level = %s
+                  AND position_type = %s
+                  AND organization_name = %s
+                  AND person_name = %s
+                  AND start_date = %s
+                  AND politician_id IS NULL
+                """,
+                (
+                    politician_id,
+                    row.administration_level,
+                    row.position_type,
+                    row.organization_name,
+                    row.person_name,
+                    row.start_date,
+                ),
+            )
+            if cur.rowcount > 0:
+                backfilled += 1
+                print(f"backfilled politician_id for {row.person_name}")
+        elif score > 0.70:
+            print(f"warning: no politician match for {row.person_name} (score={score:.2f})")
 
     conn.commit()
     cur.close()
     conn.close()
-    return len(rows), matched
+    return len(rows), inserted + backfilled
 
 
 def upsert_body_map(dry_run: bool) -> int:

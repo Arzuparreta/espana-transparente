@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -42,13 +44,21 @@ export default async function PartyPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
+      <Breadcrumbs
+        items={[
+          { label: "Partidos", href: "/partidos" },
+          { label: party.name ?? party.acronym },
+        ]}
+      />
       <PageHeader
         title={party.acronym}
         description={party.name}
         eyebrow={
-          <div
-            className="h-3 w-3 rounded-full border border-border/60"
-            style={{ backgroundColor: party.color }}
+          <PartyLogo
+            src={party.logo_url}
+            color={party.color}
+            acronym={party.acronym}
+            size="lg"
           />
         }
       />
@@ -112,7 +122,7 @@ export default async function PartyPage({ params }: PageProps) {
                       <div className="shrink-0 text-right">
                         <span className="text-xs text-muted-foreground">{dateStr}</span>
                         {s.divergence_count > 0 && (
-                          <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+                          <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
                             {s.divergence_count} div.
                           </p>
                         )}

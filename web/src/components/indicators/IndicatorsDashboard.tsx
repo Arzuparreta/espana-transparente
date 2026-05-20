@@ -69,19 +69,19 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
       <section className="hidden overflow-hidden rounded border border-border bg-card p-4 sm:block sm:p-5">
         <div className="grid gap-3 sm:grid-cols-4">
           <div className="rounded border border-border bg-background/60 px-3 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Series</div>
+            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Series</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{indicators.length}</div>
           </div>
           <div className="rounded border border-border bg-background/60 px-3 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Observaciones</div>
+            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Observaciones</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{totalObservations}</div>
           </div>
           <div className="rounded border border-border bg-background/60 px-3 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Último periodo</div>
+            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Último periodo</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{latestPeriod ?? "N/D"}</div>
           </div>
           <div className="rounded border border-border bg-background/60 px-3 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Fuente</div>
+            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Fuente</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">INE</div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                         <h2 className="line-clamp-2 text-base font-semibold leading-6 text-balance">{indicator.name}</h2>
                         <div className="mt-1 text-xs text-muted-foreground">Último dato: {indicator.latestPeriod}</div>
                       </div>
-                      <Badge variant="outline" className="shrink-0 text-[10px]">{indicator.code}</Badge>
+                      <Badge variant="outline" className="shrink-0 text-xs">{indicator.code}</Badge>
                     </div>
 
                     <div>
@@ -146,7 +146,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                         </span>
                         <span className="pb-1 text-xs text-muted-foreground">{indicator.unit}</span>
                       </div>
-                      <div className={cn("mt-1 text-xs font-semibold", trendClass)}>
+                      <div className={cn("mt-1 font-mono text-xs font-semibold", trendClass)}>
                         {formatDelta(indicator.deltaPct)}
                       </div>
                     </div>

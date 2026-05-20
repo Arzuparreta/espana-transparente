@@ -66,7 +66,7 @@ Pipelines are independent modules under `etl/src/`:
 - `bdns/` — Subsidies from `infosubvenciones.es` (organizations only).
 - `photos/` — versioned politician photo pipeline with official Congreso portraits first and Wikidata as fallback; uploads immutable responsive variants to Supabase Storage.
 - `puertas_giratorias/` — 3-phase research pipeline (see below).
-- `presupuestos/` — placeholder for PGE budget ETL (Fase 2).
+- `presupuestos/` — PGE budget pipeline: ingests spending lines from Civio CSVs (2016-2023) and SEPG prórrogas (2024+), normalizes ministry names, resolves person-level responsibility via `responsibility_positions`.
 - `senado/` — Senate scrapers (active senators + memberships, `chamber='senate'`). Same 1.5s rate-limit policy as Congreso.
 - `instituciones/` — institutional appointments (TC, CGPJ, RTVE, SEPI) loaded from `etl/data/instituciones_nombramientos.yml`; fuzzy-matches names to `politicians` (confidence ≥ 0.85).
 - `kohesio/` — EU fund beneficiaries for Spain from the Kohesio API (ESIF 2014-2027); the API only serves `offset=0`, so each run ingests up to ~30K records.

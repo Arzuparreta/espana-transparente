@@ -28,7 +28,7 @@ export function AnchorCard({
         className
       )}
     >
-      <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+      <p className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>
       <div data-value className="mt-2 font-mono text-3xl font-medium tabular-nums tracking-[-0.03em] text-foreground sm:text-4xl">

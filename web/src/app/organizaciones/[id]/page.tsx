@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
@@ -43,6 +44,12 @@ export default async function OrganizacionPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      <Breadcrumbs
+        items={[
+          { label: "Organizaciones", href: "/organizaciones" },
+          { label: organization.name },
+        ]}
+      />
       <PageHeader
         title={organization.name}
         description="Ficha de organización enlazada a contratos, subvenciones y movimientos público-privados detectados en la base."
@@ -113,7 +120,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
             ) : (
               beneficiarySubsidies.map((subsidy) => (
                 <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/subvenciones`} className="font-medium underline-offset-2 hover:underline">
+                  <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
                     {subsidy.beneficiario || organization.name}
                   </ResponsiveLink>
                   <div className="text-xs text-muted-foreground">
@@ -135,7 +142,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
             ) : (
               grantingSubsidies.map((subsidy) => (
                 <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/subvenciones`} className="font-medium underline-offset-2 hover:underline">
+                  <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
                     {subsidy.beneficiario || "Beneficiario sin nombre"}
                   </ResponsiveLink>
                   <div className="text-xs text-muted-foreground">

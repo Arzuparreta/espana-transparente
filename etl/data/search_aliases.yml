@@ -1,0 +1,39 @@
+# Curated search aliases — factual spellings and common name forms only.
+
+aliases:
+  - alias: "Pedro Sanchez"
+    entity_type: politician
+    entity_id: "680012d9-fb4d-48fa-bcbc-73bff3821cb3"
+  - alias: "Pedro Sánchez"
+    entity_type: politician
+    entity_id: "680012d9-fb4d-48fa-bcbc-73bff3821cb3"
+  - alias: "Sanchez Perez-Castejon"
+    entity_type: politician
+    entity_id: "680012d9-fb4d-48fa-bcbc-73bff3821cb3"
+  - alias: "Feijoo"
+    entity_type: politician
+    entity_id: "34df75c6-46d7-4ec1-922e-7d2a3feecb35"
+  - alias: "Alberto Nunez Feijoo"
+    entity_type: politician
+    entity_id: "34df75c6-46d7-4ec1-922e-7d2a3feecb35"
+  - alias: "Abascal"
+    entity_type: politician
+    entity_id: "1973a032-544b-4a4a-b3aa-2b472890b006"
+  - alias: "Santiago Abascal"
+    entity_type: politician
+    entity_id: "1973a032-544b-4a4a-b3aa-2b472890b006"
+  - alias: "Belarra"
+    entity_type: politician
+    entity_id: "f6107326-a27e-4a06-8b7c-bb6f792f88c3"
+  - alias: "PSOE"
+    entity_type: party
+    entity_id: "2a2cd442-6ca2-4cdc-baae-1669a01415d8"
+  - alias: "PP"
+    entity_type: party
+    entity_id: "f66f4f17-ae0d-4ca0-9618-d8abecd0fcbb"
+  - alias: "VOX"
+    entity_type: party
+    entity_id: "db55d9b1-56d2-4d7b-b18a-c759bbcf93e2"
+  - alias: "Sumar"
+    entity_type: party
+    entity_id: "71a5e987-0ffe-45c8-adce-7dbf8ef47be2"

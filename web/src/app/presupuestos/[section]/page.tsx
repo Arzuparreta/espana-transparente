@@ -3,7 +3,8 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { Card, CardContent } from "@/components/ui/card"
-import { BUDGET_YEARS, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { BUDGET_YEARS, getBudgetSourceNote, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
 import { notFound } from "next/navigation"
 
 export const revalidate = 3600
@@ -61,7 +62,17 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
           <>
             {minister?.minister_name ? (
               <span className="text-xs text-muted-foreground">
-                Ministro/a responsable: <span className="font-medium text-foreground">{minister.minister_name}</span>
+                Ministro/a responsable:{" "}
+                {minister.responsibility_position_id ? (
+                  <ResponsiveLink
+                    href={`/ministerios/${minister.responsibility_position_id}`}
+                    className="font-medium text-foreground underline-offset-2 hover:underline"
+                  >
+                    {minister.minister_name}
+                  </ResponsiveLink>
+                ) : (
+                  <span className="font-medium text-foreground">{minister.minister_name}</span>
+                )}
               </span>
             ) : null}
           </>
@@ -97,6 +108,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
           const chapters = Object.entries(byChapter)
             .filter(([, v]) => v.initial != null && v.initial > 0)
             .sort(([a], [b]) => Number(a) - Number(b))
+          const sourceNote = getBudgetSourceNote(p)
 
           return (
             <Card key={p.program_code}>
@@ -110,11 +122,14 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                     {chapters.length > 0 ? (
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1">
                         {chapters.map(([ch, v]) => (
-                          <span key={ch} className="text-[11px] text-muted-foreground">
+                          <span key={ch} className="text-xs text-muted-foreground">
                             {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatAmount(v.initial)}
                           </span>
                         ))}
                       </div>
+                    ) : null}
+                    {sourceNote ? (
+                      <div className="text-xs text-muted-foreground">{sourceNote}</div>
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
@@ -123,7 +138,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                     </div>
                     {p.total_credit_final != null &&
                     Math.abs(p.total_credit_final - (p.total_credit_initial ?? 0)) > 1 ? (
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         def: {formatAmount(p.total_credit_final)}
                       </div>
                     ) : null}

@@ -56,7 +56,7 @@ function SenatorCard({ senator }: { senator: Senator }) {
           </div>
         )}
         <div className="min-w-0">
-          <p className="text-[11px] text-muted-foreground line-clamp-1">
+          <p className="text-xs text-muted-foreground line-clamp-1">
             {constituency ?? "—"}
             {tipo ? ` · ${tipo.charAt(0) + tipo.slice(1).toLowerCase()}` : ""}
           </p>
@@ -77,7 +77,7 @@ function SenatorCard({ senator }: { senator: Senator }) {
           />
         )}
         {membership?.group_parliamentary && (
-          <span className="truncate text-[10px] text-muted-foreground">
+          <span className="truncate text-xs text-muted-foreground">
             {membership.group_parliamentary
               .replace(/GRUPO PARLAMENTARIO /i, "G.P. ")
               .slice(0, 50)}
@@ -145,9 +145,8 @@ export default async function SenadoPage() {
       )}
 
       {senators.length === 0 ? (
-        <InfoPanel title="Datos pendientes de ingestión">
-          El ETL de senadores aún no ha ejecutado. Lanza:{" "}
-          <code>python -m src.senado.senadores</code>
+        <InfoPanel title="Datos del Senado no disponibles todavía">
+          Los datos de senadores se están ingiriendo automáticamente cada semana. Si esta página aparece vacía, el primer ciclo de ingestión aún no se ha completado.
         </InfoPanel>
       ) : (
         <section>

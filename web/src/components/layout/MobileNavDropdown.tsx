@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { useAuth } from "@/lib/auth/AuthContext"
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 
@@ -12,6 +13,7 @@ const navGroups = [...PRIMARY_NAV, SECONDARY_NAV]
 export function MobileNavDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { user, openModal, signOut } = useAuth()
 
   return (
     <div className="lg:hidden">
@@ -60,7 +62,7 @@ export function MobileNavDropdown() {
             <nav className="flex flex-col px-5 pb-8 pt-2">
               {navGroups.map((group) => (
                 <div key={group.label} className="border-b border-border/40 py-4 last:border-b-0">
-                  <div className="pb-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                  <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
                     {group.label}
                   </div>
                   <div className="flex flex-col">
@@ -89,6 +91,35 @@ export function MobileNavDropdown() {
                 </div>
               ))}
             </nav>
+
+            <div className="border-t border-border/60 px-5 py-4">
+              {user ? (
+                <div className="flex min-w-0 items-center justify-between gap-4">
+                  <ResponsiveLink
+                    href="/perfil"
+                    onClick={() => setIsOpen(false)}
+                    className="min-w-0 text-[13px] font-semibold text-[#EEEDE9] transition-colors hover:text-[#C8FF00]"
+                  >
+                    Perfil
+                  </ResponsiveLink>
+                  <button
+                    type="button"
+                    onClick={() => { signOut(); setIsOpen(false) }}
+                    className="text-[12px] font-semibold text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { openModal("login"); setIsOpen(false) }}
+                  className="w-full rounded-[2px] border border-[#2A2A27] py-2 text-[13px] font-semibold text-[#C8FF00] transition-colors hover:border-[#C8FF00]"
+                >
+                  Iniciar sesión
+                </button>
+              )}
+            </div>
           </DialogPrimitive.Popup>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>

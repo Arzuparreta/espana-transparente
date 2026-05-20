@@ -57,7 +57,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
         <div className="text-right">
           <p className="text-sm font-semibold tabular-nums">{formatEuros(fund.eu_budget)}</p>
           {fund.total_budget && fund.eu_budget && (
-            <p className="text-[11px] text-muted-foreground tabular-nums">
+            <p className="text-xs text-muted-foreground tabular-nums">
               total {formatEuros(fund.total_budget)}
             </p>
           )}
@@ -66,7 +66,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
           href={kohesioUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-md border border-border/60 bg-background px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+          className="shrink-0 rounded-md border border-border/60 bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           title="Ver en Kohesio"
         >
           Kohesio →

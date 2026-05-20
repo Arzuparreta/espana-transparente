@@ -87,10 +87,10 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                             <div className="flex flex-wrap items-center gap-1.5">
                               {personName}
                               {entry.political_party ? (
-                                <PartyBadge acronym={entry.political_party} className="text-[10px]" />
+                                <PartyBadge acronym={entry.political_party} className="text-xs" />
                               ) : null}
                             </div>
-                            <div className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">
+                            <div className="mt-0.5 text-xs text-muted-foreground sm:text-xs">
                               {entry.public_role} en {entry.public_organization}{" -> "}
                               <span className="font-medium text-foreground">{entry.private_role}</span> en{" "}
                               {entry.organization_id ? (
@@ -104,7 +104,7 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                                 entry.private_organization
                               )}
                             </div>
-                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                               {entry.public_exit_date ? (
                                 <span>Cese: {formatDate(entry.public_exit_date)}</span>
                               ) : null}

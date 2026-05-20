@@ -4,7 +4,6 @@ import { ArrowLeft, Database } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IndicatorChart } from "@/components/indicators/IndicatorChart"
-import { IndicatorsBackdrop } from "@/components/indicators/IndicatorsBackdrop"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getIndicatorPoints } from "@/lib/data"
 
@@ -72,9 +71,7 @@ export default async function IndicadorPage({ params }: PageProps) {
   ]
 
   return (
-    <>
-      <IndicatorsBackdrop />
-      <div className="relative z-10 mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
         <section className="relative min-h-[calc(100svh-7.5rem)] overflow-hidden rounded border border-border bg-card p-3 sm:p-4">
           <div className="relative flex min-h-[calc(100svh-9.5rem)] flex-col gap-3">
             <div className="flex flex-col gap-3 rounded border border-border bg-background/60 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
@@ -87,7 +84,7 @@ export default async function IndicadorPage({ params }: PageProps) {
                     <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                     Indicadores
                   </ResponsiveLink>
-                  <Badge variant="outline" className="text-[10px]">
+                  <Badge variant="outline" className="text-xs">
                     {code}
                   </Badge>
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
@@ -100,7 +97,7 @@ export default async function IndicadorPage({ params }: PageProps) {
                 </h1>
               </div>
               <div className="shrink-0 rounded border border-border bg-card px-3 py-2 sm:text-right">
-                <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Último dato</div>
+                <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Último dato</div>
                 <div className="mt-1 flex flex-wrap items-end gap-2 sm:justify-end">
                   <span data-value className="font-mono text-4xl font-medium tracking-tight sm:text-5xl">
                     {formatValue(latest.value)}
@@ -124,7 +121,7 @@ export default async function IndicadorPage({ params }: PageProps) {
               <aside className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 {stats.map((stat) => (
                   <div key={stat.label} className="rounded border border-border bg-background/60 px-3 py-3">
-                    <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</div>
+                    <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</div>
                     <div data-value className="mt-1 break-words font-mono text-3xl font-medium tracking-tight">{stat.value}</div>
                     <div className="mt-1 text-xs leading-5 text-muted-foreground">{stat.hint}</div>
                   </div>
@@ -166,7 +163,6 @@ export default async function IndicadorPage({ params }: PageProps) {
             </CardContent>
           </Card>
         </details>
-      </div>
-    </>
+    </div>
   )
 }

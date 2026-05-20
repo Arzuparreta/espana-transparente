@@ -91,7 +91,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
           {member.has_revolving_door && (
             <ResponsiveLink
               href="/puertas-giratorias"
-              className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent"
+              className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent"
             >
               Puerta giratoria →
             </ResponsiveLink>
@@ -110,7 +110,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
       </div>
 
       {member.appointment_date && (
-        <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
+        <p className="mt-1 text-xs text-muted-foreground tabular-nums">
           Desde {formatDate(member.appointment_date)}
         </p>
       )}

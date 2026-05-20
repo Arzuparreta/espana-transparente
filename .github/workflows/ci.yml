@@ -1,5 +1,15 @@
 name: CI
 
+# ── Secrets ──────────────────────────────────────────────────────────────────
+# DATABASE_URL              → Postgres direct URI (write access) — KEEP SECRET
+# SUPABASE_SERVICE_ROLE_KEY → Supabase service_role (admin writes) — KEEP SECRET
+#
+# The values below (URL + anon key) are public by design:
+#   - SUPABASE_URL is visible in every browser request
+#   - NEXT_PUBLIC_SUPABASE_ANON_KEY is the publishable anon key (read-only)
+# They are inlined for simplicity; no security risk.
+# ─────────────────────────────────────────────────────────────────────────────
+
 on:
   push:
     branches: [main]
@@ -35,6 +45,7 @@ jobs:
       - run: npm run lint
       - run: npm run ui:audit
       - run: npm run content:audit
+      - run: npm run search:routes
       - run: npm run build
 
   etl-check:
@@ -89,6 +100,9 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - run: PYTHONPATH=src python -m common.search_refresh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   etl-weekly:
     name: ETL weekly pipelines
@@ -135,5 +149,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.senado.senadores
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m common.search_refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "ui:audit": "node scripts/ui-audit.mjs",
-    "content:audit": "node scripts/content-audit.mjs"
+    "content:audit": "node scripts/content-audit.mjs",
+    "search:check": "node scripts/search-check.mjs",
+    "search:routes": "node scripts/search-check.mjs --routes-only"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

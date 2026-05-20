@@ -4,6 +4,7 @@ import pytest
 
 from presupuestos.presupuestos import (
     _parse_amount,
+    build_carried_forward_records,
     detect_delimiter,
     parse_sepg_records,
     parse_records,
@@ -188,6 +189,8 @@ def test_parse_records_budget_type_propagated():
     )
     records = parse_records(CSV_SEMICOLON, source)
     assert all(r["budget_type"] == "proyecto" for r in records)
+    assert all(r["source_kind"] == "published" for r in records)
+    assert all(r["source_year"] == 2019 for r in records)
 
 
 def test_parse_sepg_records_builds_budget_lines():
@@ -214,5 +217,53 @@ def test_parse_sepg_records_builds_budget_lines():
     assert len(records) == 1
     assert records[0]["year"] == 2024
     assert records[0]["budget_type"] == "prorroga"
+    assert records[0]["source_kind"] == "published_prorroga"
+    assert records[0]["source_year"] == 2024
+    assert records[0]["in_force_year"] == 2023
     assert records[0]["credit_initial"] == pytest.approx(123456.0)
     assert records[0]["credit_final"] is None
+
+
+def test_build_carried_forward_records_clones_missing_prorroga_section():
+    source = BudgetSource(
+        year=2026,
+        fmt="sepg_prorroga",
+        gastos_url="https://example.com/pge2026prorroga",
+        budget_type="prorroga",
+        in_force_year=2023,
+    )
+    base_records = [
+        {
+            "year": 2023,
+            "budget_type": "ley",
+            "source_kind": "published",
+            "source_year": 2023,
+            "in_force_year": 2023,
+            "section_code": "60",
+            "section_name": "Seguridad Social",
+            "service_code": None,
+            "service_name": None,
+            "program_code": "211A",
+            "program_name": "Pensiones contributivas de la Seguridad Social",
+            "economic_chapter": 4,
+            "economic_article": None,
+            "economic_concept": None,
+            "credit_initial": 159688815850.0,
+            "credit_final": None,
+            "ministry_normalized": "SEGURIDAD SOCIAL",
+            "administration_level": "state",
+            "source_url": "https://example.com/pge2023",
+            "raw_data": {"source": "PGE 2023"},
+        }
+    ]
+
+    carried = build_carried_forward_records(base_records, source, section_codes={"60"})
+
+    assert len(carried) == 1
+    assert carried[0]["year"] == 2026
+    assert carried[0]["budget_type"] == "prorroga"
+    assert carried[0]["source_kind"] == "carried_forward"
+    assert carried[0]["source_year"] == 2023
+    assert carried[0]["in_force_year"] == 2023
+    assert carried[0]["section_code"] == "60"
+    assert carried[0]["credit_initial"] == pytest.approx(159688815850.0)

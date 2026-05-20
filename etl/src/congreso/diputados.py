@@ -15,6 +15,23 @@ LEGISLATURE_MAP = {
     "XI": 11, "XII": 12, "XIII": 13, "XIV": 14, "XV": 15,
 }
 
+PARTY_LOGOS = {
+    "PP":         "https://upload.wikimedia.org/wikipedia/commons/3/3c/Logo_del_PP_%282022%29.svg",
+    "PSOE":       "https://upload.wikimedia.org/wikipedia/commons/4/41/Logotipo_del_PSOE.svg",
+    "VOX":        "https://upload.wikimedia.org/wikipedia/commons/a/aa/VOX_logo.svg",
+    "SUMAR":      "https://upload.wikimedia.org/wikipedia/commons/5/51/Sumar_logo.svg",
+    "ERC":        "https://upload.wikimedia.org/wikipedia/commons/b/bd/ERC_logo_2017.svg",
+    "JUNTS":      "https://upload.wikimedia.org/wikipedia/commons/3/3d/Logo_coalici%C3%B3n_Junts_generales_2023.svg",
+    "EH Bildu":   "https://upload.wikimedia.org/wikipedia/commons/d/d5/Logo_de_EH_Bildu_%282023%29.svg",
+    "EAJ-PNV":    "https://upload.wikimedia.org/wikipedia/commons/3/31/Logo_PNV_2025.svg",
+    "UPN":        "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_UPN_2017.svg",
+    "CCa":        "https://upload.wikimedia.org/wikipedia/commons/1/1c/Coalici%C3%B3n_Canaria.svg",
+    "BNG":        "https://upload.wikimedia.org/wikipedia/commons/a/a9/BNG_logo.svg",
+    "Podemos":    "https://upload.wikimedia.org/wikipedia/commons/4/4e/Logo_de_Podemos_%282022%29.svg",
+    "Ciudadanos": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Logo_de_Ciudadanos_%282023%29.svg",
+    "PRC":        "https://upload.wikimedia.org/wikipedia/commons/1/18/Logotipo_del_PRC_%282025%29.svg",
+}
+
 PARTY_COLORS = {
     "PP": "#0055A7",
     "PSOE": "#E01021",
@@ -201,10 +218,13 @@ def run(dry_run: bool = False):
             acronym = extract_acronym(formacion, grupo)
             if party_name and party_name not in parties_done:
                 cur.execute("""
-                    INSERT INTO parties (name, acronym, color)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (name) DO UPDATE SET acronym = EXCLUDED.acronym, color = EXCLUDED.color
-                """, (party_name, acronym, PARTY_COLORS.get(acronym, "#718096")))
+                    INSERT INTO parties (name, acronym, color, logo_url)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (name) DO UPDATE SET
+                        acronym = EXCLUDED.acronym,
+                        color = EXCLUDED.color,
+                        logo_url = COALESCE(EXCLUDED.logo_url, parties.logo_url)
+                """, (party_name, acronym, PARTY_COLORS.get(acronym, "#718096"), PARTY_LOGOS.get(acronym)))
                 parties_done.add(party_name)
 
             # Get IDs

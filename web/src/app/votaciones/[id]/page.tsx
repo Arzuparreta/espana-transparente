@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
@@ -30,7 +31,7 @@ interface VoteRow {
 
 export default async function VotacionPage({ params }: PageProps) {
   const { id } = await params
-  const { session, votes } = await getVotingDetailData(id)
+  const { session, votes, initiative } = await getVotingDetailData(id)
   if (!session) notFound()
 
   const partyGroups: Record<
@@ -99,6 +100,40 @@ export default async function VotacionPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
+      <ContextTrail
+        section={{ href: "/votaciones", label: "Votaciones" }}
+        current={session.title}
+        meta={[
+          session.session_number ? `Sesión ${session.session_number}` : null,
+          session.initiative_number ? `Exp. ${session.initiative_number}` : null,
+        ].filter(Boolean).join(" · ") || undefined}
+        fallbackHref="/votaciones"
+        fallbackLabel="Volver a Votaciones"
+        related={[
+          initiative
+            ? {
+                href: `/iniciativas/${initiative.id}`,
+                label: "Iniciativa",
+                meta: initiative.type ?? undefined,
+              }
+            : null,
+          divergences.length > 0
+            ? {
+                href: `#divergencias`,
+                label: "Diputados divergentes",
+                meta: String(divergences.length),
+              }
+            : null,
+          sorted.length > 0
+            ? {
+                href: `#resultado-por-grupo`,
+                label: "Resultado por grupo",
+                meta: String(sorted.length),
+              }
+            : null,
+          { href: "/votaciones", label: "Listado" },
+        ]}
+      />
       <PageHeader
         title={session.title}
         description={
@@ -116,8 +151,23 @@ export default async function VotacionPage({ params }: PageProps) {
         }
       />
 
+      {initiative ? (
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-2 py-3 text-sm">
+            <span className="text-xs uppercase tracking-widest text-muted-foreground">Iniciativa origen</span>
+            <EntityLink
+              kind="initiative"
+              id={initiative.id}
+              className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
+            >
+              {initiative.title ?? `Exp. ${session.initiative_number}`}
+            </EntityLink>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {divergences.length > 0 ? (
-        <Card className="border-accent/35 bg-accent/10">
+        <Card id="divergencias" className="scroll-mt-24 border-accent/35 bg-accent/10">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="text-base">Divergencias relevantes</CardTitle>
@@ -133,7 +183,7 @@ export default async function VotacionPage({ params }: PageProps) {
                 <EntityLink kind="politician" id={divergence.politicianId} className="font-medium underline-offset-2 hover:underline">
                   {divergence.name}
                 </EntityLink>
-                <PartyBadge acronym={divergence.party} className="text-[11px]" partyId={divergence.partyId} />
+                <PartyBadge acronym={divergence.party} className="text-xs" partyId={divergence.partyId} />
                 <span className="text-xs">
                   votó <b style={{ color: getVoteColor(divergence.voted) }}>{divergence.voted}</b> ≠{" "}
                   <b style={{ color: getVoteColor(divergence.partyVoted) }}>
@@ -147,7 +197,7 @@ export default async function VotacionPage({ params }: PageProps) {
         </Card>
       ) : null}
 
-      <div className="space-y-2">
+      <div id="resultado-por-grupo" className="scroll-mt-24 space-y-2">
         {sorted.map(([acronym, group]) => (
           <Card key={acronym}>
             <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
@@ -203,9 +253,9 @@ export default async function VotacionPage({ params }: PageProps) {
                   <EntityLink kind="politician" id={deputy.politicianId} className="min-w-0 truncate text-xs underline-offset-2 hover:underline">
                     {deputy.name}
                   </EntityLink>
-                  <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-[10px]" />
+                  <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-xs" />
                 </div>
-                <VoteBadge vote={deputy.vote} className="shrink-0 text-[11px]" />
+                <VoteBadge vote={deputy.vote} className="shrink-0 text-xs" />
               </div>
             ))
           )}

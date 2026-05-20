@@ -39,7 +39,7 @@ export function LinkTabs({ tabs, ariaLabel, className, scroll }: LinkTabsProps) 
               <Badge
                 variant={tab.active ? "secondary" : "outline"}
                 className={cn(
-                  "h-4 text-[10px]",
+                  "h-4 text-xs",
                   tab.active ? "bg-background/15 text-background" : null
                 )}
               >

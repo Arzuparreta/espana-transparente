@@ -1,7 +1,6 @@
 import { EmptyState } from "@/components/domain/EmptyState"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PageHeader } from "@/components/domain/PageHeader"
-import { IndicatorsBackdrop } from "@/components/indicators/IndicatorsBackdrop"
 import { IndicatorsDashboard, type IndicatorSummary } from "@/components/indicators/IndicatorsDashboard"
 import { getIndicators } from "@/lib/data"
 
@@ -61,9 +60,7 @@ export default async function IndicadoresPage() {
     .sort((a, b) => a.name.localeCompare(b.name, "es"))
 
   return (
-    <>
-      <IndicatorsBackdrop />
-      <div className="relative z-10 mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
         <PageHeader
           title="Indicadores económicos"
           description="Datos económicos generales del país: cuánto sube el IPC, cuánto crece el PIB, cuánta gente trabaja, cuánta deuda hay. Series del Instituto Nacional de Estadística (INE)."
@@ -78,7 +75,6 @@ export default async function IndicadoresPage() {
         <InfoPanel title="Fuente">
           INE (Instituto Nacional de Estadística). Datos actualizados mensualmente vía API JSON.
         </InfoPanel>
-      </div>
-    </>
+    </div>
   )
 }

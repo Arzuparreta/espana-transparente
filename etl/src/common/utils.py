@@ -34,6 +34,17 @@ def normalize_name(name: str) -> str:
     return name
 
 
+def search_display_name(full_name: str) -> str:
+    """Mirror _search_display_name(): Apellidos, Nombre → Nombre Apellidos."""
+    trimmed = full_name.strip()
+    if not trimmed:
+        return trimmed
+    if "," in trimmed:
+        surnames, first = trimmed.split(",", 1)
+        return f"{first.strip()} {surnames.strip()}"
+    return trimmed
+
+
 def parse_spanish_full_name(full_name: str) -> tuple[str, str]:
     """Split 'Apellido1 Apellido2, Nombre' or 'Nombre Apellido1 Apellido2'"""
     full_name = full_name.strip()

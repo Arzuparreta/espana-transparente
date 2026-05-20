@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { ShareButton } from "@/components/domain/ShareButton"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getContractDetail } from "@/lib/data"
 import { BRAND_URL } from "@/lib/brand"
 
@@ -70,6 +72,41 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <ContextTrail
+        section={{ href: "/contratos", label: "Contratos" }}
+        current={contract.title}
+        meta={contract.contract_folder_id ? `Exp. ${contract.contract_folder_id}` : undefined}
+        fallbackHref="/contratos"
+        fallbackLabel="Volver a Contratos"
+        related={[
+          contract.awarding_body_organization_id
+            ? {
+                href: `/organizaciones/${contract.awarding_body_organization_id}`,
+                label: "Órgano adjudicador",
+              }
+            : null,
+          contract.ministry_normalized
+            ? {
+                href: `/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`,
+                label: "Ministerio",
+              }
+            : null,
+          responsible?.politician_id
+            ? {
+                href: `/diputados/${responsible.politician_id}`,
+                label: "Responsable político",
+              }
+            : null,
+          contract.contractor ? { href: "/organizaciones", label: "Adjudicatario" } : null,
+          contract.source_url
+            ? {
+                href: contract.source_url,
+                label: "Fuente oficial",
+                external: true,
+              }
+            : null,
+        ]}
+      />
       <PageHeader
         title={contract.title}
         description={contract.contract_folder_id ? `Expediente ${contract.contract_folder_id}` : "Detalle del contrato público"}
@@ -105,7 +142,14 @@ export default async function ContractDetailPage({ params }: PageProps) {
           )}
           {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
           {contract.ministry_normalized && (
-            <Row label="Ministerio">{contract.ministry_normalized}</Row>
+            <Row label="Ministerio">
+              <ResponsiveLink
+                href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {contract.ministry_normalized}
+              </ResponsiveLink>
+            </Row>
           )}
           {contract.region && <Row label="Región">{contract.region}</Row>}
           {contract.administration_level && (
