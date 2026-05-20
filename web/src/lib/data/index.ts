@@ -23,6 +23,8 @@ export {
   getTopContractOfMonth,
   getTopDivergenceSessionOfMonth,
   getLatestInflationAnchor,
+  getSectionIndex,
+  type SectionIndexRow,
 } from "./home"
 
 // ── Politicians ──────────────────────────────────────────────────────────────
@@ -112,7 +114,22 @@ export {
   getIndicators,
   getIndicatorPoints,
   getInitiativeDetail,
+  getInitiativesPage,
+  type InitiativeListRow,
 } from "./conexiones"
+
+// ── Declarations ─────────────────────────────────────────────────────────────
+export {
+  getDeclarationsPage,
+  type DeclarationListRow,
+} from "./declarations"
+
+// ── Money flow (Trazabilidad del gasto) ──────────────────────────────────────
+export {
+  getMoneyFlowYear,
+  type MoneyFlowSection,
+  type MoneyFlowRow,
+} from "./money-flow"
 
 // ── EU Funds ─────────────────────────────────────────────────────────────────
 export {
@@ -125,9 +142,11 @@ export {
 export {
   getSenators,
   getSenatorStats,
+  getSenateSessionCount,
 } from "./senado"
 
 // ── ETL status ───────────────────────────────────────────────────────────────
 export {
   getEtlPipelineStatus,
+  getEtlLastFinished,
 } from "./etl"

@@ -1,10 +1,11 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient"
-import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary } from "@/lib/data"
+import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary, getEtlLastFinished } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -33,7 +34,10 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
   const meta = getBudgetYearMeta(year)
 
-  const rows = await getBudgetSummary(year)
+  const [rows, lastChecked] = await Promise.all([
+    getBudgetSummary(year),
+    getEtlLastFinished(["presupuestos"]),
+  ])
 
   const totalInitial = rows.reduce((sum, r) => sum + (r.total_credit_initial ?? 0), 0)
   const sectionCount = rows.length
@@ -99,6 +103,14 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
           ]}
         />
       ) : null}
+
+      <SourceFootnote
+        sourceLabel="SEPG · Ministerio de Hacienda"
+        lastChecked={lastChecked}
+        coverageLabel={`${BUDGET_YEARS[0]}–${BUDGET_YEARS[BUDGET_YEARS.length - 1]} (sin 2020)${
+          meta?.label ? ` · ${meta.label} ${year}` : ""
+        }`}
+      />
 
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

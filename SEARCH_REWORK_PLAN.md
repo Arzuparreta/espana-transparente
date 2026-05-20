@@ -10,55 +10,55 @@ todos:
 
     content: "Phase 0: Add search regression script + baseline assertions (Pedro, Pedro Sanchez, Sanchez, fiscal queries)"
 
-    status: pending
+    status: completed
 
   - id: phase-1-sql-helpers
 
     content: "Phase 1: Migration 20260523000000 — *search*normalize_query, *search*display_name, prefix score, intent, entity boost"
 
-    status: pending
+    status: completed
 
   - id: phase-2-corpus-v2
 
     content: "Phase 2: Migration 20260523010000 — display_title column, refresh_search_documents v2, current gobierno only, vector weights"
 
-    status: pending
+    status: completed
 
   - id: phase-3-rpc-ranking
 
     content: "Phase 3: Migration 20260523020000 — refactor search_suggestions + search_documents with shared ranking and two-stage full search"
 
-    status: pending
+    status: completed
 
   - id: phase-4-aliases
 
     content: "Phase 4: Migration 20260523030000 + search_aliases.yml + ETL loader for generated/curated person aliases"
 
-    status: pending
+    status: completed
 
   - id: phase-5-etl-refresh
 
-    content: "Phase 5: common/search_[refresh.py](http://refresh.py) + hook into daily/weekly CI pipelines + CLI"
+    content: "Phase 5: common/search_refresh.py + hook into daily/weekly CI pipelines + CLI"
 
-    status: pending
+    status: completed
 
   - id: phase-6-frontend
 
     content: "Phase 6: Dedupe by entity id in suggest API; show official_name subtitle; align SearchResult types"
 
-    status: pending
+    status: completed
 
   - id: phase-7-perf
 
     content: "Phase 7: Indexes + two-stage EXPLAIN validation; document deploy/refresh ops"
 
-    status: pending
+    status: completed
 
   - id: phase-8-qa
 
     content: "Phase 8: Run regression script, build, pytest, dogfood autocomplete + /buscar on preview"
 
-    status: pending
+    status: in_progress
 
 isProject: false
 
@@ -66,13 +66,66 @@ isProject: false
 
 # Search system overhaul (full plan)
 
+## Current implementation status
+
+This checkout is already past the first implementation phases. The remaining
+work is QA and production verification, not rebuilding the core search stack.
+
+Completed:
+
+- Phase 0: `web/scripts/search-check.mjs` exists with regression assertions for
+  Pedro/Pedro Sanchez/Sanchez, fiscal intent, pensions, PSOE, and route quality.
+- Phase 1: `20260523000000_search_ranking_helpers.sql` adds shared query
+  normalization, display-name, intent, type-boost, and document-score helpers.
+- Phase 2: `20260523010000_search_corpus_v2.sql` adds `display_title`,
+  person-oriented vectors, current government-position indexing, and lower
+  divergence weight.
+- Phase 3: `20260523020000_search_rpc_ranking.sql`, plus later timeout and
+  pensions fixes, refactors suggestions/full search onto shared ranking.
+- Phase 4: `20260523030000_search_aliases_generated.sql`,
+  `etl/data/search_aliases.yml`, and `etl/src/common/search_aliases.py` wire
+  generated and curated aliases.
+- Phase 5: `etl/src/common/search_refresh.py` refreshes corpus and aliases, and
+  CI runs it after daily and weekly ETL writes.
+- Phase 6: `web/src/app/api/search/suggest/route.ts`,
+  `web/src/lib/data/search.ts`, `SearchForm`, and `SearchResults` use the broad
+  corpus, dedupe stable entities, and show `metadata.official_name` as factual
+  secondary text.
+- Phase 7: Search perf and route fixes are present through
+  `20260523040000_search_perf.sql`,
+  `20260523050000_search_documents_timeout_fix.sql`,
+  `20260524000000_search_routes_fix.sql`, and
+  `20260525010000_search_pension_budget_intent.sql`.
+
+Verification run in this work chunk:
+
+- `npm run lint` in `web/` -> pass.
+- `npm run build` in `web/` -> pass.
+- `npm run search:routes` in `web/` -> pass.
+- `npm run search:check` in `web/` -> 12/12 passed against Supabase; examples:
+  `Pedro Sanchez` full result rank #1, `Sanchez` PM rank #1, `contrato sanidad`
+  top 5 all fiscal, and `pensiones` returns the Seguridad Social budget program.
+- `PYTHONPATH=src pytest tests/test_search_index.py -q` in `etl/` -> 5 passed.
+- Local HTTP smoke on `http://localhost:3002` -> `/`, `/api/search/suggest?q=Pedro%20Sanchez&limit=5`,
+  and `/buscar?q=contrato%20sanidad` returned 200; suggestion API returned
+  Pedro Sánchez Pérez-Castejón first.
+- Interactive browser dogfood is still pending: the gstack browse daemon reported
+  healthy, but interaction attempts restarted the tab to `about:blank` and
+  timed out filling the search input.
+
+Next chunk:
+
+- Dogfood homepage autocomplete and `/buscar` in a stable browser session or
+  Vercel preview.
+- If all pass, mark Phase 8 completed and archive this plan as shipped.
+
 ## Current architecture
 
 ```mermaid
 
 flowchart TB
 
-  subgraph ingest [Ingest - stale today]
+  subgraph ingest [Ingest - refreshed after ETL]
 
     ETL[ETL pipelines] --> Tables[(politicians, contracts, eu_funds, ...)]
 
@@ -100,15 +153,18 @@ flowchart TB
 
 ```
 
-**Known production behavior** (verified on live Supabase):
+**Original production behavior** (verified on live Supabase before this rework):
 
 - `Pedro Sánchez` is indexed as `Sánchez Pérez-Castejón, Pedro` `politician`, `government_position`, `vote_divergence`).
 
 - Query `Pedro` returns ~24 `eu_fund` / senator rows (rank ~4.0+); PM ranks ~2.2 and is cut off.
 
-- `search_documents('Pedro Sanchez')` can hit **statement timeout**; `search_suggestions` caps at 50 rows.
+- `search_documents('Pedro Sanchez')` could hit **statement timeout**; `search_suggestions` capped at 50 rows.
 
-**Root cause:** one ranking function treats all `entity_type`s as title-prefix matches; corpus refresh runs only in [migration](supabase/migrations/20260522000000_search_documents.sql), not in ETL.
+**Root cause fixed in the current checkout:** one ranking function treated all
+`entity_type`s as title-prefix matches; corpus refresh ran only in
+[migration](supabase/migrations/20260522000000_search_documents.sql), not in
+ETL.
 
 ---
 
@@ -479,4 +535,3 @@ flowchart TD
 4. Corpus refresh runs automatically after ETL (or documented manual step until CI secret wired).
 
 5. No [AGENTS.md](http://AGENTS.md) violations in UI copy.
-

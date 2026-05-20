@@ -151,6 +151,9 @@ jobs:
       - run: PYTHONPATH=src python -m src.senado.senadores
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.senado.votaciones
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m common.search_refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

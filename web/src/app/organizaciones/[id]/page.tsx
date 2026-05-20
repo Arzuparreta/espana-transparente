@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
@@ -44,10 +44,22 @@ export default async function OrganizacionPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: "Organizaciones", href: "/organizaciones" },
-          { label: organization.name },
+      <ContextTrail
+        section={{ href: "/organizaciones", label: "Organizaciones" }}
+        current={organization.name}
+        meta={organization.organization_type ?? undefined}
+        fallbackHref="/organizaciones"
+        fallbackLabel="Volver a Organizaciones"
+        related={[
+          organization.contract_count > 0
+            ? { href: `/contratos?ministry=${encodeURIComponent(organization.name)}`, label: "Contratos asociados" }
+            : null,
+          organization.subsidy_beneficiary_count > 0
+            ? { href: `/subvenciones?ministry=${encodeURIComponent(organization.name)}`, label: "Subvenciones asociadas" }
+            : null,
+          organization.source_url
+            ? { href: organization.source_url, label: "Fuente base", external: true }
+            : null,
         ]}
       />
       <PageHeader

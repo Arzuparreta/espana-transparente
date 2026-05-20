@@ -2,9 +2,11 @@ import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { Pagination } from "@/components/domain/Pagination"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import {
   PAGE_SIZE,
+  getEtlLastFinished,
   getEuFundsPage,
   getEuFundsSummary,
   parsePage,
@@ -78,9 +80,10 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
 
 export default async function FondosUEPage({ searchParams }: PageProps) {
   const page = parsePage(searchParams?.page)
-  const [{ funds, total }, summary] = await Promise.all([
+  const [{ funds, total }, summary, lastChecked] = await Promise.all([
     getEuFundsPage(page),
     getEuFundsSummary(),
+    getEtlLastFinished(["kohesio"]),
   ])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.euFunds))
@@ -91,6 +94,17 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
       <PageHeader
         title="Fondos europeos"
         description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
+      />
+
+      <SourceFootnote
+        sourceLabel="Kohesio · Comisión Europea"
+        sourceHref="https://kohesio.ec.europa.eu"
+        lastChecked={lastChecked}
+        coverageLabel={
+          summary
+            ? `${Number(summary.beneficiary_count).toLocaleString("es-ES")} beneficiarios · 2014–2027`
+            : "2014–2027"
+        }
       />
 
       {summary && (

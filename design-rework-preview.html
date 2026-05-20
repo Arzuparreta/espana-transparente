@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>España Transparente - Rework Preview</title>
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0a;
+        --surface: #141412;
+        --surface-alt: #1d1d1a;
+        --text: #eeede9;
+        --muted: #999992;
+        --signal: #c8ff00;
+        --signal-dim: rgba(200, 255, 0, 0.12);
+        --border: #2a2a27;
+        --green: #22c55e;
+        --red: #ef4444;
+        --amber: #f59e0b;
+        color-scheme: dark;
+        font-family: Geist, "Source Sans 3", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        min-height: 100vh;
+      }
+
+      .shell {
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 0 24px;
+      }
+
+      .topbar {
+        border-bottom: 1px solid var(--border);
+        background: rgba(11, 11, 10, 0.88);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar-inner {
+        align-items: center;
+        display: flex;
+        gap: 28px;
+        min-height: 64px;
+      }
+
+      .brand {
+        align-items: center;
+        display: flex;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .mark {
+        border: 1px solid var(--signal);
+        color: var(--signal);
+        display: grid;
+        flex: 0 0 auto;
+        font-family: "Cabinet Grotesk", sans-serif;
+        font-weight: 900;
+        height: 30px;
+        place-items: center;
+        width: 30px;
+      }
+
+      .brand-name {
+        font-family: "Cabinet Grotesk", sans-serif;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      nav {
+        display: flex;
+        flex: 1;
+        gap: 18px;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      nav span {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      nav span.active {
+        color: var(--text);
+      }
+
+      .search-pill {
+        border: 1px solid var(--border);
+        color: var(--muted);
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: 13px;
+        min-width: 230px;
+        padding: 10px 12px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 28px;
+        padding: 44px 0 30px;
+      }
+
+      .hero-card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 30px;
+      }
+
+      .eyebrow {
+        color: var(--muted);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        margin: 0 0 14px;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Cabinet Grotesk", sans-serif;
+        letter-spacing: -0.02em;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: clamp(48px, 7vw, 102px);
+        line-height: 0.9;
+        max-width: 880px;
+      }
+
+      .hero-search {
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 15px;
+        margin-top: 28px;
+        max-width: 720px;
+        padding: 16px 18px;
+      }
+
+      .anchor-grid,
+      .section-grid,
+      .split-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .anchor-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .anchor,
+      .section-card,
+      .panel,
+      .cascade-node {
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .anchor {
+        min-height: 210px;
+        padding: 22px;
+      }
+
+      .value {
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(30px, 4vw, 48px);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin: 10px 0 14px;
+      }
+
+      .description {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      .source {
+        color: var(--muted);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        margin-top: 18px;
+      }
+
+      .section {
+        padding: 32px 0;
+      }
+
+      .section-head {
+        align-items: end;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .section-head p {
+        color: var(--muted);
+        margin: 6px 0 0;
+      }
+
+      .section-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .section-card {
+        min-height: 150px;
+        padding: 18px;
+      }
+
+      .section-card h3 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+
+      .count {
+        color: var(--signal);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 13px;
+        margin-bottom: 10px;
+      }
+
+      .split-grid {
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .panel h2 {
+        font-size: clamp(28px, 4vw, 44px);
+      }
+
+      .cascade {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .cascade-node {
+        padding: 16px;
+      }
+
+      .node-row {
+        align-items: start;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .node-title {
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .node-meta {
+        color: var(--muted);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      .node-total {
+        color: var(--text);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 16px;
+        white-space: nowrap;
+      }
+
+      .child-list {
+        border-left: 1px solid var(--border);
+        display: grid;
+        gap: 8px;
+        margin: 14px 0 0 6px;
+        padding-left: 14px;
+      }
+
+      .child {
+        align-items: center;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .child span:first-child {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .badge {
+        border: 1px solid rgba(200, 255, 0, 0.35);
+        color: var(--signal);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        padding: 4px 7px;
+        text-transform: uppercase;
+      }
+
+      .footnote {
+        border: 1px solid var(--border);
+        background: var(--surface-alt);
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 18px;
+        padding: 14px;
+      }
+
+      .footnote div {
+        min-width: 0;
+      }
+
+      .footnote strong {
+        display: block;
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+      }
+
+      .footnote span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .table {
+        border: 1px solid var(--border);
+        margin-top: 18px;
+        width: 100%;
+      }
+
+      .tr {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1.4fr 0.8fr 0.8fr auto;
+        padding: 12px 14px;
+      }
+
+      .tr + .tr {
+        border-top: 1px solid var(--border);
+      }
+
+      .th {
+        color: var(--muted);
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .td {
+        font-size: 13px;
+        min-width: 0;
+      }
+
+      .num {
+        font-family: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+      }
+
+      @media (max-width: 980px) {
+        .anchor-grid,
+        .section-grid,
+        .split-grid,
+        .footnote {
+          grid-template-columns: 1fr;
+        }
+
+        nav {
+          display: none;
+        }
+
+        .search-pill {
+          min-width: 0;
+        }
+
+        .tr {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .shell {
+          padding: 0 16px;
+        }
+
+        .topbar-inner {
+          gap: 12px;
+        }
+
+        .brand-name {
+          font-size: 14px;
+        }
+
+        .search-pill {
+          display: none;
+        }
+
+        .hero-card {
+          padding: 22px;
+        }
+
+        .section-head {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .node-row,
+        .child {
+          grid-template-columns: 1fr;
+        }
+
+        .node-total {
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="shell topbar-inner">
+          <div class="brand">
+            <div class="mark">ET</div>
+            <div class="brand-name">España Transparente</div>
+          </div>
+          <nav aria-label="Preview navigation">
+            <span class="active">Diputados</span>
+            <span>Votaciones</span>
+            <span>Presupuestos</span>
+            <span>Contratos</span>
+            <span>Subvenciones</span>
+            <span>Fondos UE</span>
+            <span>Estado de datos</span>
+          </nav>
+          <div class="search-pill">Buscar persona, contrato, subvención...</div>
+        </div>
+      </header>
+
+      <main class="shell">
+        <section class="hero">
+          <div class="hero-card">
+            <p class="eyebrow">Portal de datos públicos</p>
+            <h1>El Estado español.<br />Sin filtros.</h1>
+            <div class="hero-search">Buscar por diputado, organismo, expediente, beneficiario o indicador</div>
+          </div>
+
+          <div class="anchor-grid">
+            <article class="anchor">
+              <p class="eyebrow">Deuda pública por ciudadano · 2026</p>
+              <div class="value">34.810 €</div>
+              <p class="description">Deuda pública total dividida entre la población.</p>
+              <p class="source">Fuente: Eurostat · criterio de Maastricht</p>
+            </article>
+            <article class="anchor">
+              <p class="eyebrow">Mayor contrato · últimos 30 días</p>
+              <div class="value">224,6 M€</div>
+              <p class="description">Contrato con importe publicado, órgano adjudicador y enlace al expediente.</p>
+              <p class="source">Fuente: Plataforma de Contratación del Sector Público</p>
+            </article>
+            <article class="anchor">
+              <p class="eyebrow">IPC mensual · abril 2026</p>
+              <div class="value">+0,6%</div>
+              <p class="description">Variación mensual del índice general de precios.</p>
+              <p class="source">Fuente: INE · serie nacional del IPC</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Mapa del portal</p>
+              <h2>Qué hay aquí</h2>
+              <p>Secciones principales, cobertura y entrada directa a cada conjunto de datos.</p>
+            </div>
+            <span class="badge">19 secciones</span>
+          </div>
+
+          <div class="section-grid">
+            <article class="section-card">
+              <h3>Personas</h3>
+              <div class="count">350 diputados · 115 senadores</div>
+              <p class="description">Cargos, partidos, circunscripción, fotos y actividad parlamentaria.</p>
+            </article>
+            <article class="section-card">
+              <h3>Dinero público</h3>
+              <div class="count">Presupuestos · contratos · subvenciones</div>
+              <p class="description">Importes, órganos adjudicadores, beneficiarios y fuentes.</p>
+            </article>
+            <article class="section-card">
+              <h3>Decisiones</h3>
+              <div class="count">Votaciones · iniciativas</div>
+              <p class="description">Sesiones, votos individuales, expedientes y divergencias detectadas.</p>
+            </article>
+            <article class="section-card">
+              <h3>Cobertura</h3>
+              <div class="count">ETL diario · ETL semanal</div>
+              <p class="description">Estado de pipelines, fechas de verificación y registros sin resolver.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section split-grid">
+          <article class="panel">
+            <p class="eyebrow">Ruta propuesta</p>
+            <h2>Trazabilidad del gasto</h2>
+            <p class="description">
+              Un recorrido desde presupuestos hasta ministerios, programas, contratos, subvenciones, fondos UE,
+              organizaciones y fuentes oficiales.
+            </p>
+            <div class="footnote">
+              <div>
+                <strong>Fuente</strong>
+                <span>PGE · PCSP · BDNS · Kohesio</span>
+              </div>
+              <div>
+                <strong>Última verificación</strong>
+                <span>2026-05-20</span>
+              </div>
+              <div>
+                <strong>Cobertura</strong>
+                <span>2016-2026</span>
+              </div>
+              <div>
+                <strong>Estado</strong>
+                <span>Ver estado de datos</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <p class="eyebrow">Vista de cascada</p>
+            <div class="cascade">
+              <div class="cascade-node">
+                <div class="node-row">
+                  <div>
+                    <p class="node-title">Ministerio de Transportes y Movilidad Sostenible</p>
+                    <p class="node-meta">Sección 17 · PGE 2026 prorrogado desde 2023</p>
+                  </div>
+                  <div class="node-total">15.238 M€</div>
+                </div>
+                <div class="child-list">
+                  <div class="child">
+                    <span>Programa 453B · Infraestructura del transporte ferroviario</span>
+                    <span class="num">6.842 M€</span>
+                  </div>
+                  <div class="child">
+                    <span>Contratos asociados</span>
+                    <span class="num">1.248</span>
+                  </div>
+                  <div class="child">
+                    <span>Subvenciones asociadas</span>
+                    <span class="num">312</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cascade-node">
+                <div class="node-row">
+                  <div>
+                    <p class="node-title">ADIF Alta Velocidad</p>
+                    <p class="node-meta">Organización · contratos y fondos relacionados</p>
+                  </div>
+                  <div class="node-total">2.104 M€</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Detalle de registros</p>
+              <h2>Fuente cerca del dato</h2>
+              <p>La fuente y la cobertura aparecen en el mismo contexto que el registro.</p>
+            </div>
+          </div>
+          <div class="table">
+            <div class="tr th">
+              <div>Registro</div>
+              <div>Importe</div>
+              <div>Fecha</div>
+              <div>Fuente</div>
+            </div>
+            <div class="tr">
+              <div class="td">Servicio de mantenimiento y evolución de plataforma</div>
+              <div class="td num">18.450.000 €</div>
+              <div class="td num">2026-04-18</div>
+              <div class="td"><span class="badge">PCSP</span></div>
+            </div>
+            <div class="tr">
+              <div class="td">Ayuda nominativa a entidad beneficiaria</div>
+              <div class="td num">742.000 €</div>
+              <div class="td num">2026-03-29</div>
+              <div class="td"><span class="badge">BDNS</span></div>
+            </div>
+            <div class="tr">
+              <div class="td">Proyecto cofinanciado por fondos europeos</div>
+              <div class="td num">3.120.400 €</div>
+              <div class="td num">2026-02-11</div>
+              <div class="td"><span class="badge">Kohesio</span></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

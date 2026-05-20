@@ -3,8 +3,9 @@ import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { Pagination } from "@/components/domain/Pagination"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { PAGE_SIZE, getVotingSessionPage, parsePage } from "@/lib/data"
+import { PAGE_SIZE, getEtlLastFinished, getVotingSessionPage, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -30,8 +31,17 @@ interface PageProps {
 
 export default async function VotacionesPage({ searchParams }: PageProps) {
   const page = parsePage(searchParams?.page)
-  const { sessions, total } = await getVotingSessionPage(page)
+  const [{ sessions, total }, lastChecked] = await Promise.all([
+    getVotingSessionPage(page),
+    getEtlLastFinished(["congreso.asistencia"]),
+  ])
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.votingSessions))
+  const latestRecordDate =
+    (sessions as unknown as { date: string }[])
+      .map((s) => s.date)
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -46,6 +56,14 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
             Ver divergencias de voto →
           </ResponsiveLink>
         }
+      />
+
+      <SourceFootnote
+        sourceLabel="Congreso de los Diputados"
+        sourceHref="https://www.congreso.es"
+        lastChecked={lastChecked}
+        latestRecordDate={latestRecordDate}
+        coverageLabel={`${total.toLocaleString("es-ES")} sesiones · Congreso de los Diputados`}
       />
 
       <div className="space-y-3">

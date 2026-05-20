@@ -1,3 +1,4 @@
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -55,6 +56,18 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <ContextTrail
+        section={{ href: "/presupuestos", label: "Presupuestos" }}
+        current={sectionName}
+        meta={`Sec. ${sectionCode} · ${year}`}
+        fallbackHref="/presupuestos"
+        fallbackLabel="Volver a Presupuestos"
+        related={[
+          minister?.responsibility_position_id
+            ? { href: `/ministerios/${minister.responsibility_position_id}`, label: minister.minister_name ?? "Ministro/a", meta: "Responsable" }
+            : null,
+        ]}
+      />
       <PageHeader
         title={sectionName}
         description={`Sección ${sectionCode} · Presupuesto ${year}`}

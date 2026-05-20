@@ -1,10 +1,11 @@
 import Image from "next/image"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
-import { getSenators, getSenatorStats, type Senator } from "@/lib/data"
+import { getSenators, getSenatorStats, getSenateSessionCount, getEtlLastFinished, type Senator } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 6
@@ -89,7 +90,12 @@ function SenatorCard({ senator }: { senator: Senator }) {
 }
 
 export default async function SenadoPage() {
-  const [senators, stats] = await Promise.all([getSenators(), getSenatorStats()])
+  const [senators, stats, sessionCount, lastChecked] = await Promise.all([
+    getSenators(),
+    getSenatorStats(),
+    getSenateSessionCount(),
+    getEtlLastFinished(["senado.senadores"]),
+  ])
 
   const byConstituency = new Map<string, Senator[]>()
   for (const s of senators) {
@@ -111,6 +117,13 @@ export default async function SenadoPage() {
         description="La cámara alta del parlamento: 265 senadores que revisan y pueden vetar las leyes que vienen del Congreso. Electos por provincia y designados por las comunidades autónomas."
       />
 
+      <SourceFootnote
+        sourceLabel="Senado de España"
+        sourceHref="https://www.senado.es"
+        lastChecked={lastChecked}
+        coverageLabel={`${stats.total} senadores activos${sessionCount > 0 ? ` · ${sessionCount} sesiones indexadas` : ""} · votos nominales pendientes de fuente estable`}
+      />
+
       <StatGrid
         items={[
           { label: "Total senadores", value: stats.total },
@@ -119,6 +132,12 @@ export default async function SenadoPage() {
           { label: "Grupos parlamentarios", value: stats.byGroup.length },
         ]}
       />
+
+      <p className="text-xs leading-5 text-muted-foreground">
+        Las votaciones nominales del Senado están disponibles en datos abiertos (XML), pero el
+        endpoint de descarga masiva devuelve errores intermitentes. Las sesiones están indexadas;
+        los votos por senador se incorporarán cuando el servicio sea estable.
+      </p>
 
       {stats.byGroup.length > 0 && (
         <section className="mb-8">

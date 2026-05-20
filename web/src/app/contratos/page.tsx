@@ -1,9 +1,17 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
-import { PAGE_SIZE, getContractPage, getContractPageFiltered, getMoneyDatasetSummary, parsePage } from "@/lib/data"
+import {
+  PAGE_SIZE,
+  getContractPage,
+  getContractPageFiltered,
+  getEtlLastFinished,
+  getMoneyDatasetSummary,
+  parsePage,
+} from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -12,11 +20,14 @@ export const metadata = {
   description: "Adjudicaciones del sector público español: importe, contratista, tipo y administración responsable.",
 }
 
+const VALID_LEVELS = ["state", "autonomic", "municipal"] as const
+
 interface PageProps {
   searchParams?: {
     page?: string
     type?: string
     ministry?: string
+    level?: string
   }
 }
 
@@ -27,14 +38,21 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     ? requestedType
     : "all"
   const activeMinistry = searchParams?.ministry?.trim() || null
+  const requestedLevel = searchParams?.level?.trim() || null
+  const activeLevel = VALID_LEVELS.includes(requestedLevel as (typeof VALID_LEVELS)[number])
+    ? (requestedLevel as (typeof VALID_LEVELS)[number])
+    : null
 
-  const [baseData, filteredData, summary] = await Promise.all([
+  const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getContractPage(page, activeType),
-    activeMinistry ? getContractPageFiltered(page, activeType, activeMinistry) : Promise.resolve(null),
+    activeMinistry || activeLevel
+      ? getContractPageFiltered(page, activeType, activeMinistry, activeLevel)
+      : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
+    getEtlLastFinished(["contracts_daily", "contracts_backfill"]),
   ])
 
-  const { contracts, total, statsRows } = activeMinistry && filteredData
+  const { contracts, total, statsRows } = (activeMinistry || activeLevel) && filteredData
     ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 
@@ -61,11 +79,20 @@ export default async function ContratosPage({ searchParams }: PageProps) {
         />
       ) : null}
 
+      <SourceFootnote
+        sourceLabel="PCSP · Ministerio de Hacienda"
+        sourceHref="https://contrataciondelestado.es"
+        lastChecked={lastChecked}
+        latestRecordDate={summary.total.latest_record_date}
+        coverageLabel={`${total.toLocaleString("es-ES")} licitaciones publicadas`}
+      />
+
       <MoneyDataSummary datasetHref="/contratos" rows={summary.rows} total={summary.total} />
 
       <ContratosClient
         activeType={activeType}
         activeMinistry={activeMinistry}
+        activeLevel={activeLevel}
         contracts={contracts}
         page={page}
         total={total}

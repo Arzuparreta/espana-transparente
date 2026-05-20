@@ -1,9 +1,17 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
-import { PAGE_SIZE, getMoneyDatasetSummary, getSubvencionPage, getSubvencionPageFiltered, parsePage } from "@/lib/data"
+import {
+  PAGE_SIZE,
+  getEtlLastFinished,
+  getMoneyDatasetSummary,
+  getSubvencionPage,
+  getSubvencionPageFiltered,
+  parsePage,
+} from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -28,10 +36,11 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const activeNivel = VALID_NIVELES.includes(requestedNivel) ? requestedNivel : "all"
   const activeMinistry = searchParams?.ministry?.trim() || null
 
-  const [baseData, filteredData, summary] = await Promise.all([
+  const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getSubvencionPage(page, activeNivel),
     activeMinistry ? getSubvencionPageFiltered(page, activeNivel, activeMinistry) : Promise.resolve(null),
     getMoneyDatasetSummary("subsidies"),
+    getEtlLastFinished(["subsidies_daily", "subsidies_backfill"]),
   ])
 
   const { subsidies, total, statsRows } = activeMinistry && filteredData
@@ -62,6 +71,14 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
           ]}
         />
       ) : null}
+
+      <SourceFootnote
+        sourceLabel="BDNS · IGAE"
+        sourceHref="https://www.infosubvenciones.es"
+        lastChecked={lastChecked}
+        latestRecordDate={summary.total.latest_record_date}
+        coverageLabel={`${total.toLocaleString("es-ES")} concesiones publicadas`}
+      />
 
       <MoneyDataSummary datasetHref="/subvenciones" rows={summary.rows} total={summary.total} />
 
