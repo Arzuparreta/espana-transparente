@@ -26,3 +26,17 @@ export const getEuFundsSummary = unstable_cache(
   ["eu-funds-summary"],
   { revalidate: HOUR * 24 }
 )
+
+export const getEuFundBySlug = unstable_cache(
+  async (slug: string) => {
+    const { data } = await supabase
+      .from("eu_funds")
+      .select("id, label, eu_budget, total_budget, cofinancing_rate, number_projects, wikidata_link, country_code")
+      .like("id", `%/${slug}`)
+      .limit(1)
+      .maybeSingle()
+    return (data ?? null) as (EuFundRow & { country_code: string | null }) | null
+  },
+  ["eu-fund-by-slug"],
+  { revalidate: HOUR * 24 }
+)

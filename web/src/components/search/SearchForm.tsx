@@ -211,7 +211,7 @@ export function SearchForm({
                       return (
                         <ResponsiveLink
                           key={`${result.entity_type}-${result.id}`}
-                          href={result.url || result.source_url || `/buscar?q=${encodeURIComponent(value.trim())}`}
+                          href={result.url}
                           className="block rounded border border-transparent px-3 py-2 transition-colors hover:border-border/70 hover:bg-muted/60"
                           onClick={() => setOpen(false)}
                         >

@@ -70,6 +70,20 @@ export const getBudgetSection = unstable_cache(
   { revalidate: HOUR }
 )
 
+export const getBudgetProgram = unstable_cache(
+  async (sectionCode: string, programCode: string) => {
+    const { data } = await supabase
+      .from("v_budget_by_program")
+      .select("year, budget_type, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
+      .eq("section_code", sectionCode)
+      .eq("program_code", programCode)
+      .order("year", { ascending: false })
+    return data ?? []
+  },
+  ["budget-program"],
+  { revalidate: HOUR }
+)
+
 export const getBudgetMinister = unstable_cache(
   async (year: number, sectionCode: string) => {
     const { data } = await supabase

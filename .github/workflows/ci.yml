@@ -45,6 +45,7 @@ jobs:
       - run: npm run lint
       - run: npm run ui:audit
       - run: npm run content:audit
+      - run: npm run search:routes
       - run: npm run build
 
   etl-check:

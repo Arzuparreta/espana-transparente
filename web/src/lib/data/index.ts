@@ -53,6 +53,7 @@ export {
   getGobiernoActual,
   getMinistrioDetail,
   getInstitucionesActuales,
+  getInstitucionById,
 } from "./gobierno"
 
 // ── Contracts ────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ export {
   getBudgetYearMeta,
   getBudgetSummary,
   getBudgetSection,
+  getBudgetProgram,
   getBudgetMinister,
   type BudgetType,
   type TopBudgetSectionAncla,
@@ -104,6 +106,7 @@ export {
 // ── Revolving doors, Indicators, Initiatives ─────────────────────────────────
 export {
   getRevolvingDoorCases,
+  getRevolvingDoorCaseById,
   getIndicators,
   getIndicatorPoints,
   getInitiativeDetail,
@@ -113,6 +116,7 @@ export {
 export {
   getEuFundsPage,
   getEuFundsSummary,
+  getEuFundBySlug,
 } from "./eu-funds"
 
 // ── Senado ───────────────────────────────────────────────────────────────────

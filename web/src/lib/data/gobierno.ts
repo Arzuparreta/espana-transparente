@@ -44,6 +44,21 @@ export const getMinistrioDetail = unstable_cache(
   { revalidate: HOUR * 6 }
 )
 
+export const getInstitucionById = unstable_cache(
+  async (id: string) => {
+    const { data } = await supabase
+      .from("v_instituciones_actuales")
+      .select(
+        "id, institution, position_title, person_name, political_party, nominating_body, appointment_date, source_url, party_color, photo_url, photo_variants, politician_id, has_revolving_door"
+      )
+      .eq("id", id)
+      .maybeSingle()
+    return (data ?? null) as InstitucionMember | null
+  },
+  ["institucion-by-id"],
+  { revalidate: HOUR * 24 }
+)
+
 export const getInstitucionesActuales = unstable_cache(
   async () => {
     const { data } = await supabase

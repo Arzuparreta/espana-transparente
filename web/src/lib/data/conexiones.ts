@@ -1,17 +1,31 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR } from "./shared"
 
+const REVOLVING_DOOR_PUBLIC_COLS =
+  "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
+
 export const getRevolvingDoorCases = unstable_cache(
   async () => {
     const { data } = await supabase
       .from("v_revolving_door_public")
-      .select(
-        "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
-      )
+      .select(REVOLVING_DOOR_PUBLIC_COLS)
       .order("person_name")
     return data ?? []
   },
   ["revolving-door-cases"],
+  { revalidate: HOUR }
+)
+
+export const getRevolvingDoorCaseById = unstable_cache(
+  async (id: string) => {
+    const { data } = await supabase
+      .from("v_revolving_door_public")
+      .select(REVOLVING_DOOR_PUBLIC_COLS)
+      .eq("id", id)
+      .maybeSingle()
+    return data ?? null
+  },
+  ["revolving-door-case-by-id"],
   { revalidate: HOUR }
 )
 

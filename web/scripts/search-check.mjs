@@ -101,8 +101,86 @@ function check(name, ok, detail) {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`)
 }
 
+// Routes that are valid as section indexes but must NEVER be the destination of
+// a search result — every entity needs a deeper URL.
+const BASE_ROUTE_BLOCKLIST = [
+  "/diputados",
+  "/partidos",
+  "/votaciones",
+  "/contratos",
+  "/subvenciones",
+  "/iniciativas",
+  "/organizaciones",
+  "/indicadores",
+  "/presupuestos",
+  "/fondos-ue",
+  "/puertas-giratorias",
+  "/gobierno",
+  "/ministerios",
+  "/instituciones",
+]
+
+async function restSelect(path) {
+  const response = await fetch(`${url}/rest/v1/${path}`, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      Accept: "application/json",
+    },
+  })
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(`REST ${path}: HTTP ${response.status} ${body}`)
+  }
+  return response.json()
+}
+
+async function auditRoutes() {
+  // 1. Bare base routes: any row whose route equals a known section index.
+  const inList = `(${BASE_ROUTE_BLOCKLIST.map((p) => `"${p}"`).join(",")})`
+  const bare = await restSelect(
+    `search_documents?select=entity_type,entity_id,route&route=in.${encodeURIComponent(inList)}&limit=50`
+  )
+  check(
+    "no search rows point to bare section index",
+    bare.length === 0,
+    bare.length === 0
+      ? "0 offenders"
+      : `${bare.length} offenders: ${bare
+          .slice(0, 5)
+          .map((r) => `${r.entity_type}→${r.route}`)
+          .join("; ")}`
+  )
+
+  // 2. NULL/empty routes.
+  const nullRoutes = await restSelect(
+    `search_documents?select=entity_type,entity_id&route=is.null&limit=20`
+  )
+  check(
+    "no search rows have NULL route",
+    nullRoutes.length === 0,
+    nullRoutes.length === 0
+      ? "0 offenders"
+      : `${nullRoutes.length} offenders (first: ${nullRoutes
+          .slice(0, 3)
+          .map((r) => r.entity_type)
+          .join(", ")})`
+  )
+}
+
+const args = new Set(process.argv.slice(2))
+
 async function main() {
   console.log(`Supabase: ${url}\n`)
+
+  await auditRoutes()
+  if (args.has("--routes-only")) {
+    const passed = checks.filter((c) => c.ok).length
+    const failed = checks.length - passed
+    console.log(`\n${passed}/${checks.length} passed, ${failed} failed`)
+    process.exit(failed > 0 ? 1 : 0)
+    return
+  }
 
   const pedroSuggest = await rpc("search_suggestions", { query_text: "Pedro", limit_count: 50 })
   const pedroTop12Pm = personPmRank(pedroSuggest.rows, 12)
