@@ -21,6 +21,7 @@ from dataclasses import dataclass
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 BASE = "https://www.senado.es"
 CATALOG_URL = f"{BASE}/web/ficopendataservlet?tipoFich=14&legis=15"
@@ -57,10 +58,15 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     result = subprocess.run(
         ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
         capture_output=True,
-        text=True,
         timeout=60,
     )
-    return result.stdout
+    raw = result.stdout
+    for enc in ("utf-8", "iso-8859-1", "windows-1252", "latin1"):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode("utf-8", errors="replace")
 
 
 def parse_senate_date_label(label: str | None) -> str | None:
@@ -148,6 +154,7 @@ def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -
         return
 
     conn = get_pg_conn()
+    run_id = None
     try:
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM legislatures WHERE number = 15 LIMIT 1")
@@ -156,6 +163,10 @@ def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -
                 raise RuntimeError("Legislature XV not found in DB")
             legislature_id = row[0]
 
+            run_id = start_run(cur, pipeline="senado.votaciones", chunk_key="catalog")
+            conn.commit()
+
+            inserted = 0
             for i, session in enumerate(sessions, 1):
                 if resume:
                     cur.execute(
@@ -194,9 +205,20 @@ def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -
                         ),
                     ),
                 )
+                inserted += cur.rowcount
                 if i % 10 == 0:
                     print(f"  indexed {i}/{len(sessions)} sessions")
             conn.commit()
+
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=len(sessions), rows_inserted=inserted)
+            conn.commit()
+    except Exception as exc:
+        if run_id:
+            with conn.cursor() as cur:
+                finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                conn.commit()
+        raise
     finally:
         conn.close()
 

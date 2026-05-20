@@ -24,6 +24,7 @@ import zipfile
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 BASE_URL = "https://www.congreso.es"
 PORTLET_URL = (
@@ -195,6 +196,7 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
     # voting_sessions. The flag keeps long ETL CLIs operationally consistent.
     _ = resume
     conn = get_pg_conn()
+    run_id = None
     try:
         cur = conn.cursor()
 
@@ -206,6 +208,11 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
         if from_date:
             all_dates = [d for d in all_dates if d >= from_date]
         print(f"{len(all_dates)} dates to process")
+
+        if not dry_run:
+            chunk_key = str(from_date) if from_date else "all"
+            run_id = start_run(cur, pipeline="congreso.asistencia", chunk_key=chunk_key)
+            conn.commit()
 
         existing = get_existing_sessions(cur, leg_id)
         pol_idx = build_politician_index(cur)
@@ -255,6 +262,19 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
 
         cur.close()
         print(f"\nDone! {total_sessions} new sessions, {total_votes} new votes ingested.")
+
+        if run_id:
+            cur = conn.cursor()
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=len(all_dates), rows_inserted=total_votes)
+            conn.commit()
+            cur.close()
+    except Exception as exc:
+        if run_id:
+            cur = conn.cursor()
+            finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+            conn.commit()
+        raise
     finally:
         conn.close()
 

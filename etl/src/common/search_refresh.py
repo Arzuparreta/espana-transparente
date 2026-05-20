@@ -6,6 +6,7 @@ import argparse
 import time
 
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 from common.search_aliases import refresh_curated_aliases
 
 
@@ -25,14 +26,29 @@ def refresh_search_aliases(cur) -> int:
 
 def refresh_all() -> tuple[int, int]:
     started = time.perf_counter()
-    with get_pg_conn() as conn:
+    conn = get_pg_conn()
+    run_id = None
+    try:
         with conn.cursor() as cur:
+            run_id = start_run(cur, pipeline="common.search_refresh", chunk_key="full")
+            conn.commit()
             docs = refresh_search_corpus(cur)
             aliases = refresh_search_aliases(cur)
             conn.commit()
-    elapsed = time.perf_counter() - started
-    print(f"search corpus: {docs} rows touched, aliases: {aliases}, {elapsed:.1f}s")
-    return docs, aliases
+        with conn.cursor() as cur:
+            finish_run(cur, run_id=run_id, status="succeeded", rows_updated=docs + aliases)
+            conn.commit()
+        elapsed = time.perf_counter() - started
+        print(f"search corpus: {docs} rows touched, aliases: {aliases}, {elapsed:.1f}s")
+        return docs, aliases
+    except Exception as exc:
+        if run_id:
+            with conn.cursor() as cur:
+                finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                conn.commit()
+        raise
+    finally:
+        conn.close()
 
 
 def main() -> None:
