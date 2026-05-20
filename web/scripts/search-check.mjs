@@ -298,6 +298,21 @@ async function main() {
     `${fiscalCount} fiscal rows, ${personCount} person rows in top 5`
   )
 
+  const pensions = await rpc("search_documents", {
+    query_text: "pensiones",
+    entity_types: ["budget", "budget_program"],
+    filters: {},
+    limit_count: 12,
+  })
+  const pensionTop = pensions.rows[0]
+  check(
+    "pensiones favors Seguridad Social budget program",
+    pensionTop?.entity_type === "budget_program" &&
+      normalize(pensionTop.title ?? "").includes("pensiones contributivas") &&
+      normalize(pensionTop.subtitle ?? "").includes("seguridad social"),
+    pensionTop ? `${pensionTop.title} — ${pensionTop.subtitle}` : "0 results"
+  )
+
   const psoe = await rpc("search_suggestions", { query_text: "PSOE", limit_count: 12 })
   const hasParty = psoe.rows.some((r) => r.entity_type === "party")
   check("PSOE returns party", hasParty, hasParty ? "party found" : psoe.rows.slice(0, 3).map((r) => r.entity_type).join(", "))

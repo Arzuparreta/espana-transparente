@@ -4,10 +4,19 @@ import { EmptyState } from "@/components/domain/EmptyState"
 import { LinkTabs } from "@/components/domain/LinkTabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { BUDGET_YEARS, getBudgetYearMeta, type BudgetType } from "@/lib/data"
+import {
+  BUDGET_YEARS,
+  getBudgetSourceNote,
+  getBudgetYearMeta,
+  type BudgetSourceKind,
+  type BudgetType,
+} from "@/lib/data"
 
 interface BudgetSectionRow {
   budget_type: BudgetType
+  source_kind: BudgetSourceKind | null
+  source_year: number | null
+  in_force_year: number | null
   section_code: string
   section_name: string | null
   ministry_normalized: string | null
@@ -41,6 +50,8 @@ function SectionCard({ row, year }: { row: BudgetSectionRow; year: number }) {
       ? row.total_credit_final / row.total_credit_initial
       : null
 
+  const sourceNote = getBudgetSourceNote(row)
+
   return (
     <ResponsiveLink href={`/presupuestos/${encodeURIComponent(row.section_code)}?year=${year}`}>
       <Card className="transition-colors hover:bg-card">
@@ -51,6 +62,7 @@ function SectionCard({ row, year }: { row: BudgetSectionRow; year: number }) {
             </div>
             <div className="mt-0.5 text-xs text-muted-foreground">
               {row.program_count} {row.program_count === 1 ? "programa" : "programas"}
+              {sourceNote ? ` · ${sourceNote}` : ""}
             </div>
           </div>
           <div className="shrink-0 text-right">

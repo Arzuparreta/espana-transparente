@@ -18,7 +18,7 @@ function preferredTypes(query: string): Set<SearchResult["entity_type"]> {
 
   if (/\b(subvencion|subvenciones|bdns)\b/.test(normalized)) return typeSet(["subsidy"])
   if (/\b(contrato|contratos|licitacion|pcsp)\b/.test(normalized)) return typeSet(["contract"])
-  if (/\b(presupuesto|presupuestos|pge|programa)\b/.test(normalized)) return typeSet(["budget", "budget_program"])
+  if (/\b(presupuesto|presupuestos|pge|programa|pension|pensiones|jubilacion|seguridad social|clases pasivas)\b/.test(normalized)) return typeSet(["budget", "budget_program"])
   if (/\b(indicador|indicadores|ipc|deuda|pib)\b/.test(normalized)) return typeSet(["indicator"])
   if (/\b(iniciativa|iniciativas|ley|boe|normativa)\b/.test(normalized)) return typeSet(["initiative", "source_document"])
   if (/\b(voto|vota|votacion|votaciones|grupo|divergencia|divergencias)\b/.test(normalized)) {
@@ -37,7 +37,10 @@ function cleanResults(results: SearchResult[], query: string, limit: number) {
   const deduped: SearchResult[] = []
 
   for (const result of results) {
-    const key = `${result.entity_type}:${result.id}`
+    const key =
+      result.entity_type === "budget_program" && result.url
+        ? `${result.entity_type}:${result.url}`
+        : `${result.entity_type}:${result.id}`
     if (seen.has(key)) continue
     seen.add(key)
     deduped.push(result)

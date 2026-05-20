@@ -4,7 +4,7 @@ import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { BUDGET_YEARS, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
+import { BUDGET_YEARS, getBudgetSourceNote, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
 import { notFound } from "next/navigation"
 
 export const revalidate = 3600
@@ -108,6 +108,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
           const chapters = Object.entries(byChapter)
             .filter(([, v]) => v.initial != null && v.initial > 0)
             .sort(([a], [b]) => Number(a) - Number(b))
+          const sourceNote = getBudgetSourceNote(p)
 
           return (
             <Card key={p.program_code}>
@@ -126,6 +127,9 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                           </span>
                         ))}
                       </div>
+                    ) : null}
+                    {sourceNote ? (
+                      <div className="text-xs text-muted-foreground">{sourceNote}</div>
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">

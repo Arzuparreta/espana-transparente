@@ -79,6 +79,8 @@ export {
   getBudgetSection,
   getBudgetProgram,
   getBudgetMinister,
+  getBudgetSourceNote,
+  type BudgetSourceKind,
   type BudgetType,
   type TopBudgetSectionAncla,
   getTopBudgetSectionAnchor,

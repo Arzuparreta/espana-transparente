@@ -3,7 +3,7 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
-import { getBudgetProgram, getBudgetYearMeta } from "@/lib/data"
+import { getBudgetProgram, getBudgetSourceNote, getBudgetYearMeta } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -107,6 +107,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
               .filter(([, v]) => v.initial != null && v.initial > 0)
               .sort(([a], [b]) => Number(a) - Number(b))
             const meta = getBudgetYearMeta(row.year as number)
+            const sourceNote = getBudgetSourceNote(row)
 
             return (
               <div
@@ -131,6 +132,9 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
                           </span>
                         ))}
                       </div>
+                    ) : null}
+                    {sourceNote ? (
+                      <p className="mt-1 text-xs text-muted-foreground">{sourceNote}</p>
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">

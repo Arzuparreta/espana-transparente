@@ -83,6 +83,7 @@ export type InflationAnchor = {
 }
 
 export type BudgetType = "ley" | "prorroga" | "proyecto"
+export type BudgetSourceKind = "published" | "published_prorroga" | "carried_forward"
 
 export interface GobiernoMember {
   id: string

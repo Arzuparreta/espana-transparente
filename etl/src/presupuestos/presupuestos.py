@@ -154,6 +154,9 @@ def parse_civio_records(
         records.append({
             "year":                source.year,
             "budget_type":         source.budget_type,
+            "source_kind":         "published",
+            "source_year":         source.year,
+            "in_force_year":       source.in_force_year or source.year,
             "section_code":        section_code,
             "section_name":        section_name,
             "service_code":        None,
@@ -174,6 +177,7 @@ def parse_civio_records(
                 "chapter":      chapter,
                 "source":       source.notes,
                 "budget_type": source.budget_type,
+                "source_kind": "published",
             }),
         })
 
@@ -188,6 +192,9 @@ def parse_sepg_records(rows: list[SepgRecord], source: BudgetSource) -> list[dic
         records.append({
             "year":                 source.year,
             "budget_type":          source.budget_type,
+            "source_kind":          "published_prorroga",
+            "source_year":          source.year,
+            "in_force_year":        source.in_force_year or source.year,
             "section_code":         row.section_code,
             "section_name":         row.section_name,
             "service_code":         None,
@@ -205,6 +212,7 @@ def parse_sepg_records(rows: list[SepgRecord], source: BudgetSource) -> list[dic
             "raw_data":             psycopg2.extras.Json({
                 "source": source.notes,
                 "budget_type": source.budget_type,
+                "source_kind": "published_prorroga",
                 "in_force_year": source.in_force_year,
                 "section_code": row.section_code,
                 "program_code": row.program_code,
@@ -214,6 +222,106 @@ def parse_sepg_records(rows: list[SepgRecord], source: BudgetSource) -> list[dic
 
     print(f"  Built {len(records)} SEPG records for year {source.year}")
     return records
+
+
+def build_carried_forward_records(
+    base_records: list[dict],
+    source: BudgetSource,
+    *,
+    section_codes: set[str],
+) -> list[dict]:
+    """Clone missing prórroga sections from the in-force approved budget."""
+    if source.budget_type != "prorroga" or source.in_force_year is None:
+        return []
+
+    carried = []
+    for base in base_records:
+        section_code = str(base.get("section_code") or "")
+        if section_code not in section_codes:
+            continue
+
+        raw = dict(base.get("raw_data") or {})
+        raw.update({
+            "source": source.notes,
+            "budget_type": source.budget_type,
+            "source_kind": "carried_forward",
+            "source_year": source.in_force_year,
+            "in_force_year": source.in_force_year,
+        })
+
+        carried.append({
+            **base,
+            "year": source.year,
+            "budget_type": source.budget_type,
+            "source_kind": "carried_forward",
+            "source_year": source.in_force_year,
+            "in_force_year": source.in_force_year,
+            "source_url": source.gastos_url,
+            "raw_data": psycopg2.extras.Json(raw),
+        })
+
+    return carried
+
+
+def load_base_budget_records(conn, *, source: BudgetSource, section_codes: set[str]) -> list[dict]:
+    if source.in_force_year is None or not section_codes:
+        return []
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        """
+        SELECT
+          section_code,
+          section_name,
+          service_code,
+          service_name,
+          program_code,
+          program_name,
+          economic_chapter,
+          economic_article,
+          economic_concept,
+          credit_initial,
+          credit_final,
+          ministry_normalized,
+          administration_level,
+          source_url,
+          raw_data
+        FROM budget_lines
+        WHERE year = %s
+          AND budget_type = 'ley'
+          AND section_code = ANY(%s)
+        """,
+        (source.in_force_year, list(section_codes)),
+    )
+    rows = [dict(row) for row in cur.fetchall()]
+    cur.close()
+    return rows
+
+
+def add_carried_forward_prorroga_sections(conn, records: list[dict], source: BudgetSource) -> list[dict]:
+    """Include budget sections that remain in force but are absent from SEPG prórroga ROM."""
+    if source.budget_type != "prorroga" or source.in_force_year is None:
+        return records
+
+    required_sections = {"60"}  # Seguridad Social: published in PGE 2023, omitted from SEPG prórroga ROM.
+    present_sections = {str(record.get("section_code") or "") for record in records}
+    missing_sections = required_sections - present_sections
+    if not missing_sections:
+        return records
+
+    base_records = load_base_budget_records(conn, source=source, section_codes=missing_sections)
+    carried = build_carried_forward_records(base_records, source, section_codes=missing_sections)
+    if missing_sections and not carried:
+        raise RuntimeError(
+            f"Cannot carry forward sections {sorted(missing_sections)} for {source.year}: "
+            f"no approved {source.in_force_year} budget rows found."
+        )
+
+    print(
+        f"  Carried forward {len(carried)} rows from PGE {source.in_force_year} "
+        f"for sections {', '.join(sorted(missing_sections))}"
+    )
+    return records + carried
 
 
 # ─── Generic CSV parser (fallback / tests) ───────────────────────────────────
@@ -345,6 +453,9 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
         records.append({
             "year":                source.year,
             "budget_type":         source.budget_type,
+            "source_kind":         "published",
+            "source_year":         source.year,
+            "in_force_year":       source.in_force_year or source.year,
             "section_code":        section_code,
             "section_name":        section_name,
             "service_code":        service_code,
@@ -376,7 +487,7 @@ def upsert(conn, records: list[dict]) -> int:
         cur.execute("""
             INSERT INTO budget_lines (
               year, section_code, section_name, service_code, service_name,
-              budget_type,
+              budget_type, source_kind, source_year, in_force_year,
               program_code, program_name,
               economic_chapter, economic_article, economic_concept,
               credit_initial, credit_final,
@@ -385,7 +496,7 @@ def upsert(conn, records: list[dict]) -> int:
             ) VALUES (
               %(year)s, %(section_code)s, %(section_name)s,
               %(service_code)s, %(service_name)s,
-              %(budget_type)s,
+              %(budget_type)s, %(source_kind)s, %(source_year)s, %(in_force_year)s,
               %(program_code)s, %(program_name)s,
               %(economic_chapter)s, %(economic_article)s, %(economic_concept)s,
               %(credit_initial)s, %(credit_final)s,
@@ -396,6 +507,9 @@ def upsert(conn, records: list[dict]) -> int:
               section_name        = EXCLUDED.section_name,
               service_code        = EXCLUDED.service_code,
               service_name        = EXCLUDED.service_name,
+              source_kind         = EXCLUDED.source_kind,
+              source_year         = EXCLUDED.source_year,
+              in_force_year       = EXCLUDED.in_force_year,
               program_name        = EXCLUDED.program_name,
               economic_article    = EXCLUDED.economic_article,
               economic_concept    = EXCLUDED.economic_concept,
@@ -455,6 +569,10 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
             records = parse_civio_records(gastos_bytes, organica_bytes, source, program_names=funcional)
         elif source.fmt == "sepg_prorroga":
             records = parse_sepg_records(scrape_sepg_year(year, verbose=not dry_run), source)
+            if conn:
+                records = add_carried_forward_prorroga_sections(conn, records, source)
+            else:
+                print("  Dry run: skipping DB-backed carried-forward prórroga sections")
         else:
             records = parse_records(gastos_bytes, source)
 
