@@ -165,53 +165,6 @@ export default async function HomePage() {
         ) : null}
       </div>
 
-      {/* Qué hay aquí — mapa del portal */}
-      <section aria-labelledby="atlas-heading" className="space-y-6">
-        <div className="flex min-w-0 items-end justify-between gap-3">
-          <div className="min-w-0">
-            <h2
-              id="atlas-heading"
-              className="font-display text-2xl font-black uppercase tracking-[-0.02em]"
-            >
-              Qué hay aquí
-            </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Acceso por verticales del portal con su número actual de registros.
-            </p>
-          </div>
-          <ResponsiveLink
-            href="/estado-datos"
-            className="hidden shrink-0 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:inline-flex"
-          >
-            Estado de los datos →
-          </ResponsiveLink>
-        </div>
-
-        {ATLAS_GROUPS.map((group) => (
-          <div key={group.label} className="space-y-3">
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80">
-              {group.label}
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {group.items.map((item) => {
-                const facts = sectionFacts.get(item.countKey)
-                return (
-                  <SectionIndexCard
-                    key={item.href}
-                    href={item.href}
-                    label={item.label}
-                    description={item.description}
-                    count={facts?.count ?? null}
-                    countUnit={item.countUnit}
-                    latestDate={facts?.latestDate ?? null}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        ))}
-      </section>
-
       {/* Gobierno */}
       {gobierno.length > 0 && (
         <section>
@@ -256,6 +209,50 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Qué hay aquí — mapa del portal */}
+      <section aria-labelledby="atlas-heading" className="space-y-6">
+        <div className="flex min-w-0 items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h2
+              id="atlas-heading"
+              className="font-display text-2xl font-black uppercase tracking-[-0.02em]"
+            >
+              Qué hay aquí
+            </h2>
+          </div>
+          <ResponsiveLink
+            href="/estado-datos"
+            className="hidden shrink-0 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:inline-flex"
+          >
+            Estado de los datos →
+          </ResponsiveLink>
+        </div>
+
+        {ATLAS_GROUPS.map((group) => (
+          <div key={group.label} className="space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              {group.label}
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {group.items.map((item) => {
+                const facts = sectionFacts.get(item.countKey)
+                return (
+                  <SectionIndexCard
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    description={item.description}
+                    count={facts?.count ?? null}
+                    countUnit={item.countUnit}
+                    latestDate={facts?.latestDate ?? null}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
 
       {/* Votaciones recientes */}
       {recentSessions.length > 0 && (
