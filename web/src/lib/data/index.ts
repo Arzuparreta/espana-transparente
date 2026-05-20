@@ -114,7 +114,15 @@ export {
   getIndicators,
   getIndicatorPoints,
   getInitiativeDetail,
+  getInitiativesPage,
+  type InitiativeListRow,
 } from "./conexiones"
+
+// ── Declarations ─────────────────────────────────────────────────────────────
+export {
+  getDeclarationsPage,
+  type DeclarationListRow,
+} from "./declarations"
 
 // ── EU Funds ─────────────────────────────────────────────────────────────────
 export {

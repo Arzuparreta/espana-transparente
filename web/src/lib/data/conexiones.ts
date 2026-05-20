@@ -56,6 +56,35 @@ export const getIndicatorPoints = unstable_cache(
   { revalidate: HOUR }
 )
 
+export type InitiativeListRow = {
+  id: string
+  type: string | null
+  number: string | null
+  title: string | null
+  proposer_group: string | null
+  status: string | null
+  source_url: string | null
+}
+
+export const getInitiativesPage = unstable_cache(
+  async (page: number) => {
+    const pageSize = 50
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+    const { data, count } = await supabase
+      .from("initiatives")
+      .select("id, type, number, title, proposer_group, status, source_url", { count: "exact" })
+      .order("number", { ascending: false, nullsFirst: false })
+      .range(from, to)
+    return {
+      initiatives: (data ?? []) as InitiativeListRow[],
+      total: count ?? 0,
+    }
+  },
+  ["initiatives-page"],
+  { revalidate: HOUR }
+)
+
 export const getInitiativeDetail = unstable_cache(
   async (id: string) => {
     const { data: initiative } = await supabase

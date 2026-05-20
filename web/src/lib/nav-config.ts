@@ -78,6 +78,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "estado-datos", href: "/estado-datos", label: "Estado de los datos" },
   { key: "iniciativas", href: "/iniciativas", label: "Iniciativas" },
   { key: "ministerios", href: "/ministerios", label: "Ministerios" },
+  { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones" },
   { key: "perfil", href: "/perfil", label: "Perfil" },
   { key: "usuarios", href: "/usuarios", label: "Usuarios" },
 ]
@@ -188,6 +189,13 @@ export const ATLAS_GROUPS: AtlasGroup[] = [
         label: "Votaciones",
         description: "Sesiones del Congreso con el voto de cada diputado.",
         countUnit: "sesiones",
+      },
+      {
+        countKey: "iniciativas",
+        href: "/iniciativas",
+        label: "Iniciativas",
+        description: "Proyectos de ley, proposiciones y mociones en tramitación parlamentaria.",
+        countUnit: "registradas",
       },
       {
         countKey: "distorsion",

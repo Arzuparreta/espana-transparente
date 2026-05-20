@@ -12,6 +12,8 @@ export const PAGE_SIZE = {
   subsidies: 50,
   euFunds: 50,
   organizations: 50,
+  initiatives: 50,
+  declarations: 50,
 }
 
 export function parsePage(value: string | string[] | undefined) {

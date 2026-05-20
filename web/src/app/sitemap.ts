@@ -35,6 +35,8 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/organizaciones",     changeFrequency: "weekly",  priority: 0.6 },
   { path: "/estado-datos",       changeFrequency: "weekly",  priority: 0.5 },
   { path: "/buscar",             changeFrequency: "monthly", priority: 0.4 },
+  { path: "/iniciativas",        changeFrequency: "weekly",  priority: 0.6 },
+  { path: "/declaraciones",      changeFrequency: "weekly",  priority: 0.6 },
 ]
 
 function url(path: string) {
