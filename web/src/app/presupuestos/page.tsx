@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient"
 import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary } from "@/lib/data"
@@ -16,6 +17,14 @@ interface PageProps {
   searchParams?: {
     year?: string
   }
+}
+
+function pensionProgramCode(year: number) {
+  return year >= 2023 ? "211A" : "211M"
+}
+
+function clasesPasivasProgramCode(year: number) {
+  return year >= 2023 ? "211B" : "211N"
 }
 
 export default async function PresupuestosPage({ searchParams }: PageProps) {
@@ -36,11 +45,40 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     return `${Math.round(eur)} €`
   }
 
+  const socialSecurity = rows.find((row) => row.section_code === "60")
+  const clasesPasivas = rows.find((row) => row.section_code === "07")
+  const budgetAccess = [
+    {
+      href: `/presupuestos/60?year=${year}`,
+      label: "Seguridad Social",
+      detail: "Sección 60 · pensiones contributivas y prestaciones",
+      amount: socialSecurity?.total_credit_initial ?? null,
+    },
+    {
+      href: `/presupuestos/60/${pensionProgramCode(year)}`,
+      label: "Pensiones contributivas",
+      detail: `Programa ${pensionProgramCode(year)} · Seguridad Social`,
+      amount: null,
+    },
+    {
+      href: `/presupuestos/07?year=${year}`,
+      label: "Clases Pasivas",
+      detail: "Sección 07 · pensiones de funcionarios y régimen especial",
+      amount: clasesPasivas?.total_credit_initial ?? null,
+    },
+    {
+      href: `/presupuestos/07/${clasesPasivasProgramCode(year)}`,
+      label: "Pensiones de Clases Pasivas",
+      detail: `Programa ${clasesPasivasProgramCode(year)} · Clases Pasivas`,
+      amount: null,
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
         title="Presupuestos"
-        description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Aprobado por el Congreso cada año."
+        description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Cuando no hay nuevo presupuesto aprobado, se muestran los créditos prorrogados."
       />
 
       {meta ? (
@@ -61,6 +99,27 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
           ]}
         />
       ) : null}
+
+      <section className="space-y-2">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Accesos directos
+        </h2>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {budgetAccess.map((item) => (
+            <ResponsiveLink
+              key={item.href}
+              href={item.href}
+              className="min-w-0 rounded-lg border border-border/70 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+            >
+              <span className="block truncate font-medium">{item.label}</span>
+              <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                {item.detail}
+                {item.amount != null ? ` · ${formatAmount(item.amount)}` : ""}
+              </span>
+            </ResponsiveLink>
+          ))}
+        </div>
+      </section>
 
       <PresupuestosClient year={year} rows={rows} />
 
