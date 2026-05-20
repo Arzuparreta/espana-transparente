@@ -3,6 +3,29 @@ import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type
 
 export type { TopContractAncla, TopDivergenceSessionAncla, InflationAnchor }
 
+export type SectionIndexRow = {
+  section_key: string
+  record_count: number | null
+  latest_date: string | null
+}
+
+// One RPC, ~14 sections. Replaces the per-section count fanout the home would
+// otherwise need for the Phase 1 "Qué hay aquí" map. Returns [] silently if the
+// migration is not yet applied — the home falls back to label-only cards.
+export const getSectionIndex = unstable_cache(
+  async (): Promise<SectionIndexRow[]> => {
+    const { data, error } = await supabase.rpc("get_section_index")
+    if (error || !data) return []
+    return (data as SectionIndexRow[]).map((row) => ({
+      section_key: row.section_key,
+      record_count: row.record_count != null ? Number(row.record_count) : null,
+      latest_date: row.latest_date ?? null,
+    }))
+  },
+  ["section-index"],
+  { revalidate: HOUR }
+)
+
 export const getHomeData = unstable_cache(
   async () => {
     const currentBudgetYear = new Date().getFullYear()

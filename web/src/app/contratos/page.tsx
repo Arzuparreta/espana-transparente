@@ -1,9 +1,17 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
-import { PAGE_SIZE, getContractPage, getContractPageFiltered, getMoneyDatasetSummary, parsePage } from "@/lib/data"
+import {
+  PAGE_SIZE,
+  getContractPage,
+  getContractPageFiltered,
+  getEtlLastFinished,
+  getMoneyDatasetSummary,
+  parsePage,
+} from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -28,10 +36,11 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     : "all"
   const activeMinistry = searchParams?.ministry?.trim() || null
 
-  const [baseData, filteredData, summary] = await Promise.all([
+  const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getContractPage(page, activeType),
     activeMinistry ? getContractPageFiltered(page, activeType, activeMinistry) : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
+    getEtlLastFinished(["contracts_daily", "contracts_backfill"]),
   ])
 
   const { contracts, total, statsRows } = activeMinistry && filteredData
@@ -60,6 +69,14 @@ export default async function ContratosPage({ searchParams }: PageProps) {
           ]}
         />
       ) : null}
+
+      <SourceFootnote
+        sourceLabel="PCSP · Ministerio de Hacienda"
+        sourceHref="https://contrataciondelestado.es"
+        lastChecked={lastChecked}
+        latestRecordDate={summary.total.latest_record_date}
+        coverageLabel={`${total.toLocaleString("es-ES")} licitaciones publicadas`}
+      />
 
       <MoneyDataSummary datasetHref="/contratos" rows={summary.rows} total={summary.total} />
 

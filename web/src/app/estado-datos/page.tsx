@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
 
@@ -66,11 +67,25 @@ export default async function EstadoDatosPage() {
     return acc
   }, {})
 
+  const lastChecked =
+    pipelines
+      .map((p) => (p.last_finished_at as string | null) ?? null)
+      .filter((d): d is string => Boolean(d))
+      .sort()
+      .at(-1) ?? null
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <PageHeader
         title="Estado de datos"
         description="Frescura de pipelines ETL, cobertura histórica y conflictos de resolución de responsable."
+      />
+
+      <SourceFootnote
+        sourceLabel={`${pipelines.length} pipelines registrados`}
+        lastChecked={lastChecked}
+        coverageLabel="Frescura por dataset"
+        statusHref={null}
       />
 
       {/* ETL pipeline freshness */}

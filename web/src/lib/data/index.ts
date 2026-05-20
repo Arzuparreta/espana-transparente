@@ -23,6 +23,8 @@ export {
   getTopContractOfMonth,
   getTopDivergenceSessionOfMonth,
   getLatestInflationAnchor,
+  getSectionIndex,
+  type SectionIndexRow,
 } from "./home"
 
 // ── Politicians ──────────────────────────────────────────────────────────────
@@ -130,4 +132,5 @@ export {
 // ── ETL status ───────────────────────────────────────────────────────────────
 export {
   getEtlPipelineStatus,
+  getEtlLastFinished,
 } from "./etl"
