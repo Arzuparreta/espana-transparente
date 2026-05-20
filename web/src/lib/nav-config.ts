@@ -33,16 +33,21 @@ export const PRIMARY_NAV: NavGroup[] = [
   {
     label: "Dinero y leyes",
     items: [
+      { href: "/dinero-publico", label: "Trazabilidad del gasto", longLabel: "Trazabilidad del gasto" },
       { href: "/votaciones", label: "Votaciones" },
       { href: "/presupuestos", label: "Presupuestos" },
       { href: "/contratos", label: "Contratos", longLabel: "Contratos públicos" },
       { href: "/subvenciones", label: "Subvenciones" },
       { href: "/fondos-ue", label: "Fondos UE", longLabel: "Fondos europeos" },
+      { href: "/ccaa", label: "CCAA", longLabel: "Gasto autonómico" },
+      { href: "/municipios", label: "Municipios", longLabel: "Gasto municipal" },
     ],
   },
   {
     label: "Conexiones y contexto",
     items: [
+      { href: "/iniciativas", label: "Iniciativas" },
+      { href: "/declaraciones", label: "Declaraciones", longLabel: "Declaraciones económicas" },
       { href: "/puertas-giratorias", label: "Puertas giratorias" },
       { href: "/organizaciones", label: "Organizaciones" },
       { href: "/indicadores", label: "Indicadores", longLabel: "Indicadores económicos" },
@@ -80,6 +85,8 @@ export const SECTION_META: SectionMeta[] = [
   { key: "ministerios", href: "/ministerios", label: "Ministerios" },
   { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones" },
   { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad" },
+  { key: "ccaa", href: "/ccaa", label: "Gasto autonómico", shortLabel: "CCAA" },
+  { key: "municipios", href: "/municipios", label: "Gasto municipal", shortLabel: "Municipios" },
   { key: "perfil", href: "/perfil", label: "Perfil" },
   { key: "usuarios", href: "/usuarios", label: "Usuarios" },
 ]
@@ -184,6 +191,18 @@ export const ATLAS_GROUPS: AtlasGroup[] = [
         label: "Organizaciones",
         description: "Empresas y entidades que aparecen en contratos o subvenciones.",
         countUnit: "entidades",
+      },
+      {
+        countKey: "ccaa",
+        href: "/ccaa",
+        label: "Gasto autonómico",
+        description: "Subvenciones y contratos con ámbito de comunidad autónoma en BDNS y PCSP.",
+      },
+      {
+        countKey: "municipios",
+        href: "/municipios",
+        label: "Gasto municipal",
+        description: "Subvenciones y contratos con ámbito local publicados en fuentes abiertas.",
       },
     ],
   },

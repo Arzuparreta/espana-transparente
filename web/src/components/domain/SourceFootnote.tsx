@@ -1,4 +1,8 @@
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import {
+  formatCoveragePercent,
+  formatSourceDate,
+} from "@/lib/source-footnote-format"
 import { cn } from "@/lib/utils"
 
 export interface SourceFootnoteProps {
@@ -10,32 +14,6 @@ export interface SourceFootnoteProps {
   coverageValue?: number | null
   statusHref?: string | null
   className?: string
-}
-
-const SIN_VERIFICAR = "Sin verificar"
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return SIN_VERIFICAR
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return SIN_VERIFICAR
-  return d.toLocaleDateString("es-ES", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
-}
-
-function clampPercent(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  if (value < 0) return 0
-  if (value > 100) return 100
-  return value
-}
-
-function formatPercent(value: number): string {
-  const clamped = clampPercent(value)
-  const fixed = Number.isInteger(clamped) ? clamped.toString() : clamped.toFixed(1)
-  return `${fixed}%`
 }
 
 function Field({
@@ -94,12 +72,12 @@ export function SourceFootnote({
         </Field>
 
         <Field label="Última verificación">
-          <span className="font-mono tabular-nums">{formatDate(lastChecked)}</span>
+          <span className="font-mono tabular-nums">{formatSourceDate(lastChecked)}</span>
         </Field>
 
         {latestRecordDate !== undefined ? (
           <Field label="Último dato">
-            <span className="font-mono tabular-nums">{formatDate(latestRecordDate)}</span>
+            <span className="font-mono tabular-nums">{formatSourceDate(latestRecordDate)}</span>
           </Field>
         ) : null}
 
@@ -111,7 +89,7 @@ export function SourceFootnote({
                 <span className="mx-1 text-muted-foreground/60">·</span>
               ) : null}
               {coverageValue != null && Number.isFinite(coverageValue) ? (
-                <span className="font-mono tabular-nums">{formatPercent(coverageValue)}</span>
+                <span className="font-mono tabular-nums">{formatCoveragePercent(coverageValue)}</span>
               ) : null}
             </span>
           </Field>

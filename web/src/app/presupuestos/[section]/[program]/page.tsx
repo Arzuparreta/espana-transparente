@@ -67,6 +67,12 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
             label: `Sección ${sectionCode}`,
             meta: sectionName,
           },
+          latest?.year
+            ? {
+                href: `/dinero-publico?year=${latest.year}&section=${encodeURIComponent(sectionCode)}#program-${encodeURIComponent(programCode)}`,
+                label: "Trazabilidad del gasto",
+              }
+            : null,
         ]}
       />
       <PageHeader

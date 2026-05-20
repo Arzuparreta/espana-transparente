@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/domain/EmptyState"
 import { MoneyCascade } from "@/components/domain/MoneyCascade"
+import { MoneyCascadeHashFocus } from "@/components/domain/MoneyCascadeHashFocus"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -116,6 +117,7 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
             legislativas y fondos europeos no entran todavía en este cruce.
           </p>
 
+          <MoneyCascadeHashFocus />
           <MoneyCascade
             year={year}
             sections={sections}

@@ -23,9 +23,16 @@ interface Contrato {
   source_url: string | null
 }
 
+const LEVEL_LABELS: Record<string, string> = {
+  state: "Estatal",
+  autonomic: "Autonómico",
+  municipal: "Municipal",
+}
+
 interface ContratosClientProps {
   activeType: string
   activeMinistry?: string | null
+  activeLevel?: string | null
   contracts: Contrato[]
   page: number
   total: number
@@ -130,11 +137,17 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
   )
 }
 
-function contractsHref(type: string, page = 1, ministry?: string | null) {
+function contractsHref(
+  type: string,
+  page = 1,
+  ministry?: string | null,
+  level?: string | null
+) {
   const params = new URLSearchParams()
   if (type !== "all") params.set("type", type)
   if (page > 1) params.set("page", String(page))
   if (ministry) params.set("ministry", ministry)
+  if (level) params.set("level", level)
   const query = params.toString()
   return query ? `/contratos?${query}` : "/contratos"
 }
@@ -142,18 +155,22 @@ function contractsHref(type: string, page = 1, ministry?: string | null) {
 export function ContratosClient({
   activeType,
   activeMinistry,
+  activeLevel,
   contracts,
   page,
   total,
   totalPages,
 }: ContratosClientProps) {
+  const clearLevelHref = contractsHref(activeType, 1, activeMinistry, null)
+  const clearMinistryHref = contractsHref(activeType, 1, null, activeLevel)
+
   return (
     <div className="space-y-6">
       <LinkTabs
         ariaLabel="Tipo de contrato"
         scroll={false}
         tabs={TYPE_TABS.map((tab) => ({
-          href: contractsHref(tab.value, 1, activeMinistry),
+          href: contractsHref(tab.value, 1, activeMinistry, activeLevel),
           label: tab.label,
           active: activeType === tab.value,
         }))}
@@ -163,7 +180,15 @@ export function ContratosClient({
         <FilterChip
           label="Ministerio"
           value={activeMinistry}
-          clearHref={contractsHref(activeType)}
+          clearHref={clearMinistryHref}
+        />
+      )}
+
+      {activeLevel && (
+        <FilterChip
+          label="Nivel"
+          value={LEVEL_LABELS[activeLevel] ?? activeLevel}
+          clearHref={clearLevelHref}
         />
       )}
 
@@ -174,14 +199,26 @@ export function ContratosClient({
         {contracts.length === 0 ? (
           <EmptyState
             title="Sin licitaciones"
-            description={<>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.contratacion.contratos</code></>}
+            description="No hay contratos con estos filtros en la muestra actual."
+            action={
+              <ResponsiveLink
+                href="/estado-datos"
+                className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Ver estado de los datos →
+              </ResponsiveLink>
+            }
           />
         ) : (
           contracts.map((c) => <ContratoCard key={c.id} c={c} activeMinistry={activeMinistry} />)
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => contractsHref(activeType, nextPage, activeMinistry)} />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        hrefForPage={(nextPage) => contractsHref(activeType, nextPage, activeMinistry, activeLevel)}
+      />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { InfoPanel } from "@/components/domain/InfoPanel"
@@ -80,6 +81,31 @@ export default async function MinistrioPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
+      <ContextTrail
+        section={{ href: "/gobierno", label: "Gobierno" }}
+        current={member.organization_name}
+        meta={member.position_type === "vicepresidente" ? "Vicepresidencia" : "Ministerio"}
+        fallbackHref="/gobierno"
+        fallbackLabel="Volver a Gobierno"
+        related={[
+          {
+            href: `/diputados/${member.politician_id}`,
+            label: nameFormatted,
+          },
+          member.political_party && partyId
+            ? { href: `/partidos/${partyId}`, label: "Partido", meta: member.political_party }
+            : null,
+          {
+            href: `/contratos?ministry=${encodeURIComponent(member.organization_name)}`,
+            label: "Contratos",
+            meta: String(member.contract_count),
+          },
+          {
+            href: `/dinero-publico`,
+            label: "Trazabilidad del gasto",
+          },
+        ]}
+      />
       <PageHeader
         title={member.organization_name}
         description={member.government}

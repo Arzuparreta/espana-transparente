@@ -20,11 +20,14 @@ export const metadata = {
   description: "Adjudicaciones del sector público español: importe, contratista, tipo y administración responsable.",
 }
 
+const VALID_LEVELS = ["state", "autonomic", "municipal"] as const
+
 interface PageProps {
   searchParams?: {
     page?: string
     type?: string
     ministry?: string
+    level?: string
   }
 }
 
@@ -35,15 +38,21 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     ? requestedType
     : "all"
   const activeMinistry = searchParams?.ministry?.trim() || null
+  const requestedLevel = searchParams?.level?.trim() || null
+  const activeLevel = VALID_LEVELS.includes(requestedLevel as (typeof VALID_LEVELS)[number])
+    ? (requestedLevel as (typeof VALID_LEVELS)[number])
+    : null
 
   const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getContractPage(page, activeType),
-    activeMinistry ? getContractPageFiltered(page, activeType, activeMinistry) : Promise.resolve(null),
+    activeMinistry || activeLevel
+      ? getContractPageFiltered(page, activeType, activeMinistry, activeLevel)
+      : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
     getEtlLastFinished(["contracts_daily", "contracts_backfill"]),
   ])
 
-  const { contracts, total, statsRows } = activeMinistry && filteredData
+  const { contracts, total, statsRows } = (activeMinistry || activeLevel) && filteredData
     ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 
@@ -83,6 +92,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       <ContratosClient
         activeType={activeType}
         activeMinistry={activeMinistry}
+        activeLevel={activeLevel}
         contracts={contracts}
         page={page}
         total={total}

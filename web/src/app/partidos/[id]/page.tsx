@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyLogo } from "@/components/domain/PartyLogo"
@@ -42,12 +42,23 @@ export default async function PartyPage({ params }: PageProps) {
       : []),
   ]
 
+  const partyLabel = party.name ?? party.acronym ?? "Partido"
+
   return (
     <div className="space-y-8">
-      <Breadcrumbs
-        items={[
-          { label: "Partidos", href: "/partidos" },
-          { label: party.name ?? party.acronym },
+      <ContextTrail
+        section={{ href: "/partidos", label: "Partidos" }}
+        current={party.acronym ?? partyLabel}
+        meta={party.name && party.acronym !== party.name ? party.name : undefined}
+        fallbackHref="/partidos"
+        fallbackLabel="Volver a Partidos"
+        related={[
+          memberships.length > 0
+            ? { href: "#diputados", label: "Diputados", meta: String(memberships.length) }
+            : null,
+          votingSessions.length > 0
+            ? { href: "#votaciones", label: "Votaciones", meta: String(votingSessions.length) }
+            : null,
         ]}
       />
       <PageHeader
@@ -73,7 +84,7 @@ export default async function PartyPage({ params }: PageProps) {
         defaultTab="diputados"
         panels={{
           diputados: (
-            <div className="ui-grid-cards">
+            <div id="diputados" className="ui-grid-cards scroll-mt-24">
               {memberships.map((m) => {
                 const pol = m.politician as unknown as Record<string, unknown>
                 return (
@@ -86,11 +97,19 @@ export default async function PartyPage({ params }: PageProps) {
             </div>
           ),
           votaciones: (
-            <div className="space-y-2">
+            <div id="votaciones" className="space-y-2 scroll-mt-24">
               {votingSessions.length === 0 ? (
                 <EmptyState
                   title="Sin votaciones"
                   description="No hay sesiones registradas para este grupo en la muestra actual."
+                  action={
+                    <a
+                      href="/estado-datos"
+                      className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      Ver estado de los datos →
+                    </a>
+                  }
                 />
               ) : (
                 votingSessions.map((s) => {

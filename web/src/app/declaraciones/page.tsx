@@ -69,6 +69,14 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
         <EmptyState
           title="Sin declaraciones"
           description="No hay declaraciones publicadas en la muestra actual."
+          action={
+            <ResponsiveLink
+              href="/estado-datos"
+              className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              Ver estado de los datos →
+            </ResponsiveLink>
+          }
         />
       ) : (
         <ul className="space-y-2">

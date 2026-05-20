@@ -1,5 +1,6 @@
 import Image from "next/image"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
@@ -111,6 +112,12 @@ export default async function SenadoPage() {
         description="La cámara alta del parlamento: 265 senadores que revisan y pueden vetar las leyes que vienen del Congreso. Electos por provincia y designados por las comunidades autónomas."
       />
 
+      <SourceFootnote
+        sourceLabel="Senado de España"
+        sourceHref="https://www.senado.es"
+        coverageLabel={`${stats.total} senadores activos · votaciones del Senado en ingestión`}
+      />
+
       <StatGrid
         items={[
           { label: "Total senadores", value: stats.total },
@@ -119,6 +126,11 @@ export default async function SenadoPage() {
           { label: "Grupos parlamentarios", value: stats.byGroup.length },
         ]}
       />
+
+      <p className="text-xs leading-5 text-muted-foreground">
+        Las votaciones nominales del Senado se publican en datos abiertos (XML). El pipeline
+        de ingestión está en curso: la sección Votaciones del portal muestra hoy el Congreso.
+      </p>
 
       {stats.byGroup.length > 0 && (
         <section className="mb-8">
