@@ -49,7 +49,9 @@ const PIPELINE_LABELS: Record<string, string> = {
   "bdns.subvenciones": "Subvenciones BDNS",
   "photos.run": "Fotos",
   "puertas_giratorias": "Puertas giratorias",
-  "kohesio": "Fondos UE",
+  "kohesio.fondos_ue": "Fondos UE",
+  "senado.votaciones": "Sesiones Senado",
+  "common.search_refresh": "Búsqueda (actualización)",
 }
 
 export default async function EstadoDatosPage() {

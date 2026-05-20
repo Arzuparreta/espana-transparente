@@ -10,6 +10,7 @@ Usage:
     PYTHONPATH=src python -m src.congreso.asistencia
     PYTHONPATH=src python -m src.congreso.asistencia --dry-run
     PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
+    PYTHONPATH=src python -m src.congreso.asistencia --resume
 """
 
 import argparse
@@ -23,6 +24,7 @@ import zipfile
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 BASE_URL = "https://www.congreso.es"
 PORTLET_URL = (
@@ -189,8 +191,12 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
     return vote_count
 
 
-def run(dry_run: bool = False, from_date: int | None = None) -> None:
+def run(dry_run: bool = False, from_date: int | None = None, resume: bool = False) -> None:
+    # The pipeline already resumes idempotently by skipping sessions present in
+    # voting_sessions. The flag keeps long ETL CLIs operationally consistent.
+    _ = resume
     conn = get_pg_conn()
+    run_id = None
     try:
         cur = conn.cursor()
 
@@ -202,6 +208,11 @@ def run(dry_run: bool = False, from_date: int | None = None) -> None:
         if from_date:
             all_dates = [d for d in all_dates if d >= from_date]
         print(f"{len(all_dates)} dates to process")
+
+        if not dry_run:
+            chunk_key = str(from_date) if from_date else "all"
+            run_id = start_run(cur, pipeline="congreso.asistencia", chunk_key=chunk_key)
+            conn.commit()
 
         existing = get_existing_sessions(cur, leg_id)
         pol_idx = build_politician_index(cur)
@@ -251,13 +262,32 @@ def run(dry_run: bool = False, from_date: int | None = None) -> None:
 
         cur.close()
         print(f"\nDone! {total_sessions} new sessions, {total_votes} new votes ingested.")
+
+        if run_id:
+            cur = conn.cursor()
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=len(all_dates), rows_inserted=total_votes)
+            conn.commit()
+            cur.close()
+    except Exception as exc:
+        if run_id:
+            cur = conn.cursor()
+            finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+            conn.commit()
+        raise
     finally:
         conn.close()
 
 
-if __name__ == "__main__":
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="discover sessions without ingesting")
     parser.add_argument("--from-date", type=int, metavar="YYYYMMDD", help="start from this date")
+    parser.add_argument("--resume", action="store_true", help="accepted for ETL CLI consistency; existing sessions are skipped")
+    return parser
+
+
+if __name__ == "__main__":
+    parser = build_arg_parser()
     args = parser.parse_args()
-    run(dry_run=args.dry_run, from_date=args.from_date)
+    run(dry_run=args.dry_run, from_date=args.from_date, resume=args.resume)

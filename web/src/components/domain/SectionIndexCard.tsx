@@ -1,3 +1,4 @@
+import { SectionIcon, type SectionIconName } from "@/components/brand/SectionIcon"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { cn } from "@/lib/utils"
 
@@ -9,6 +10,7 @@ export interface SectionIndexCardProps {
   countUnit?: string
   latestDate?: string | null
   className?: string
+  icon?: SectionIconName | null
 }
 
 function formatCount(value: number, unit?: string): string {
@@ -34,6 +36,7 @@ export function SectionIndexCard({
   countUnit,
   latestDate,
   className,
+  icon,
 }: SectionIndexCardProps) {
   const showCount = count != null && Number.isFinite(count)
   const formattedDate = latestDate ? formatDate(latestDate) : null
@@ -47,7 +50,12 @@ export function SectionIndexCard({
       )}
     >
       <div className="flex min-w-0 items-baseline justify-between gap-3">
-        <span className="min-w-0 truncate font-medium text-foreground">{label}</span>
+        <span className="flex min-w-0 items-center gap-2.5">
+          {icon ? (
+            <SectionIcon name={icon} size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
+          ) : null}
+          <span className="min-w-0 truncate font-medium text-foreground">{label}</span>
+        </span>
         {showCount ? (
           <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
             {formatCount(count as number, countUnit)}

@@ -9,7 +9,7 @@ export const getVotingSessionPage = unstable_cache(
     const { data, count, error } = await supabase
       .from("v_voting_session_summary")
       .select(
-        "id, title, session_number, date, initiative_number, votacion_number, vote_count, divergence_count",
+        "id, title, session_number, chamber, date, initiative_number, votacion_number, vote_count, divergence_count",
         { count: "exact" }
       )
       .order("date", { ascending: false })
@@ -21,7 +21,7 @@ export const getVotingSessionPage = unstable_cache(
 
     const fallback = await supabase
       .from("voting_sessions")
-      .select("id, title, session_number, date, initiative_number, votes(count)", { count: "exact" })
+      .select("id, title, session_number, chamber, date, initiative_number, votes(count)", { count: "exact" })
       .order("date", { ascending: false })
       .range(from, to)
 
@@ -38,7 +38,7 @@ export const getVotingDetailData = unstable_cache(
       supabase
         .from("votes")
         .select(
-          "vote, politician_id, politician:politicians(id, full_name, politician_memberships(is_active, party:parties(id, acronym, color)))"
+          "vote, politician_id, politician:politicians(id, full_name, politician_memberships(is_active, chamber, party:parties(id, acronym, color)))"
         )
         .eq("voting_session_id", id),
     ])

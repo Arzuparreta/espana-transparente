@@ -11,7 +11,7 @@ export const revalidate = 3600
 
 export const metadata = {
   title: "Votaciones",
-  description: "Sesiones de votación del Congreso: resultados, asistencia y divergencias dentro de cada grupo.",
+  description: "Sesiones de votación del Congreso y el Senado: resultados, asistencia y divergencias dentro de cada grupo.",
 }
 
 interface SessionRow {
@@ -21,6 +21,7 @@ interface SessionRow {
   date: string
   initiative_number?: string
   divergence_count?: number
+  chamber?: string
 }
 
 interface PageProps {
@@ -33,7 +34,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
   const page = parsePage(searchParams?.page)
   const [{ sessions, total }, lastChecked] = await Promise.all([
     getVotingSessionPage(page),
-    getEtlLastFinished(["congreso.asistencia"]),
+    getEtlLastFinished(["congreso.asistencia", "senado.votaciones"]),
   ])
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.votingSessions))
   const latestRecordDate =
@@ -47,7 +48,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
     <div className="space-y-6 sm:space-y-8">
       <PageHeader
         title="Votaciones"
-        description="Cada vez que el Congreso aprueba o rechaza una ley o una propuesta, lo hace votando. Aquí ves quién votó qué, y qué diputados votaron diferente a su grupo."
+        description="Sesiones con voto nominal: resultado, voto individual y divergencias dentro de cada grupo."
         actions={
           <ResponsiveLink
             href="/distorsion"
@@ -59,11 +60,10 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
       />
 
       <SourceFootnote
-        sourceLabel="Congreso de los Diputados"
-        sourceHref="https://www.congreso.es"
+        sourceLabel="Congreso de los Diputados · Senado"
         lastChecked={lastChecked}
         latestRecordDate={latestRecordDate}
-        coverageLabel={`${total.toLocaleString("es-ES")} sesiones · Congreso de los Diputados`}
+        coverageLabel={`${total.toLocaleString("es-ES")} votaciones nominales`}
       />
 
       <div className="space-y-3">
@@ -94,7 +94,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                        Sesión {s.session_number} · {dateStr}
+                        {s.chamber === "senate" ? "Senado" : "Congreso"} · Sesión {s.session_number} · {dateStr}
                       </span>
                     </div>
                   </div>

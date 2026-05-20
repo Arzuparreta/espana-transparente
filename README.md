@@ -24,7 +24,7 @@
 
 España Transparente reúne en un mismo sitio los datos que ya son públicos pero viven dispersos entre el Congreso, el INE, la Plataforma de Contratación, la BDNS y otros registros oficiales. Los normaliza, los enlaza por persona y los presenta sin editorializar: cada cifra apunta a su fuente original.
 
-> El producto es un **portal de datos**, no un manifiesto. La metodología interna vive en [`AGENTS.md`](AGENTS.md) y [`PLAN.md`](PLAN.md); la interfaz solo muestra hechos.
+> El producto es un **portal de datos**, no un manifiesto. Las reglas editoriales viven en [`AGENTS.md`](AGENTS.md), la hoja de ruta activa en [`NEXT.md`](NEXT.md), y la interfaz solo muestra hechos.
 
 ## Qué incluye hoy
 
@@ -41,7 +41,7 @@ España Transparente reúne en un mismo sitio los datos que ya son públicos per
 ## Arquitectura
 
 ```
-Fuentes públicas  →  etl/src/<source>/   →  Supabase (Postgres)  →  web/src/lib/data.ts  →  Next.js (App Router)
+Fuentes públicas  →  etl/src/<source>/   →  Supabase (Postgres)  →  web/src/lib/data/  →  Next.js (App Router)
 ```
 
 | Capa            | Tecnología                                            | Carpeta              |
@@ -127,7 +127,7 @@ npx supabase db push
 - **Editorial** (`npm run content:audit`) — la UI no contiene metodología, juicios de valor, ni referencias filosóficas. Solo etiquetas factuales.
 - **UI** (`npm run ui:audit`) — `grid-cols-N` requiere variante responsive; `flex items-center justify-between` requiere `min-w-0`; los colores de voto/partido se importan de `lib/domain-style.ts`; los tabs viven en `components/domain/SectionTabs.tsx`.
 
-Detalles completos en [`CLAUDE.md`](CLAUDE.md) y [`web/UI_SYSTEM.md`](web/UI_SYSTEM.md).
+Detalles completos en [`CLAUDE.md`](CLAUDE.md), [`DESIGN.md`](DESIGN.md) y [`NEXT.md`](NEXT.md).
 
 ## Contribuir
 

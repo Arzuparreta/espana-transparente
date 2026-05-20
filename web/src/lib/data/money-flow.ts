@@ -19,6 +19,13 @@ export type MoneyFlowRow = {
   latest_record_date: string | null
 }
 
+export type TopBeneficiary = {
+  name: string
+  source_type: "contract" | "subsidy"
+  record_count: number
+  total_amount: number
+}
+
 export type MoneyFlowSection = {
   section_code: string
   section_name: string
@@ -36,21 +43,50 @@ export type MoneyFlowSection = {
     program_name: string | null
     total_credit_initial: number | null
   }[]
+  top_contractors: TopBeneficiary[]
+  top_subsidy_beneficiaries: TopBeneficiary[]
+}
+
+// Strip leading NIF/CIF prefix from Spanish beneficiary names (e.g. "Q2818002D NOMBRE" → "NOMBRE")
+function stripNif(name: string): string {
+  return name.replace(/^[A-Z0-9]{9} /, "")
 }
 
 export const getMoneyFlowYear = unstable_cache(
   async (year: number): Promise<MoneyFlowSection[]> => {
-    const { data, error } = await supabase
-      .from("v_program_money_flow")
-      .select(
-        "year, budget_type, section_code, section_name, ministry_normalized, minister_person_id, minister_name, program_code, program_name, total_credit_initial, contract_count, contract_total, subsidy_count, subsidy_total, latest_record_date"
-      )
-      .eq("year", year)
-      .order("section_code", { ascending: true })
-      .order("total_credit_initial", { ascending: false, nullsFirst: false })
+    const [{ data, error }, { data: benData }] = await Promise.all([
+      supabase
+        .from("v_program_money_flow")
+        .select(
+          "year, budget_type, section_code, section_name, ministry_normalized, minister_person_id, minister_name, program_code, program_name, total_credit_initial, contract_count, contract_total, subsidy_count, subsidy_total, latest_record_date"
+        )
+        .eq("year", year)
+        .order("section_code", { ascending: true })
+        .order("total_credit_initial", { ascending: false, nullsFirst: false }),
+      supabase
+        .from("v_ministry_top_beneficiaries")
+        .select("ministry_normalized, name, source_type, record_count, total_amount"),
+    ])
 
     if (error || !data) return []
     const rows = data as MoneyFlowRow[]
+
+    // Index beneficiaries by ministry
+    type BenRow = { ministry_normalized: string; name: string; source_type: string; record_count: number; total_amount: number }
+    const contractorsByMinistry = new Map<string, TopBeneficiary[]>()
+    const subsidyBenByMinistry = new Map<string, TopBeneficiary[]>()
+    for (const b of (benData ?? []) as BenRow[]) {
+      const entry: TopBeneficiary = {
+        name: b.source_type === "subsidy" ? stripNif(b.name) : b.name,
+        source_type: b.source_type as "contract" | "subsidy",
+        record_count: Number(b.record_count),
+        total_amount: Number(b.total_amount),
+      }
+      const map = b.source_type === "contract" ? contractorsByMinistry : subsidyBenByMinistry
+      const key = b.ministry_normalized
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(entry)
+    }
 
     const sections = new Map<string, MoneyFlowSection>()
     for (const row of rows) {
@@ -75,6 +111,8 @@ export const getMoneyFlowYear = unstable_cache(
               total_credit_initial: row.total_credit_initial != null ? Number(row.total_credit_initial) : null,
             },
           ],
+          top_contractors: row.ministry_normalized ? (contractorsByMinistry.get(row.ministry_normalized) ?? []) : [],
+          top_subsidy_beneficiaries: row.ministry_normalized ? (subsidyBenByMinistry.get(row.ministry_normalized) ?? []) : [],
         })
       } else {
         existing.total_credit_initial += Number(row.total_credit_initial ?? 0)

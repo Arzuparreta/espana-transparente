@@ -74,7 +74,7 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 ## Referencias conceptuales
 
 - **Escuela Austríaca de Economía**: Mises, Hayek, Bastiat, Rothbard
-- **`PLAN.md`** — el plan completo del proyecto
+- **`NEXT.md`** — hoja de ruta activa y próximos trabajos
 - **Conversación inicial del repo** — investigación extensa sobre el sistema
   político español real: disciplina de voto, listas cerradas, D'Hondt, puertas
   giratorias, control gubernamental del legislativo

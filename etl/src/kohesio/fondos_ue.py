@@ -28,6 +28,7 @@ from tenacity import (
 )
 
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
@@ -124,9 +125,23 @@ def run(dry_run: bool = False, limit: int | None = None) -> None:
         return
 
     conn = get_pg_conn()
+    run_id = None
     try:
+        with conn.cursor() as cur:
+            run_id = start_run(cur, pipeline="kohesio.fondos_ue", chunk_key="es")
+            conn.commit()
         upserted = upsert_batch(conn, rows)
+        with conn.cursor() as cur:
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=len(rows), rows_inserted=upserted)
+            conn.commit()
         print(f"Upserted {upserted:,} beneficiaries into eu_funds")
+    except Exception as exc:
+        if run_id:
+            with conn.cursor() as cur:
+                finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                conn.commit()
+        raise
     finally:
         conn.close()
 

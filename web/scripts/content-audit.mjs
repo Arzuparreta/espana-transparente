@@ -16,7 +16,6 @@ const FORBIDDEN = [
   { name: "fatal arrogancia",   pattern: /fatal\s+arrogancia/i },
   { name: "robo del estado",    pattern: /robo\s+del\s+estado/i },
   { name: "robar al",           pattern: /robar\s+al\b/i },
-  { name: "BASES_FILOSOFICAS",  pattern: /BASES_FILOSOFICAS/ },
 ]
 
 const targets = []
@@ -69,7 +68,7 @@ if (violations.length > 0) {
     console.error(`- ${violation}`)
   }
   console.error(
-    `\n${violations.length} violación(es). El marco filosófico interno (BASES_FILOSOFICAS.md) no debe filtrarse a la UI.`,
+    `\n${violations.length} violación(es). El marco interno del proyecto no debe filtrarse a la UI.`,
   )
   process.exit(1)
 }

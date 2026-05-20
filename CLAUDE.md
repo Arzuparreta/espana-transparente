@@ -6,7 +6,7 @@ This file provides guidance to coding agents working in this repository.
 
 **España Transparente** (legacy repository name: *Acción Humana*) — public data portal on Spanish politics: deputies, votes, contracts, subsidies, revolving doors, declarations and responsibility chains. Monorepo with three tracks: a Next.js frontend (`web/`), Python ETL pipelines (`etl/`), and Supabase SQL migrations (`supabase/migrations/`).
 
-Read **`AGENTS.md`** and **`PLAN.md`** first — they encode the editorial doctrine and the roadmap. They are not optional context.
+Read **`AGENTS.md`**, **`NEXT.md`**, and **`DESIGN.md`** first. `AGENTS.md` carries editorial/product constraints, `NEXT.md` is the active execution map, and `DESIGN.md` is the visual source of truth.
 
 ## Commands
 
@@ -34,8 +34,8 @@ PYTHONPATH=src python -m pytest tests/    # tests
 PYTHONPATH=src python -m pytest tests/test_responsibility.py::test_name  # single test
 ```
 
-Daily pipelines (run via GH Actions cron `0 4 * * *`): `src.congreso.diputados`, `src.congreso.asistencia --from-date 20250101`, `src.ine.indicadores`, `src.contratacion.contratos`, `src.bdns.subvenciones`, `src.photos.run --refresh-missing`.
-Weekly (`0 5 * * 1`): `src.congreso.cods --resume`, `src.congreso.declaraciones`, `src.congreso.gobierno`, `src.congreso.responsables`, `src.photos.run --no-refresh-missing --max-age-days 30`.
+Daily pipelines (run via GH Actions cron `0 4 * * *`): `src.congreso.diputados`, `src.congreso.asistencia --from-date 20250101`, `src.ine.indicadores`, `src.contratacion.contratos`, `src.bdns.subvenciones`, `src.photos.run --refresh-missing`, then `common.search_refresh`.
+Weekly (`0 5 * * 1`): `src.congreso.cods --resume`, `src.congreso.declaraciones`, `src.congreso.gobierno`, `src.congreso.responsables`, `src.photos.run --no-refresh-missing --max-age-days 30`, `src.presupuestos.presupuestos --year $(date +%Y) --resume`, `src.puertas_giratorias.ingest`, `src.instituciones.instituciones`, `src.kohesio.fondos_ue`, `src.senado.senadores`, `src.senado.votaciones`, then `common.search_refresh`.
 
 ETL writes need `DATABASE_URL` (direct Postgres URI from Supabase → Settings → Database). Reads use the publishable key. The Supabase Python SDK is only used for reads; **all writes go through `psycopg2` via `common.db.get_pg_conn()`** — do not try to write through the SDK.
 
@@ -55,7 +55,7 @@ Migration files are sorted by timestamped prefix. Project ref is `zktpodkvlgcilu
 ### Data flow
 
 ```
-Public sources  →  etl/src/<source>/<pipeline>.py  →  Supabase (Postgres)  →  web/src/lib/data.ts  →  Next.js pages
+Public sources  →  etl/src/<source>/<pipeline>.py  →  Supabase (Postgres)  →  web/src/lib/data/  →  Next.js pages
 ```
 
 Pipelines are independent modules under `etl/src/`:
@@ -77,11 +77,11 @@ The Congress portal (`congreso.es`) rate-limits aggressively and returns 403 aft
 ### Web
 
 - `web/src/app/` — App Router pages: `/`, `/diputados/[id]`, `/votaciones[/id]`, `/distorsion`, `/partidos/[id]`, `/puertas-giratorias`, `/contratos`, `/subvenciones`, `/indicadores`, `/organizaciones`, `/estado-datos`.
-- `web/src/lib/data.ts` — single boundary for Supabase reads. All page-level fetches are wrapped in `unstable_cache(...)` with named cache keys and `revalidate: HOUR`. Add new fetches here, do not call Supabase directly from page components.
+- `web/src/lib/data/` — shared boundary for Supabase reads. Page-level fetches should use the existing cached helpers or add new ones here instead of calling Supabase directly from page components.
 - `web/src/lib/photos.ts` — helper for responsive `src`/`srcSet` selection from `photo_variants`.
 - `web/src/lib/supabase/client.ts` — singleton Supabase client (publishable key only — read-only).
 - `web/src/lib/domain-style.ts` — **single source of truth** for vote/party color tokens. Components must not redefine `VC`, `PC`, `PARTY_COLORS`, or `VOTE_COLORS` maps locally (enforced by `ui:audit`).
-- `web/src/components/domain/` — `PageHeader`, `PartyBadge`, `VoteBadge`, `ExceptionBadge`, `StatGrid`, `SectionTabs`, `InfoPanel`. **Reuse before adding inline alternatives.** See `web/UI_SYSTEM.md`.
+- `web/src/components/domain/` — `PageHeader`, `PartyBadge`, `VoteBadge`, `ExceptionBadge`, `StatGrid`, `SectionTabs`, `InfoPanel`, `SourceFootnote`, `ContextTrail`. **Reuse before adding inline alternatives.** See `DESIGN.md`.
 
 ### Schema
 
@@ -105,7 +105,7 @@ Some references live as YAML in `etl/data/` because no structured public source 
 - `party_leadership.yml` — party leader → spokesperson → deputy chains (powers `power_relationships`).
 - `responsibility_positions.yml`, `public_body_responsibility_map.yml`, `gobierno_historico.yml` — admin-level officials.
 
-These are reviewed as PRs and re-ingested by their respective pipelines. Last verified date is tracked in `PLAN.md` → "Problemas conocidos".
+These are reviewed as PRs and re-ingested by their respective pipelines. Operational priorities and current known gaps are tracked in `NEXT.md`.
 
 ## Hard rules
 
@@ -113,9 +113,9 @@ These are reviewed as PRs and re-ingested by their respective pipelines. Last ve
 
 The web is a **data portal**, not a manifesto. The following are forbidden anywhere under `web/src/` (in source code, comments, JSX, strings):
 
-`austriac*`, `libertari*`, `anarcocap*`, `coerción`, `expolio/expoliar`, `Huerta de Soto`, `Mises`, `Hayek`, `Rothbard`, `fatal arrogancia`, `robo del estado`, `robar al`, `BASES_FILOSOFICAS`.
+`austriac*`, `libertari*`, `anarcocap*`, `coerción`, `expolio/expoliar`, `Huerta de Soto`, `Mises`, `Hayek`, `Rothbard`, `fatal arrogancia`, `robo del estado`, `robar al`.
 
-Also forbidden in UI: methodology phrases ("Unidad de lectura: la persona", "Señal prioritaria: la excepción", "descomponemos el Estado"), value judgments, irony. Use factual labels only ("Diputados", "Votaciones", "Divergencias detectadas"). The doctrine in `AGENTS.md` / `PLAN.md` / `BASES_FILOSOFICAS.md` is **internal product lens only**, never user-facing copy.
+Also forbidden in UI: methodology phrases ("Unidad de lectura: la persona", "Señal prioritaria: la excepción", "descomponemos el Estado"), value judgments, irony. Use factual labels only ("Diputados", "Votaciones", "Divergencias detectadas"). The product lens in `AGENTS.md` is internal only, never user-facing copy.
 
 ### UI — enforced by `npm run ui:audit`
 
@@ -161,7 +161,7 @@ Key routing rules:
 ## Design System
 
 Always read `DESIGN.md` before making any visual or UI decisions.
-All font choices, colors, spacing, border radius, and aesthetic direction are defined there.
+All font choices, colors, spacing, border radius, brand assets, and aesthetic direction are defined there.
 Do not deviate without explicit user approval.
 In QA mode, flag any code that doesn't match `DESIGN.md`.
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 
-def start_run(cur, *, pipeline: str, chunk_key: str, window_start: date, window_end: date) -> str:
+def start_run(cur, *, pipeline: str, chunk_key: str | None = None, window_start: date | None = None, window_end: date | None = None) -> str:
     cur.execute(
         """
         INSERT INTO etl_runs (pipeline, chunk_key, window_start, window_end, status)

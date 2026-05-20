@@ -1,5 +1,5 @@
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import type { MoneyFlowSection } from "@/lib/data/money-flow"
+import type { MoneyFlowSection, TopBeneficiary } from "@/lib/data/money-flow"
 
 interface MoneyCascadeProps {
   year: number
@@ -24,6 +24,27 @@ function formatDate(value: string | null): string {
     month: "short",
     year: "numeric",
   })
+}
+
+function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: string }) {
+  if (items.length === 0) return null
+  return (
+    <div>
+      <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </div>
+      <ul className="space-y-1">
+        {items.map((b, i) => (
+          <li key={i} className="flex min-w-0 items-baseline justify-between gap-3 border-b border-border/30 py-1 last:border-0">
+            <span className="min-w-0 truncate text-xs text-foreground/80">{b.name}</span>
+            <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+              {formatAmount(b.total_amount)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 export function MoneyCascade({ year, sections, initialOpenSectionCode }: MoneyCascadeProps) {
@@ -176,6 +197,18 @@ export function MoneyCascade({ year, sections, initialOpenSectionCode }: MoneyCa
                     )}
                   </div>
                 </section>
+
+                {(section.top_contractors.length > 0 || section.top_subsidy_beneficiaries.length > 0) && (
+                  <section className="space-y-4 rounded-[2px] border border-border/50 bg-background/40 px-3 py-3">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Principales beneficiarios
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <BeneficiaryList items={section.top_contractors} label="Contratos adjudicados a" />
+                      <BeneficiaryList items={section.top_subsidy_beneficiaries} label="Subvenciones concedidas a" />
+                    </div>
+                  </section>
+                )}
 
                 <div className="flex flex-wrap items-baseline gap-4 text-xs text-muted-foreground">
                   <ResponsiveLink
