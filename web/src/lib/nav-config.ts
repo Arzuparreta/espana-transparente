@@ -79,6 +79,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "iniciativas", href: "/iniciativas", label: "Iniciativas" },
   { key: "ministerios", href: "/ministerios", label: "Ministerios" },
   { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones" },
+  { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad" },
   { key: "perfil", href: "/perfil", label: "Perfil" },
   { key: "usuarios", href: "/usuarios", label: "Usuarios" },
 ]
@@ -143,6 +144,12 @@ export const ATLAS_GROUPS: AtlasGroup[] = [
   {
     label: "Dinero público",
     items: [
+      {
+        countKey: "dinero-publico",
+        href: "/dinero-publico",
+        label: "Trazabilidad del gasto",
+        description: "Recorrido del dinero público desde el PGE hasta contratos y subvenciones.",
+      },
       {
         countKey: "presupuestos",
         href: "/presupuestos",

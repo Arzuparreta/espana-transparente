@@ -124,6 +124,13 @@ export {
   type DeclarationListRow,
 } from "./declarations"
 
+// ── Money flow (Trazabilidad del gasto) ──────────────────────────────────────
+export {
+  getMoneyFlowYear,
+  type MoneyFlowSection,
+  type MoneyFlowRow,
+} from "./money-flow"
+
 // ── EU Funds ─────────────────────────────────────────────────────────────────
 export {
   getEuFundsPage,
