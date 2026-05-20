@@ -24,6 +24,7 @@ interface VoteRow {
     full_name: string
     politician_memberships: Array<{
       is_active: boolean
+      chamber: string | null
       party: { id: string; acronym: string; color: string }
     }>
   } | null
@@ -33,6 +34,8 @@ export default async function VotacionPage({ params }: PageProps) {
   const { id } = await params
   const { session, votes, initiative } = await getVotingDetailData(id)
   if (!session) notFound()
+  const chamber = (session.chamber as string | null) ?? "congress"
+  const chamberLabel = chamber === "senate" ? "Senado" : "Congreso"
 
   const partyGroups: Record<
     string,
@@ -47,7 +50,7 @@ export default async function VotacionPage({ params }: PageProps) {
   > = {}
 
   for (const vote of (votes as unknown as VoteRow[]) || []) {
-    const activeMembership = vote.politician?.politician_memberships?.find(m => m.is_active)
+    const activeMembership = vote.politician?.politician_memberships?.find(m => m.is_active && m.chamber === chamber)
     const party = activeMembership?.party
     if (!party) continue
     const key = party.acronym
@@ -120,7 +123,7 @@ export default async function VotacionPage({ params }: PageProps) {
           divergences.length > 0
             ? {
                 href: `#divergencias`,
-                label: "Diputados divergentes",
+                label: chamber === "senate" ? "Senadores divergentes" : "Diputados divergentes",
                 meta: String(divergences.length),
               }
             : null,
@@ -145,6 +148,9 @@ export default async function VotacionPage({ params }: PageProps) {
           <>
             <Badge variant="outline" className="text-xs">
               Sesión {session.session_number}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {chamberLabel}
             </Badge>
             <span className="text-sm text-muted-foreground">{dateStr}</span>
           </>
@@ -240,7 +246,7 @@ export default async function VotacionPage({ params }: PageProps) {
 
       <details className="text-sm">
         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-          Ver voto individual de cada diputado
+          Ver voto individual de cada {chamber === "senate" ? "senador" : "diputado"}
         </summary>
         <div className="mt-3 max-h-96 overflow-y-auto rounded-2xl border border-border/70 bg-card/70 p-3">
           {sorted.flatMap(([acronym, group]) =>

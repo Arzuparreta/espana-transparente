@@ -104,6 +104,7 @@ export const getPartyVotingSessions = unstable_cache(
     const { data: sessions } = await supabase
       .from("v_voting_session_summary")
       .select("id, title, date, divergence_count, votes_yes, votes_no, votes_abstain, votes_no_vote")
+      .eq("chamber", "congress")
       .order("date", { ascending: false })
       .limit(30)
 

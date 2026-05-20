@@ -1,12 +1,12 @@
-"""ETL: discover Senate plenary voting sessions from open data (tipoFich=14).
+"""ETL: ingest Senate plenary votes from official open-data XML.
 
-Individual senator vote XML under /legis15/votaciones/ often returns 404 from
-batch hosts; this module indexes sessions and initiative-level vote metadata
-first. Per-senator ingestion is deferred until a stable vote XML endpoint is
-confirmed (ficopendataservlet params or live legis15 paths).
+The stable source is the Senate static XML export under
+/legis15/votaciones/ses_N.xml. Some catalog endpoints intermittently return
+maintenance HTML, so discovery accepts catalog links when available and falls
+back to probing the static session path at Senado request-delay speed.
 
 Usage:
-    PYTHONPATH=src python -m src.senado.votaciones --dry-run
+    PYTHONPATH=src python -m src.senado.votaciones --dry-run --limit 1
     PYTHONPATH=src python -m src.senado.votaciones --resume
 """
 
@@ -16,17 +16,24 @@ import argparse
 import re
 import subprocess
 import time
+import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
 import psycopg2.extras
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
+from common.utils import normalize_name
 
 BASE = "https://www.senado.es"
 CATALOG_URL = f"{BASE}/web/ficopendataservlet?tipoFich=14&legis=15"
+OPEN_DATA_CATALOG_URL = (
+    f"{BASE}/web/relacionesciudadanos/datosabiertos/catalogodatos/"
+    "sesionesplenariascd/votacionescd/index.html"
+)
 UA = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)"
 REQUEST_DELAY = 1.5
+DEFAULT_MAX_SESSION = 120
 
 MONTHS_ES = {
     "enero": 1,
@@ -43,6 +50,30 @@ MONTHS_ES = {
     "diciembre": 12,
 }
 
+MONTHS_SHORT_ES = {
+    "ENE": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "ABR": 4,
+    "MAY": 5,
+    "JUN": 6,
+    "JUL": 7,
+    "AGO": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DIC": 12,
+}
+
+VOTE_MAP = {
+    "si": "Sí",
+    "sí": "Sí",
+    "no": "No",
+    "abstencion": "Abstención",
+    "abstención": "Abstención",
+    "no vota": "No vota",
+}
+
 
 @dataclass
 class SenateSessionVote:
@@ -50,6 +81,31 @@ class SenateSessionVote:
     session_date: str | None
     title: str
     vote_xml_path: str | None
+
+
+@dataclass
+class SenateVoteRow:
+    name: str
+    vote: str
+    seat: str | None
+    group: str | None
+    absent: bool = False
+
+
+@dataclass
+class SenateVotation:
+    session_number: int
+    session_date: str
+    votation_number: int
+    code: str | None
+    initiative_number: str | None
+    title: str
+    subtitle: str | None
+    vote_date: str | None
+    vote_time: str | None
+    totals: dict[str, int]
+    votes: list[SenateVoteRow]
+    source_url: str
 
 
 def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
@@ -69,6 +125,21 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     return raw.decode("utf-8", errors="replace")
 
 
+def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+    if delay:
+        time.sleep(delay)
+    result = subprocess.run(
+        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", "-H", f"User-Agent: {UA}", url],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    try:
+        return int(result.stdout.strip()[-3:])
+    except ValueError:
+        return 0
+
+
 def parse_senate_date_label(label: str | None) -> str | None:
     if not label:
         return None
@@ -82,10 +153,42 @@ def parse_senate_date_label(label: str | None) -> str | None:
     return f"{year}-{month:02d}-{int(day):02d}"
 
 
+def parse_senate_slash_date(label: str | None) -> str | None:
+    if not label:
+        return None
+    match = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", label)
+    if not match:
+        return None
+    day, month, year = match.groups()
+    return f"{year}-{int(month):02d}-{int(day):02d}"
+
+
+def parse_senate_vote_date(label: str | None) -> str | None:
+    if not label:
+        return None
+    match = re.search(r"(\d{1,2})-([A-ZÁÉÍÓÚÑ]{3})-(\d{4})", label.upper())
+    if not match:
+        return parse_senate_slash_date(label)
+    day, month_name, year = match.groups()
+    month_key = unicodedata.normalize("NFKD", month_name).encode("ascii", "ignore").decode("ascii")
+    month = MONTHS_SHORT_ES.get(month_key)
+    if not month:
+        return None
+    return f"{year}-{month:02d}-{int(day):02d}"
+
+
 def _cdata(el: ET.Element | None) -> str:
     if el is None or el.text is None:
         return ""
     return el.text.strip()
+
+
+def _absolute_url(path_or_url: str) -> str:
+    if path_or_url.startswith("http"):
+        return path_or_url
+    if path_or_url.startswith("/"):
+        return f"{BASE}{path_or_url}"
+    return f"{BASE}/{path_or_url}"
 
 
 def parse_session_catalog(xml_text: str) -> list[SenateSessionVote]:
@@ -109,6 +212,69 @@ def parse_session_catalog(xml_text: str) -> list[SenateSessionVote]:
     return sessions
 
 
+def parse_open_data_catalog_links(html: str, legis: int = 15) -> list[str]:
+    pattern = rf"(?:https://www\.senado\.es)?/legis{legis}/votaciones/ses_(\d+)\.xml"
+    by_session: dict[int, str] = {}
+    for match in re.finditer(pattern, html, flags=re.IGNORECASE):
+        session_number = int(match.group(1))
+        by_session[session_number] = f"{BASE}/legis{legis}/votaciones/ses_{session_number}.xml"
+    return [by_session[k] for k in sorted(by_session)]
+
+
+def discover_static_session_xml_urls(
+    legis: int = 15,
+    from_session: int = 1,
+    max_session: int = DEFAULT_MAX_SESSION,
+    limit: int | None = None,
+) -> list[str]:
+    urls: list[str] = []
+    for session_number in range(from_session, max_session + 1):
+        url = f"{BASE}/legis{legis}/votaciones/ses_{session_number}.xml"
+        if curl_status(url) == 200:
+            urls.append(url)
+            if limit and len(urls) >= limit:
+                break
+    return urls
+
+
+def discover_session_vote_urls(
+    legis: int = 15,
+    from_session: int = 1,
+    max_session: int = DEFAULT_MAX_SESSION,
+    limit: int | None = None,
+) -> list[str]:
+    html = curl_text(OPEN_DATA_CATALOG_URL, delay=0)
+    urls = parse_open_data_catalog_links(html, legis=legis)
+
+    if not urls:
+        catalog = curl_text(f"{BASE}/web/ficopendataservlet?tipoFich=14&legis={legis}", delay=0)
+        try:
+            sessions = parse_session_catalog(catalog)
+            urls = [_absolute_url(s.vote_xml_path) for s in sessions if s.vote_xml_path]
+        except ET.ParseError:
+            urls = []
+
+    if not urls:
+        urls = discover_static_session_xml_urls(
+            legis=legis,
+            from_session=from_session,
+            max_session=max_session,
+            limit=limit,
+        )
+
+    unique: dict[int, str] = {}
+    for url in urls:
+        match = re.search(r"/ses_(\d+)\.xml$", url)
+        if not match:
+            continue
+        session_number = int(match.group(1))
+        if from_session <= session_number <= max_session:
+            unique[session_number] = url
+
+    ordered = [unique[k] for k in sorted(unique)]
+    return ordered[:limit] if limit else ordered
+
+
 def parse_initiative_vote_index(xml_text: str) -> list[tuple[str, str, str | None]]:
     """Return (tipo_ex, num_ex, vote_xml_url) tuples from tipoFich=12."""
     root = ET.fromstring(xml_text)
@@ -118,7 +284,7 @@ def parse_initiative_vote_index(xml_text: str) -> list[tuple[str, str, str | Non
     for votacion in root.findall(".//votacion"):
         url = _cdata(votacion.find(".//fichUrlVotacion"))
         if url:
-            votes.append((tipo_ex, num_ex, url if url.startswith("http") else f"{BASE}{url}"))
+            votes.append((tipo_ex, num_ex, _absolute_url(url)))
     return votes
 
 
@@ -137,20 +303,216 @@ def discover_initiative_indexes(legis: int = 15, limit: int | None = None) -> li
     ]
 
 
-def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -> None:
-    xml = curl_text(CATALOG_URL, delay=0)
-    sessions = parse_session_catalog(xml)
-    if limit:
-        sessions = sessions[:limit]
-    print(f"Discovered {len(sessions)} Senate plenary sessions (Leg XV catalog)")
+def normalize_vote(value: str | None) -> str:
+    normalized = (value or "").strip().lower()
+    normalized = unicodedata.normalize("NFKD", normalized).encode("ascii", "ignore").decode("ascii")
+    return VOTE_MAP.get(normalized, (value or "").strip().capitalize())
+
+
+def parse_int(value: str | None) -> int:
+    raw = (value or "").strip()
+    return int(raw) if raw.isdigit() else 0
+
+
+def parse_senate_session_vote_xml(xml_text: str, source_url: str) -> list[SenateVotation]:
+    root = ET.fromstring(xml_text)
+    session_node = root.find(".//sesion")
+    if session_node is None:
+        return []
+
+    session_number = parse_int(_cdata(session_node.find("num_sesion")))
+    session_date = parse_senate_slash_date(_cdata(session_node.find("fecha_sesion")))
+    if not session_number or not session_date:
+        return []
+
+    votations: list[SenateVotation] = []
+    for node in session_node.findall("votacion"):
+        votation_number = parse_int(_cdata(node.find("num_vot")))
+        if not votation_number:
+            continue
+
+        totals = {
+            "presentes": parse_int(_cdata(node.find("tot_presentes"))),
+            "afirmativos": parse_int(_cdata(node.find("tot_afirmativos"))),
+            "negativos": parse_int(_cdata(node.find("tot_negativos"))),
+            "abstenciones": parse_int(_cdata(node.find("tot_abstenciones"))),
+            "no_votan": parse_int(_cdata(node.find("tot_novotan"))),
+            "nulos": parse_int(_cdata(node.find("tot_nulos"))),
+            "ausentes": parse_int(_cdata(node.find("tot_ausentes"))),
+        }
+
+        rows: list[SenateVoteRow] = []
+        for vote_node in node.findall(".//resultado/VotoSenador"):
+            vote = normalize_vote(_cdata(vote_node.find("voto")))
+            if vote not in {"Sí", "No", "Abstención", "No vota"}:
+                continue
+            rows.append(
+                SenateVoteRow(
+                    name=_cdata(vote_node.find("nombre")),
+                    vote=vote,
+                    seat=_cdata(vote_node.find("escano")) or None,
+                    group=_cdata(vote_node.find("grupo")) or None,
+                )
+            )
+
+        for absence_node in node.findall(".//ausentes/ausencia"):
+            rows.append(
+                SenateVoteRow(
+                    name=_cdata(absence_node.find("nombre")),
+                    vote="No vota",
+                    seat=_cdata(absence_node.find("escano")) or None,
+                    group=_cdata(absence_node.find("grupo")) or None,
+                    absent=True,
+                )
+            )
+
+        title = _cdata(node.find("tit_vot")) or f"Votación {votation_number}"
+        subtitle = _cdata(node.find("tit_sec")) or None
+        votations.append(
+            SenateVotation(
+                session_number=session_number,
+                session_date=session_date,
+                votation_number=votation_number,
+                code=_cdata(node.find("CodVotacion")) or None,
+                initiative_number=_cdata(node.find("num_exp")) or None,
+                title=title[:500],
+                subtitle=subtitle,
+                vote_date=parse_senate_vote_date(_cdata(node.find("fecha_v"))),
+                vote_time=_cdata(node.find("hora_vot")) or None,
+                totals=totals,
+                votes=rows,
+                source_url=source_url,
+            )
+        )
+
+    return votations
+
+
+def build_senator_index(cur) -> dict[str, str | None]:
+    cur.execute(
+        """
+        SELECT p.id, p.full_name, p.first_name, p.last_name
+        FROM politicians p
+        JOIN politician_memberships pm ON pm.politician_id = p.id
+        WHERE pm.chamber = 'senate' AND pm.is_active = true
+        """
+    )
+    candidates: dict[str, set[str]] = {}
+    for pid, full, first, last in cur.fetchall():
+        names = {full or ""}
+        if first and last:
+            names.add(f"{first} {last}")
+            names.add(f"{last}, {first}")
+        for name in names:
+            key = normalize_name(name)
+            if key:
+                candidates.setdefault(key, set()).add(pid)
+    return {key: next(iter(ids)) if len(ids) == 1 else None for key, ids in candidates.items()}
+
+
+def upsert_senate_votation(
+    cur,
+    legislature_id: str,
+    votation: SenateVotation,
+    senator_index: dict[str, str | None],
+) -> tuple[int, int]:
+    title = votation.title
+    if votation.subtitle:
+        title = f"{votation.title} - {votation.subtitle[:200]}"
+
+    cur.execute(
+        """
+        INSERT INTO voting_sessions (
+          legislature_id, session_number, date, title, initiative_number, chamber,
+          votacion_number, raw_data
+        ) VALUES (%s, %s, %s::date, %s, %s, 'senate', %s, %s::jsonb)
+        ON CONFLICT (session_number, date, legislature_id, votacion_number, chamber)
+        DO UPDATE SET
+          title = EXCLUDED.title,
+          initiative_number = EXCLUDED.initiative_number,
+          raw_data = EXCLUDED.raw_data
+        RETURNING id
+        """,
+        (
+            legislature_id,
+            votation.session_number,
+            votation.session_date,
+            title[:500],
+            votation.initiative_number,
+            votation.votation_number,
+            psycopg2.extras.Json(
+                {
+                    "source": "senado_static_session_xml",
+                    "source_url": votation.source_url,
+                    "cod_votacion": votation.code,
+                    "vote_date": votation.vote_date,
+                    "vote_time": votation.vote_time,
+                    "totals": votation.totals,
+                }
+            ),
+        ),
+    )
+    sid = cur.fetchone()[0]
+
+    matched = 0
+    unmatched = 0
+    rows = []
+    for vote in votation.votes:
+        pol_id = senator_index.get(normalize_name(vote.name))
+        if not pol_id:
+            unmatched += 1
+            continue
+        rows.append(
+            (
+                sid,
+                pol_id,
+                vote.vote,
+                psycopg2.extras.Json(
+                    {
+                        "source": "senado_static_session_xml",
+                        "source_url": votation.source_url,
+                        "seat": vote.seat,
+                        "group": vote.group,
+                        "name": vote.name,
+                        "absent": vote.absent,
+                    }
+                ),
+            )
+        )
+        matched += 1
+
+    if rows:
+        psycopg2.extras.execute_values(
+            cur,
+            """
+            INSERT INTO votes (voting_session_id, politician_id, vote, raw_data)
+            VALUES %s
+            ON CONFLICT (voting_session_id, politician_id) DO UPDATE SET
+              vote = EXCLUDED.vote,
+              raw_data = EXCLUDED.raw_data
+            """,
+            rows,
+        )
+
+    return matched, unmatched
+
+
+def run(
+    dry_run: bool = False,
+    resume: bool = False,
+    limit: int | None = None,
+    from_session: int = 1,
+    max_session: int = DEFAULT_MAX_SESSION,
+) -> None:
+    urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
+    print(f"Discovered {len(urls)} Senate session XML files")
 
     if dry_run:
-        for s in sessions[:5]:
-            print(f"  · {s.session_number}: {s.title} ({s.vote_xml_path})")
-        indexes = discover_initiative_indexes(limit=3)
-        print(f"Sample initiative vote indexes: {len(indexes)}")
-        for url in indexes:
-            print(f"  · {url}")
+        for url in urls[:5]:
+            xml = curl_text(url)
+            votations = parse_senate_session_vote_xml(xml, source_url=url)
+            vote_count = sum(len(v.votes) for v in votations)
+            print(f"  · {url}: {len(votations)} votaciones, {vote_count} votos nominales")
         return
 
     conn = get_pg_conn()
@@ -163,55 +525,57 @@ def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -
                 raise RuntimeError("Legislature XV not found in DB")
             legislature_id = row[0]
 
-            run_id = start_run(cur, pipeline="senado.votaciones", chunk_key="catalog")
+            run_id = start_run(cur, pipeline="senado.votaciones", chunk_key="nominal")
             conn.commit()
 
-            inserted = 0
-            for i, session in enumerate(sessions, 1):
-                if resume:
+            senator_index = build_senator_index(cur)
+            rows_read = 0
+            rows_inserted = 0
+            rows_unmatched = 0
+            for i, url in enumerate(urls, 1):
+                xml = curl_text(url)
+                votations = parse_senate_session_vote_xml(xml, source_url=url)
+                if resume and votations:
                     cur.execute(
                         """
-                        SELECT 1 FROM voting_sessions
-                        WHERE legislature_id = %s AND chamber = 'senate'
-                          AND session_number = %s
+                        SELECT 1
+                        FROM voting_sessions vs
+                        JOIN votes v ON v.voting_session_id = vs.id
+                        WHERE vs.legislature_id = %s
+                          AND vs.chamber = 'senate'
+                          AND vs.session_number = %s
                         LIMIT 1
                         """,
-                        (legislature_id, session.session_number),
+                        (legislature_id, votations[0].session_number),
                     )
                     if cur.fetchone():
                         continue
 
-                session_date = parse_senate_date_label(session.session_date) or "2023-08-17"
-                cur.execute(
-                    """
-                    INSERT INTO voting_sessions (
-                      legislature_id, session_number, date, title, chamber,
-                      votacion_number, raw_data
-                    ) VALUES (%s, %s, %s::date, %s, 'senate', 1, %s::jsonb)
-                    ON CONFLICT (session_number, date, legislature_id, votacion_number, chamber)
-                    DO NOTHING
-                    """,
-                    (
-                        legislature_id,
-                        session.session_number,
-                        session_date,
-                        session.title[:500],
-                        psycopg2.extras.Json(
-                            {
-                                "senate_vote_xml_path": session.vote_xml_path,
-                                "senate_session_date_label": session.session_date,
-                                "source": "senado_ficopendataservlet_tipoFich_14",
-                            }
-                        ),
-                    ),
-                )
-                inserted += cur.rowcount
-                if i % 10 == 0:
-                    print(f"  indexed {i}/{len(sessions)} sessions")
-            conn.commit()
+                session_read = sum(len(v.votes) for v in votations)
+                session_inserted = 0
+                session_unmatched = 0
+                for votation in votations:
+                    matched, unmatched = upsert_senate_votation(cur, legislature_id, votation, senator_index)
+                    session_inserted += matched
+                    session_unmatched += unmatched
+                conn.commit()
 
-            finish_run(cur, run_id=run_id, status="succeeded",
-                       rows_read=len(sessions), rows_inserted=inserted)
+                rows_read += session_read
+                rows_inserted += session_inserted
+                rows_unmatched += session_unmatched
+                print(
+                    f"  {i}/{len(urls)} {url.rsplit('/', 1)[-1]}: "
+                    f"{len(votations)} votaciones, {session_inserted}/{session_read} matched"
+                )
+
+            finish_run(
+                cur,
+                run_id=run_id,
+                status="succeeded",
+                rows_read=rows_read,
+                rows_inserted=rows_inserted,
+                rows_updated=rows_unmatched,
+            )
             conn.commit()
     except Exception as exc:
         if run_id:
@@ -222,7 +586,7 @@ def run(dry_run: bool = False, resume: bool = False, limit: int | None = None) -
     finally:
         conn.close()
 
-    print("Senate session index complete (votes per senator pending XML endpoint).")
+    print(f"Senate nominal vote ingestion complete ({rows_inserted} matched, {rows_unmatched} unmatched).")
 
 
 def main() -> None:
@@ -230,8 +594,16 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--from-session", type=int, default=1)
+    parser.add_argument("--max-session", type=int, default=DEFAULT_MAX_SESSION)
     args = parser.parse_args()
-    run(dry_run=args.dry_run, resume=args.resume, limit=args.limit)
+    run(
+        dry_run=args.dry_run,
+        resume=args.resume,
+        limit=args.limit,
+        from_session=args.from_session,
+        max_session=args.max_session,
+    )
 
 
 if __name__ == "__main__":

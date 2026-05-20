@@ -104,11 +104,14 @@ coverage.
 
 ### Senate Votes
 
-The Senate page currently indexes senators and plenary sessions, but individual
-senator vote ingestion is pending a stable source endpoint.
+The Senate vote ETL now parses official static XML exports such as
+`/legis15/votaciones/ses_N.xml`, including individual senator votes and
+absences. Coverage should still be claimed only after the ETL has run and match
+counts have been measured in the database.
 
-- Verify the official XML endpoint and sample payloads first.
-- Only then add individual vote ingestion.
+- Run `PYTHONPATH=src python -m src.senado.votaciones --resume` after applying
+  the latest migrations.
+- Check matched vs unmatched senator counts from the ETL output.
 - Do not claim individual Senate vote coverage until measured.
 
 ### CCAA And Municipal Drilldowns

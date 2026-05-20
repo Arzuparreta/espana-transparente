@@ -24,6 +24,35 @@ export const getSenateSessionCount = unstable_cache(
   { revalidate: HOUR }
 )
 
+export const getSenateNominalVoteStats = unstable_cache(
+  async (): Promise<{ sessionsWithVotes: number; voteRows: number }> => {
+    try {
+      const [sessions, votes] = await Promise.all([
+        supabase
+          .from("v_voting_session_summary")
+          .select("*", { count: "exact", head: true })
+          .eq("chamber", "senate")
+          .gt("vote_count", 0),
+        supabase
+          .from("votes")
+          .select("id, voting_sessions!inner(chamber)", { count: "exact", head: true })
+          .eq("voting_sessions.chamber", "senate"),
+      ])
+      if (sessions.error) console.error("getSenateNominalVoteStats sessions:", sessions.error.message)
+      if (votes.error) console.error("getSenateNominalVoteStats votes:", votes.error.message)
+      return {
+        sessionsWithVotes: sessions.count ?? 0,
+        voteRows: votes.count ?? 0,
+      }
+    } catch (err) {
+      console.error("getSenateNominalVoteStats:", err)
+      return { sessionsWithVotes: 0, voteRows: 0 }
+    }
+  },
+  ["senate-nominal-vote-stats"],
+  { revalidate: HOUR }
+)
+
 export const getSenators = unstable_cache(
   async () => {
     const { data, error } = await supabase

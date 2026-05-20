@@ -143,6 +143,7 @@ export {
   getSenators,
   getSenatorStats,
   getSenateSessionCount,
+  getSenateNominalVoteStats,
 } from "./senado"
 
 // ── ETL status ───────────────────────────────────────────────────────────────

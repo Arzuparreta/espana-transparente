@@ -5,7 +5,14 @@ import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
-import { getSenators, getSenatorStats, getSenateSessionCount, getEtlLastFinished, type Senator } from "@/lib/data"
+import {
+  getSenators,
+  getSenatorStats,
+  getSenateSessionCount,
+  getSenateNominalVoteStats,
+  getEtlLastFinished,
+  type Senator,
+} from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 6
@@ -90,12 +97,14 @@ function SenatorCard({ senator }: { senator: Senator }) {
 }
 
 export default async function SenadoPage() {
-  const [senators, stats, sessionCount, lastChecked] = await Promise.all([
+  const [senators, stats, sessionCount, voteStats, lastChecked] = await Promise.all([
     getSenators(),
     getSenatorStats(),
     getSenateSessionCount(),
-    getEtlLastFinished(["senado.senadores"]),
+    getSenateNominalVoteStats(),
+    getEtlLastFinished(["senado.senadores", "senado.votaciones"]),
   ])
+  const hasNominalVotes = voteStats.voteRows > 0
 
   const byConstituency = new Map<string, Senator[]>()
   for (const s of senators) {
@@ -121,7 +130,11 @@ export default async function SenadoPage() {
         sourceLabel="Senado de España"
         sourceHref="https://www.senado.es"
         lastChecked={lastChecked}
-        coverageLabel={`${stats.total} senadores activos${sessionCount > 0 ? ` · ${sessionCount} sesiones indexadas` : ""} · votos nominales pendientes de fuente estable`}
+        coverageLabel={`${stats.total} senadores activos${sessionCount > 0 ? ` · ${sessionCount} sesiones indexadas` : ""}${
+          hasNominalVotes
+            ? ` · ${voteStats.voteRows.toLocaleString("es-ES")} votos nominales`
+            : " · votos nominales pendientes de ingestión medida"
+        }`}
       />
 
       <StatGrid
@@ -134,9 +147,9 @@ export default async function SenadoPage() {
       />
 
       <p className="text-xs leading-5 text-muted-foreground">
-        Las votaciones nominales del Senado están disponibles en datos abiertos (XML), pero el
-        endpoint de descarga masiva devuelve errores intermitentes. Las sesiones están indexadas;
-        los votos por senador se incorporarán cuando el servicio sea estable.
+        {hasNominalVotes
+          ? `Votaciones nominales incorporadas desde XML oficial del Senado en ${voteStats.sessionsWithVotes.toLocaleString("es-ES")} votaciones.`
+          : "Sesiones del Senado indexadas. Las votaciones nominales se mostrarán cuando el ciclo de ingestión incorpore votos por senador."}
       </p>
 
       {stats.byGroup.length > 0 && (
