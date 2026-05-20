@@ -3,6 +3,7 @@ import { AnchorCard } from "@/components/domain/AnchorCard"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionIndexCard } from "@/components/domain/SectionIndexCard"
+import { SectionIcon, groupIconName, sectionIconForKey } from "@/components/brand/SectionIcon"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
@@ -229,29 +230,36 @@ export default async function HomePage() {
           </ResponsiveLink>
         </div>
 
-        {ATLAS_GROUPS.map((group) => (
-          <div key={group.label} className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-              {group.label}
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {group.items.map((item) => {
-                const facts = sectionFacts.get(item.countKey)
-                return (
-                  <SectionIndexCard
-                    key={item.href}
-                    href={item.href}
-                    label={item.label}
-                    description={item.description}
-                    count={facts?.count ?? null}
-                    countUnit={item.countUnit}
-                    latestDate={facts?.latestDate ?? null}
-                  />
-                )
-              })}
+        {ATLAS_GROUPS.map((group) => {
+          const groupIcon = groupIconName(group.label)
+          return (
+            <div key={group.label} className="space-y-3">
+              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                {groupIcon ? (
+                  <SectionIcon name={groupIcon} size={16} className="text-foreground/80" />
+                ) : null}
+                {group.label}
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {group.items.map((item) => {
+                  const facts = sectionFacts.get(item.countKey)
+                  return (
+                    <SectionIndexCard
+                      key={item.href}
+                      href={item.href}
+                      label={item.label}
+                      description={item.description}
+                      count={facts?.count ?? null}
+                      countUnit={item.countUnit}
+                      latestDate={facts?.latestDate ?? null}
+                      icon={sectionIconForKey(item.countKey)}
+                    />
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </section>
 
       {/* Votaciones recientes */}
