@@ -108,6 +108,48 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 - **Buttons:** Primary uses signal background with `#0B0B0A` text. Secondary uses border-only. Ghost uses no border. All 2px radius.
 - **Profile/record cards:** Surname uppercase in Cabinet Grotesk. Fields in a grid with Geist Mono values. Alert for divergences in signal-dim background.
 
+### Shared UI Primitives
+
+- `PageHeader`: route/title header with context and actions.
+- `PartyBadge`: canonical party acronym/color surface.
+- `VoteBadge`: canonical vote type surface.
+- `ExceptionBadge`: divergence/anomaly count surface.
+- `StatGrid`: responsive stats.
+- `SectionTabs`: tab navigation; do not copy tabs inline.
+- `InfoPanel`: factual explanation/source panels.
+- `SourceFootnote`: source, freshness and coverage footer.
+- `ContextTrail`: in-UI recovery and related-record trail for detail pages.
+
+### Layout Rules
+
+- No UI may depend on horizontal scroll to work on mobile.
+- Any row with variable text plus badges/actions needs `min-w-0` on the flexible block and `shrink-0` on metadata/actions.
+- Do not define vote or party color maps locally; use `web/src/lib/domain-style.ts`.
+- Do not use fixed-width patches such as arbitrary `max-w-[200px]` to hide truncation problems.
+- Prefer shared primitives before writing one-off cards, badges, tabs, and metrics.
+
+## Brand Assets
+
+The symbol is a descending structure that concentrates attention on a final
+point. Use it as a data-portal mark, not as a partisan or institutional symbol.
+
+| Use | Asset | Size |
+| --- | --- | --- |
+| UI header | `LogoMark` | 28-32 px |
+| Hero / presentation | `LogoMark` | 72-96 px |
+| Favicon | `web/public/favicon.svg` + `web/public/favicon.ico` | 16, 32, 48 px |
+| Apple touch icon | `web/public/apple-touch-icon.png` | 180 x 180 px |
+| Web app icons | `web/public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` | PWA standard |
+| Open Graph | `web/public/brand/og-image.png` | 1200 x 630 px |
+| GitHub / README | `web/public/brand/github-banner.svg` | 1280 x 640 px |
+| Isolated mark | `web/public/brand/espana-transparente-mark.svg` | SVG |
+
+Rules:
+
+- Use `LogoMark` in UI; do not paste copied SVGs into components.
+- Do not combine the mark with shields, flags, or party acronyms.
+- Use the current signal token from this document; do not revive the old red signal palette.
+
 ## Creative Risks (consciously chosen)
 
 1. **Geist Mono for ALL numeric data** — not just code. Every number in every context: tables, stat cards, contract amounts, vote counts. Makes data feel like audit evidence rather than dashboard metrics.
@@ -141,3 +183,4 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 | 2026-05-18 | Remove background grid | 44px grid softened the aesthetic; removing it sharpens the forensic register |
 | 2026-05-18 | Remove card hover-float | Too playful for this aesthetic direction |
 | 2026-05-18 | 2px border radius | Near-zero softness everywhere |
+| 2026-05-20 | Root docs flattened into `NEXT.md` + `DESIGN.md` | Keep active product/design truth in durable docs instead of shipped sprint artifacts |

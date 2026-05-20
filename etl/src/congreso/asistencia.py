@@ -10,6 +10,7 @@ Usage:
     PYTHONPATH=src python -m src.congreso.asistencia
     PYTHONPATH=src python -m src.congreso.asistencia --dry-run
     PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
+    PYTHONPATH=src python -m src.congreso.asistencia --resume
 """
 
 import argparse
@@ -189,7 +190,10 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
     return vote_count
 
 
-def run(dry_run: bool = False, from_date: int | None = None) -> None:
+def run(dry_run: bool = False, from_date: int | None = None, resume: bool = False) -> None:
+    # The pipeline already resumes idempotently by skipping sessions present in
+    # voting_sessions. The flag keeps long ETL CLIs operationally consistent.
+    _ = resume
     conn = get_pg_conn()
     try:
         cur = conn.cursor()
@@ -255,9 +259,15 @@ def run(dry_run: bool = False, from_date: int | None = None) -> None:
         conn.close()
 
 
-if __name__ == "__main__":
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="discover sessions without ingesting")
     parser.add_argument("--from-date", type=int, metavar="YYYYMMDD", help="start from this date")
+    parser.add_argument("--resume", action="store_true", help="accepted for ETL CLI consistency; existing sessions are skipped")
+    return parser
+
+
+if __name__ == "__main__":
+    parser = build_arg_parser()
     args = parser.parse_args()
-    run(dry_run=args.dry_run, from_date=args.from_date)
+    run(dry_run=args.dry_run, from_date=args.from_date, resume=args.resume)
