@@ -3,6 +3,27 @@ import { unstable_cache, HOUR, type Senator } from "./shared"
 
 export type { Senator }
 
+export const getSenateSessionCount = unstable_cache(
+  async (): Promise<number> => {
+    try {
+      const { count, error } = await supabase
+        .from("voting_sessions")
+        .select("*", { count: "exact", head: true })
+        .eq("chamber", "senate")
+      if (error) {
+        console.error("getSenateSessionCount:", error.message)
+        return 0
+      }
+      return count ?? 0
+    } catch (err) {
+      console.error("getSenateSessionCount:", err)
+      return 0
+    }
+  },
+  ["senate-session-count"],
+  { revalidate: HOUR }
+)
+
 export const getSenators = unstable_cache(
   async () => {
     const { data, error } = await supabase

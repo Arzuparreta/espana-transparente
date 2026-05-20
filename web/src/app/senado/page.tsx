@@ -5,7 +5,7 @@ import { StatGrid } from "@/components/domain/StatGrid"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
-import { getSenators, getSenatorStats, type Senator } from "@/lib/data"
+import { getSenators, getSenatorStats, getSenateSessionCount, getEtlLastFinished, type Senator } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
 export const revalidate = 3600 * 6
@@ -90,7 +90,12 @@ function SenatorCard({ senator }: { senator: Senator }) {
 }
 
 export default async function SenadoPage() {
-  const [senators, stats] = await Promise.all([getSenators(), getSenatorStats()])
+  const [senators, stats, sessionCount, lastChecked] = await Promise.all([
+    getSenators(),
+    getSenatorStats(),
+    getSenateSessionCount(),
+    getEtlLastFinished(["senado.senadores"]),
+  ])
 
   const byConstituency = new Map<string, Senator[]>()
   for (const s of senators) {
@@ -115,7 +120,8 @@ export default async function SenadoPage() {
       <SourceFootnote
         sourceLabel="Senado de España"
         sourceHref="https://www.senado.es"
-        coverageLabel={`${stats.total} senadores activos · votaciones del Senado en ingestión`}
+        lastChecked={lastChecked}
+        coverageLabel={`${stats.total} senadores activos${sessionCount > 0 ? ` · ${sessionCount} sesiones indexadas` : ""} · votos nominales pendientes de fuente estable`}
       />
 
       <StatGrid
@@ -128,8 +134,9 @@ export default async function SenadoPage() {
       />
 
       <p className="text-xs leading-5 text-muted-foreground">
-        Las votaciones nominales del Senado se publican en datos abiertos (XML). El pipeline
-        de ingestión está en curso: la sección Votaciones del portal muestra hoy el Congreso.
+        Las votaciones nominales del Senado están disponibles en datos abiertos (XML), pero el
+        endpoint de descarga masiva devuelve errores intermitentes. Las sesiones están indexadas;
+        los votos por senador se incorporarán cuando el servicio sea estable.
       </p>
 
       {stats.byGroup.length > 0 && (

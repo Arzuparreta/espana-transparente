@@ -63,7 +63,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
         sourceHref="https://www.congreso.es"
         lastChecked={lastChecked}
         latestRecordDate={latestRecordDate}
-        coverageLabel={`${total.toLocaleString("es-ES")} sesiones publicadas`}
+        coverageLabel={`${total.toLocaleString("es-ES")} sesiones · Congreso de los Diputados`}
       />
 
       <div className="space-y-3">
