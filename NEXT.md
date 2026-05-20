@@ -59,9 +59,6 @@ These are the next work items before large expansion.
 - Add `--resume` compatibility to `src.congreso.asistencia`. The pipeline
   already skips existing sessions; the CLI should accept the flag so long runs
   are operationally consistent with contracts, subsidies, budgets, and Senate.
-- Extend ETL status coverage. High-priority pipelines for status visibility:
-  `congreso.asistencia`, `senado.votaciones`, `kohesio.fondos_ue`, and
-  `common.search_refresh`.
 - Keep Congress/Senate request delays at 1.5s and do not parallelize those
   portals. They rate-limit aggressively.
 

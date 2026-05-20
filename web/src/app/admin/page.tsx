@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
 import { AdminLoginForm } from "./login-form"
 
 export const dynamic = "force-dynamic"
@@ -46,21 +47,6 @@ interface PipelineRow {
 }
 
 // ── Labels ─────────────────────────────────────────────────────────────────────
-
-const PIPELINE_LABELS: Record<string, string> = {
-  "congreso.diputados": "Diputados",
-  "congreso.asistencia": "Asistencia y votaciones",
-  "congreso.cods": "Expedientes (CODs)",
-  "congreso.declaraciones": "Declaraciones económicas",
-  "congreso.gobierno": "Gobierno",
-  "congreso.responsables": "Responsables",
-  "ine.indicadores": "Indicadores INE",
-  "contratacion.contratos": "Contratos PCSP",
-  "bdns.subvenciones": "Subvenciones BDNS",
-  "photos.run": "Fotos",
-  "puertas_giratorias": "Puertas giratorias",
-  "kohesio": "Fondos UE",
-}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -349,7 +335,7 @@ export default async function AdminPage() {
             {failedPipelines.length > 0 && (
               <li>
                 {failedPipelines.length} pipeline{failedPipelines.length !== 1 ? "s" : ""} ETL con error:{" "}
-                {failedPipelines.map((p) => PIPELINE_LABELS[p.pipeline] ?? p.pipeline).join(", ")}
+                {failedPipelines.map((p) => getEtlPipelineLabel(p.pipeline)).join(", ")}
               </li>
             )}
           </ul>
@@ -540,7 +526,7 @@ export default async function AdminPage() {
               </thead>
               <tbody>
                 {pipelines.map((p) => {
-                  const label = PIPELINE_LABELS[p.pipeline] ?? p.pipeline
+                  const label = getEtlPipelineLabel(p.pipeline)
                   const finishedAt = p.last_finished_at
                     ? new Date(p.last_finished_at).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
                     : "—"
