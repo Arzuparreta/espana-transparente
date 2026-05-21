@@ -90,7 +90,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
         <div className="flex shrink-0 items-center gap-2">
           {member.has_revolving_door && (
             <ResponsiveLink
-              href="/puertas-giratorias"
+              href={member.politician_id ? `/puertas-giratorias#person-${member.politician_id}` : "/puertas-giratorias"}
               className="rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent"
             >
               Puerta giratoria →

@@ -59,7 +59,9 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
               ) : (
                 <Card>
                   <CardContent className="space-y-3 p-4 sm:p-6">
-                    {filtered.map((entry, index) => {
+                    {(() => {
+                      const seenPersonIds = new Set<string>()
+                      return filtered.map((entry, index) => {
                       const GENERIC_SOURCE = "es.wikipedia.org/wiki/Puerta_giratoria"
                       const primarySource = (() => {
                         const url =
@@ -79,9 +81,13 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
                         <span className="truncate font-medium">{entry.person_name}</span>
                       )
 
+                      const isFirstForPerson = !!entry.person_id && !seenPersonIds.has(entry.person_id)
+                      if (entry.person_id) seenPersonIds.add(entry.person_id)
+
                       return (
                         <div
                           key={`${entry.person_name}-${entry.private_organization}-${index}`}
+                          id={isFirstForPerson ? `person-${entry.person_id}` : undefined}
                           className="rounded-xl border border-border/60 bg-background/70 px-3 py-3 text-xs sm:text-sm"
                         >
                           <div className="min-w-0 flex-1">
@@ -136,7 +142,8 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
                           </div>
                         </div>
                       )
-                    })}
+                    })
+                    })()}
                   </CardContent>
                 </Card>
               )}

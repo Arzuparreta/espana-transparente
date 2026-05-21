@@ -23,7 +23,7 @@ export const getOrganizationPageData = unstable_cache(
         supabase
           .from("contracts")
           .select("id, title, amount, date, source_url")
-          .eq("awarding_body_organization_id", id)
+          .or(`awarding_body_organization_id.eq.${id},contractor_organization_id.eq.${id}`)
           .order("date", { ascending: false })
           .limit(20),
         supabase

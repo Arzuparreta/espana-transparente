@@ -108,6 +108,13 @@
   }
 }
 
+@keyframes rd-highlight-pulse {
+  0%   { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); background-color: transparent; }
+  15%  { box-shadow: 0 0 0 3px hsl(var(--accent) / 0.35); background-color: hsl(var(--accent) / 0.08); }
+  85%  { box-shadow: 0 0 0 3px hsl(var(--accent) / 0.10); background-color: hsl(var(--accent) / 0.03); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); background-color: transparent; }
+}
+
 @keyframes marquee {
   from {
     transform: translate3d(0, 0, 0);
@@ -152,6 +159,18 @@
     button [data-slot="card"] {
       transition: none;
       transform: none !important;
+    }
+  }
+
+  .rd-highlight {
+    animation: rd-highlight-pulse 2s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-highlight {
+      animation: none;
+      outline: 2px solid hsl(var(--accent) / 0.5);
+      outline-offset: 2px;
     }
   }
 

@@ -69,7 +69,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
 
       <StatGrid
         items={[
-          { label: "Contratos", value: organization.contract_count, hint: "Expedientes donde figura como órgano contratante." },
+          { label: "Contratos", value: organization.contract_count, hint: "Expedientes donde figura como órgano contratante o adjudicataria." },
           { label: "Subvenciones recibidas", value: organization.subsidy_beneficiary_count, hint: "Concesiones donde figura como beneficiaria." },
           { label: "Subvenciones concedidas", value: organization.subsidy_granting_count, hint: "Concesiones donde figura como órgano concedente." },
           { label: "Puertas giratorias", value: organization.revolving_door_count, hint: "Movimientos publicados asociados a esta organización." },
@@ -102,11 +102,11 @@ export default async function OrganizacionPage({ params }: PageProps) {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Contratos recientes</CardTitle>
+            <CardTitle className="text-base">Contratos vinculados</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {contracts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin contratos enlazados.</p>
+              <p className="text-sm text-muted-foreground">Sin contratos vinculados.</p>
             ) : (
               contracts.map((contract) => (
                 <div key={contract.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
