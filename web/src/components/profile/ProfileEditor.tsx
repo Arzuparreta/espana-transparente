@@ -60,7 +60,8 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
     setMessage("")
 
     const normalizedHandle = normalizeHandle(handle)
-    const cleanedWebsite = websiteUrl.trim()
+    // Normalize scheme to lowercase so it satisfies the case-sensitive DB constraint.
+    const cleanedWebsite = websiteUrl.trim().replace(/^https?:\/\//i, (m) => m.toLowerCase())
     const nextIsPublic = isPublic
 
     if (normalizedHandle && !HANDLE_RE.test(normalizedHandle)) {
@@ -75,7 +76,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
       return
     }
 
-    if (cleanedWebsite && !/^https?:\/\//i.test(cleanedWebsite)) {
+    if (cleanedWebsite && !/^https?:\/\//.test(cleanedWebsite)) {
       setError("La web debe empezar por http:// o https://.")
       setSaving(false)
       return
@@ -99,18 +100,23 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
       .single()
 
     if (saveError) {
+      console.error("[ProfileEditor] upsert error:", saveError)
       if (saveError.code === "23505") {
         setError("Ese identificador ya está en uso.")
       } else {
-        setError("No se pudo guardar el perfil.")
+        setError(`No se pudo guardar el perfil. (${saveError.code ?? saveError.message})`)
       }
       setSaving(false)
       return
     }
 
-    await supabase
+    const { error: settingsError } = await supabase
       .from("user_profile_settings")
       .upsert({ user_id: initialData.user.id, settings: initialData.settings.settings ?? {} })
+
+    if (settingsError) {
+      console.error("[ProfileEditor] settings upsert error:", settingsError)
+    }
 
     setProfile(data as UserProfile)
     setMessage("Perfil guardado.")
