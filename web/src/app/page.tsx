@@ -10,6 +10,12 @@ import {
   getLatestInflationAnchor,
   getSectionIndex,
   getTopContractOfMonth,
+  getHomeHeroAnchor,
+  getEtlFreshnessSummary,
+  type HomeHeroAnchor,
+  type SessionDivergenceExample,
+  type TopContractAncla,
+  type InflationAnchor,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 import { ATLAS_GROUPS } from "@/lib/nav-config"
@@ -56,26 +62,47 @@ function formatPeriod(period: string): string {
   })
 }
 
+function formatFreshness(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).toUpperCase()
+}
+
+function formatCount(n: number): string {
+  return n.toLocaleString("es-ES")
+}
+
 function SectionHeader({
+  eyebrow,
   title,
   subtitle,
   href,
   linkLabel = "Ver todo →",
 }: {
+  eyebrow?: string
   title: string
   subtitle?: string
   href: string
   linkLabel?: string
 }) {
   return (
-    <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+    <div className="mb-5 flex min-w-0 items-end justify-between gap-3">
       <div className="min-w-0">
-        <h2 className="font-display text-2xl font-black uppercase tracking-[-0.02em]">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
+        {eyebrow ? (
+          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl">
+          {title}
+        </h2>
+        {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       <ResponsiveLink
         href={href}
-        className="inline-flex shrink-0 items-center py-2.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        className="inline-flex shrink-0 items-end py-2 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
       >
         {linkLabel}
       </ResponsiveLink>
@@ -83,18 +110,42 @@ function SectionHeader({
   )
 }
 
+function FreshnessLine({
+  latestFinishedAt,
+  pipelineCount,
+}: {
+  latestFinishedAt: string | null
+  pipelineCount: number
+}) {
+  if (!latestFinishedAt && pipelineCount === 0) return null
+  const dateStr = latestFinishedAt ? formatFreshness(latestFinishedAt) : null
+  return (
+    <ResponsiveLink
+      href="/estado-datos"
+      className="block font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
+    >
+      Datos actualizados{dateStr ? ` · ${dateStr}` : ""} · {pipelineCount}{" "}
+      {pipelineCount === 1 ? "fuente sincronizada" : "fuentes sincronizadas"}
+    </ResponsiveLink>
+  )
+}
+
 export default async function HomePage() {
   const [
-    { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
+    { parties, recentSessions, sessionDivergenceExamples, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear, sessionCount },
     topContract,
     inflation,
     sectionIndex,
+    freshness,
   ] = await Promise.all([
     getHomeData(),
     getTopContractOfMonth(),
     getLatestInflationAnchor(),
     getSectionIndex(),
+    getEtlFreshnessSummary(),
   ])
+
+  const heroAnchor = await getHomeHeroAnchor(deudaPerCapita, deudaYear, topContract, inflation)
 
   const sectionFacts = new Map(
     sectionIndex.map((row) => [
@@ -103,73 +154,63 @@ export default async function HomePage() {
     ])
   )
 
+  const secondaryAnchors = buildSecondaryAnchors(heroAnchor, deudaPerCapita, deudaYear, topContract, inflation)
+  const gobiernoCount = sectionFacts.get("gobierno")?.count ?? gobierno.length
+  const revolvingDoorCount = sectionFacts.get("puertas_giratorias")?.count ?? null
+
   return (
     <div className="space-y-10 sm:space-y-14">
-      <LogoHero parties={parties ?? []} />
-
-      {/* Anclas hero — mismo primitive, identidad por repetición */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        {deudaPerCapita != null && (
-          <AnchorCard
-            label={`Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`}
-            value={`${deudaPerCapita.toLocaleString("es-ES")} €`}
-            description="Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población."
-            source="Fuente: Eurostat (criterio de Maastricht)."
-            href="/indicadores"
-            linkLabel="Ver indicadores →"
-          />
-        )}
-
-        {topContract && topContract.amount != null && (
-          <AnchorCard
-            label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
-            value={formatAmount(topContract.amount)}
-            description={
-              <>
-                <span className="line-clamp-2 font-medium text-foreground">
-                  {topContract.title}
-                </span>
-                {topContract.awarding_body ? (
-                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
-                    {topContract.awarding_body}
-                    {topContract.date ? ` · ${formatDate(topContract.date)}` : ""}
-                  </span>
-                ) : null}
-              </>
-            }
-            href={`/contratos/${topContract.id}`}
-            linkLabel="Ver contrato →"
-          />
-        )}
-
-        {inflation ? (
-          <AnchorCard
-            label={`IPC mensual · ${formatPeriod(inflation.period)}`}
-            value={formatPercent(inflation.monthlyValue)}
-            description={
-              <>
-                <span className="line-clamp-2 font-medium text-foreground">
-                  Variación mensual del índice general de precios.
-                </span>
-                <span className="mt-1 block text-xs text-muted-foreground">
-                  {inflation.annualValue != null
-                    ? `Variación anual: ${formatPercent(inflation.annualValue)}`
-                    : "Serie mensual nacional"}
-                  {inflation.dataType ? ` · ${inflation.dataType}` : ""}
-                </span>
-              </>
-            }
-            source="Fuente: INE, serie nacional del IPC."
-            href="/indicadores/IPC_VAR_MENSUAL"
-            linkLabel="Ver serie →"
-          />
-        ) : null}
+      <div className="space-y-3">
+        <LogoHero parties={parties ?? []} anchor={heroAnchor} />
+        <FreshnessLine
+          latestFinishedAt={freshness.latestFinishedAt}
+          pipelineCount={freshness.pipelineCount}
+        />
       </div>
 
-      {/* Gobierno */}
+      {secondaryAnchors.length > 0 && (
+        <section>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            Otros anclajes
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {secondaryAnchors.map((a) => (
+              <AnchorCard
+                key={a.kind}
+                variant="compact"
+                label={a.label}
+                value={a.value}
+                description={
+                  a.kind === "contract" ? (
+                    <>
+                      <span className="line-clamp-2 font-medium text-foreground">{a.resolver}</span>
+                      {a.resolverDetail ? (
+                        <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                          {a.resolverDetail}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    a.resolver
+                  )
+                }
+                source={"source" in a ? a.source : undefined}
+                href={a.href}
+                linkLabel={a.hrefLabel}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {gobierno.length > 0 && (
         <section>
-          <SectionHeader title="Gobierno" href="/gobierno" linkLabel="Gabinete completo →" />
+          <SectionHeader
+            eyebrow="Miembros del ejecutivo"
+            title="Gobierno"
+            href="/gobierno"
+            linkLabel={gobiernoCount ? `Gabinete completo (${formatCount(gobiernoCount)}) →` : "Gabinete completo →"}
+          />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {gobierno.map((m) => {
               const color = getPartyColor(m.party_color)
@@ -211,13 +252,15 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Qué hay aquí — mapa del portal */}
       <section aria-labelledby="atlas-heading" className="space-y-6">
         <div className="flex min-w-0 items-end justify-between gap-3">
           <div className="min-w-0">
+            <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+              Atlas del portal
+            </p>
             <h2
               id="atlas-heading"
-              className="font-display text-2xl font-black uppercase tracking-[-0.02em]"
+              className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
             >
               Qué hay aquí
             </h2>
@@ -262,48 +305,62 @@ export default async function HomePage() {
         })}
       </section>
 
-      {/* Votaciones recientes */}
       {recentSessions.length > 0 && (
         <section>
           <SectionHeader
+            eyebrow="Sesiones recientes"
             title="Votaciones"
             subtitle="Sesiones del Congreso con diputados que votaron diferente a su grupo"
             href="/votaciones"
+            linkLabel={sessionCount ? `Ver las ${formatCount(sessionCount)} votaciones →` : "Ver todas →"}
           />
           <ul className="space-y-2">
-            {recentSessions.map((s) => (
-              <li key={s.id as string}>
-                <EntityLink
-                  kind="voting-session"
-                  id={s.id as string}
-                  className="flex min-w-0 items-baseline justify-between gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
-                >
-                  <span className="min-w-0 truncate font-medium">{s.title as string}</span>
-                  <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                    {(s.divergence_count as number) > 0 && (
-                      <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                        {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
+            {recentSessions.map((s) => {
+              const sessionId = s.id as string
+              const example = sessionDivergenceExamples?.[sessionId]
+              const divergenceCount = (s.divergence_count as number) ?? 0
+              return (
+                <li key={sessionId}>
+                  <EntityLink
+                    kind="voting-session"
+                    id={sessionId}
+                    className="flex min-w-0 flex-col gap-1.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
+                  >
+                    <div className="flex min-w-0 items-baseline justify-between gap-4">
+                      <span className="min-w-0 truncate font-medium">{s.title as string}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {divergenceCount > 0 && (
+                          <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+                            {divergenceCount} divergencia{divergenceCount !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {new Date(s.date as string).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </span>
-                    )}
-                    {new Date(s.date as string).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                </EntityLink>
-              </li>
-            ))}
+                    </div>
+                    {example ? <DivergenceTrace example={example} /> : null}
+                  </EntityLink>
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}
 
-      {/* Puertas giratorias */}
       {revolvingDoorCases.length > 0 && (
         <section>
           <SectionHeader
-            title="Puertas giratorias verificadas"
+            eyebrow="Casos verificados"
+            title="Puertas giratorias"
             subtitle="Cargos públicos que pasaron al sector privado tras dejar sus funciones"
             href="/puertas-giratorias"
+            linkLabel={
+              revolvingDoorCount
+                ? `Ver los ${formatCount(revolvingDoorCount)} casos →`
+                : "Ver todos los casos →"
+            }
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {revolvingDoorCases.map((c) => (
@@ -326,4 +383,83 @@ export default async function HomePage() {
       )}
     </div>
   )
+}
+
+function DivergenceTrace({ example }: { example: SessionDivergenceExample }) {
+  // Reformat "APELLIDOS, Nombre" already-canonical surname-first names.
+  const nameDisplay = example.full_name.includes(",")
+    ? example.full_name
+    : (() => {
+        // Heuristic for "Nombre Apellidos" → "APELLIDOS, Nombre" (best-effort).
+        const parts = example.full_name.trim().split(/\s+/)
+        if (parts.length < 2) return example.full_name
+        const given = parts[0]
+        const surname = parts.slice(1).join(" ")
+        return `${surname.toUpperCase()}, ${given}`
+      })()
+  const majorityFragment = example.party_majority
+    ? ` · su grupo votó ${example.party_majority}`
+    : ""
+  return (
+    <p className="font-mono text-[11px] leading-snug text-muted-foreground">
+      <span className="text-accent">▲</span>{" "}
+      <span className="text-foreground">{nameDisplay}</span>
+      {example.party_acronym ? <span> ({example.party_acronym})</span> : null}{" "}
+      votó {example.vote}
+      {majorityFragment}
+    </p>
+  )
+}
+
+function buildSecondaryAnchors(
+  heroAnchor: HomeHeroAnchor | null,
+  deudaPerCapita: number | null,
+  deudaYear: string | null,
+  topContract: TopContractAncla | null,
+  inflation: InflationAnchor | null
+): HomeHeroAnchor[] {
+  const out: HomeHeroAnchor[] = []
+  const usedKind = heroAnchor?.kind
+
+  if (usedKind !== "deuda" && deudaPerCapita != null) {
+    out.push({
+      kind: "deuda",
+      label: `Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`,
+      value: `${deudaPerCapita.toLocaleString("es-ES")} €`,
+      resolver:
+        "Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población.",
+      source: "Fuente: Eurostat (criterio de Maastricht).",
+      href: "/indicadores",
+      hrefLabel: "Ver indicadores →",
+    })
+  }
+  if (usedKind !== "contract" && topContract?.amount != null) {
+    out.push({
+      kind: "contract",
+      label: `Mayor contrato · ${windowLabel(topContract.windowDays)}`,
+      value: formatAmount(topContract.amount),
+      resolver: topContract.title,
+      resolverDetail: topContract.awarding_body
+        ? `${topContract.awarding_body}${topContract.date ? ` · ${formatDate(topContract.date)}` : ""}`
+        : null,
+      source: "Fuente: Plataforma de Contratación del Sector Público.",
+      href: `/contratos/${topContract.id}`,
+      hrefLabel: "Ver contrato →",
+    })
+  }
+  if (usedKind !== "ipc" && inflation) {
+    out.push({
+      kind: "ipc",
+      label: `IPC mensual · ${formatPeriod(inflation.period)}`,
+      value: formatPercent(inflation.monthlyValue),
+      resolver:
+        inflation.annualValue != null
+          ? `Variación mensual del IPC. Variación anual: ${formatPercent(inflation.annualValue)}.`
+          : "Variación mensual del IPC.",
+      source: "Fuente: INE, serie nacional del IPC.",
+      href: "/indicadores/IPC_VAR_MENSUAL",
+      hrefLabel: "Ver serie →",
+    })
+  }
+  return out
 }

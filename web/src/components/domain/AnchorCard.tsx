@@ -10,6 +10,7 @@ interface AnchorCardProps {
   href?: string
   linkLabel?: string
   className?: string
+  variant?: "default" | "compact"
 }
 
 export function AnchorCard({
@@ -20,18 +21,29 @@ export function AnchorCard({
   href,
   linkLabel = "Ver detalle →",
   className,
+  variant = "default",
 }: AnchorCardProps) {
+  const compact = variant === "compact"
   return (
     <section
       className={cn(
-        "flex min-h-[260px] flex-col rounded border border-border bg-card px-5 py-6 sm:px-6 sm:py-7",
+        "flex flex-col rounded border border-border bg-card",
+        compact
+          ? "min-h-[180px] px-4 py-5 sm:px-5 sm:py-6"
+          : "min-h-[260px] px-5 py-6 sm:px-6 sm:py-7",
         className
       )}
     >
       <p className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
         {label}
       </p>
-      <div data-value className="mt-2 font-mono text-3xl font-medium tabular-nums tracking-[-0.03em] text-foreground sm:text-4xl">
+      <div
+        data-value
+        className={cn(
+          "mt-2 font-mono font-medium tabular-nums tracking-[-0.03em] text-foreground",
+          compact ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl"
+        )}
+      >
         {value}
       </div>
       {description ? (
