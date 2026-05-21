@@ -71,7 +71,7 @@ function MemberCard({ member, partyId }: { member: GobiernoMember; partyId: stri
           partyId={partyId}
         />
         {member.contract_count > 0 ? (
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">
             {member.contract_count} contrato{member.contract_count !== 1 ? "s" : ""}{" "}
             · {formatAmount(member.total_amount_eur)}
           </span>

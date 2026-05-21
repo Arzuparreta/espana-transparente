@@ -93,7 +93,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
                       {descripcion}
                     </div>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
                         {s.chamber === "senate" ? "Senado" : "Congreso"} · Sesión {s.session_number} · {dateStr}
                       </span>
                     </div>

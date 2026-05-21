@@ -102,7 +102,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
 
       <div className="rounded-[2px] border border-border bg-card px-6 py-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe</p>
-        <p className="mt-1 text-3xl font-bold tabular-nums">{formatAmount(subsidy.importe)}</p>
+        <p className="mt-1 font-mono text-3xl font-bold">{formatAmount(subsidy.importe)}</p>
       </div>
 
       <div className="rounded-[2px] border border-border bg-card px-6 py-2">

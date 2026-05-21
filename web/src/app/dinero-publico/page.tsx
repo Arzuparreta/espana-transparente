@@ -64,7 +64,7 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
                 <ResponsiveLink
                   key={y}
                   href={`/dinero-publico?year=${y}`}
-                  className={`rounded-[2px] border px-2 py-1 tabular-nums ${
+                  className={`rounded-[2px] border px-2 py-1 font-mono ${
                     y === year
                       ? "border-foreground bg-foreground text-background"
                       : "border-border text-muted-foreground hover:text-foreground"

@@ -111,8 +111,8 @@ export default async function EstadoDatosPage() {
                         {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
                       </td>
                       <td className="py-3 pr-4">{dateStr}</td>
-                      <td className="py-3 pr-4 tabular-nums">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
-                      <td className="py-3 tabular-nums">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      <td className="py-3 pr-4 font-mono">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      <td className="py-3 font-mono">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
                     </tr>
                   )
                 })}
@@ -165,10 +165,10 @@ export default async function EstadoDatosPage() {
                   {rows.map((row) => (
                     <tr key={`${dataset}-${row.administration_level}`} className="border-t border-border/60">
                       <td className="py-3 pr-4 font-medium">{levelLabel(row.administration_level)}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.total_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.resolved_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.unresolved_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.conflict_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.total_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.resolved_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.unresolved_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.conflict_rows.toLocaleString("es-ES")}</td>
                       <td className="py-3 pr-4">{formatDate(row.coverage_start_date)}</td>
                       <td className="py-3">{formatDate(row.latest_record_date)}</td>
                     </tr>

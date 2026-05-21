@@ -41,12 +41,12 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
       className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
     >
       <div className="flex min-w-0 items-start gap-3">
-        <span className="mt-0.5 w-7 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        <span className="mt-0.5 w-7 shrink-0 text-right font-mono text-xs text-muted-foreground">
           {rank}
         </span>
         <div className="min-w-0">
           <p className="truncate font-medium leading-snug">{fund.label}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {fund.number_projects != null ? `${fund.number_projects.toLocaleString("es-ES")} proyectos` : "—"}
             {fund.cofinancing_rate != null
               ? ` · ${Number(fund.cofinancing_rate).toFixed(1)} % cofinanciación UE`
@@ -57,9 +57,9 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="text-right">
-          <p className="text-sm font-semibold tabular-nums">{formatEuros(fund.eu_budget)}</p>
+          <p className="font-mono text-sm font-semibold">{formatEuros(fund.eu_budget)}</p>
           {fund.total_budget && fund.eu_budget && (
-            <p className="text-xs text-muted-foreground tabular-nums">
+            <p className="font-mono text-xs text-muted-foreground">
               total {formatEuros(fund.total_budget)}
             </p>
           )}

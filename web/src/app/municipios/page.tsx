@@ -90,7 +90,7 @@ export default async function MunicipiosPage() {
                       {territory.subsidyCount.toLocaleString("es-ES")} subvenciones ·{" "}
                       {territory.contractCount.toLocaleString("es-ES")} contratos
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
+                    <div className="mt-2 font-mono text-xs text-muted-foreground">
                       {formatAmount(territory.subsidyAmount + territory.contractAmount)}
                     </div>
                   </ResponsiveLink>
@@ -110,11 +110,11 @@ export default async function MunicipiosPage() {
                 <CardContent className="space-y-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Con territorio visible:</span>{" "}
-                    {row.resolvedCount.toLocaleString("es-ES")}
+                    <span className="font-mono">{row.resolvedCount.toLocaleString("es-ES")}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Sin territorio reutilizable:</span>{" "}
-                    {row.unresolvedCount.toLocaleString("es-ES")}
+                    <span className="font-mono">{row.unresolvedCount.toLocaleString("es-ES")}</span>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
                     {row.dataset === "subsidies"

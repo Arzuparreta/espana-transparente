@@ -61,15 +61,15 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
                   <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
                     {org.organization_type ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  <td className="px-4 py-3 text-right font-mono">
                     {org.contract_count > 0 ? org.contract_count.toLocaleString("es-ES") : "—"}
                   </td>
-                  <td className="hidden px-4 py-3 text-right tabular-nums text-muted-foreground md:table-cell">
+                  <td className="hidden px-4 py-3 text-right font-mono text-muted-foreground md:table-cell">
                     {org.subsidy_beneficiary_count > 0
                       ? org.subsidy_beneficiary_count.toLocaleString("es-ES")
                       : "—"}
                   </td>
-                  <td className="hidden px-4 py-3 text-right tabular-nums text-muted-foreground lg:table-cell">
+                  <td className="hidden px-4 py-3 text-right font-mono text-muted-foreground lg:table-cell">
                     {org.revolving_door_count > 0 ? org.revolving_door_count : "—"}
                   </td>
                 </tr>

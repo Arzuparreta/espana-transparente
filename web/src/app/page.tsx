@@ -279,7 +279,7 @@ export default async function HomePage() {
                   className="flex min-w-0 items-baseline justify-between gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
                 >
                   <span className="min-w-0 truncate font-medium">{s.title as string}</span>
-                  <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+                  <span className="shrink-0 font-mono text-xs text-muted-foreground">
                     {(s.divergence_count as number) > 0 && (
                       <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
                         {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}

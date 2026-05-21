@@ -122,7 +122,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
       {/* Importe destacado */}
       <div className="rounded-[2px] border border-border bg-card px-6 py-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe sin IVA</p>
-        <p className="mt-1 text-3xl font-bold tabular-nums">
+        <p className="mt-1 font-mono text-3xl font-bold">
           {formatAmount(contract.amount, contract.currency ?? "EUR")}
         </p>
       </div>

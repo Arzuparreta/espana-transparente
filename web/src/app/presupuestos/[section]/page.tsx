@@ -146,7 +146,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-base font-semibold tabular-nums">
+                    <div className="font-mono text-base font-semibold">
                       {formatAmount(p.total_credit_initial)}
                     </div>
                     {p.total_credit_final != null &&

@@ -43,7 +43,7 @@ function ContractRow({ contract }: { contract: MinistrioContract }) {
       </div>
       <div className="shrink-0 text-right">
         {contract.amount != null && (
-          <p className="font-semibold tabular-nums">{formatAmount(contract.amount)}</p>
+          <p className="font-mono font-semibold">{formatAmount(contract.amount)}</p>
         )}
         {contract.date && (
           <p className="text-xs text-muted-foreground">

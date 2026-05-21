@@ -122,7 +122,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold tabular-nums">
+                    <p className="font-mono text-sm font-semibold">
                       {row.year}
                       {meta ? (
                         <span className="ml-2 font-normal text-xs text-muted-foreground">
@@ -144,7 +144,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-base font-semibold tabular-nums">
+                    <p className="font-mono text-base font-semibold">
                       {formatAmount(row.total_credit_initial)}
                     </p>
                     {row.total_credit_final != null &&

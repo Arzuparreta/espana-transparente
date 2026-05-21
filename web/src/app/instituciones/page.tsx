@@ -110,7 +110,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
       </div>
 
       {member.appointment_date && (
-        <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+        <p className="mt-1 font-mono text-xs text-muted-foreground">
           Desde {formatDate(member.appointment_date)}
         </p>
       )}
