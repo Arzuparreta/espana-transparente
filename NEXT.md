@@ -56,9 +56,9 @@ These are the next work items before large expansion.
 
 ### ETL Reliability
 
-- Add `--resume` compatibility to `src.congreso.asistencia`. The pipeline
-  already skips existing sessions; the CLI should accept the flag so long runs
-  are operationally consistent with contracts, subsidies, budgets, and Senate.
+- `src.congreso.asistencia` already accepts `--resume` and records ETL run
+  chunks, so long runs are operationally consistent with contracts, subsidies,
+  budgets, and Senate.
 - Keep Congress/Senate request delays at 1.5s and do not parallelize those
   portals. They rate-limit aggressively.
 
@@ -113,8 +113,10 @@ counts have been measured in the database.
   3,519 unmatched.
 - The live database contained 508 Senate sessions and 121,305 Senate vote rows
   after the run.
-- Remaining work is match-quality review for the unmatched names, not proving
-  that the source parser works.
+- The ETL now keeps an auditable aggregate of unmatched Senate vote names in
+  `senate_vote_unmatched_names`. Remaining work is to use that evidence to add
+  specific senator aliases or historical memberships where the source names do
+  not map cleanly to `politicians`.
 
 ### CCAA And Municipal Drilldowns
 

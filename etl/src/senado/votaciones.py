@@ -74,6 +74,8 @@ VOTE_MAP = {
     "no vota": "No vota",
 }
 
+SPANISH_NAME_PARTICLES = {"de", "del", "la", "las", "los", "y", "i"}
+
 
 @dataclass
 class SenateSessionVote:
@@ -105,6 +107,18 @@ class SenateVotation:
     vote_time: str | None
     totals: dict[str, int]
     votes: list[SenateVoteRow]
+    source_url: str
+
+
+@dataclass
+class SenateUnmatchedVote:
+    name: str
+    normalized_name: str
+    group: str | None
+    session_number: int
+    votation_number: int
+    vote: str
+    seat: str | None
     source_url: str
 
 
@@ -309,6 +323,18 @@ def normalize_vote(value: str | None) -> str:
     return VOTE_MAP.get(normalized, (value or "").strip().capitalize())
 
 
+def senate_name_keys(name: str | None) -> set[str]:
+    key = normalize_name(name or "")
+    if not key:
+        return set()
+
+    keys = {key}
+    particleless = " ".join(part for part in key.split() if part not in SPANISH_NAME_PARTICLES)
+    if particleless and particleless != key:
+        keys.add(particleless)
+    return keys
+
+
 def parse_int(value: str | None) -> int:
     raw = (value or "").strip()
     return int(raw) if raw.isdigit() else 0
@@ -394,7 +420,7 @@ def build_senator_index(cur) -> dict[str, str | None]:
         SELECT p.id, p.full_name, p.first_name, p.last_name
         FROM politicians p
         JOIN politician_memberships pm ON pm.politician_id = p.id
-        WHERE pm.chamber = 'senate' AND pm.is_active = true
+        WHERE pm.chamber = 'senate'
         """
     )
     candidates: dict[str, set[str]] = {}
@@ -404,10 +430,69 @@ def build_senator_index(cur) -> dict[str, str | None]:
             names.add(f"{first} {last}")
             names.add(f"{last}, {first}")
         for name in names:
-            key = normalize_name(name)
-            if key:
+            for key in senate_name_keys(name):
                 candidates.setdefault(key, set()).add(pid)
     return {key: next(iter(ids)) if len(ids) == 1 else None for key, ids in candidates.items()}
+
+
+def record_unmatched_senate_votes(cur, rows: list[SenateUnmatchedVote]) -> None:
+    if not rows:
+        return
+    psycopg2.extras.execute_values(
+        cur,
+        """
+        INSERT INTO senate_vote_unmatched_names (
+          normalized_name, name, parliamentary_group, first_seen_session, last_seen_session,
+          vote_rows, seen_vote_keys, sample_source_url, sample_raw_data
+        )
+        VALUES %s
+        ON CONFLICT (normalized_name, parliamentary_group) DO UPDATE SET
+          name = EXCLUDED.name,
+          first_seen_session = LEAST(
+            senate_vote_unmatched_names.first_seen_session,
+            EXCLUDED.first_seen_session
+          ),
+          last_seen_session = GREATEST(
+            senate_vote_unmatched_names.last_seen_session,
+            EXCLUDED.last_seen_session
+          ),
+          vote_rows = senate_vote_unmatched_names.vote_rows + CASE
+            WHEN EXCLUDED.seen_vote_keys[1] = ANY(senate_vote_unmatched_names.seen_vote_keys) THEN 0
+            ELSE EXCLUDED.vote_rows
+          END,
+          seen_vote_keys = (
+            SELECT array_agg(DISTINCT vote_key ORDER BY vote_key)
+            FROM unnest(senate_vote_unmatched_names.seen_vote_keys || EXCLUDED.seen_vote_keys) AS keys(vote_key)
+          ),
+          sample_source_url = COALESCE(senate_vote_unmatched_names.sample_source_url, EXCLUDED.sample_source_url),
+          sample_raw_data = CASE
+            WHEN senate_vote_unmatched_names.sample_raw_data = '{}'::jsonb THEN EXCLUDED.sample_raw_data
+            ELSE senate_vote_unmatched_names.sample_raw_data
+          END,
+          updated_at = now()
+        """,
+        [
+            (
+                row.normalized_name,
+                row.name,
+                row.group or "",
+                row.session_number,
+                row.session_number,
+                1,
+                [f"{row.session_number}:{row.votation_number}:{row.seat or ''}:{row.normalized_name}"],
+                row.source_url,
+                psycopg2.extras.Json(
+                    {
+                        "session_number": row.session_number,
+                        "votation_number": row.votation_number,
+                        "vote": row.vote,
+                        "seat": row.seat,
+                    }
+                ),
+            )
+            for row in rows
+        ],
+    )
 
 
 def upsert_senate_votation(
@@ -456,11 +541,29 @@ def upsert_senate_votation(
 
     matched = 0
     unmatched = 0
+    unmatched_rows: list[SenateUnmatchedVote] = []
     rows = []
     for vote in votation.votes:
-        pol_id = senator_index.get(normalize_name(vote.name))
+        possible_ids = {
+            senator_index[key]
+            for key in senate_name_keys(vote.name)
+            if key in senator_index and senator_index[key]
+        }
+        pol_id = next(iter(possible_ids)) if len(possible_ids) == 1 else None
         if not pol_id:
             unmatched += 1
+            unmatched_rows.append(
+                SenateUnmatchedVote(
+                    name=vote.name,
+                    normalized_name=normalize_name(vote.name),
+                    group=vote.group,
+                    session_number=votation.session_number,
+                    votation_number=votation.votation_number,
+                    vote=vote.vote,
+                    seat=vote.seat,
+                    source_url=votation.source_url,
+                )
+            )
             continue
         rows.append(
             (
@@ -493,6 +596,8 @@ def upsert_senate_votation(
             """,
             rows,
         )
+
+    record_unmatched_senate_votes(cur, unmatched_rows)
 
     return matched, unmatched
 
