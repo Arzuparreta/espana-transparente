@@ -1,19 +1,8 @@
--- Split organization rows that were collapsed by normalized-name upserts.
---
--- Organization normalized names are match keys, not real-world identities.
--- Older ETL paths used ON CONFLICT (normalized_name) DO UPDATE SET name = ...,
--- so distinct source labels that shared a normalized output could overwrite one
--- another and keep all eu_funds rows pointing at a single organization page.
+-- Fix: deduplicate target_normalized_name before INSERT to avoid
+-- "ON CONFLICT DO UPDATE command cannot affect row a second time"
+-- when multiple source labels resolve to the same collision key.
 
-CREATE OR REPLACE FUNCTION organization_collision_key_sql(input text)
-RETURNS text
-LANGUAGE sql
-IMMUTABLE
-RETURNS NULL ON NULL INPUT
-AS $$
-  SELECT normalize_org_name_sql(input) || ' ' || substr(md5(lower(trim(input))), 1, 16)
-$$;
-
+-- Recreate the temp table with the data we need
 CREATE TEMP TABLE _eu_fund_org_label_splits AS
 WITH shared_orgs AS (
   SELECT beneficiary_organization_id AS old_org_id
@@ -49,9 +38,9 @@ FROM distinct_labels dl
 JOIN organizations o ON o.id = dl.old_org_id
 WHERE normalize_org_name_sql(dl.label) IS NOT NULL;
 
--- Use DISTINCT ON to avoid "ON CONFLICT DO UPDATE cannot affect row a second time"
--- when two source labels resolve to the same collision key (e.g. same label string
--- appearing under different old_org_ids, or case-only variants).
+-- Insert new org rows, one per distinct target_normalized_name.
+-- When multiple source labels map to the same collision key, keep the first
+-- (the UPDATE below will rewire all matching eu_funds rows to the same org).
 INSERT INTO organizations (name, normalized_name, organization_type, sector, country, source_url)
 SELECT DISTINCT ON (target_normalized_name)
   label,
@@ -72,6 +61,7 @@ ON CONFLICT (normalized_name) DO UPDATE SET
   source_url = coalesce(EXCLUDED.source_url, organizations.source_url),
   updated_at = now();
 
+-- Rewire eu_funds to the new (or existing) org rows
 UPDATE eu_funds e
 SET beneficiary_organization_id = o.id
 FROM _eu_fund_org_label_splits s
@@ -84,16 +74,27 @@ DO $$
 DECLARE
   split_labels int;
   split_orgs int;
+  rewired int;
 BEGIN
   SELECT count(*) INTO split_labels
   FROM _eu_fund_org_label_splits
   WHERE target_normalized_name != old_normalized_name;
 
   SELECT count(DISTINCT target_normalized_name) INTO split_orgs
-  FROM _eu_fund_org_label_splits;
+  FROM _eu_fund_org_label_splits
+  WHERE target_normalized_name != old_normalized_name;
 
-  RAISE NOTICE 'EU fund organization labels split: %', split_labels;
-  RAISE NOTICE 'EU fund organization target orgs: %', split_orgs;
+  -- Count how many eu_funds rows were actually re-pointed
+  SELECT count(*) INTO rewired
+  FROM _eu_fund_org_label_splits s
+  JOIN organizations o ON o.normalized_name = s.target_normalized_name
+  JOIN eu_funds e ON e.beneficiary_organization_id = o.id
+    AND trim(e.label) = s.label
+  WHERE s.target_normalized_name != s.old_normalized_name;
+
+  RAISE NOTICE 'EU fund org labels needing split: %', split_labels;
+  RAISE NOTICE 'Target orgs to create: %', split_orgs;
+  RAISE NOTICE 'EU fund rows now pointing at correct org via new normalized_name: %', rewired;
 END $$;
 
 DROP TABLE IF EXISTS _eu_fund_org_label_splits;

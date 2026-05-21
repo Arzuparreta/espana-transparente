@@ -98,6 +98,25 @@ function buildHref(year: number, sectionCode: string, programCode?: string | nul
   return `/dinero-publico?${params.toString()}#${programCode ? `program-${programCode}` : `section-${sectionCode}`}`
 }
 
+function getStickyHeaderOffset(): number {
+  const header = document.querySelector("body > header")
+  if (!header) return 16
+
+  const styles = window.getComputedStyle(header)
+  if (styles.position !== "sticky" && styles.position !== "fixed") return 16
+
+  const top = Number.parseFloat(styles.top || "0")
+  const rect = header.getBoundingClientRect()
+  const visibleAtTop = rect.top <= Math.max(0, top) + 1
+
+  return visibleAtTop ? rect.height + 16 : 16
+}
+
+function scrollToElementStart(target: HTMLElement, behavior: ScrollBehavior = "auto") {
+  const top = target.getBoundingClientRect().top + window.scrollY - getStickyHeaderOffset()
+  window.scrollTo({ top: Math.max(0, top), behavior })
+}
+
 function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: string }) {
   if (items.length === 0) return null
   return (
@@ -367,7 +386,7 @@ export function MoneyFlowExplorer({
           : null
       const target = targetId ? document.getElementById(targetId) : null
       if (target) {
-        target.scrollIntoView({ block: "start" })
+        scrollToElementStart(target)
       } else if (!initialSectionCode && stored?.scrollY) {
         window.scrollTo({ top: stored.scrollY })
       }
@@ -463,7 +482,8 @@ export function MoneyFlowExplorer({
     if (restoredRef.current) {
       requestAnimationFrame(() => {
         const anchorPrefix = window.matchMedia("(min-width: 1024px)").matches ? "" : "mobile-"
-        document.getElementById(`${anchorPrefix}section-${sectionCode}`)?.scrollIntoView({ block: "start", behavior: "smooth" })
+        const target = document.getElementById(`${anchorPrefix}section-${sectionCode}`)
+        if (target) scrollToElementStart(target, "smooth")
       })
     }
   }
