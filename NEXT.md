@@ -93,7 +93,8 @@ Current `/dinero-publico` connects budget sections/programs to responsible
 ministries, contracts, and subsidies. It still needs stronger downstream
 coverage.
 
-- Add organization beneficiaries from contracts/subsidies to the cascade.
+- Contract and subsidy beneficiaries now expose organization links in the
+  cascade when the source names can be normalized to `organizations`.
 - Add EU-fund associations only through a defensible organization bridge. Do
   not fake a ministry-level EU-fund join when the source does not provide it.
 - Keep empty nodes explicit with `Sin datos`.
@@ -106,10 +107,14 @@ The Senate vote ETL now parses official static XML exports such as
 absences. Coverage should still be claimed only after the ETL has run and match
 counts have been measured in the database.
 
-- Run `PYTHONPATH=src python -m src.senado.votaciones --resume` after applying
-  the latest migrations.
-- Check matched vs unmatched senator counts from the ETL output.
-- Do not claim individual Senate vote coverage until measured.
+- Measured on 2026-05-21 with
+  `PYTHONPATH=src python -m src.senado.votaciones --resume --from-session 2`:
+  59 source XML files discovered, 93,131 nominal vote rows read, 89,612 matched,
+  3,519 unmatched.
+- The live database contained 508 Senate sessions and 121,305 Senate vote rows
+  after the run.
+- Remaining work is match-quality review for the unmatched names, not proving
+  that the source parser works.
 
 ### CCAA And Municipal Drilldowns
 

@@ -1,4 +1,5 @@
 import { RevolvingDoorExplorer } from "@/components/politicians/RevolvingDoorExplorer"
+import { RevolvingDoorHashFocus } from "@/components/politicians/RevolvingDoorHashFocus"
 import { getPartyAcronymMap, getRevolvingDoorCases } from "@/lib/data"
 
 export const revalidate = 3600
@@ -42,5 +43,10 @@ export default async function PuertasGiratoriasPage() {
     getRevolvingDoorCases(),
     getPartyAcronymMap(),
   ])
-  return <RevolvingDoorExplorer cases={cases as RDCase[]} partyMap={partyMap} />
+  return (
+    <>
+      <RevolvingDoorHashFocus />
+      <RevolvingDoorExplorer cases={cases as RDCase[]} partyMap={partyMap} />
+    </>
+  )
 }

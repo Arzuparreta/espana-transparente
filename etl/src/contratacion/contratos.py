@@ -151,6 +151,7 @@ def parse_entry(entry: ET.Element) -> dict | None:
             extract_ministry_from_body(contracting_authority),
         ),
         "awarding_body_organization_id": None,
+        "contractor_organization_id": None,
         "source_url": source_url,
         "contractor": contractor,
     }
@@ -197,17 +198,24 @@ def upsert(conn, records: list[dict]) -> int:
                 organization_type="public_body",
                 source_url=rec["source_url"],
             )
+        if rec["contractor"]:
+            rec["contractor_organization_id"] = upsert_organization(
+                cur,
+                name=rec["contractor"],
+                organization_type="company",
+                source_url=rec["source_url"],
+            )
         cur.execute("""
             INSERT INTO contracts
               (contract_folder_id, title, awarding_body,
                awarding_body_normalized, amount, status, contract_type,
                cpv_code, region, date, ministry_normalized, administration_level,
-               awarding_body_organization_id, source_url, contractor)
+               awarding_body_organization_id, contractor_organization_id, source_url, contractor)
             VALUES
               (%(contract_folder_id)s, %(title)s, %(awarding_body)s,
                %(awarding_body_normalized)s, %(amount)s, %(status)s, %(contract_type)s,
                %(cpv_code)s, %(region)s, %(date)s, %(ministry_normalized)s, %(administration_level)s,
-               %(awarding_body_organization_id)s, %(source_url)s, %(contractor)s)
+               %(awarding_body_organization_id)s, %(contractor_organization_id)s, %(source_url)s, %(contractor)s)
             ON CONFLICT (contract_folder_id) DO UPDATE SET
               title = EXCLUDED.title,
               awarding_body = EXCLUDED.awarding_body,
@@ -223,6 +231,10 @@ def upsert(conn, records: list[dict]) -> int:
               awarding_body_organization_id = coalesce(
                 EXCLUDED.awarding_body_organization_id,
                 contracts.awarding_body_organization_id
+              ),
+              contractor_organization_id = coalesce(
+                EXCLUDED.contractor_organization_id,
+                contracts.contractor_organization_id
               ),
               source_url = EXCLUDED.source_url,
               contractor = coalesce(EXCLUDED.contractor, contracts.contractor)

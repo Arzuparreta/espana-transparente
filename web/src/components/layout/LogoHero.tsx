@@ -1,11 +1,9 @@
 import { SearchBox } from "@/components/search/SearchBox"
-import { PartyBadge } from "@/components/domain/PartyBadge"
+import { PartyMarquee } from "@/components/layout/PartyMarquee"
 
 interface LogoHeroProps {
   parties?: { acronym: string; color: string | null }[]
 }
-
-const COPIES = 6
 
 export function LogoHero({ parties }: LogoHeroProps) {
   const uniqueParties = parties
@@ -26,24 +24,7 @@ export function LogoHero({ parties }: LogoHeroProps) {
         </div>
       </div>
 
-      {uniqueParties.length > 0 && (
-        <div className="relative mt-6 overflow-hidden" aria-hidden="true">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-card via-card/80 to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-card via-card/80 to-transparent" />
-          <div className="flex w-max animate-marquee items-center gap-3 py-2">
-            {Array.from({ length: COPIES }, (_, i) =>
-              uniqueParties.map((p) => (
-                <PartyBadge
-                  key={`${p.acronym}-${i}`}
-                  acronym={p.acronym}
-                  color={p.color}
-                  className="px-3 py-1 text-xs"
-                />
-              ))
-            )}
-          </div>
-        </div>
-      )}
+      {uniqueParties.length > 0 && <PartyMarquee parties={uniqueParties} />}
     </section>
   )
 }

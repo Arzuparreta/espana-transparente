@@ -108,12 +108,19 @@
   }
 }
 
+@keyframes rd-highlight-pulse {
+  0%   { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); background-color: transparent; }
+  15%  { box-shadow: 0 0 0 3px hsl(var(--accent) / 0.35); background-color: hsl(var(--accent) / 0.08); }
+  85%  { box-shadow: 0 0 0 3px hsl(var(--accent) / 0.10); background-color: hsl(var(--accent) / 0.03); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); background-color: transparent; }
+}
+
 @keyframes marquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -155,9 +162,31 @@
     }
   }
 
+  .rd-highlight {
+    animation: rd-highlight-pulse 2s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rd-highlight {
+      animation: none;
+      outline: 2px solid hsl(var(--accent) / 0.5);
+      outline-offset: 2px;
+    }
+  }
+
   .animate-marquee {
     animation: marquee 50s linear infinite;
     will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .marquee-paused {
+    animation-play-state: paused;
+  }
+
+  .marquee-mask {
+    contain: paint;
   }
 
   .animate-marquee:hover {
