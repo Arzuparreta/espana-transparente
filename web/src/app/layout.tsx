@@ -16,6 +16,7 @@ import "./globals.css"
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  colorScheme: "dark",
 }
 
 const geistSans = localFont({
