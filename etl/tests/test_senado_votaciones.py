@@ -6,6 +6,7 @@ from src.senado.votaciones import (
     parse_senate_session_vote_xml,
     parse_senate_vote_date,
     parse_session_catalog,
+    senate_name_keys,
 )
 
 SAMPLE_SESSION_CATALOG = """<?xml version="1.0" encoding="UTF-8" ?>
@@ -118,6 +119,13 @@ def test_normalize_vote():
     assert normalize_vote("SÍ") == "Sí"
     assert normalize_vote("ABSTENCIÓN") == "Abstención"
     assert normalize_vote("NO") == "No"
+
+
+def test_senate_name_keys_include_particleless_alias():
+    assert senate_name_keys("MARÍA DEL CARMEN LEYTE COELLO") == {
+        "maria del carmen leyte coello",
+        "maria carmen leyte coello",
+    }
 
 
 def test_parse_senate_session_vote_xml():
