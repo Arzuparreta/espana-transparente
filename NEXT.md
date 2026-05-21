@@ -129,15 +129,17 @@ absences.
 ### CCAA And Municipal Drilldowns
 
 Current `/ccaa` and `/municipios` expose drilldowns built from published
-territory fields. The remaining work is data-quality hardening, not creating
-the routes themselves.
+territory fields.
 
-- Keep grouping strictly tied to source literals (`nivel2` in BDNS, `region`
-  in PCSP) unless a better territory bridge is added explicitly.
-- Keep route labels factual: community, municipality, contracts, subsidies,
-  source, date, amount.
-- Continue surfacing unresolved territorial coverage instead of silently
-  dropping those records.
+- Autonomic contract coverage: **89.8%** resolved (up from ~83%).
+- Municipal contract coverage: **98.6%** resolved (up from ~95%).
+- Subsidies remain at 100% for both levels (BDNS `nivel2` is well-populated).
+- Territory inference now extracts region and administration level from
+  awarding body names when the source XML omits these fields. The expanded
+  `infer_contract_administration_level()` covers 40+ entity patterns
+  (ministries, regional governments, universities, port authorities, etc.).
+- Remaining gap: ~79 autonomic and ~21 municipal contracts without region
+  (unusual awarding body names or genuinely missing location data).
 
 ### Profiles And Annotations
 
