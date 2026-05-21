@@ -41,6 +41,7 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
                 <th className="px-4 py-3 text-right font-medium">Contratos</th>
                 <th className="hidden px-4 py-3 text-right font-medium md:table-cell">Subvenciones recibidas</th>
                 <th className="hidden px-4 py-3 text-right font-medium lg:table-cell">Puertas giratorias</th>
+                <th className="hidden px-4 py-3 text-right font-medium lg:table-cell">Fondos UE</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
@@ -71,6 +72,9 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
                   </td>
                   <td className="hidden px-4 py-3 text-right font-mono text-muted-foreground lg:table-cell">
                     {org.revolving_door_count > 0 ? org.revolving_door_count : "—"}
+                  </td>
+                  <td className="hidden px-4 py-3 text-right font-mono text-muted-foreground lg:table-cell">
+                    {org.eu_fund_count > 0 ? org.eu_fund_count : "—"}
                   </td>
                 </tr>
               ))}

@@ -35,17 +35,24 @@ function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: str
       </div>
       <ul className="space-y-1">
         {items.map((b, i) => (
-          <li key={i} className="flex min-w-0 items-baseline justify-between gap-3 border-b border-border/30 py-1 last:border-0">
-            {b.organization_id ? (
-              <ResponsiveLink
-                href={`/organizaciones/${b.organization_id}`}
-                className="min-w-0 truncate text-xs text-foreground/80 underline-offset-2 hover:underline"
-              >
-                {b.name}
-              </ResponsiveLink>
-            ) : (
-              <span className="min-w-0 truncate text-xs text-foreground/80">{b.name}</span>
-            )}
+          <li key={i} className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-border/30 py-1 last:border-0">
+            <div className="flex min-w-0 flex-col">
+              {b.organization_id ? (
+                <ResponsiveLink
+                  href={`/organizaciones/${b.organization_id}`}
+                  className="min-w-0 truncate text-xs text-foreground/80 underline-offset-2 hover:underline"
+                >
+                  {b.name}
+                </ResponsiveLink>
+              ) : (
+                <span className="min-w-0 truncate text-xs text-foreground/80">{b.name}</span>
+              )}
+              {b.eu_fund_total != null && b.eu_fund_total > 0 && (
+                <span className="text-[10px] font-mono text-muted-foreground/60">
+                  +{formatAmount(b.eu_fund_total)} en fondos UE
+                </span>
+              )}
+            </div>
             <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
               {formatAmount(b.total_amount)}
             </span>

@@ -113,8 +113,9 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
             El cruce con contratos y subvenciones se hace por nombre normalizado de ministerio.
             La cobertura es desigual: muchas secciones presupuestarias no tienen aún registros
             cruzados y se muestran como{" "}
-            <span className="font-mono text-muted-foreground">Sin datos</span>. Iniciativas
-            legislativas y fondos europeos no entran todavía en este cruce.
+            <span className="font-mono text-muted-foreground">Sin datos</span>. Los fondos
+            europeos se muestran a través de las páginas de organización de cada beneficiario.
+            Iniciativas legislativas no entran todavía en este cruce.
           </p>
 
           <MoneyCascadeHashFocus />

@@ -25,6 +25,8 @@ export type TopBeneficiary = {
   record_count: number
   total_amount: number
   organization_id: string | null
+  eu_fund_total: number | null
+  eu_fund_project_count: number | null
 }
 
 export type MoneyFlowSection = {
@@ -66,14 +68,14 @@ export const getMoneyFlowYear = unstable_cache(
         .order("total_credit_initial", { ascending: false, nullsFirst: false }),
       supabase
         .from("v_ministry_top_beneficiaries")
-        .select("ministry_normalized, name, source_type, record_count, total_amount, organization_id"),
+        .select("ministry_normalized, name, source_type, record_count, total_amount, organization_id, eu_fund_total, eu_fund_project_count"),
     ])
 
     if (error || !data) return []
     const rows = data as MoneyFlowRow[]
 
     // Index beneficiaries by ministry
-    type BenRow = { ministry_normalized: string; name: string; source_type: string; record_count: number; total_amount: number; organization_id: string | null }
+    type BenRow = { ministry_normalized: string; name: string; source_type: string; record_count: number; total_amount: number; organization_id: string | null; eu_fund_total: number | null; eu_fund_project_count: number | null }
     const contractorsByMinistry = new Map<string, TopBeneficiary[]>()
     const subsidyBenByMinistry = new Map<string, TopBeneficiary[]>()
     for (const b of (benData ?? []) as BenRow[]) {
@@ -83,6 +85,8 @@ export const getMoneyFlowYear = unstable_cache(
         record_count: Number(b.record_count),
         total_amount: Number(b.total_amount),
         organization_id: b.organization_id ?? null,
+        eu_fund_total: b.eu_fund_total != null ? Number(b.eu_fund_total) : null,
+        eu_fund_project_count: b.eu_fund_project_count != null ? Number(b.eu_fund_project_count) : null,
       }
       const map = b.source_type === "contract" ? contractorsByMinistry : subsidyBenByMinistry
       const key = b.ministry_normalized
