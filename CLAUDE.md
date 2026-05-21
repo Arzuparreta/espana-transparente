@@ -137,7 +137,6 @@ Also forbidden in UI: methodology phrases ("Unidad de lectura: la persona", "Se�
 ## Operational notes
 
 - The Supabase MCP server is configured in `.mcp.json` against project ref `zktpodkvlgciluhbulwr` — use it for schema introspection when available.
-- The `web/skills-lock.json` pins Supabase agent skills (postgres best practices) — useful when designing migrations.
 - Production hostname: `xn--espaatransparente-ixb.site` (IDN for "españatransparente.site"). Deployed on Vercel Hobby; DB on Supabase Free (500 MB).
 
 ## Skill routing
