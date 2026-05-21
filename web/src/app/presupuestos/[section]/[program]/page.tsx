@@ -9,6 +9,7 @@ export const revalidate = 3600
 
 interface PageProps {
   params: { section: string; program: string }
+  searchParams?: { year?: string }
 }
 
 const CHAPTER_NAMES: Record<string, string> = {
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function BudgetProgramDetailPage({ params }: PageProps) {
+export default async function BudgetProgramDetailPage({ params, searchParams }: PageProps) {
   const sectionCode = decodeURIComponent(params.section)
   const programCode = decodeURIComponent(params.program)
   const rows = await getBudgetProgram(sectionCode, programCode)
@@ -52,6 +53,10 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
   const programName = latest.program_name ?? programCode
   const sectionName = latest.section_name ?? sectionCode
   const ministry = latest.ministry_normalized
+  const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
+  const traceYear = rows.some((row) => row.year === requestedYear)
+    ? requestedYear
+    : latest.year
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -69,7 +74,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
           },
           latest?.year
             ? {
-                href: `/dinero-publico?year=${latest.year}&section=${encodeURIComponent(sectionCode)}#program-${encodeURIComponent(programCode)}`,
+                href: `/dinero-publico?year=${traceYear}&section=${encodeURIComponent(sectionCode)}&program=${encodeURIComponent(programCode)}#program-${encodeURIComponent(programCode)}`,
                 label: "Trazabilidad del gasto",
               }
             : null,

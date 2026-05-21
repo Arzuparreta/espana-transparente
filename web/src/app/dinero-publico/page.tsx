@@ -1,6 +1,5 @@
 import { EmptyState } from "@/components/domain/EmptyState"
-import { MoneyCascade } from "@/components/domain/MoneyCascade"
-import { MoneyCascadeHashFocus } from "@/components/domain/MoneyCascadeHashFocus"
+import { MoneyFlowExplorer } from "@/components/domain/MoneyFlowExplorer"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -25,6 +24,7 @@ interface PageProps {
   searchParams?: {
     year?: string
     section?: string
+    program?: string
   }
 }
 
@@ -125,11 +125,11 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
             con adjudicatarias de contratos o beneficiarias de subvenciones.
           </p>
 
-          <MoneyCascadeHashFocus />
-          <MoneyCascade
+          <MoneyFlowExplorer
             year={year}
             sections={sections}
-            initialOpenSectionCode={searchParams?.section ?? null}
+            initialSectionCode={searchParams?.section ?? null}
+            initialProgramCode={searchParams?.program ?? null}
           />
 
           {/* Global EU fund context */}

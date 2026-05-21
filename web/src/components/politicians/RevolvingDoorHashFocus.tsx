@@ -4,7 +4,7 @@ import { useEffect } from "react"
 
 /**
  * Scrolls to and highlights a #person-{id} anchor on /puertas-giratorias
- * after client hydration. Mirrors the MoneyCascadeHashFocus pattern.
+ * after client hydration.
  */
 export function RevolvingDoorHashFocus() {
   useEffect(() => {
