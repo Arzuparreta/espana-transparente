@@ -9,6 +9,7 @@ import {
   BUDGET_YEARS,
   getBudgetYearMeta,
   getEtlLastFinished,
+  getEuFundsSummary,
   getMoneyFlowYear,
 } from "@/lib/data"
 
@@ -40,9 +41,10 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
   const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
   const meta = getBudgetYearMeta(year)
 
-  const [sections, lastChecked] = await Promise.all([
+  const [sections, lastChecked, euSummary] = await Promise.all([
     getMoneyFlowYear(year),
-    getEtlLastFinished(["presupuestos", "contracts_daily", "subsidies_daily"]),
+    getEtlLastFinished(["presupuestos", "contracts_daily", "subsidies_daily", "kohesio"]),
+    getEuFundsSummary(),
   ])
 
   const totalCredit = sections.reduce((sum, s) => sum + s.total_credit_initial, 0)
@@ -50,6 +52,8 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
   const totalContractCount = sections.reduce((sum, s) => sum + s.contract_count, 0)
   const totalSubsidyCount = sections.reduce((sum, s) => sum + s.subsidy_count, 0)
   const resolvedMinisters = sections.filter((s) => s.minister_name).length
+  const sectionsWithEuFunds = sections.filter((s) => s.eu_fund_summary && s.eu_fund_summary.eu_fund_count > 0).length
+  const cascadeEuFundTotal = sections.reduce((sum, s) => sum + (s.eu_fund_summary?.eu_fund_total ?? 0), 0)
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -106,6 +110,9 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
               { label: "Programas", value: totalPrograms.toLocaleString("es-ES") },
               { label: "Contratos asociados", value: totalContractCount.toLocaleString("es-ES") },
               { label: "Subvenciones asociadas", value: totalSubsidyCount.toLocaleString("es-ES") },
+              ...(cascadeEuFundTotal > 0
+                ? [{ label: "Fondos UE vinculados", value: formatAmount(cascadeEuFundTotal), hint: `${sectionsWithEuFunds} secciones con fondos UE detectados en las organizaciones beneficiarias` }]
+                : []),
             ]}
           />
 
@@ -114,8 +121,8 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
             La cobertura es desigual: muchas secciones presupuestarias no tienen aún registros
             cruzados y se muestran como{" "}
             <span className="font-mono text-muted-foreground">Sin datos</span>. Los fondos
-            europeos se muestran a través de las páginas de organización de cada beneficiario.
-            Iniciativas legislativas no entran todavía en este cruce.
+            europeos se vinculan a través de las organizaciones beneficiarias cuando coinciden
+            con adjudicatarias de contratos o beneficiarias de subvenciones.
           </p>
 
           <MoneyCascadeHashFocus />
@@ -124,6 +131,37 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
             sections={sections}
             initialOpenSectionCode={searchParams?.section ?? null}
           />
+
+          {/* Global EU fund context */}
+          {euSummary && (
+            <section className="rounded-[2px] border border-border bg-card px-5 py-4">
+              <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-3">
+                <div>
+                  <h3 className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                    Fondos europeos en España
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {Number(euSummary.beneficiary_count).toLocaleString("es-ES")} beneficiarios ·{" "}
+                    {formatAmount(Number(euSummary.total_eu_budget))} de presupuesto UE ·{" "}
+                    {Number(euSummary.total_projects).toLocaleString("es-ES")} proyectos
+                  </p>
+                </div>
+                <ResponsiveLink
+                  href="/fondos-ue"
+                  className="shrink-0 text-xs underline-offset-2 hover:underline"
+                >
+                  Ver todos los fondos UE →
+                </ResponsiveLink>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground/70">
+                Fuente: Kohesio · Comisión Europea · Fondos Estructurales ESIF 2014-2027.
+                La vinculación con la cascada presupuestaria es por nombre de organización:
+                cuando una organización recibe contratos o subvenciones de un ministerio
+                y además figura como beneficiaria de fondos europeos, el importe UE aparece
+                en el desplegable de esa sección.
+              </p>
+            </section>
+          )}
         </>
       )}
     </div>

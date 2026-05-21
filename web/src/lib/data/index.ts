@@ -24,7 +24,12 @@ export {
   getTopDivergenceSessionOfMonth,
   getLatestInflationAnchor,
   getSectionIndex,
+  getHomeHeroAnchor,
+  getEtlFreshnessSummary,
   type SectionIndexRow,
+  type SessionDivergenceExample,
+  type HomeHeroAnchor,
+  type EtlFreshness,
 } from "./home"
 
 // ── Politicians ──────────────────────────────────────────────────────────────
@@ -129,6 +134,7 @@ export {
   getMoneyFlowYear,
   type MoneyFlowSection,
   type MoneyFlowRow,
+  type EuFundSectionSummary,
 } from "./money-flow"
 
 // ── EU Funds ─────────────────────────────────────────────────────────────────

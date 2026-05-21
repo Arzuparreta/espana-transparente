@@ -48,9 +48,18 @@ function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: str
                 <span className="min-w-0 truncate text-xs text-foreground/80">{b.name}</span>
               )}
               {b.eu_fund_total != null && b.eu_fund_total > 0 && (
-                <span className="text-[10px] font-mono text-muted-foreground/60">
-                  +{formatAmount(b.eu_fund_total)} en fondos UE
-                </span>
+                b.organization_id ? (
+                  <ResponsiveLink
+                    href={`/organizaciones/${b.organization_id}`}
+                    className="text-[10px] font-mono text-muted-foreground/60 underline-offset-2 hover:text-muted-foreground"
+                  >
+                    +{formatAmount(b.eu_fund_total)} en fondos UE
+                  </ResponsiveLink>
+                ) : (
+                  <span className="text-[10px] font-mono text-muted-foreground/60">
+                    +{formatAmount(b.eu_fund_total)} en fondos UE
+                  </span>
+                )
               )}
             </div>
             <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
@@ -213,6 +222,26 @@ export function MoneyCascade({ year, sections, initialOpenSectionCode }: MoneyCa
                     )}
                   </div>
                 </section>
+
+                {section.eu_fund_summary && section.eu_fund_summary.eu_fund_count > 0 && (
+                  <section className="rounded-[2px] border border-border/70 bg-background/60 px-3 py-3">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Fondos UE vinculados a estas organizaciones
+                    </div>
+                    <div className="mt-1 font-mono text-sm tabular-nums">
+                      {section.eu_fund_summary.orgs_with_eu_funds.toLocaleString("es-ES")} organizaciones · {formatAmount(section.eu_fund_summary.eu_fund_total)}
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground/80">
+                      {section.eu_fund_summary.eu_fund_count.toLocaleString("es-ES")} fondos · Total con cofinanciación: {formatAmount(section.eu_fund_summary.eu_fund_total_with_cofinancing)}
+                    </p>
+                    <ResponsiveLink
+                      href="/fondos-ue"
+                      className="mt-1 inline-flex text-xs underline-offset-2 hover:underline"
+                    >
+                      Ver fondos UE →
+                    </ResponsiveLink>
+                  </section>
+                )}
 
                 {(section.top_contractors.length > 0 || section.top_subsidy_beneficiaries.length > 0) && (
                   <section className="space-y-4 rounded-[2px] border border-border/50 bg-background/40 px-3 py-3">
