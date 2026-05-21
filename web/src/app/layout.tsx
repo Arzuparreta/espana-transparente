@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     locale: "es_ES",
     images: [
       {
-        url: "/brand/og-image.png",
+        url: "/brand/og-image-v2.png",
         width: 1200,
         height: 630,
         alt: `${BRAND_NAME} - datos públicos de la política española`,
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: BRAND_NAME,
     description: BRAND_DESCRIPTION,
-    images: ["/brand/og-image.png"],
+    images: ["/brand/og-image-v2.png"],
   },
 }
 
