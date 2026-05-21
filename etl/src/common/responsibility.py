@@ -7,6 +7,99 @@ from datetime import date, timedelta
 import re
 import unicodedata
 
+# Province (normalized, no accents, uppercase) → canonical CCAA display name
+_PROVINCE_TO_CCAA: dict[str, str] = {
+    # Andalucía
+    "ALMERIA": "Andalucía", "CADIZ": "Andalucía", "CORDOBA": "Andalucía",
+    "GRANADA": "Andalucía", "HUELVA": "Andalucía", "JAEN": "Andalucía",
+    "MALAGA": "Andalucía", "SEVILLA": "Andalucía",
+    # Aragón
+    "HUESCA": "Aragón", "TERUEL": "Aragón", "ZARAGOZA": "Aragón",
+    # Asturias
+    "ASTURIAS": "Asturias", "OVIEDO": "Asturias",
+    # Illes Balears
+    "BALEARES": "Illes Balears", "ILLES BALEARS": "Illes Balears",
+    "MALLORCA": "Illes Balears", "MENORCA": "Illes Balears",
+    # Canarias
+    "LAS PALMAS": "Canarias", "SANTA CRUZ DE TENERIFE": "Canarias",
+    "TENERIFE": "Tenerife", "GRAN CANARIA": "Gran Canaria",
+    "LA LAGUNA": "Tenerife", "CANDELARIA": "Tenerife",
+    "LANZAROTE": "Lanzarote",
+    "FUERTEVENTURA": "Fuerteventura", "LA PALMA": "La Palma",
+    # Cantabria
+    "CANTABRIA": "Cantabria",
+    # Castilla y León
+    "AVILA": "Castilla y León", "BURGOS": "Castilla y León", "LEON": "Castilla y León",
+    "PALENCIA": "Castilla y León", "SALAMANCA": "Castilla y León",
+    "SEGOVIA": "Castilla y León", "SORIA": "Castilla y León",
+    "VALLADOLID": "Castilla y León", "ZAMORA": "Castilla y León",
+    # Castilla-La Mancha
+    "ALBACETE": "Castilla-La Mancha", "CIUDAD REAL": "Castilla-La Mancha",
+    "CUENCA": "Castilla-La Mancha", "GUADALAJARA": "Castilla-La Mancha",
+    "TOLEDO": "Castilla-La Mancha",
+    # Cataluña
+    "BARCELONA": "Catalunya", "GIRONA": "Catalunya", "LLEIDA": "Catalunya", "TARRAGONA": "Catalunya",
+    # Extremadura
+    "CACERES": "Extremadura", "BADAJOZ": "Extremadura",
+    # Galicia
+    "A CORUNA": "Galicia", "LUGO": "Galicia", "OURENSE": "Galicia", "PONTEVEDRA": "Galicia",
+    # La Rioja
+    "LA RIOJA": "La Rioja",
+    # Madrid
+    "MADRID": "Madrid",
+    # Murcia
+    "MURCIA": "Murcia",
+    # Navarra
+    "NAVARRA": "Navarra",
+    # País Vasco
+    "ALAVA": "País Vasco", "GIPUZKOA": "País Vasco", "BIZKAIA": "País Vasco",
+    # Comunitat Valenciana
+    "ALICANTE": "Comunitat Valenciana", "CASTELLON": "Comunitat Valenciana",
+    "VALENCIA": "Comunitat Valenciana",
+}
+
+# CCAA keyword substrings → canonical display name (ordered longest-match first)
+_CCAA_KEYWORDS: list[tuple[str, str]] = [
+    ("CASTILLA-LA MANCHA", "Castilla-La Mancha"),
+    ("CASTILLA LA MANCHA", "Castilla-La Mancha"),
+    ("CASTILLA Y LEON", "Castilla y León"),
+    ("PAIS VASCO", "País Vasco"),
+    ("ILLES BALEARS", "Illes Balears"),
+    ("ISLAS BALEARES", "Illes Balears"),
+    ("COMUNITAT VALENCIANA", "Comunitat Valenciana"),
+    ("COMUNIDAD VALENCIANA", "Comunitat Valenciana"),
+    ("PRINCIPADO DE ASTURIAS", "Asturias"),
+    ("GRAN CANARIA", "Gran Canaria"),
+    ("REGION DE MURCIA", "Murcia"),
+    ("ARAGONESA", "Aragón"),
+    ("ARAGONES", "Aragón"),
+    ("ARAGON", "Aragón"),
+    ("ANDALUCIA", "Andalucía"),
+    ("EXTREMADURA", "Extremadura"),
+    ("CANTABRIA", "Cantabria"),
+    ("GALICIA", "Galicia"),
+    ("GALLEGA", "Galicia"),
+    ("GALLEGO", "Galicia"),
+    ("MURCIA", "Murcia"),
+    ("MURCIANO", "Murcia"),
+    ("NAVARRA", "Navarra"),
+    ("ASTURIAS", "Asturias"),
+    ("TENERIFE", "Tenerife"),
+    ("CANARIAS", "Canarias"),
+    ("RIOJA", "La Rioja"),
+    # Aragonese-specific terminology
+    ("DEPARTAMENTO DE EDUCACION", "Aragón"),
+    ("COMARCA", "Aragón"),
+    # Valencian health department naming convention
+    ("DEPARTAMENTO DE SALUD", "Comunitat Valenciana"),
+    # Balearic institutions
+    ("BALEAR", "Illes Balears"),
+    # Specific institutional identifiers with no geographic keyword
+    ("OPAEF", "Andalucía"),
+    ("REY JUAN CARLOS", "Madrid"),
+    ("SERVICIO REGIONAL DE EMPLEO Y FORMACION", "Murcia"),
+]
+
 
 def normalize_public_body(value: str | None) -> str | None:
     if not value:
@@ -47,11 +140,17 @@ def infer_contract_administration_level(
         "JUNTA DE GOBIERNO DEL AYUNTAMIENTO",
         "JUNTA DE GOBIERNO LOCAL",
         "ORGANOS DIRECTIVOS DEL AYUNTAMIENTO",
+        "PLENO DEL AYUNTAMIENTO",
         "DISTRITO DE ",
         "EMPRESA MUNICIPAL",
         "PATRONATO MUNICIPAL",
         "INSTITUTO MUNICIPAL",
         "ENTIDAD PUBLICA EMPRESARIAL LOCAL",
+        "MUNICIPALIZADA",
+        "MUNICIPALIZADO",
+        "MANCOMUNIDAD",
+        "MUNICIPIO DE ",
+        "FUNDACION DEPORTIVA MUNICIPAL",
     )
     if any(body.startswith(m) or m in body for m in municipal_markers):
         return "municipal"
@@ -77,6 +176,7 @@ def infer_contract_administration_level(
         "UNIVERSIDAD ",
         "UNIVERSITAT ",
         "RECTORADO ",
+        "RECTOR DE LA UNIVERSIDAD",
         "SOCIEDAD REGIONAL",
         "TELEVISION AUTONOMICA",
         "HOSPITAL UNIVERSITARIO",
@@ -84,10 +184,15 @@ def infer_contract_administration_level(
         "GERENCIA SECTOR SANITARIO",
         "ORGANISMO PROVINCIAL",
         "SERVICIO REGIONAL",
+        "SERVICIO DE SALUD DE",
+        "DEPARTAMENTO DE ",
+        "COMARCA DE ",
         "INSTITUTO ARAGONES",
         "INSTITUTO CANTABRO",
         "INSTITUTO ASTURIANO",
         "INSTITUTO GALLEGO",
+        "INSTITUTO MURCIANO",
+        "INSTITUTO BALEAR",
         "FUNDACION JOVENES Y DEPORTE",
     )
     if any(m in body for m in autonomic_markers):
@@ -104,6 +209,7 @@ def infer_contract_administration_level(
         "CONFEDERACION HIDROGRAFICA",
         "AUTORIDAD PORTUARIA",
         "SOCIEDAD ESTATAL",
+        "SOCIEDAD MERCANTIL ESTATAL",
         "CORPORACION DE RADIO Y TELEVISION",
         "MUTUAL MIDAT",
         "FREMAP",
@@ -124,14 +230,20 @@ def infer_contract_administration_level(
         "COMISION NACIONAL",
         "INSTITUTO NACIONAL",
         "INSTITUTO DE MAYORES",
+        "INSTITUTO DE LAS MUJERES",
         "RED.ES",
         "INTENDENTE DE ",
+        "INTENDENCIA DE ",
+        "JEFATURA DE INTENDENCIA",
+        "JEFATURA DE ASUNTOS ECONOMICOS",
+        "DIVISION ECONOMICA",
         "ARSENAL DE ",
         "INSTITUTO SOCIAL DE LA MARINA",
         "AENA",
         "DEFENSA",
         "CENTRO NACIONAL",
         "FUNDACION ESTATAL",
+        "FUNDACION BIODIVERSIDAD",
         "MUTUA COLABORADORA",
         "MUSEO NACIONAL",
         "BIBLIOTECA NACIONAL",
@@ -142,6 +254,17 @@ def infer_contract_administration_level(
         "INSPECCION GENERAL",
         "COMITE DE DIRECCION DE EQUIPOS NUCLEARES",
         "INSTITUTO DE SALUD CARLOS III",
+        "ORGANISMO AUTONOMO PARQUES NACIONALES",
+        "PARQUES NACIONALES",
+        "ENRESA",
+        "SEIASA",
+        "INECO",
+        "NAVANTIA",
+        "FABRICA NACIONAL DE MONEDA",
+        "INSTITUTO DE CREDITO OFICIAL",
+        "COFIDES",
+        "EMPRESA NACIONAL",
+        "CUERPO NACIONAL DE POLICIA",
     )
     if any(m in body for m in state_markers):
         return "state"
@@ -154,10 +277,28 @@ def infer_municipal_territory(body_normalized: str | None) -> str | None:
         return None
     if body_normalized.startswith("AYUNTAMIENTO DE "):
         return body_normalized.replace("AYUNTAMIENTO DE ", "", 1).strip() or None
-    # Also match variant patterns
-    m = re.match(r"^(?:ALCALDIA|JUNTA DE GOBIERNO|ORGANOS DIRECTIVOS) DEL? AYUNTAMIENTO DE (.+)$", body_normalized)
+    # Governing body patterns: "Junta de Gobierno (Local) del Ayuntamiento de X", "Pleno del Ayuntamiento de X", etc.
+    m = re.match(
+        r"^(?:ALCALDIA|JUNTA DE GOBIERNO(?: LOCAL)?|ORGANOS DIRECTIVOS|PLENO) DEL? AYUNTAMIENTO DE (.+)$",
+        body_normalized,
+    )
     if m:
         return m.group(1).strip() or None
+    # "Empresa Municipal de X de {city}" — city is the last "DE {city}" segment
+    m = re.match(r"^EMPRESA MUNICIPAL\b.+\bDE ([A-Z][A-Z\s]+?)(?:\s*,|\s+S\.A\.|\s+S\.L\.|\s+SAU|\s+SAM|\s*$)", body_normalized)
+    if m:
+        return m.group(1).strip().title() or None
+    # "Empresa de Serveis del Municipi de {city}"
+    m = re.match(r"^.+\bMUNICIPI DE ([A-Z][A-Z\s]+?)(?:\s*,|\s+S\.A\.|\s+S\.L\.|\s*$)", body_normalized)
+    if m:
+        return m.group(1).strip().title() or None
+    # EMAYA (Palma water company — name has no city after DE)
+    if "EMAYA" in body_normalized:
+        return "Palma"
+    # Greedy last "DE {place}" for island/local entities like "... de Lanzarote"
+    m = re.search(r".+\bDE ([A-Z][A-Z]+(?:\s+[A-Z][A-Z]+)*)(?:\s*[\(,\-]|\s*$)", body_normalized)
+    if m:
+        return m.group(1).strip().title() or None
     return None
 
 
@@ -167,11 +308,19 @@ def infer_autonomic_territory(body_normalized: str | None) -> str | None:
         return None
 
     # Pattern 1: "Consejería de X del Principado de Asturias" → "Asturias"
-    m = re.search(r"(?:DEL|DE LA|DE LAS|DE LOS|DE|DEL)\s+(PRINCIPADO DE ASTURIAS|GOBIERNO VASCO|GENERALITAT (?:DE |VALENCIANA|CATALUNYA)|GOBIERNO DE (?:NAVARRA|ARAGON|CANARIAS|CANTABRIA|LA RIOJA|EXTREMADURA|LAS ISLAS BALEARES|ILLES BALEARS)|JUNTA DE (?:ANDALUCIA|CASTILLA Y LEON|CASTILLA-LA MANCHA|EXTREMADURA|GALICIA|COMUNIDADES DE CASTILLA-LA MANCHA)|XUNTA DE GALICIA|CABILDO DE|CONSELL DE|DIPUTACION (?:FORAL|PROVINCIAL) DE)",
-        body_normalized)
+    # Only matches complete, known government identifiers — no partial DIPUTACION match.
+    m = re.search(
+        r"(?:DEL|DE LA|DE LAS|DE LOS|DE)\s+"
+        r"(PRINCIPADO DE ASTURIAS"
+        r"|GOBIERNO VASCO"
+        r"|GENERALITAT (?:DE |VALENCIANA|CATALUNYA)"
+        r"|GOBIERNO DE (?:NAVARRA|ARAGON|CANARIAS|CANTABRIA|LA RIOJA|EXTREMADURA|LAS ISLAS BALEARES|ILLES BALEARS)"
+        r"|JUNTA DE (?:ANDALUCIA|CASTILLA Y LEON|CASTILLA-LA MANCHA|EXTREMADURA|GALICIA|COMUNIDADES DE CASTILLA-LA MANCHA)"
+        r"|XUNTA DE GALICIA)",
+        body_normalized,
+    )
     if m:
         region = m.group(1).strip()
-        # Map common patterns to canonical region names
         region_map = {
             "PRINCIPADO DE ASTURIAS": "Asturias",
             "GOBIERNO VASCO": "País Vasco",
@@ -193,7 +342,7 @@ def infer_autonomic_territory(body_normalized: str | None) -> str | None:
             "JUNTA DE GALICIA": "Galicia",
             "XUNTA DE GALICIA": "Galicia",
         }
-        return region_map.get(region, region.title())
+        return region_map.get(region, None)
 
     # Pattern 2: "Delegación Provincial de ... en Ciudad Real" → "Ciudad Real"
     m = re.search(r" EN ([\w\s]+?)$", body_normalized)
@@ -212,6 +361,34 @@ def infer_autonomic_territory(body_normalized: str | None) -> str | None:
             "JUNTA DE GALICIA": "Galicia",
         }
         return region_map.get(region, region)
+
+    # Pattern 4: "Diputación (Provincial/Foral) de {province}" → CCAA
+    m = re.search(r"DIPUTACION (?:PROVINCIAL |FORAL |)DE (?:LA |EL )?(.+?)(?:\s*[\(,]|\s*$)", body_normalized)
+    if m:
+        province = m.group(1).strip()
+        if province in _PROVINCE_TO_CCAA:
+            return _PROVINCE_TO_CCAA[province]
+
+    # Pattern 5: "Provincia de {province}" in body → CCAA
+    m = re.search(r"PROVINCIA DE (?:LA |EL )?(.+?)(?:\s*[\(,\-]|\s*$)", body_normalized)
+    if m:
+        province = m.group(1).strip()
+        if province in _PROVINCE_TO_CCAA:
+            return _PROVINCE_TO_CCAA[province]
+
+    # Pattern 6: CCAA keyword scan — longest keywords first to avoid partial matches
+    for keyword, ccaa in _CCAA_KEYWORDS:
+        if keyword in body_normalized:
+            return ccaa
+
+    # Pattern 7: greedy scan for last "DE {place}" in names like
+    # "Rectorado de la Universidad de Zaragoza" → "Zaragoza"
+    # The leading .+ is greedy so the regex anchors to the LAST "DE " in the string.
+    m = re.search(r".+\bDE ([A-Z][A-Z]+(?:\s+[A-Z][A-Z]+)*)(?:\s*[\(,\-]|\s*$)", body_normalized)
+    if m:
+        place = m.group(1).strip()
+        if place in _PROVINCE_TO_CCAA:
+            return _PROVINCE_TO_CCAA[place]
 
     return None
 

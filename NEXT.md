@@ -136,10 +136,17 @@ territory fields.
 - Subsidies remain at 100% for both levels (BDNS `nivel2` is well-populated).
 - Territory inference now extracts region and administration level from
   awarding body names when the source XML omits these fields. The expanded
-  `infer_contract_administration_level()` covers 40+ entity patterns
-  (ministries, regional governments, universities, port authorities, etc.).
-- Remaining gap: ~79 autonomic and ~21 municipal contracts without region
-  (unusual awarding body names or genuinely missing location data).
+  `infer_contract_administration_level()` covers 50+ entity patterns
+  (ministries, regional governments, universities, diputaciones, port
+  authorities, military units, state companies, etc.).
+- Province→CCAA map and CCAA keyword scan in `infer_autonomic_territory()`
+  resolve diputación, university, hospital, and regional-entity names.
+- `infer_municipal_territory()` now handles `JUNTA DE GOBIERNO LOCAL`,
+  `PLENO DEL AYUNTAMIENTO`, `EMPRESA MUNICIPAL DE ... DE {city}`, and
+  known named companies (EMAYA → Palma).
+- `src.contratacion.backfill_territory` backfills existing records.
+- **Current coverage**: 3,258 / 3,803 contracts classified (85.7%);
+  0 autonomic and 0 municipal contracts without region.
 
 ### Profiles And Annotations
 
