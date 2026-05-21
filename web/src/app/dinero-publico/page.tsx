@@ -56,7 +56,7 @@ export default async function DineroPublicoPage({ searchParams }: PageProps) {
   const cascadeEuFundTotal = sections.reduce((sum, s) => sum + (s.eu_fund_summary?.eu_fund_total ?? 0), 0)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Trazabilidad del gasto"
         description="Recorrido del dinero público desde el Presupuesto General del Estado hasta los contratos y subvenciones publicados, agrupados por ministerio responsable."

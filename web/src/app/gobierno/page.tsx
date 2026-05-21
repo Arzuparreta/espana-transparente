@@ -99,7 +99,7 @@ export default async function GobiernoPage() {
   const totalAmount = members.reduce((s, m) => s + m.total_amount_eur, 0)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="ui-page">
       <PageHeader
         title="Gobierno"
         description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. A qué partido pertenecen y qué contratos adjudica cada ministerio.`}

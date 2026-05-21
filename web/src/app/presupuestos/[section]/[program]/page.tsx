@@ -59,7 +59,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
     : latest.year
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/presupuestos", label: "Presupuestos" }}
         current={programName}

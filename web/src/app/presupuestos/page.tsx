@@ -79,7 +79,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   ]
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Presupuestos"
         description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Cuando no hay nuevo presupuesto aprobado, se muestran los créditos prorrogados."

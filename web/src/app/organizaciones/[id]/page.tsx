@@ -43,7 +43,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
   if (!organization) notFound()
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/organizaciones", label: "Organizaciones" }}
         current={organization.name}

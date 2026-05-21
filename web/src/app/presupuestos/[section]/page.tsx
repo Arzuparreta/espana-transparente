@@ -55,7 +55,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
   const totalFinal = programs.reduce((sum, p) => sum + (p.total_credit_final ?? 0), 0)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/presupuestos", label: "Presupuestos" }}
         current={sectionName}

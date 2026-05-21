@@ -49,7 +49,7 @@ export function DetailPageSkeleton({
   withStats?: boolean
 }) {
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <Skeleton className="h-40" />
 
       {withStats ? (

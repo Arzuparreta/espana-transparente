@@ -63,7 +63,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       : `${(totalAmount / 1_000_000).toFixed(0)}M €`
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Contratos públicos"
         description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí ves quién compra, a qué empresa, y por cuánto. Ordenados por importe sin IVA."

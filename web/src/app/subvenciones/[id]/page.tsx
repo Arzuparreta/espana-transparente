@@ -66,7 +66,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
   const titleText = subsidy.convocatoria ?? subsidy.beneficiario ?? `BDNS ${subsidy.bdns_id}`
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/subvenciones", label: "Subvenciones" }}
         current={titleText}

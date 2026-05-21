@@ -31,7 +31,7 @@ export default async function EuFundDetailPage({ params }: PageProps) {
   const kohesioUrl = `https://kohesio.ec.europa.eu/en/beneficiaries/${slug}`
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/fondos-ue", label: "Fondos UE" }}
         current={fund.label}

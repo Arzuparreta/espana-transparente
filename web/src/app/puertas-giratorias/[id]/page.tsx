@@ -55,7 +55,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
   const otherSources = sources.filter((s) => s.source_type !== "primary")
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/puertas-giratorias", label: "Puertas giratorias" }}
         current={item.person_name}

@@ -162,7 +162,7 @@ export function PoliticianProfile({
   })()
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title={fullName}
         description={

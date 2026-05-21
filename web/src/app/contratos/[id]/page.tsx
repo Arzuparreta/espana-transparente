@@ -32,7 +32,7 @@ function formatAmount(amount: number | null, currency = "EUR"): string {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm first:border-0">
+    <div className="grid gap-1 border-t border-border/50 py-3 text-sm first:border-0 sm:grid-cols-[10rem_1fr] sm:gap-3">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="min-w-0 font-medium">{children}</dd>
     </div>
@@ -78,7 +78,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
     : null
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/contratos", label: "Contratos" }}
         current={contract.title}
@@ -119,120 +119,121 @@ export default async function ContractDetailPage({ params }: PageProps) {
         description={contract.contract_folder_id ? `Expediente ${contract.contract_folder_id}` : "Detalle del contrato público"}
       />
 
-      {/* Importe destacado */}
-      <div className="rounded-[2px] border border-border bg-card px-6 py-5">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe sin IVA</p>
-        <p className="mt-1 font-mono text-3xl font-bold">
-          {formatAmount(contract.amount, contract.currency ?? "EUR")}
-        </p>
-      </div>
-
-      {/* Tabla de datos */}
-      <div className="rounded-[2px] border border-border bg-card px-6 py-2">
-        <dl>
-          {dateStr && <Row label="Fecha">{dateStr}</Row>}
-          {contract.contract_type && <Row label="Tipo">{contract.contract_type}</Row>}
-          {contract.awarding_body && (
-            <Row label="Órgano convocante">
-              {contract.awarding_body_organization_id ? (
-                <EntityLink
-                  kind="organization"
-                  id={contract.awarding_body_organization_id}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div className="min-w-0 rounded-[2px] border border-border bg-card px-4 py-2 sm:px-6">
+          <dl>
+            {dateStr && <Row label="Fecha">{dateStr}</Row>}
+            {contract.contract_type && <Row label="Tipo">{contract.contract_type}</Row>}
+            {contract.awarding_body && (
+              <Row label="Órgano convocante">
+                {contract.awarding_body_organization_id ? (
+                  <EntityLink
+                    kind="organization"
+                    id={contract.awarding_body_organization_id}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {contract.awarding_body}
+                  </EntityLink>
+                ) : (
+                  contract.awarding_body
+                )}
+              </Row>
+            )}
+            {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
+            {contract.ministry_normalized && (
+              <Row label="Ministerio">
+                <ResponsiveLink
+                  href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`}
                   className="underline-offset-2 hover:underline"
                 >
-                  {contract.awarding_body}
-                </EntityLink>
-              ) : (
-                contract.awarding_body
-              )}
-            </Row>
-          )}
-          {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
-          {contract.ministry_normalized && (
-            <Row label="Ministerio">
-              <ResponsiveLink
-                href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`}
-                className="underline-offset-2 hover:underline"
-              >
-                {contract.ministry_normalized}
-              </ResponsiveLink>
-            </Row>
-          )}
-          {contract.region && <Row label="Región">{contract.region}</Row>}
-          {contract.administration_level && (
-            <Row label="Nivel administrativo">
-              {ADMIN_LEVEL[contract.administration_level] ?? contract.administration_level}
-            </Row>
-          )}
-          {contract.cpv_code && (
-            <Row label="Código CPV">{contract.cpv_code}</Row>
-          )}
-          {contract.description && (
-            <Row label="Descripción">
-              <span className="font-normal">{contract.description}</span>
-            </Row>
-          )}
-        </dl>
-      </div>
-
-      {/* Responsable político */}
-      {responsible && (
-        <div className="rounded-[2px] border border-border bg-card px-6 py-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Responsable político
-          </p>
-          <div className="flex min-w-0 items-start justify-between gap-4">
-            <div className="min-w-0">
-              {responsible.politician_id ? (
-                <EntityLink
-                  kind="politician"
-                  id={responsible.politician_id}
-                  className="font-semibold underline-offset-2 hover:underline"
-                >
-                  {responsible.person_name}
-                </EntityLink>
-              ) : (
-                <p className="font-semibold">{responsible.person_name}</p>
-              )}
-              {responsible.ministry && (
-                <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>
-              )}
-              {responsible.government && (
-                <p className="text-xs text-muted-foreground">{responsible.government}</p>
-              )}
-            </div>
-            {responsible.political_party ? (
-              <PartyBadge
-                acronym={responsible.political_party}
-                partyId={responsiblePartyId}
-                className="text-xs"
-              />
-            ) : null}
-          </div>
+                  {contract.ministry_normalized}
+                </ResponsiveLink>
+              </Row>
+            )}
+            {contract.region && <Row label="Región">{contract.region}</Row>}
+            {contract.administration_level && (
+              <Row label="Nivel administrativo">
+                {ADMIN_LEVEL[contract.administration_level] ?? contract.administration_level}
+              </Row>
+            )}
+            {contract.cpv_code && (
+              <Row label="Código CPV">{contract.cpv_code}</Row>
+            )}
+            {contract.description && (
+              <Row label="Descripción">
+                <span className="font-normal">{contract.description}</span>
+              </Row>
+            )}
+          </dl>
         </div>
-      )}
 
-      <InfoPanel title="Fuente">
-        Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
-        {contract.source_url && (
-          <>
-            {" "}
-            <a
-              href={contract.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2"
-            >
-              Ver expediente oficial →
-            </a>
-          </>
-        )}
-      </InfoPanel>
+        <aside className="space-y-4 lg:sticky lg:top-20">
+          <div className="rounded-[2px] border border-border bg-card px-5 py-5">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe sin IVA</p>
+            <p className="mt-1 break-words font-mono text-3xl font-bold">
+              {formatAmount(contract.amount, contract.currency ?? "EUR")}
+            </p>
+          </div>
 
-      <ShareButton
-        text={buildShareText(contract)}
-        url={`${BRAND_URL}/contratos/${id}`}
-      />
+          {responsible && (
+            <div className="rounded-[2px] border border-border bg-card px-5 py-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Responsable político
+              </p>
+              <div className="flex min-w-0 items-start justify-between gap-4">
+                <div className="min-w-0">
+                  {responsible.politician_id ? (
+                    <EntityLink
+                      kind="politician"
+                      id={responsible.politician_id}
+                      className="font-semibold underline-offset-2 hover:underline"
+                    >
+                      {responsible.person_name}
+                    </EntityLink>
+                  ) : (
+                    <p className="font-semibold">{responsible.person_name}</p>
+                  )}
+                  {responsible.ministry && (
+                    <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>
+                  )}
+                  {responsible.government && (
+                    <p className="text-xs text-muted-foreground">{responsible.government}</p>
+                  )}
+                </div>
+                {responsible.political_party ? (
+                  <PartyBadge
+                    acronym={responsible.political_party}
+                    partyId={responsiblePartyId}
+                    className="text-xs"
+                  />
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <InfoPanel title="Fuente">
+            Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
+            {contract.source_url && (
+              <>
+                {" "}
+                <a
+                  href={contract.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Ver expediente oficial →
+                </a>
+              </>
+            )}
+          </InfoPanel>
+
+          <ShareButton
+            text={buildShareText(contract)}
+            url={`${BRAND_URL}/contratos/${id}`}
+          />
+        </aside>
+      </div>
     </div>
   )
 }

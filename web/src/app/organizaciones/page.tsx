@@ -20,7 +20,7 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.organizations))
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Organizaciones"
         description={`Empresas, fundaciones y organismos mencionados en contratos, subvenciones o nombramientos. Un catálogo de ${total.toLocaleString("es-ES")} entidades.`}

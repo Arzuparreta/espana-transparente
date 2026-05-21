@@ -61,7 +61,7 @@ export default async function EstadoDatosPage() {
       .at(-1) ?? null
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="ui-page">
       <PageHeader
         title="Estado de datos"
         description="Frescura de pipelines ETL, cobertura histórica y conflictos de resolución de responsable."

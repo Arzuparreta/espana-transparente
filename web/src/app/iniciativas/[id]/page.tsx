@@ -56,7 +56,7 @@ export default async function IniciativaPage({ params }: PageProps) {
   const statusLabel = STATUS_LABELS[initiative.status ?? ""] ?? initiative.status
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/iniciativas", label: "Iniciativas" }}
         current={initiative.title ?? initiative.number}

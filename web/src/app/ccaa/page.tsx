@@ -31,7 +31,7 @@ export default async function CcaaPage() {
   const visibleTerritories = territories.slice(0, 24)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Gasto autonómico"
         description="Drilldowns por comunidad autónoma basados en los campos territoriales que publican BDNS y PCSP. Cuando una fuente no publica territorio resoluble, el registro queda fuera del listado territorial y se cuenta aparte."

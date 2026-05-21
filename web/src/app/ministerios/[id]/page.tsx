@@ -80,7 +80,7 @@ export default async function MinistrioPage({ params }: PageProps) {
     : null
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/gobierno", label: "Gobierno" }}
         current={member.organization_name}

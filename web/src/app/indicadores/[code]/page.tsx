@@ -72,7 +72,7 @@ export default async function IndicadorPage({ params }: PageProps) {
   ]
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="ui-page">
         <ContextTrail
           section={{ href: "/indicadores", label: "Indicadores" }}
           current={name}

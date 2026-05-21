@@ -49,7 +49,7 @@ export default async function DistorsionElectoralPage() {
   const minVotesPerSeat = Math.min(...withVotesPerSeat.map((r) => r.votesPerSeat))
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Distorsión electoral"
         description={`Elecciones generales del ${ELECTION_2023.date} · ${ELECTION_2023.totalSeats} escaños · participación ${ELECTION_2023.participation}%`}

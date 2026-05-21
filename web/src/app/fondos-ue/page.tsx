@@ -90,7 +90,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
   const offset = (page - 1) * PAGE_SIZE.euFunds
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Fondos europeos"
         description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."

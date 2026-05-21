@@ -56,7 +56,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const uniqueOrganos = new Set(statsRows.map((s) => (s as { nivel3?: string }).nivel3).filter(Boolean)).size
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Subvenciones"
         description="Dinero que reparte el Estado a empresas, fundaciones u organismos para fines concretos. Quién lo recibe, cuánto, y para qué. Beneficiarios individuales aparecen anonimizados en la fuente oficial."

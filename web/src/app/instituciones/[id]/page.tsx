@@ -65,7 +65,7 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
   const institutionLabel = INSTITUTION_LABEL[member.institution] ?? member.institution
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/instituciones", label: "Instituciones" }}
         current={formatName(member.person_name)}

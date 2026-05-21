@@ -23,7 +23,7 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
   ]
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Puertas giratorias"
         description={`Personas que ocuparon un cargo público y después pasaron a trabajar en empresas relacionadas con decisiones tomadas durante ese cargo. ${uniquePeople} personas · ${cases.length} movimientos documentados con fuente pública.`}

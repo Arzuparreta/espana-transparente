@@ -31,7 +31,7 @@ export default async function MunicipiosPage() {
   const visibleTerritories = territories.slice(0, 24)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Gasto municipal"
         description="Drilldowns por municipio o literal territorial local publicado en BDNS y PCSP. Cuando la fuente no publica un municipio reutilizable, el registro se contabiliza como cobertura no resuelta."

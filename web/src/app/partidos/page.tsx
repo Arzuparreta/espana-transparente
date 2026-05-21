@@ -15,7 +15,7 @@ export default async function PartidosPage() {
     .sort((a, b) => (b.stats?.deputy_count ?? 0) - (a.stats?.deputy_count ?? 0))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Partidos"
         description="Los partidos con representación en el Congreso. Cuántos diputados tienen, en qué provincias, y cómo votan."

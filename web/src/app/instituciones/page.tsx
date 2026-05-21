@@ -140,7 +140,7 @@ export default async function InstitucionesPage() {
     .at(-1)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10">
+    <div className="ui-page">
       <PageHeader
         title="Organismos institucionales"
         description="Personas nombradas para dirigir organismos públicos clave —Tribunal Constitucional, Consejo General del Poder Judicial, RTVE, SEPI— y por qué partido fue propuesta cada una."
