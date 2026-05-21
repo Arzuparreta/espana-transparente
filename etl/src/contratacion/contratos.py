@@ -23,7 +23,9 @@ from common.db import get_pg_conn
 from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 from common.organizations import upsert_organization
 from common.responsibility import (
+    infer_autonomic_territory,
     infer_contract_administration_level,
+    infer_municipal_territory,
     iter_months,
     month_bounds,
     normalize_public_body,
@@ -126,6 +128,19 @@ def parse_entry(entry: ET.Element) -> dict | None:
             except ValueError:
                 pass
 
+    # Infer administration_level from awarding body
+    awarding_body_normalized = normalize_public_body(contracting_authority)
+    ministry_normalized = extract_ministry_from_body(contracting_authority)
+    admin_level = infer_contract_administration_level(awarding_body_normalized, ministry_normalized)
+
+    # When region is missing but we know the admin level, infer territory from awarding body
+    if not region and admin_level:
+        if admin_level == "municipal":
+            region = infer_municipal_territory(awarding_body_normalized)
+        elif admin_level == "autonomic":
+            region = infer_autonomic_territory(awarding_body_normalized)
+        # For state level with no region, leave as-is (national scope)
+
     # Winning contractor (only present in awarded contracts)
     contractor = None
     tender_result = status_root.find("cac:TenderResult", NS)
@@ -138,18 +153,15 @@ def parse_entry(entry: ET.Element) -> dict | None:
         "contract_folder_id": contract_folder_id,
         "title": title,
         "awarding_body": contracting_authority,
-        "awarding_body_normalized": normalize_public_body(contracting_authority),
+        "awarding_body_normalized": awarding_body_normalized,
         "amount": amount_eur,
         "status": status,
         "contract_type": contract_type,
         "cpv_code": cpv_code,
         "region": region,
         "date": published_at.date() if published_at else None,
-        "ministry_normalized": extract_ministry_from_body(contracting_authority),
-        "administration_level": infer_contract_administration_level(
-            normalize_public_body(contracting_authority),
-            extract_ministry_from_body(contracting_authority),
-        ),
+        "ministry_normalized": ministry_normalized,
+        "administration_level": admin_level,
         "awarding_body_organization_id": None,
         "contractor_organization_id": None,
         "source_url": source_url,
