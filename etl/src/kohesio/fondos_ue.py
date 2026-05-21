@@ -29,6 +29,7 @@ from tenacity import (
 
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
+from common.organizations import normalize_organization_name, upsert_organization
 
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
@@ -95,6 +96,79 @@ def upsert_batch(conn, rows: list[dict]) -> int:
     return len(rows)
 
 
+def link_beneficiary_organizations(conn, batch_size: int = 2000) -> tuple[int, int]:
+    """Link eu_funds beneficiaries to organizations via normalized name matching.
+
+    Uses a bulk approach: collect unique labels, batch-upsert organizations,
+    then batch-update FK references. Returns (linked, total_candidates).
+    """
+    with conn.cursor() as cur:
+        # 1. Collect all unique labels without org links
+        cur.execute(
+            "SELECT DISTINCT label FROM eu_funds "
+            "WHERE label IS NOT NULL AND label != '' "
+            "AND beneficiary_organization_id IS NULL"
+        )
+        unique_labels = [row[0] for row in cur.fetchall()]
+    print(f"  {len(unique_labels):,} unique beneficiary labels to link")
+
+    # 2. Normalize each label and upsert organizations in batches
+    normalized_map: dict[str, str] = {}  # normalized_name → org_id
+    linked = 0
+
+    for i in range(0, len(unique_labels), batch_size):
+        batch = unique_labels[i : i + batch_size]
+        with conn.cursor() as cur:
+            for label in batch:
+                normalized = normalize_organization_name(label)
+                if not normalized:
+                    continue
+                if normalized in normalized_map:
+                    continue
+                # Upsert org and capture id
+                cur.execute(
+                    """
+                    INSERT INTO organizations (name, normalized_name, organization_type, source_url)
+                    VALUES (%s, %s, 'other', %s)
+                    ON CONFLICT (normalized_name) DO UPDATE SET
+                      name = EXCLUDED.name,
+                      updated_at = now()
+                    RETURNING id
+                    """,
+                    (label.strip(), normalized,
+                     f"https://kohesio.ec.europa.eu/en/beneficiaries"),
+                )
+                org_id = cur.fetchone()[0]
+                normalized_map[normalized] = org_id
+        conn.commit()
+        if (i + batch_size) % 5000 == 0 or i + batch_size >= len(unique_labels):
+            print(f"  Orgs upserted: {len(normalized_map):,} / {len(unique_labels):,}")
+
+    # 3. Batch-update eu_funds with org IDs
+    print(f"  Updating FK references for {len(normalized_map):,} organizations...")
+    with conn.cursor() as cur:
+        update_count = 0
+        for i in range(0, len(unique_labels), batch_size):
+            batch = unique_labels[i : i + batch_size]
+            for label in batch:
+                normalized = normalize_organization_name(label)
+                org_id = normalized_map.get(normalized)
+                if not org_id:
+                    continue
+                cur.execute(
+                    "UPDATE eu_funds SET beneficiary_organization_id = %s "
+                    "WHERE label = %s AND beneficiary_organization_id IS NULL",
+                    (org_id, label),
+                )
+                update_count += cur.rowcount
+            if update_count % 5000 == 0 or i + batch_size >= len(unique_labels):
+                print(f"  FK updates so far: {update_count:,}")
+            conn.commit()
+        linked = update_count
+
+    return linked, len(unique_labels)
+
+
 def run(dry_run: bool = False, limit: int | None = None) -> None:
     fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
     with httpx.Client(headers={"Accept": "application/json"}) as client:
@@ -131,11 +205,16 @@ def run(dry_run: bool = False, limit: int | None = None) -> None:
             run_id = start_run(cur, pipeline="kohesio.fondos_ue", chunk_key="es")
             conn.commit()
         upserted = upsert_batch(conn, rows)
+        print(f"Upserted {upserted:,} beneficiaries into eu_funds")
+
+        print("Linking beneficiaries to organizations...")
+        org_linked, org_checked = link_beneficiary_organizations(conn)
+        print(f"Organization links: {org_linked:,} linked / {org_checked:,} checked")
+
         with conn.cursor() as cur:
             finish_run(cur, run_id=run_id, status="succeeded",
-                       rows_read=len(rows), rows_inserted=upserted)
+                       rows_read=len(rows), rows_inserted=upserted + org_linked)
             conn.commit()
-        print(f"Upserted {upserted:,} beneficiaries into eu_funds")
     except Exception as exc:
         if run_id:
             with conn.cursor() as cur:

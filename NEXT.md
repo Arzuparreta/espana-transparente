@@ -90,15 +90,22 @@ These are the highest-value product closures after P1.
 ### Public Money Traceability v2
 
 Current `/dinero-publico` connects budget sections/programs to responsible
-ministries, contracts, and subsidies. It still needs stronger downstream
-coverage.
+ministries, contracts, and subsidies.
 
-- Contract and subsidy beneficiaries now expose organization links in the
-  cascade when the source names can be normalized to `organizations`.
-- Add EU-fund associations only through a defensible organization bridge. Do
-  not fake a ministry-level EU-fund join when the source does not provide it.
-- Keep empty nodes explicit with `Sin datos`.
-- Keep source/freshness metadata visible.
+- Contract awarding bodies are linked to organizations (97.3%).
+  Contractor org links exist when source data includes contractor names
+  (178 of 3,803 contracts have contractor data; all linked).
+- Subsidy beneficiaries linked to organizations (47.3% of 515 subsidies).
+- EU fund beneficiaries now linked to organizations via the
+  `beneficiary_organization_id` FK on `eu_funds` (30,000/30,000 linked).
+  The bridge is name-based: each Kohesio beneficiary label is normalized and
+  matched against `organizations.normalized_name`. No fake ministry-level
+  EU-fund join is created — the source does not provide ministry attribution.
+- Empty nodes are explicit with `Sin datos`. Source/freshness metadata
+  visible on every page.
+- Remaining: add EU fund beneficiaries to the `dinero-publico` cascade UI
+  when a defensible route exists (e.g., through organization pages, not
+  through ministries).
 
 ### Senate Votes
 
