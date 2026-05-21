@@ -15,11 +15,15 @@ export function LogoHero({ parties }: LogoHeroProps) {
 
   return (
     <section className="relative rounded border border-border bg-card px-5 py-6 sm:px-8 sm:py-8">
-      <div className="relative space-y-5">
-        <h1 className="font-display max-w-2xl text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-6xl lg:text-7xl">
-          {BRAND_DESCRIPTION}
-        </h1>
-        <SearchBox />
+      <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-10">
+        <div className="lg:flex-1">
+          <h1 className="font-display text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-6xl lg:text-7xl">
+            {BRAND_DESCRIPTION}
+          </h1>
+        </div>
+        <div className="lg:flex-1">
+          <SearchBox />
+        </div>
       </div>
 
       {uniqueParties.length > 0 && (
