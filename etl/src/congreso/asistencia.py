@@ -21,10 +21,11 @@ import re
 import subprocess
 import time
 import zipfile
+from datetime import date
 
 import psycopg2.extras
 from common.db import get_pg_conn
-from common.etl_runs import finish_run, start_run
+from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 
 BASE_URL = "https://www.congreso.es"
 PORTLET_URL = (
@@ -192,13 +193,32 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
 
 
 def run(dry_run: bool = False, from_date: int | None = None, resume: bool = False) -> None:
-    # The pipeline already resumes idempotently by skipping sessions present in
-    # voting_sessions. The flag keeps long ETL CLIs operationally consistent.
-    _ = resume
     conn = get_pg_conn()
     run_id = None
     try:
         cur = conn.cursor()
+
+        # Compute chunk bounds for resume tracking.
+        if from_date:
+            d_str = str(from_date)
+            window_start = date(int(d_str[:4]), int(d_str[4:6]), int(d_str[6:]))
+        else:
+            window_start = date(2023, 8, 17)  # approximate start of Leg XV
+        window_end = date.today()
+        chunk_key = str(from_date) if from_date else "all"
+
+        # Resume: skip chunk if already marked succeeded in etl_runs.
+        if resume and is_chunk_succeeded(
+            cur,
+            pipeline="congreso.asistencia",
+            chunk_key=chunk_key,
+            window_start=window_start,
+            window_end=window_end,
+        ):
+            print(f"Skipping chunk {chunk_key}: already succeeded in etl_runs")
+            cur.close()
+            conn.close()
+            return
 
         cur.execute("SELECT id FROM legislatures WHERE number = 15")
         leg_id = cur.fetchone()[0]
@@ -210,8 +230,13 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
         print(f"{len(all_dates)} dates to process")
 
         if not dry_run:
-            chunk_key = str(from_date) if from_date else "all"
-            run_id = start_run(cur, pipeline="congreso.asistencia", chunk_key=chunk_key)
+            run_id = start_run(
+                cur,
+                pipeline="congreso.asistencia",
+                chunk_key=chunk_key,
+                window_start=window_start,
+                window_end=window_end,
+            )
             conn.commit()
 
         existing = get_existing_sessions(cur, leg_id)
@@ -283,7 +308,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="discover sessions without ingesting")
     parser.add_argument("--from-date", type=int, metavar="YYYYMMDD", help="start from this date")
-    parser.add_argument("--resume", action="store_true", help="accepted for ETL CLI consistency; existing sessions are skipped")
+    parser.add_argument("--resume", action="store_true", help="skip chunk if already marked succeeded in etl_runs")
     return parser
 
 
