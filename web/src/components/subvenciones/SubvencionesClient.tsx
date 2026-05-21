@@ -95,7 +95,7 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
       <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
-            <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${nivelClass(s.nivel1)}`}>
+            <span className={`shrink-0 rounded-[2px] px-2 py-0.5 text-xs font-medium ${nivelClass(s.nivel1)}`}>
               {nivelLabel}
             </span>
             <ResponsibleChip

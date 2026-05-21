@@ -41,7 +41,7 @@ function SenatorCard({ senator }: { senator: Senator }) {
   return (
     <div
       data-slot="card"
-      className="flex min-h-[7rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-h-[7rem] flex-col justify-between rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
       style={{ borderColor: `${color}28` }}
     >
       <div className="flex min-w-0 items-start gap-3">
@@ -51,12 +51,12 @@ function SenatorCard({ senator }: { senator: Senator }) {
             alt={senator.full_name}
             width={40}
             height={52}
-            className="h-13 w-10 shrink-0 rounded-md object-cover"
+            className="h-13 w-10 shrink-0 rounded-[2px] object-cover"
             unoptimized
           />
         ) : (
           <div
-            className="flex h-13 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold text-white"
+            className="flex h-13 w-10 shrink-0 items-center justify-center rounded-[2px] text-sm font-bold text-white"
             style={{ backgroundColor: color }}
           >
             {senator.first_name[0]}
@@ -161,11 +161,11 @@ export default async function SenadoPage() {
             {stats.byGroup.map(({ name, party, count }) => (
               <div
                 key={name}
-                className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm"
+                className="flex items-center gap-1.5 rounded-[2px] border px-3 py-1 text-sm"
                 style={{ borderColor: `${getPartyColor(party?.color ?? null)}44` }}
               >
                 <span
-                  className="h-2 w-2 shrink-0 rounded-full"
+                  className="h-2 w-2 shrink-0"
                   style={{ backgroundColor: getPartyColor(party?.color ?? null) }}
                 />
                 <span className="font-medium">{party?.acronym ?? name}</span>

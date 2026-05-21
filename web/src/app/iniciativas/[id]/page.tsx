@@ -39,7 +39,7 @@ function VoteBar({ yes, no, abs, absent }: { yes: number; no: number; abs: numbe
   const total = yes + no + abs + absent
   if (total === 0) return null
   return (
-    <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+    <div className="flex h-2 overflow-hidden rounded-[2px] bg-muted">
       <div style={{ width: `${(yes / total) * 100}%`, backgroundColor: getVoteColor("Sí") }} />
       <div style={{ width: `${(no / total) * 100}%`, backgroundColor: getVoteColor("No") }} />
       <div style={{ width: `${(abs / total) * 100}%`, backgroundColor: getVoteColor("Abstención") }} />
@@ -82,7 +82,7 @@ export default async function IniciativaPage({ params }: PageProps) {
         }
       />
 
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-4">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-4">
         <dl className="space-y-0">
           {initiative.type && (
             <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm first:border-0">
@@ -140,7 +140,7 @@ export default async function IniciativaPage({ params }: PageProps) {
                 key={s.id as string}
                 kind="voting-session"
                 id={s.id as string}
-                className="block rounded-xl border border-border/60 bg-card/80 px-4 py-4 transition-colors hover:border-border hover:bg-card"
+                className="block rounded-[2px] border border-border/60 bg-card px-4 py-4 transition-colors hover:border-foreground/40"
               >
                 <p className="text-sm font-medium leading-snug">{s.title as string}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{dateStr}</p>

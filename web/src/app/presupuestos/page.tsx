@@ -121,7 +121,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
             <ResponsiveLink
               key={item.href}
               href={item.href}
-              className="min-w-0 rounded-lg border border-border/70 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+              className="min-w-0 rounded-[2px] border border-border/70 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
             >
               <span className="block truncate font-medium">{item.label}</span>
               <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">

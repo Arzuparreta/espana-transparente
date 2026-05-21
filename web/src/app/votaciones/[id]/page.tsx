@@ -212,7 +212,7 @@ export default async function VotacionPage({ params }: PageProps) {
                 <span className="text-xs text-muted-foreground sm:hidden">{group.total} votos</span>
               </div>
               <div className="flex-1">
-                <div className="flex h-5 overflow-hidden rounded-full bg-muted">
+                <div className="flex h-5 overflow-hidden rounded-[2px] bg-muted">
                   {Object.entries(group.votes)
                     .sort((a, b) => b[1] - a[1])
                     .map(([vote, count]) => (
@@ -232,7 +232,7 @@ export default async function VotacionPage({ params }: PageProps) {
                   .map(([vote, count]) => (
                     <span key={vote} className="flex items-center gap-1">
                       <span
-                        className="h-2 w-2 rounded-full"
+                        className="h-2 w-2"
                         style={{ backgroundColor: getVoteColor(vote) }}
                       />
                       {count}
@@ -248,7 +248,7 @@ export default async function VotacionPage({ params }: PageProps) {
         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
           Ver voto individual de cada {chamber === "senate" ? "senador" : "diputado"}
         </summary>
-        <div className="mt-3 max-h-96 overflow-y-auto rounded-2xl border border-border/70 bg-card/70 p-3">
+        <div className="mt-3 max-h-96 overflow-y-auto rounded-[2px] border border-border bg-card p-3">
           {sorted.flatMap(([acronym, group]) =>
             group.deputies.map((deputy, index) => (
               <div

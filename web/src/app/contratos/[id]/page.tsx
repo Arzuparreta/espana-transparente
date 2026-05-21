@@ -120,7 +120,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
       />
 
       {/* Importe destacado */}
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-5">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe sin IVA</p>
         <p className="mt-1 text-3xl font-bold tabular-nums">
           {formatAmount(contract.amount, contract.currency ?? "EUR")}
@@ -128,7 +128,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
       </div>
 
       {/* Tabla de datos */}
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-2">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-2">
         <dl>
           {dateStr && <Row label="Fecha">{dateStr}</Row>}
           {contract.contract_type && <Row label="Tipo">{contract.contract_type}</Row>}
@@ -177,7 +177,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
       {/* Responsable político */}
       {responsible && (
-        <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-4">
+        <div className="rounded-[2px] border border-border bg-card px-6 py-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Responsable político
           </p>

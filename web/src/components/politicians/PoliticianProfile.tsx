@@ -292,7 +292,7 @@ export function PoliticianProfile({
                   <a
                     key={c.id}
                     href={`/contratos/${c.id}`}
-                    className="flex min-w-0 items-baseline justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2 text-sm transition-colors hover:bg-background"
+                    className="flex min-w-0 items-baseline justify-between gap-3 rounded-[2px] border border-border/50 bg-background/60 px-3 py-2 text-sm transition-colors hover:bg-background"
                   >
                     <span className="min-w-0 truncate">{c.title}</span>
                     <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
@@ -325,7 +325,7 @@ export function PoliticianProfile({
               {voteDistribution.map(([vote, count]) => (
                 <div key={vote} className="flex items-center gap-1.5 text-sm">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    className="h-2.5 w-2.5 shrink-0"
                     style={{ backgroundColor: getVoteColor(vote) }}
                   />
                   <span className="font-medium">{vote}</span>
@@ -335,7 +335,7 @@ export function PoliticianProfile({
                 </div>
               ))}
             </div>
-            <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
+            <div className="flex h-2.5 overflow-hidden rounded-[2px] bg-muted">
               {voteDistribution.map(([vote, count]) => (
                 <div
                   key={vote}
@@ -366,7 +366,7 @@ export function PoliticianProfile({
                       return (
                         <div
                           key={index}
-                          className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-3 text-sm"
+                          className="flex flex-wrap items-center gap-2 rounded-[2px] border border-border/60 bg-card px-3 py-3 text-sm"
                         >
                           {party ? (
                             <PartyBadge
@@ -394,8 +394,8 @@ export function PoliticianProfile({
                     })}
                   </div>
                 ) : govPosition ? (
-                  <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 space-y-1">
-                    <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="rounded-[2px] border border-border/60 bg-card px-4 py-4 space-y-1">
+                    <span className="inline-block rounded-[2px] bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {POSITION_LABELS[govPosition.position_type] ?? govPosition.position_type}
                     </span>
                     <p className="text-sm font-medium">
@@ -424,7 +424,7 @@ export function PoliticianProfile({
                     ? "Portavoz del grupo parlamentario"
                     : "Líder del grupo parlamentario"
                   return (
-                    <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-4 space-y-2">
+                    <div className="rounded-[2px] border border-border/60 bg-card px-4 py-4 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         {subParty ? (
                           <PartyBadge
@@ -434,7 +434,7 @@ export function PoliticianProfile({
                             className="text-xs"
                           />
                         ) : null}
-                        <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="inline-block rounded-[2px] bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           {roleLabel}
                         </span>
                       </div>
@@ -579,7 +579,7 @@ export function PoliticianProfile({
                   />
                 ) : (
                   <>
-                    <div className="overflow-hidden rounded-xl border border-border/70 bg-card/80">
+                    <div className="overflow-hidden rounded-[2px] border border-border bg-card">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-border/50 text-xs text-muted-foreground">

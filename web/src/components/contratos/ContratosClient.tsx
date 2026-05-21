@@ -87,12 +87,12 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
             <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${statusClass(c.status)}`}
+              className={`shrink-0 rounded-[2px] px-2 py-0.5 text-xs font-medium ${statusClass(c.status)}`}
             >
               {STATUS_LABELS[c.status ?? ""] ?? c.status ?? "—"}
             </span>
             {c.contract_type ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              <span className="rounded-[2px] bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {c.contract_type}
               </span>
             ) : null}

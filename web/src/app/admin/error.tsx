@@ -16,7 +16,7 @@ export default function AdminError({
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-red-400">Error en el panel</h1>
-      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+      <div className="rounded-[2px] border border-red-500/30 bg-red-500/5 p-4">
         <p className="font-mono text-[13px] leading-relaxed text-red-300/80">
           {error.message || "Error desconocido"}
         </p>
@@ -30,13 +30,13 @@ export default function AdminError({
         <button
           type="button"
           onClick={reset}
-          className="rounded-xl border border-[#2A2A27] bg-[#141412] px-4 py-2 font-mono text-[12px] uppercase tracking-[0.08em] text-[#EEEDE9] transition-colors hover:border-[#C8FF00]"
+          className="rounded-[2px] border border-[#2A2A27] bg-[#141412] px-4 py-2 font-mono text-[12px] uppercase tracking-[0.08em] text-[#EEEDE9] transition-colors hover:border-[#C8FF00]"
         >
           Reintentar
         </button>
         <a
           href="/admin"
-          className="rounded-xl border border-[#2A2A27] bg-[#141412] px-4 py-2 font-mono text-[12px] uppercase tracking-[0.08em] text-[#999992] transition-colors hover:border-[#C8FF00]"
+          className="rounded-[2px] border border-[#2A2A27] bg-[#141412] px-4 py-2 font-mono text-[12px] uppercase tracking-[0.08em] text-[#999992] transition-colors hover:border-[#C8FF00]"
         >
           Volver al panel
         </a>

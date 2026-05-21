@@ -276,7 +276,7 @@ export default async function HomePage() {
                 <EntityLink
                   kind="voting-session"
                   id={s.id as string}
-                  className="flex min-w-0 items-baseline justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+                  className="flex min-w-0 items-baseline justify-between gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
                 >
                   <span className="min-w-0 truncate font-medium">{s.title as string}</span>
                   <span className="shrink-0 tabular-nums text-xs text-muted-foreground">

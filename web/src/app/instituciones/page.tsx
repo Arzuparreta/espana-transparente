@@ -64,7 +64,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
   return (
     <div
       data-slot="card"
-      className="flex min-h-[6rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-h-[6rem] flex-col justify-between rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
       style={{ borderColor: `${color}28` }}
     >
       <div className="space-y-1">

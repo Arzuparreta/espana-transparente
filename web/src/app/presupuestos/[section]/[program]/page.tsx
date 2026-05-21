@@ -118,7 +118,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
             return (
               <div
                 key={row.year}
-                className="rounded-xl border border-border/70 bg-card/80 px-4 py-3"
+                className="rounded-[2px] border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">

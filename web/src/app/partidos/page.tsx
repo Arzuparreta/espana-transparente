@@ -23,7 +23,7 @@ export default async function PartidosPage() {
       <div className="space-y-2">
         {withDeputies.map((p) => (
           <ResponsiveLink key={(p as Party).id} href={`/partidos/${(p as Party).id}`}>
-            <div className="flex min-w-0 items-center gap-4 rounded-xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border hover:bg-card">
+            <div className="flex min-w-0 items-center gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 transition-colors hover:border-foreground/40">
               <PartyLogo
                 src={(p as unknown as { logo_url?: string | null }).logo_url}
                 color={(p as Party).color}

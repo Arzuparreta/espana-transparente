@@ -50,7 +50,7 @@ export function MoneyDataSummary({ datasetHref, rows, total }: MoneyDataSummaryP
     total.total_rows > 0 ? Math.round((total.resolved_rows / total.total_rows) * 100) : 0
 
   return (
-    <section className="rounded-2xl border border-border/70 bg-card/60 p-4">
+    <section className="rounded-[2px] border border-border/70 bg-card/60 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <div className="text-sm font-medium">Estado de datos</div>
@@ -69,7 +69,7 @@ export function MoneyDataSummary({ datasetHref, rows, total }: MoneyDataSummaryP
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {rows.map((row) => (
-          <div key={`${datasetHref}-${row.administration_level}`} className="rounded-xl border border-border/60 bg-background/70 p-3">
+          <div key={`${datasetHref}-${row.administration_level}`} className="rounded-[2px] border border-border/60 bg-background/70 p-3">
             <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
               {levelLabel(row.administration_level)}
             </div>

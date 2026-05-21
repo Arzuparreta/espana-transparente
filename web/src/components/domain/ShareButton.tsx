@@ -25,7 +25,7 @@ export function ShareButton({ text, url }: ShareButtonProps) {
   return (
     <button
       onClick={handleShare}
-      className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex w-full items-center justify-center gap-2 rounded-[2px] border border-border/70 bg-card/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />

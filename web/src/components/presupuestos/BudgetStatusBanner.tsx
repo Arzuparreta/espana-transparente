@@ -38,7 +38,7 @@ export function BudgetStatusBanner({
   budgetType,
 }: BudgetStatusBannerProps) {
   return (
-    <section className={cn("rounded-xl border px-4 py-4 sm:px-5", toneClasses[budgetType])}>
+    <section className={cn("rounded-[2px] border px-4 py-4 sm:px-5", toneClasses[budgetType])}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <div className="text-sm font-semibold">{titles[budgetType]} · {year}</div>

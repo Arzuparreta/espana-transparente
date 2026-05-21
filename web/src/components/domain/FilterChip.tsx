@@ -19,7 +19,7 @@ export function FilterChip({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm",
+        "flex items-center gap-2 rounded-[2px] border border-border/60 bg-muted/40 px-3 py-2 text-sm",
         className
       )}
     >

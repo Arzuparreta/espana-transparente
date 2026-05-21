@@ -288,7 +288,7 @@ export default async function AdminPage() {
   return (
     <div className="space-y-6">
       {fetchError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+        <div className="rounded-[2px] border border-red-500/30 bg-red-500/5 p-4">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.10em] text-red-400">
             Error de conexión
           </p>
@@ -312,7 +312,7 @@ export default async function AdminPage() {
 
       {/* ── Alert banner ────────────────────────────────────────────── */}
       {(rapidFireUsers.length > 0 || freshAccountPosters.length > 0 || failedPipelines.length > 0) && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-4">
+        <div className="rounded-[2px] border border-red-500/30 bg-red-500/5 p-4">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.10em] text-red-400">
             Alertas
           </p>
@@ -344,21 +344,21 @@ export default async function AdminPage() {
 
       {/* ── Health cards ────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-xl border border-border/70 bg-card/80 p-4">
+        <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Usuarios</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{signups.length}</p>
           <p className="mt-0.5 text-[12px] text-[#999992]">
             {signupsToday} hoy
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-card/80 p-4">
+        <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Anotaciones</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{totalAnnotations}</p>
           <p className="mt-0.5 text-[12px] text-[#999992]">
             {annotationsToday} en 24h · {hiddenCount} ocultas
           </p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-card/80 p-4">
+        <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Site</p>
           <p className={`mt-1 text-2xl font-semibold tabular-nums ${
             siteStatus === "ok" ? "text-green-500" : siteStatus === "down" ? "text-red-500" : "text-yellow-500"
@@ -367,7 +367,7 @@ export default async function AdminPage() {
           </p>
           <p className="mt-0.5 text-[12px] text-[#999992]">{siteLatency}ms</p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-card/80 p-4">
+        <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">ETL</p>
           <p className={`mt-1 text-2xl font-semibold tabular-nums ${
             pipelines.length === 0 ? "text-[#999992]" : failedPipelines.length === 0 ? "text-green-500" : "text-red-500"
@@ -381,7 +381,7 @@ export default async function AdminPage() {
       </div>
 
       {/* ── Annotations ─────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
+      <section className="rounded-[2px] border border-border bg-card p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Anotaciones</h2>
           <span className="font-mono text-[11px] text-[#999992]">
@@ -454,7 +454,7 @@ export default async function AdminPage() {
       </section>
 
       {/* ── Signups ─────────────────────────────────────────────────── */}
-      <section className="rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
+      <section className="rounded-[2px] border border-border bg-card p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Registros recientes</h2>
           <span className="font-mono text-[11px] text-[#999992]">
@@ -507,7 +507,7 @@ export default async function AdminPage() {
       </section>
 
       {/* ── ETL Pipelines ───────────────────────────────────────────── */}
-      <section className="rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
+      <section className="rounded-[2px] border border-border bg-card p-4 sm:p-5">
         <h2 className="text-lg font-semibold">Pipelines ETL</h2>
 
         {pipelines.length === 0 ? (

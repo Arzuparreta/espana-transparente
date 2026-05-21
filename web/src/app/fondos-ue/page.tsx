@@ -38,7 +38,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
   return (
     <div
       data-slot="card"
-      className="flex min-w-0 items-start justify-between gap-4 rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
     >
       <div className="flex min-w-0 items-start gap-3">
         <span className="mt-0.5 w-7 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
@@ -68,7 +68,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
           href={kohesioUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-md border border-border/60 bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="shrink-0 rounded-[2px] border border-border/60 bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           title="Ver en Kohesio"
         >
           Kohesio →

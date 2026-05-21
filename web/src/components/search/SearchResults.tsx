@@ -91,7 +91,7 @@ export function SearchResults({ query, results }: Props) {
                 <li key={`${result.entity_type}-${result.id}`}>
                   <ResponsiveLink
                     href={result.url}
-                    className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
+                    className="flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
                   >
                     <span className="min-w-0 truncate font-medium">{result.title}</span>
                     {secondary ? (

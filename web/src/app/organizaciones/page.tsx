@@ -32,7 +32,7 @@ export default async function OrganizacionesPage({ searchParams }: PageProps) {
           description="Aún no hay entidades registradas en la base."
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border/70 bg-card/80">
+        <div className="overflow-hidden rounded-[2px] border border-border bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50 text-xs text-muted-foreground">
