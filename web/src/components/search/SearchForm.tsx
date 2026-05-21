@@ -176,9 +176,11 @@ export function SearchForm({
             aria-busy={live ? loading : undefined}
             autoComplete="off"
             className={cn(
-              "w-full rounded border border-border/70 bg-card/80 pl-9 pr-3 outline-none placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
-              live && loading ? "pr-9" : "",
-              size === "hero" ? "h-12 text-base sm:text-lg" : "h-10 text-sm"
+              "w-full rounded border bg-secondary pl-9 pr-3 outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20",
+              size === "hero"
+                ? "h-12 border-primary/40 text-base focus:border-primary/60 sm:text-lg"
+                : "h-10 border-border/70 text-sm focus:border-primary/50",
+              live && loading ? "pr-9" : ""
             )}
           />
         </div>
