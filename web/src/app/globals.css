@@ -110,10 +110,10 @@
 
 @keyframes marquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -158,6 +158,16 @@
   .animate-marquee {
     animation: marquee 50s linear infinite;
     will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .marquee-paused {
+    animation-play-state: paused;
+  }
+
+  .marquee-mask {
+    contain: paint;
   }
 
   .animate-marquee:hover {
