@@ -10,12 +10,7 @@ import {
   getLatestInflationAnchor,
   getSectionIndex,
   getTopContractOfMonth,
-  getHomeHeroAnchor,
-  getEtlFreshnessSummary,
-  type HomeHeroAnchor,
   type SessionDivergenceExample,
-  type TopContractAncla,
-  type InflationAnchor,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 import { ATLAS_GROUPS } from "@/lib/nav-config"
@@ -62,14 +57,6 @@ function formatPeriod(period: string): string {
   })
 }
 
-function formatFreshness(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-ES", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).toUpperCase()
-}
-
 function formatCount(n: number): string {
   return n.toLocaleString("es-ES")
 }
@@ -110,42 +97,18 @@ function SectionHeader({
   )
 }
 
-function FreshnessLine({
-  latestFinishedAt,
-  pipelineCount,
-}: {
-  latestFinishedAt: string | null
-  pipelineCount: number
-}) {
-  if (!latestFinishedAt && pipelineCount === 0) return null
-  const dateStr = latestFinishedAt ? formatFreshness(latestFinishedAt) : null
-  return (
-    <ResponsiveLink
-      href="/estado-datos"
-      className="block font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
-    >
-      Datos actualizados{dateStr ? ` · ${dateStr}` : ""} · {pipelineCount}{" "}
-      {pipelineCount === 1 ? "fuente sincronizada" : "fuentes sincronizadas"}
-    </ResponsiveLink>
-  )
-}
-
 export default async function HomePage() {
   const [
     { parties, recentSessions, sessionDivergenceExamples, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear, sessionCount },
     topContract,
     inflation,
     sectionIndex,
-    freshness,
   ] = await Promise.all([
     getHomeData(),
     getTopContractOfMonth(),
     getLatestInflationAnchor(),
     getSectionIndex(),
-    getEtlFreshnessSummary(),
   ])
-
-  const heroAnchor = await getHomeHeroAnchor(deudaPerCapita, deudaYear, topContract, inflation)
 
   const sectionFacts = new Map(
     sectionIndex.map((row) => [
@@ -154,54 +117,70 @@ export default async function HomePage() {
     ])
   )
 
-  const secondaryAnchors = buildSecondaryAnchors(heroAnchor, deudaPerCapita, deudaYear, topContract, inflation)
   const gobiernoCount = sectionFacts.get("gobierno")?.count ?? gobierno.length
   const revolvingDoorCount = sectionFacts.get("puertas_giratorias")?.count ?? null
 
   return (
     <div className="space-y-10 sm:space-y-14">
-      <div className="space-y-3">
-        <LogoHero parties={parties ?? []} anchor={heroAnchor} />
-        <FreshnessLine
-          latestFinishedAt={freshness.latestFinishedAt}
-          pipelineCount={freshness.pipelineCount}
-        />
-      </div>
+      <LogoHero parties={parties ?? []} />
 
-      {secondaryAnchors.length > 0 && (
-        <section>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
-            Otros anclajes
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {secondaryAnchors.map((a) => (
-              <AnchorCard
-                key={a.kind}
-                variant="compact"
-                label={a.label}
-                value={a.value}
-                description={
-                  a.kind === "contract" ? (
-                    <>
-                      <span className="line-clamp-2 font-medium text-foreground">{a.resolver}</span>
-                      {a.resolverDetail ? (
-                        <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
-                          {a.resolverDetail}
-                        </span>
-                      ) : null}
-                    </>
-                  ) : (
-                    a.resolver
-                  )
-                }
-                source={"source" in a ? a.source : undefined}
-                href={a.href}
-                linkLabel={a.hrefLabel}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {deudaPerCapita != null && (
+          <AnchorCard
+            label={`Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`}
+            value={`${deudaPerCapita.toLocaleString("es-ES")} €`}
+            description="Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población."
+            source="Fuente: Eurostat (criterio de Maastricht)."
+            href="/indicadores"
+            linkLabel="Ver indicadores →"
+          />
+        )}
+
+        {topContract && topContract.amount != null && (
+          <AnchorCard
+            label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
+            value={formatAmount(topContract.amount)}
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  {topContract.title}
+                </span>
+                {topContract.awarding_body ? (
+                  <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    {topContract.awarding_body}
+                    {topContract.date ? ` · ${formatDate(topContract.date)}` : ""}
+                  </span>
+                ) : null}
+              </>
+            }
+            href={`/contratos/${topContract.id}`}
+            linkLabel="Ver contrato →"
+          />
+        )}
+
+        {inflation ? (
+          <AnchorCard
+            label={`IPC mensual · ${formatPeriod(inflation.period)}`}
+            value={formatPercent(inflation.monthlyValue)}
+            description={
+              <>
+                <span className="line-clamp-2 font-medium text-foreground">
+                  Variación mensual del índice general de precios.
+                </span>
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {inflation.annualValue != null
+                    ? `Variación anual: ${formatPercent(inflation.annualValue)}`
+                    : "Serie mensual nacional"}
+                  {inflation.dataType ? ` · ${inflation.dataType}` : ""}
+                </span>
+              </>
+            }
+            source="Fuente: INE, serie nacional del IPC."
+            href="/indicadores/IPC_VAR_MENSUAL"
+            linkLabel="Ver serie →"
+          />
+        ) : null}
+      </div>
 
       {gobierno.length > 0 && (
         <section>
@@ -411,55 +390,3 @@ function DivergenceTrace({ example }: { example: SessionDivergenceExample }) {
   )
 }
 
-function buildSecondaryAnchors(
-  heroAnchor: HomeHeroAnchor | null,
-  deudaPerCapita: number | null,
-  deudaYear: string | null,
-  topContract: TopContractAncla | null,
-  inflation: InflationAnchor | null
-): HomeHeroAnchor[] {
-  const out: HomeHeroAnchor[] = []
-  const usedKind = heroAnchor?.kind
-
-  if (usedKind !== "deuda" && deudaPerCapita != null) {
-    out.push({
-      kind: "deuda",
-      label: `Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`,
-      value: `${deudaPerCapita.toLocaleString("es-ES")} €`,
-      resolver:
-        "Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población.",
-      source: "Fuente: Eurostat (criterio de Maastricht).",
-      href: "/indicadores",
-      hrefLabel: "Ver indicadores →",
-    })
-  }
-  if (usedKind !== "contract" && topContract?.amount != null) {
-    out.push({
-      kind: "contract",
-      label: `Mayor contrato · ${windowLabel(topContract.windowDays)}`,
-      value: formatAmount(topContract.amount),
-      resolver: topContract.title,
-      resolverDetail: topContract.awarding_body
-        ? `${topContract.awarding_body}${topContract.date ? ` · ${formatDate(topContract.date)}` : ""}`
-        : null,
-      source: "Fuente: Plataforma de Contratación del Sector Público.",
-      href: `/contratos/${topContract.id}`,
-      hrefLabel: "Ver contrato →",
-    })
-  }
-  if (usedKind !== "ipc" && inflation) {
-    out.push({
-      kind: "ipc",
-      label: `IPC mensual · ${formatPeriod(inflation.period)}`,
-      value: formatPercent(inflation.monthlyValue),
-      resolver:
-        inflation.annualValue != null
-          ? `Variación mensual del IPC. Variación anual: ${formatPercent(inflation.annualValue)}.`
-          : "Variación mensual del IPC.",
-      source: "Fuente: INE, serie nacional del IPC.",
-      href: "/indicadores/IPC_VAR_MENSUAL",
-      hrefLabel: "Ver serie →",
-    })
-  }
-  return out
-}
