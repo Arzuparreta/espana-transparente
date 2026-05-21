@@ -103,9 +103,10 @@ ministries, contracts, and subsidies.
   EU-fund join is created — the source does not provide ministry attribution.
 - Empty nodes are explicit with `Sin datos`. Source/freshness metadata
   visible on every page.
-- Remaining: add EU fund beneficiaries to the `dinero-publico` cascade UI
-  when a defensible route exists (e.g., through organization pages, not
-  through ministries).
+- EU fund beneficiaries are now integrated into the `dinero-publico` cascade
+  UI through organization pages. The bridge is name-based: each Kohesio
+  beneficiary label is normalized and matched against `organizations.normalized_name`.
+  The cascade flows through organizations, not ministries.
 
 ### Senate Votes
 
