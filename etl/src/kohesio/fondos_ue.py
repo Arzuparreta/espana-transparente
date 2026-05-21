@@ -29,7 +29,7 @@ from tenacity import (
 
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
-from common.organizations import normalize_organization_name, upsert_organization
+from common.organizations import upsert_organization
 
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
@@ -97,7 +97,7 @@ def upsert_batch(conn, rows: list[dict]) -> int:
 
 
 def link_beneficiary_organizations(conn, batch_size: int = 2000) -> tuple[int, int]:
-    """Link eu_funds beneficiaries to organizations via normalized name matching.
+    """Link eu_funds beneficiaries to organizations from exact source labels.
 
     Uses a bulk approach: collect unique labels, batch-upsert organizations,
     then batch-update FK references. Returns (linked, total_candidates).
@@ -112,47 +112,36 @@ def link_beneficiary_organizations(conn, batch_size: int = 2000) -> tuple[int, i
         unique_labels = [row[0] for row in cur.fetchall()]
     print(f"  {len(unique_labels):,} unique beneficiary labels to link")
 
-    # 2. Normalize each label and upsert organizations in batches
-    normalized_map: dict[str, str] = {}  # normalized_name → org_id
+    # 2. Upsert one organization identity per exact source label. Normalized
+    # names are useful for matching, but they are not unique real-world IDs.
+    label_org_map: dict[str, str] = {}
     linked = 0
 
     for i in range(0, len(unique_labels), batch_size):
         batch = unique_labels[i : i + batch_size]
         with conn.cursor() as cur:
             for label in batch:
-                normalized = normalize_organization_name(label)
-                if not normalized:
+                if label in label_org_map:
                     continue
-                if normalized in normalized_map:
-                    continue
-                # Upsert org and capture id
-                cur.execute(
-                    """
-                    INSERT INTO organizations (name, normalized_name, organization_type, source_url)
-                    VALUES (%s, %s, 'other', %s)
-                    ON CONFLICT (normalized_name) DO UPDATE SET
-                      name = EXCLUDED.name,
-                      updated_at = now()
-                    RETURNING id
-                    """,
-                    (label.strip(), normalized,
-                     f"https://kohesio.ec.europa.eu/en/beneficiaries"),
+                org_id = upsert_organization(
+                    cur,
+                    name=label,
+                    organization_type="other",
+                    source_url="https://kohesio.ec.europa.eu/en/beneficiaries",
                 )
-                org_id = cur.fetchone()[0]
-                normalized_map[normalized] = org_id
+                label_org_map[label] = org_id
         conn.commit()
         if (i + batch_size) % 5000 == 0 or i + batch_size >= len(unique_labels):
-            print(f"  Orgs upserted: {len(normalized_map):,} / {len(unique_labels):,}")
+            print(f"  Orgs upserted: {len(label_org_map):,} / {len(unique_labels):,}")
 
     # 3. Batch-update eu_funds with org IDs
-    print(f"  Updating FK references for {len(normalized_map):,} organizations...")
+    print(f"  Updating FK references for {len(label_org_map):,} organizations...")
     with conn.cursor() as cur:
         update_count = 0
         for i in range(0, len(unique_labels), batch_size):
             batch = unique_labels[i : i + batch_size]
             for label in batch:
-                normalized = normalize_organization_name(label)
-                org_id = normalized_map.get(normalized)
+                org_id = label_org_map.get(label)
                 if not org_id:
                     continue
                 cur.execute(
