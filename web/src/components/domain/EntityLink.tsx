@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { AnchorHTMLAttributes, ReactNode } from "react"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { cn } from "@/lib/utils"
 
@@ -23,21 +23,20 @@ const HREF_BY_KIND: Record<EntityKind, (id: string | number) => string> = {
   initiative: (id) => `/iniciativas/${id}`,
 }
 
-interface EntityLinkProps {
+type EntityLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "id"> & {
   kind: EntityKind
   id: string | number | null | undefined
   children: ReactNode
-  className?: string
   prefetch?: boolean
 }
 
-export function EntityLink({ kind, id, children, className, prefetch }: EntityLinkProps) {
+export function EntityLink({ kind, id, children, className, prefetch, ...props }: EntityLinkProps) {
   if (id === null || id === undefined || id === "") {
     return <span className={className}>{children}</span>
   }
 
   return (
-    <ResponsiveLink href={HREF_BY_KIND[kind](id)} prefetch={prefetch} className={cn(className)}>
+    <ResponsiveLink href={HREF_BY_KIND[kind](id)} prefetch={prefetch} className={cn(className)} {...props}>
       {children}
     </ResponsiveLink>
   )

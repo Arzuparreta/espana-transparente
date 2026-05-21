@@ -3,8 +3,9 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getSubsidyDetail } from "@/lib/data"
+import { getPartyAcronymMap, getSubsidyDetail } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -44,8 +45,14 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export default async function SubsidyDetailPage({ params }: PageProps) {
   const { id } = await params
-  const { subsidy, responsible, beneficiaryOrg, grantingOrg } = await getSubsidyDetail(id)
+  const [{ subsidy, responsible, beneficiaryOrg, grantingOrg }, partyMap] = await Promise.all([
+    getSubsidyDetail(id),
+    getPartyAcronymMap(),
+  ])
   if (!subsidy) notFound()
+  const responsiblePartyId = responsible?.political_party
+    ? partyMap[responsible.political_party.toLowerCase()] ?? null
+    : null
 
   const dateStr = subsidy.fecha_concesion
     ? new Date(subsidy.fecha_concesion).toLocaleDateString("es-ES", {
@@ -159,11 +166,13 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
                 <p className="text-xs text-muted-foreground">{responsible.government}</p>
               )}
             </div>
-            {responsible.political_party && (
-              <span className="shrink-0 rounded-full border border-border/60 bg-muted px-2.5 py-0.5 text-xs font-medium">
-                {responsible.political_party}
-              </span>
-            )}
+            {responsible.political_party ? (
+              <PartyBadge
+                acronym={responsible.political_party}
+                partyId={responsiblePartyId}
+                className="text-xs"
+              />
+            ) : null}
           </div>
         </div>
       )}

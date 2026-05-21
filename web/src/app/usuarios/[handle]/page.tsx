@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader"
 import { getPublicUserProfile } from "@/lib/data/user-profiles"
 
@@ -25,6 +26,13 @@ export default async function UsuarioPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <ContextTrail
+        section={{ href: "/usuarios", label: "Usuarios" }}
+        current={data.profile.display_name ?? `@${data.profile.handle}`}
+        fallbackHref="/"
+        fallbackLabel="Volver al inicio"
+        related={[{ href: "/buscar", label: "Buscar" }]}
+      />
       <PublicProfileHeader profile={data.profile} avatarUrl={data.avatarUrl} />
 
       {data.profile.public_options.show_recent_annotations ? (

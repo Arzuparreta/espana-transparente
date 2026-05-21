@@ -21,6 +21,7 @@ export interface ContextTrailLink {
 export interface ContextTrailSection {
   href: string
   label: string
+  groupLabel?: string
 }
 
 interface ContextTrailProps {
@@ -111,6 +112,8 @@ export function ContextTrail({
   }, [fallback])
 
   const visibleRelated = related.filter(Boolean) as ContextTrailLink[]
+  const derivedSection = getSectionForPath(section.href)
+  const groupLabel = section.groupLabel ?? derivedSection?.groupLabel
 
   return (
     <nav
@@ -123,6 +126,27 @@ export function ContextTrail({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-2">
           <ol className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <li>
+              <ResponsiveLink
+                href="/"
+                className="font-mono uppercase tracking-[0.08em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Inicio
+              </ResponsiveLink>
+            </li>
+            {groupLabel ? (
+              <>
+                <li aria-hidden className="text-muted-foreground/60">
+                  <ChevronRight className="size-3" />
+                </li>
+                <li className="font-mono uppercase tracking-[0.08em] text-muted-foreground">
+                  {groupLabel}
+                </li>
+              </>
+            ) : null}
+            <li aria-hidden className="text-muted-foreground/60">
+              <ChevronRight className="size-3" />
+            </li>
             <li>
               <ResponsiveLink
                 href={section.href}
@@ -187,7 +211,7 @@ export function ContextTrail({
           className={buttonVariants({
             variant: "outline",
             size: "sm",
-            className: "w-fit gap-1.5",
+            className: "min-h-10 w-fit gap-1.5",
           })}
         >
           <ArrowLeft className="size-3.5" aria-hidden />
