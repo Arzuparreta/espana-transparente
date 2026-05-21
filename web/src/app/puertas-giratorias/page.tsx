@@ -1,5 +1,5 @@
 import { RevolvingDoorExplorer } from "@/components/politicians/RevolvingDoorExplorer"
-import { getRevolvingDoorCases } from "@/lib/data"
+import { getPartyAcronymMap, getRevolvingDoorCases } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -38,6 +38,9 @@ export interface RDSource {
 }
 
 export default async function PuertasGiratoriasPage() {
-  const cases = await getRevolvingDoorCases()
-  return <RevolvingDoorExplorer cases={cases as RDCase[]} />
+  const [cases, partyMap] = await Promise.all([
+    getRevolvingDoorCases(),
+    getPartyAcronymMap(),
+  ])
+  return <RevolvingDoorExplorer cases={cases as RDCase[]} partyMap={partyMap} />
 }

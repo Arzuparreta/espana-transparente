@@ -54,7 +54,7 @@ export function Footer() {
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {section.heading}
               </h2>
-              <ul className="space-y-1.5">
+              <ul className="space-y-0">
                 {section.items.map((item) => (
                   <li key={item.href}>
                     {item.external ? (
@@ -62,14 +62,14 @@ export function Footer() {
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm underline-offset-2 hover:underline"
+                        className="block py-1.5 text-sm underline-offset-2 hover:underline"
                       >
                         {item.label}
                       </a>
                     ) : (
                       <Link
                         href={item.href}
-                        className="text-sm underline-offset-2 hover:underline"
+                        className="block py-1.5 text-sm underline-offset-2 hover:underline"
                       >
                         {item.label}
                       </Link>

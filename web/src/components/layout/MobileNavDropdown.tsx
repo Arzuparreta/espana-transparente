@@ -98,14 +98,14 @@ export function MobileNavDropdown() {
                   <ResponsiveLink
                     href="/perfil"
                     onClick={() => setIsOpen(false)}
-                    className="min-w-0 text-[13px] font-semibold text-[#EEEDE9] transition-colors hover:text-[#C8FF00]"
+                    className="min-w-0 text-[13px] font-semibold text-foreground transition-colors hover:text-primary"
                   >
                     Perfil
                   </ResponsiveLink>
                   <button
                     type="button"
                     onClick={() => { signOut(); setIsOpen(false) }}
-                    className="text-[12px] font-semibold text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                    className="text-[12px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Cerrar sesión
                   </button>
@@ -114,7 +114,7 @@ export function MobileNavDropdown() {
                 <button
                   type="button"
                   onClick={() => { openModal("login"); setIsOpen(false) }}
-                  className="w-full rounded-[2px] border border-[#2A2A27] py-2 text-[13px] font-semibold text-[#C8FF00] transition-colors hover:border-[#C8FF00]"
+                  className="w-full rounded-[2px] border border-border py-2 text-[13px] font-semibold text-primary transition-colors hover:border-primary"
                 >
                   Iniciar sesión
                 </button>

@@ -25,7 +25,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
 
   return (
     <div className="relative">
-      <Card className="h-full">
+      <Card className="pointer-events-none h-full">
         <CardHeader className="space-y-3">
           <div className="flex items-start gap-3">
             <Avatar size="default" className="mt-0.5 shrink-0">
@@ -49,7 +49,8 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
               <PartyBadge
                 acronym={party.acronym}
                 color={party.color}
-                className="mt-0.5 max-w-full"
+                partyId={party.id}
+                className="pointer-events-auto relative z-20 mt-0.5 max-w-full"
               />
             )}
           </div>
@@ -62,7 +63,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
       </Card>
       <Link
         href={`/diputados/${politician.id}`}
-        className="absolute inset-0 rounded-xl"
+        className="absolute inset-0 z-10 rounded-xl"
         aria-label={politician.full_name}
         prefetch={false}
       />

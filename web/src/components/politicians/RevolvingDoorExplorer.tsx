@@ -10,9 +10,10 @@ import type { RDCase } from "@/app/puertas-giratorias/page"
 
 interface RevolvingDoorExplorerProps {
   cases: RDCase[]
+  partyMap?: Record<string, string>
 }
 
-export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
+export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExplorerProps) {
   const uniquePeople = new Set(cases.map((entry) => entry.person_name)).size
   const sectors = Array.from(new Set(cases.map((entry) => entry.sector || "Sin clasificar"))).sort()
   const tabs = [
@@ -87,7 +88,11 @@ export function RevolvingDoorExplorer({ cases }: RevolvingDoorExplorerProps) {
                             <div className="flex flex-wrap items-center gap-1.5">
                               {personName}
                               {entry.political_party ? (
-                                <PartyBadge acronym={entry.political_party} className="text-xs" />
+                                <PartyBadge
+                                  acronym={entry.political_party}
+                                  partyId={partyMap[entry.political_party.toLowerCase()] ?? null}
+                                  className="text-xs"
+                                />
                               ) : null}
                             </div>
                             <div className="mt-0.5 text-xs text-muted-foreground sm:text-xs">

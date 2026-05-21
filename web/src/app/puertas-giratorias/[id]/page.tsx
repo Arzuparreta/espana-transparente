@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { getRevolvingDoorCaseById } from "@/lib/data"
+import { getPartyAcronymMap, getRevolvingDoorCaseById } from "@/lib/data"
 import type { RDCase, RDSource } from "@/app/puertas-giratorias/page"
 
 export const revalidate = 3600
@@ -43,8 +43,12 @@ const SOURCE_LABEL: Record<RDSource["source_type"], string> = {
 }
 
 export default async function RevolvingDoorDetailPage({ params }: PageProps) {
-  const item = (await getRevolvingDoorCaseById(params.id)) as RDCase | null
+  const [item, partyMap] = await Promise.all([
+    getRevolvingDoorCaseById(params.id) as Promise<RDCase | null>,
+    getPartyAcronymMap(),
+  ])
   if (!item) notFound()
+  const partyId = item.political_party ? partyMap[item.political_party.toLowerCase()] ?? null : null
 
   const sources = (item.sources ?? []) as RDSource[]
   const primarySources = sources.filter((s) => s.source_type === "primary")
@@ -75,7 +79,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
         description={`${item.public_role} → ${item.private_role} · ${item.private_organization}`}
         eyebrow={
           item.political_party ? (
-            <PartyBadge acronym={item.political_party} partyId={null} />
+            <PartyBadge acronym={item.political_party} partyId={partyId} />
           ) : undefined
         }
       />

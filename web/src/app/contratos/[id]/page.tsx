@@ -3,9 +3,10 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
+import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ShareButton } from "@/components/domain/ShareButton"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getContractDetail } from "@/lib/data"
+import { getContractDetail, getPartyAcronymMap } from "@/lib/data"
 import { BRAND_URL } from "@/lib/brand"
 
 export const revalidate = 3600
@@ -59,8 +60,14 @@ function buildShareText(contract: { title?: string | null; amount?: number | nul
 
 export default async function ContractDetailPage({ params }: PageProps) {
   const { id } = await params
-  const { contract, responsible } = await getContractDetail(id)
+  const [{ contract, responsible }, partyMap] = await Promise.all([
+    getContractDetail(id),
+    getPartyAcronymMap(),
+  ])
   if (!contract) notFound()
+  const responsiblePartyId = responsible?.political_party
+    ? partyMap[responsible.political_party.toLowerCase()] ?? null
+    : null
 
   const dateStr = contract.date
     ? new Date(contract.date).toLocaleDateString("es-ES", {
@@ -194,11 +201,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
                 <p className="text-xs text-muted-foreground">{responsible.government}</p>
               )}
             </div>
-            {responsible.political_party && (
-              <span className="shrink-0 rounded-full border border-border/60 bg-muted px-2.5 py-0.5 text-xs font-medium">
-                {responsible.political_party}
-              </span>
-            )}
+            {responsible.political_party ? (
+              <PartyBadge
+                acronym={responsible.political_party}
+                partyId={responsiblePartyId}
+                className="text-xs"
+              />
+            ) : null}
           </div>
         </div>
       )}

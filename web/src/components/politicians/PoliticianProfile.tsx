@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { AnnotationPanel } from "@/components/annotations/AnnotationPanel"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { Pagination } from "@/components/domain/Pagination"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionTabs } from "@/components/domain/SectionTabs"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -180,7 +181,7 @@ export function PoliticianProfile({
               <AvatarFallback className="text-base">{initials}</AvatarFallback>
             </Avatar>
             {curParty ? (
-              <PartyBadge acronym={curParty.acronym} color={curParty.color} className="text-sm" />
+              <PartyBadge acronym={curParty.acronym} color={curParty.color} partyId={curParty.id} className="text-sm" />
             ) : null}
             {curConstituency ? (
               <span className="text-sm text-muted-foreground">{curConstituency}</span>
@@ -371,6 +372,7 @@ export function PoliticianProfile({
                             <PartyBadge
                               acronym={party.acronym}
                               color={party.color}
+                              partyId={party.id}
                               className="text-xs"
                             />
                           ) : null}
@@ -428,6 +430,7 @@ export function PoliticianProfile({
                           <PartyBadge
                             acronym={subParty.acronym}
                             color={subParty.color}
+                            partyId={subParty.id}
                             className="text-xs"
                           />
                         ) : null}
@@ -543,11 +546,11 @@ export function PoliticianProfile({
                     )
 
                     return sessionId ? (
-                      <a key={index} href={`/votaciones/${sessionId}`}>
+                      <ResponsiveLink key={index} href={`/votaciones/${sessionId}`}>
                         <Card className="transition-colors hover:bg-card">
                           {inner}
                         </Card>
-                      </a>
+                      </ResponsiveLink>
                     ) : (
                       <Card key={index}>
                         {inner}
@@ -555,35 +558,15 @@ export function PoliticianProfile({
                     )
                   })
                 )}
-                {totalVotes !== null && totalVotes > votePageSize && (
-                  <div className="flex items-center justify-between pt-2 text-sm">
-                    {votePage > 1 ? (
-                      <ResponsiveLink
-                        href={tabHref({ tab: "votes", page: String(votePage - 1) })}
-                        scroll={false}
-                        className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                      >
-                        ← Anteriores
-                      </ResponsiveLink>
-                    ) : (
-                      <span />
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {(votePage - 1) * votePageSize + 1}–{Math.min(votePage * votePageSize, totalVotes)} de {totalVotes}
-                    </span>
-                    {votePage * votePageSize < totalVotes ? (
-                      <ResponsiveLink
-                        href={tabHref({ tab: "votes", page: String(votePage + 1) })}
-                        scroll={false}
-                        className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                      >
-                        Siguientes →
-                      </ResponsiveLink>
-                    ) : (
-                      <span />
-                    )}
-                  </div>
-                )}
+                {totalVotes !== null && totalVotes > votePageSize ? (
+                  <Pagination
+                    page={votePage}
+                    totalPages={Math.ceil(totalVotes / votePageSize)}
+                    hrefForPage={(nextPage) => tabHref({ tab: "votes", page: String(nextPage) })}
+                    label="Paginación del historial de voto"
+                    className="pt-2"
+                  />
+                ) : null}
               </div>
             ) : null}
 
@@ -633,31 +616,14 @@ export function PoliticianProfile({
                         </tbody>
                       </table>
                     </div>
-                    {attendanceTotal > attendancePageSize && (
-                      <div className="flex items-center justify-between text-sm">
-                        {attendancePage > 1 ? (
-                          <ResponsiveLink
-                            href={tabHref({ tab: "asistencia", apage: String(attendancePage - 1) })}
-                            scroll={false}
-                            className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                          >
-                            ← Anteriores
-                          </ResponsiveLink>
-                        ) : <span />}
-                        <span className="text-xs text-muted-foreground">
-                          {(attendancePage - 1) * attendancePageSize + 1}–{Math.min(attendancePage * attendancePageSize, attendanceTotal)} de {attendanceTotal}
-                        </span>
-                        {attendancePage * attendancePageSize < attendanceTotal ? (
-                          <ResponsiveLink
-                            href={tabHref({ tab: "asistencia", apage: String(attendancePage + 1) })}
-                            scroll={false}
-                            className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                          >
-                            Siguientes →
-                          </ResponsiveLink>
-                        ) : <span />}
-                      </div>
-                    )}
+                    {attendanceTotal > attendancePageSize ? (
+                      <Pagination
+                        page={attendancePage}
+                        totalPages={Math.ceil(attendanceTotal / attendancePageSize)}
+                        hrefForPage={(nextPage) => tabHref({ tab: "asistencia", apage: String(nextPage) })}
+                        label="Paginación de asistencia"
+                      />
+                    ) : null}
                   </>
                 )}
               </div>
@@ -710,6 +676,7 @@ export function PoliticianProfile({
                             <PartyBadge
                               acronym={party.acronym}
                               color={party.color}
+                              partyId={party.id}
                               className="text-xs"
                             />
                           ) : null}

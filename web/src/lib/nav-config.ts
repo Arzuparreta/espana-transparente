@@ -17,6 +17,7 @@ export interface SectionMeta {
   href: string
   label: string
   shortLabel?: string
+  groupLabel?: string
 }
 
 export const PRIMARY_NAV: NavGroup[] = [
@@ -66,27 +67,27 @@ export const SECONDARY_NAV: NavGroup = {
 }
 
 export const SECTION_META: SectionMeta[] = [
-  { key: "diputados", href: "/diputados", label: "Diputados" },
-  { key: "senado", href: "/senado", label: "Senado" },
-  { key: "gobierno", href: "/gobierno", label: "Gobierno" },
-  { key: "partidos", href: "/partidos", label: "Partidos" },
-  { key: "instituciones", href: "/instituciones", label: "Instituciones" },
-  { key: "votaciones", href: "/votaciones", label: "Votaciones" },
-  { key: "presupuestos", href: "/presupuestos", label: "Presupuestos" },
-  { key: "contratos", href: "/contratos", label: "Contratos" },
-  { key: "subvenciones", href: "/subvenciones", label: "Subvenciones" },
-  { key: "fondos-ue", href: "/fondos-ue", label: "Fondos UE" },
-  { key: "puertas-giratorias", href: "/puertas-giratorias", label: "Puertas giratorias" },
-  { key: "organizaciones", href: "/organizaciones", label: "Organizaciones" },
-  { key: "indicadores", href: "/indicadores", label: "Indicadores" },
+  { key: "diputados", href: "/diputados", label: "Diputados", groupLabel: "Personas" },
+  { key: "senado", href: "/senado", label: "Senado", groupLabel: "Personas" },
+  { key: "gobierno", href: "/gobierno", label: "Gobierno", groupLabel: "Personas" },
+  { key: "partidos", href: "/partidos", label: "Partidos", groupLabel: "Personas" },
+  { key: "instituciones", href: "/instituciones", label: "Instituciones", groupLabel: "Personas" },
+  { key: "votaciones", href: "/votaciones", label: "Votaciones", groupLabel: "Dinero y leyes" },
+  { key: "presupuestos", href: "/presupuestos", label: "Presupuestos", groupLabel: "Dinero y leyes" },
+  { key: "contratos", href: "/contratos", label: "Contratos", groupLabel: "Dinero y leyes" },
+  { key: "subvenciones", href: "/subvenciones", label: "Subvenciones", groupLabel: "Dinero y leyes" },
+  { key: "fondos-ue", href: "/fondos-ue", label: "Fondos UE", groupLabel: "Dinero y leyes" },
+  { key: "puertas-giratorias", href: "/puertas-giratorias", label: "Puertas giratorias", groupLabel: "Conexiones y contexto" },
+  { key: "organizaciones", href: "/organizaciones", label: "Organizaciones", groupLabel: "Conexiones y contexto" },
+  { key: "indicadores", href: "/indicadores", label: "Indicadores", groupLabel: "Conexiones y contexto" },
   { key: "buscar", href: "/buscar", label: "Resultados", shortLabel: "resultados" },
   { key: "estado-datos", href: "/estado-datos", label: "Estado de los datos" },
-  { key: "iniciativas", href: "/iniciativas", label: "Iniciativas" },
-  { key: "ministerios", href: "/ministerios", label: "Ministerios" },
-  { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones" },
-  { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad" },
-  { key: "ccaa", href: "/ccaa", label: "Gasto autonómico", shortLabel: "CCAA" },
-  { key: "municipios", href: "/municipios", label: "Gasto municipal", shortLabel: "Municipios" },
+  { key: "iniciativas", href: "/iniciativas", label: "Iniciativas", groupLabel: "Conexiones y contexto" },
+  { key: "ministerios", href: "/ministerios", label: "Ministerios", groupLabel: "Personas" },
+  { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones", groupLabel: "Conexiones y contexto" },
+  { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad", groupLabel: "Dinero y leyes" },
+  { key: "ccaa", href: "/ccaa", label: "Gasto autonómico", shortLabel: "CCAA", groupLabel: "Dinero y leyes" },
+  { key: "municipios", href: "/municipios", label: "Gasto municipal", shortLabel: "Municipios", groupLabel: "Dinero y leyes" },
   { key: "perfil", href: "/perfil", label: "Perfil" },
   { key: "usuarios", href: "/usuarios", label: "Usuarios" },
 ]

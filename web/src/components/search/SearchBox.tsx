@@ -4,7 +4,7 @@ import { SearchForm } from "@/components/search/SearchForm"
 
 export function SearchBox() {
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="w-full">
       <SearchForm size="hero" live />
     </div>
   )

@@ -114,14 +114,14 @@ export function Header() {
                   href="/perfil"
                   prefetch
                   aria-label="Abrir perfil"
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-[#1D1D1A] border border-[#2A2A27] font-mono text-[11px] font-semibold text-[#C8FF00] select-none"
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-secondary border border-border font-mono text-[11px] font-semibold text-primary select-none"
                 >
                   {(user.email ?? "?")[0].toUpperCase()}
                 </ResponsiveLink>
                 <button
                   type="button"
                   onClick={() => signOut()}
-                  className="text-[12px] font-medium text-[#999992] hover:text-[#EEEDE9] transition-colors"
+                  className="text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Salir
                 </button>
@@ -130,7 +130,7 @@ export function Header() {
               <button
                 type="button"
                 onClick={() => openModal("login")}
-                className="hidden lg:inline-flex h-9 items-center rounded-[2px] border border-[#2A2A27] bg-transparent px-3 text-[12px] font-semibold text-[#999992] transition-colors hover:border-[#C8FF00] hover:text-[#C8FF00]"
+                className="hidden lg:inline-flex h-9 items-center rounded-[2px] border border-border bg-transparent px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
               >
                 Iniciar sesión
               </button>
