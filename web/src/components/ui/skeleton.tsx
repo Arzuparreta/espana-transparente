@@ -4,7 +4,7 @@ export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={cn("animate-pulse rounded-lg bg-muted", className)}
+      className={cn("animate-pulse rounded-[2px] bg-muted", className)}
     />
   )
 }
@@ -27,14 +27,14 @@ export function PageSkeleton({
       {withStats ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-24 rounded-xl" />
+            <Skeleton key={index} className="h-24" />
           ))}
         </div>
       ) : null}
 
       <div className="ui-grid-cards">
         {Array.from({ length: cards }, (_, index) => (
-          <Skeleton key={index} className="h-32 rounded-xl" />
+          <Skeleton key={index} className="h-32" />
         ))}
       </div>
     </div>
@@ -50,19 +50,19 @@ export function DetailPageSkeleton({
 }) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <Skeleton className="h-40 rounded-xl" />
+      <Skeleton className="h-40" />
 
       {withStats ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-28 rounded-xl" />
+            <Skeleton key={index} className="h-28" />
           ))}
         </div>
       ) : null}
 
       <div className="space-y-3">
         {Array.from({ length: cards }, (_, index) => (
-          <Skeleton key={index} className="h-24 rounded-xl" />
+          <Skeleton key={index} className="h-24" />
         ))}
       </div>
     </div>
