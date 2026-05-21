@@ -188,3 +188,28 @@ export const getSitemapInitiativeIds = unstable_cache(
   ["sitemap-initiatives"],
   { revalidate: DAY }
 )
+
+export const getSitemapGobiernoIds = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("v_gobierno_actual")
+      .select("id")
+      .in("position_type", ["vicepresidente", "ministro"])
+    return (data ?? []).map((r) => ({ id: r.id as string }))
+  },
+  ["sitemap-gobierno"],
+  { revalidate: DAY }
+)
+
+export const getSitemapSenatorIds = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("politicians")
+      .select("id, politician_memberships!inner(id)")
+      .eq("politician_memberships.is_active", true)
+      .eq("politician_memberships.chamber", "senate")
+    return (data ?? []).map((r) => ({ id: r.id as string }))
+  },
+  ["sitemap-senators"],
+  { revalidate: DAY }
+)

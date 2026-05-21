@@ -7,11 +7,13 @@ import {
   getSitemapBudgetSectionPaths,
   getSitemapContractIds,
   getSitemapEuFundSlugs,
+  getSitemapGobiernoIds,
   getSitemapIndicatorCodes,
   getSitemapInitiativeIds,
   getSitemapInstitucionIds,
   getSitemapOrganizationIds,
   getSitemapRevolvingDoorIds,
+  getSitemapSenatorIds,
   getSitemapSubsidyIds,
   getSitemapVotingSessionIds,
 } from "@/lib/data/sitemap"
@@ -87,6 +89,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     initiatives,
     autonomicTerritories,
     municipalTerritories,
+    senators,
+    gobiernoIds,
   ] = await Promise.all([
     tryGet(
       async () =>
@@ -111,10 +115,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tryGet(() => getSitemapInitiativeIds(), [] as { id: string }[]),
     tryGet(() => getAutonomicTerritoryKeys(), [] as { territoryKey: string }[]),
     tryGet(() => getMunicipalTerritoryKeys(), [] as { territoryKey: string }[]),
+    tryGet(() => getSitemapSenatorIds(), [] as { id: string }[]),
+    tryGet(() => getSitemapGobiernoIds(), [] as { id: string }[]),
   ])
 
   const deputyEntries: MetadataRoute.Sitemap = (deputies as { id: string }[]).map((d) => ({
     url: url(`/diputados/${d.id}`),
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }))
+
+  const senatorEntries: MetadataRoute.Sitemap = (senators as { id: string }[]).map((s) => ({
+    url: url(`/diputados/${s.id}`),
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }))
+
+  const gobiernoEntries: MetadataRoute.Sitemap = (gobiernoIds as { id: string }[]).map((g) => ({
+    url: url(`/ministerios/${g.id}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.6,
@@ -221,6 +241,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticEntries,
     ...deputyEntries,
+    ...senatorEntries,
+    ...gobiernoEntries,
     ...partyEntries,
     ...votingEntries,
     ...contractEntries,
