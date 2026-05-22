@@ -105,7 +105,7 @@ export function Header() {
             Fuentes
           </ResponsiveLink>
           <div className="hidden lg:flex">
-            <SearchTrigger variant="pill" />
+            <SearchTrigger variant="inline" />
           </div>
           {!authLoading && (
             user ? (

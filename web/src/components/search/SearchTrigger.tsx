@@ -6,7 +6,7 @@ import { SearchForm } from "@/components/search/SearchForm"
 import { cn } from "@/lib/utils"
 
 interface SearchTriggerProps {
-  variant?: "icon" | "pill"
+  variant?: "icon" | "pill" | "inline"
   className?: string
 }
 
@@ -18,7 +18,11 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault()
-        setOpen(true)
+        if (variant === "inline") {
+          rootRef.current?.querySelector<HTMLInputElement>("input")?.focus()
+        } else {
+          setOpen(true)
+        }
         return
       }
       if (e.key === "Escape") {
@@ -27,7 +31,7 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [variant])
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -38,6 +42,23 @@ export function SearchTrigger({ variant = "icon", className }: SearchTriggerProp
     document.addEventListener("mousedown", handlePointerDown)
     return () => document.removeEventListener("mousedown", handlePointerDown)
   }, [])
+
+  if (variant === "inline") {
+    return (
+      <div
+        ref={rootRef}
+        className={cn("relative w-56 xl:w-72", className)}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+            e.preventDefault()
+            rootRef.current?.querySelector<HTMLInputElement>("input")?.focus()
+          }
+        }}
+      >
+        <SearchForm size="header" live className="w-full" />
+      </div>
+    )
+  }
 
   const triggerClassName =
     variant === "pill"

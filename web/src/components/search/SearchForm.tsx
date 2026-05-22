@@ -11,7 +11,7 @@ interface Props {
   initialQuery?: string
   autoFocus?: boolean
   compact?: boolean
-  size?: "default" | "hero"
+  size?: "default" | "hero" | "header"
   className?: string
   live?: boolean
 }
@@ -70,7 +70,7 @@ export function SearchForm({
   const inputRef = useRef<HTMLInputElement>(null)
   const rootRef = useRef<HTMLFormElement>(null)
   const meaningful = value.trim().length >= 2
-  const showButton = size !== "hero"
+  const showButton = size !== "hero" && size !== "header"
 
   useEffect(() => {
     setValue(initialQuery)
@@ -171,7 +171,7 @@ export function SearchForm({
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Busca personas, subvenciones, instituciones, empresas, presupuestos…"
+            placeholder={size === "header" ? "Buscar… (⌘K)" : "Busca personas, subvenciones, instituciones, empresas, presupuestos…"}
             aria-label="Buscar"
             aria-busy={live ? loading : undefined}
             autoComplete="off"
@@ -179,6 +179,8 @@ export function SearchForm({
               "w-full rounded border bg-secondary pl-9 pr-3 outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20",
               size === "hero"
                 ? "h-12 border-primary/40 text-base focus:border-primary/60 sm:text-lg"
+                : size === "header"
+                ? "h-9 border-border/50 text-[13px] focus:border-primary/50"
                 : "h-10 border-border/70 text-sm focus:border-primary/50",
               live && loading ? "pr-9" : ""
             )}
