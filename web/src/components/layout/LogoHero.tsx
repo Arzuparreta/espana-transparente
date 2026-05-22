@@ -11,20 +11,14 @@ export function LogoHero({ parties }: LogoHeroProps) {
     : []
 
   return (
-    <section className="relative rounded border border-border bg-card px-5 py-6 sm:px-8 sm:py-8">
-      <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-10">
-        <div className="lg:flex-1">
-          <h1 className="font-display text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-6xl lg:text-7xl">
-            El Estado español.<br />
-            Sin filtros.
-          </h1>
-        </div>
-        <div className="lg:flex-1 lg:pt-2">
-          <SearchBox />
-        </div>
+    <section className="relative rounded border border-border bg-card px-5 py-4 sm:px-8 sm:py-5">
+      <div className="flex flex-col gap-4">
+        <h1 className="font-display text-4xl font-black uppercase leading-[0.9] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl">
+          El Estado español. Sin filtros.
+        </h1>
+        {uniqueParties.length > 0 && <PartyMarquee parties={uniqueParties} />}
+        <SearchBox />
       </div>
-
-      {uniqueParties.length > 0 && <PartyMarquee parties={uniqueParties} />}
     </section>
   )
 }

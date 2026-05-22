@@ -547,8 +547,8 @@ export function MoneyFlowExplorer({
       </div>
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start">
-          <div className="max-h-none space-y-2 overflow-visible lg:max-h-[calc(100svh-7rem)] lg:overflow-y-auto lg:pr-1">
+        <aside className="min-w-0">
+          <div className="space-y-2">
             {filteredSections.length === 0 ? (
               <div className="rounded-[2px] border border-border bg-card px-4 py-6 text-sm text-muted-foreground">
                 Sin secciones para este filtro.
