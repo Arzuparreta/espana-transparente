@@ -74,6 +74,16 @@ EXACT_PARTY_MAP = {
     "PSIB-PSOE": "PSOE", "PSE-EE (PSOE)": "PSOE", "PSN-PSOE": "PSOE",
 }
 
+CONGRESS_PARTY_OVERRIDES_BY_NAME = {
+    # The Congress active CSV keeps these deputies under the 23-J electoral
+    # coalition (SUMAR), while their official Congress profile marks them as
+    # PODEMOS and they sit in the Grupo Mixto since 2023-12-05.
+    "Belarra Urteaga, Ione": "Podemos",
+    "Sánchez Serna, Javier": "Podemos",
+    "Santana Perera, Noemí": "Podemos",
+    "Velarde Gómez, Martina": "Podemos",
+}
+
 
 def congress_id_from_name(name: str) -> str:
     slug = name.strip().lower().replace(" ", "-").replace(",", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("ñ", "n")
@@ -81,7 +91,11 @@ def congress_id_from_name(name: str) -> str:
     return f"{slug[:50]}-{short_hash}"
 
 
-def extract_acronym(formacion: str, grupo: str) -> str:
+def extract_acronym(formacion: str, grupo: str, full_name: str = "") -> str:
+    override = CONGRESS_PARTY_OVERRIDES_BY_NAME.get(full_name)
+    if override:
+        return override
+
     # First, check formacion (electoral formation) which has clearer acronyms
     upper_f = formacion.upper() if formacion else ""
     upper_g = grupo.upper() if grupo else ""
@@ -102,8 +116,8 @@ def extract_acronym(formacion: str, grupo: str) -> str:
     return words[0][:15] if words else "Desconocido"
 
 
-def canonical_party_name(formacion: str, grupo: str) -> str:
-    acronym = extract_acronym(formacion, grupo)
+def canonical_party_name(formacion: str, grupo: str, full_name: str = "") -> str:
+    acronym = extract_acronym(formacion, grupo, full_name)
     if acronym in CANONICAL_PARTY_NAMES:
         return CANONICAL_PARTY_NAMES[acronym]
     return formacion or grupo or acronym
@@ -213,9 +227,9 @@ def run(dry_run: bool = False):
             pol_count += 1
 
             # Party
-            party_name = canonical_party_name(formacion, grupo)
+            party_name = canonical_party_name(formacion, grupo, full_name)
             group_name = grupo or party_name
-            acronym = extract_acronym(formacion, grupo)
+            acronym = extract_acronym(formacion, grupo, full_name)
             if party_name and party_name not in parties_done:
                 cur.execute("""
                     INSERT INTO parties (name, acronym, color, logo_url)
