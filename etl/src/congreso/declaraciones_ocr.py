@@ -12,13 +12,12 @@ Usage:
     PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 5
     PYTHONPATH=src python -m src.congreso.declaraciones_ocr  # all
     PYTHONPATH=src python -m src.congreso.declaraciones_ocr --resume
+    PYTHONPATH=src python -m src.congreso.declaraciones_ocr --kind intereses_economicos --resume
 """
 
 import argparse
-import json
 import re
 import subprocess
-import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,8 +33,17 @@ from common.db import get_pg_conn
 # ── Configuration ────────────────────────────────────────────────────────────
 
 REQUEST_DELAY = 2.0  # seconds between PDF downloads (be nice to congreso.es)
-OCR_DPI = 200  # resolution for PDF→image conversion
+OCR_DPI = 150  # resolution for PDF→image conversion (150 is good enough for Spanish text)
 BATCH_SIZE = 5  # how many PDFs to process before committing
+PDF_CONVERT_TIMEOUT = 60  # seconds per PDF conversion
+PDF_CONVERT_THREADS = 2
+PARALLEL_WORKERS = 4  # number of parallel OCR workers
+OCR_MAX_PAGES = 3  # only OCR first N pages (skip boilerplate instruction pages)
+
+DECLARATION_KIND_PATTERNS = {
+    "bienes_rentas": "%docbienes%",
+    "intereses_economicos": "%docacteco%",
+}
 
 # ── Regex patterns for field extraction ──────────────────────────────────────
 
@@ -112,10 +120,58 @@ def _download_pdf(url: str, dest: Path) -> bool:
         return False
 
 
-def _ocr_pdf(pdf_path: Path, reader) -> str:
+def _source_filter_for_kind(kind: str) -> tuple[str, list[str]]:
+    if kind == "all":
+        placeholders = " OR ".join(["source_url LIKE %s"] * len(DECLARATION_KIND_PATTERNS))
+        return f"AND ({placeholders})", list(DECLARATION_KIND_PATTERNS.values())
+    return "AND source_url LIKE %s", [DECLARATION_KIND_PATTERNS[kind]]
+
+
+def _resume_filter(retry_failed: bool) -> str:
+    status_filter = "" if retry_failed else "AND COALESCE(raw_data->>'ocr_status', '') != 'failed'"
+    return f"""
+          AND raw_data->>'ocr_processed_at' IS NULL
+          {status_filter}
+    """
+
+
+def _with_ocr_success(existing: dict[str, Any], fields: dict[str, Any]) -> dict[str, Any]:
+    merged = {
+        **existing,
+        **fields,
+        "ocr_status": "ok",
+        "ocr_processed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    merged.pop("ocr_error", None)
+    return merged
+
+
+def _with_ocr_failure(existing: dict[str, Any], error: str) -> dict[str, Any]:
+    return {
+        **existing,
+        "ocr_status": "failed",
+        "ocr_error": error,
+        "ocr_attempted_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def _commit_if_batch_boundary(conn, touched: int, dry_run: bool) -> None:
+    if touched > 0 and touched % BATCH_SIZE == 0 and not dry_run:
+        conn.commit()
+        print(f"  [committed {touched} touched records]")
+
+
+def _ocr_pdf(pdf_path: Path, reader, max_pages: int = OCR_MAX_PAGES) -> str:
     """Convert PDF to images and run OCR, return concatenated text."""
     try:
-        images = convert_from_path(str(pdf_path), dpi=OCR_DPI)
+        images = convert_from_path(
+            str(pdf_path),
+            dpi=OCR_DPI,
+            first_page=1,
+            last_page=min(max_pages, 99),
+            thread_count=PDF_CONVERT_THREADS,
+            timeout=PDF_CONVERT_TIMEOUT,
+        )
     except Exception as exc:
         print(f"    pdf2image error: {exc}")
         return ""
@@ -189,106 +245,151 @@ def _extract_fields(ocr_text: str) -> dict[str, Any]:
     return fields
 
 
+def _process_one(row: tuple, reader) -> dict:
+    """Process a single declaration: download, OCR, extract. Returns result dict."""
+    decl_id, pol_id, decl_date, source_url, raw_data = row
+    existing = raw_data or {}
+    started = time.monotonic()
+
+    with TemporaryDirectory() as tmpdir:
+        pdf_path = Path(tmpdir) / "decl.pdf"
+
+        if not _download_pdf(source_url, pdf_path):
+            return {
+                "id": decl_id,
+                "status": "download_failed",
+                "raw_data": _with_ocr_failure(existing, "download_failed"),
+                "elapsed": time.monotonic() - started,
+            }
+
+        ocr_text = _ocr_pdf(pdf_path, reader)
+        if not ocr_text:
+            return {
+                "id": decl_id,
+                "status": "ocr_empty",
+                "raw_data": _with_ocr_failure(existing, "ocr_empty"),
+                "elapsed": time.monotonic() - started,
+            }
+
+        fields = _extract_fields(ocr_text)
+        merged = _with_ocr_success(existing, fields)
+        return {
+            "id": decl_id,
+            "status": "ok",
+            "raw_data": merged,
+            "incomes": len(fields.get("incomes", [])),
+            "total": fields.get("total_income"),
+            "elapsed": time.monotonic() - started,
+        }
+
+
 def run(
     dry_run: bool = False,
     limit: int | None = None,
     resume: bool = False,
+    kind: str = "bienes_rentas",
+    retry_failed: bool = False,
+    workers: int = PARALLEL_WORKERS,
 ) -> None:
     conn = get_pg_conn()
     cur = conn.cursor()
 
     # Fetch declarations that need OCR processing
-    where = ""
-    if resume:
-        where = "AND raw_data->>'ocr_preview' IS NULL"
-    else:
-        where = ""
+    kind_filter, params = _source_filter_for_kind(kind)
+    resume_filter = _resume_filter(retry_failed) if resume else ""
+    limit_clause = "LIMIT %s" if limit else ""
+    if limit:
+        params.append(limit)
 
     cur.execute(
         f"""
         SELECT id, politician_id, declaration_date, source_url, raw_data
         FROM economic_declarations
         WHERE source_url IS NOT NULL
-          AND source_url LIKE '%docbienes%'
-          {where}
+          {kind_filter}
+          {resume_filter}
         ORDER BY declaration_date DESC NULLS LAST
-        {"LIMIT " + str(limit) if limit else ""}
+        {limit_clause}
         """,
+        params,
     )
     rows = cur.fetchall()
-    print(f"Found {len(rows)} bienes_rentas declarations to OCR-process")
+    total = len(rows)
+    print(f"Found {total} {kind} declarations to OCR-process (workers={workers})")
 
     if dry_run:
         print("[DRY-RUN] Would process these declarations (no OCR will run)")
         for row in rows[:10]:
             print(f"  {row[1]} | {row[2]} | {row[3][:80]}...")
-        print(f"  ... and {len(rows) - 10} more" if len(rows) > 10 else "")
+        if len(rows) > 10:
+            print(f"  ... and {len(rows) - 10} more")
         cur.close()
         conn.close()
         return
 
-    # Initialize EasyOCR once (slow first load)
+    # Load EasyOCR once, then parallelize with threads (GIL is released during inference)
     print("Loading EasyOCR Spanish model (one-time)...")
     import easyocr
     reader = easyocr.Reader(["es"], gpu=False)
-    print("OCR ready.")
+    print(f"OCR ready. Processing with {workers} threads.")
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     processed = 0
     errors = 0
+    touched = 0
+    started_at = time.monotonic()
 
-    for i, (decl_id, pol_id, decl_date, source_url, raw_data) in enumerate(rows):
-        if i > 0:
-            time.sleep(REQUEST_DELAY)
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {
+            executor.submit(_process_one, row, reader): i
+            for i, row in enumerate(rows)
+        }
 
-        label = f"[{i+1}/{len(rows)}]"
-        print(f"{label} Decl {decl_id[:8]}... | {decl_date or 'no-date'}", end=" ", flush=True)
-
-        with TemporaryDirectory() as tmpdir:
-            pdf_path = Path(tmpdir) / "decl.pdf"
-
-            if not _download_pdf(source_url, pdf_path):
-                print("DOWNLOAD FAILED")
+        for future in as_completed(futures):
+            idx = futures[future]
+            try:
+                result = future.result()
+            except Exception as exc:
+                print(f"[{idx+1}/{total}] WORKER CRASH: {exc}")
                 errors += 1
                 continue
 
-            ocr_text = _ocr_pdf(pdf_path, reader)
-            if not ocr_text:
-                print("OCR EMPTY")
-                errors += 1
-                continue
+            status = result["status"]
+            elapsed = result.get("elapsed", 0)
 
-            fields = _extract_fields(ocr_text)
-
-            # Merge with existing raw_data
-            existing = raw_data or {}
-            merged = {**existing, **fields, "ocr_processed_at": datetime.now(timezone.utc).isoformat()}
-
-            if not dry_run:
+            if status == "ok":
                 cur.execute(
-                    """
-                    UPDATE economic_declarations
-                    SET raw_data = %s
-                    WHERE id = %s
-                    """,
-                    (psycopg2.extras.Json(merged), decl_id),
+                    "UPDATE economic_declarations SET raw_data = %s WHERE id = %s",
+                    (psycopg2.extras.Json(result["raw_data"]), result["id"]),
                 )
+                total_str = f", total={result['total']:,.0f}€" if result.get("total") else ""
+                print(f"[{idx+1}/{total}] OK ({result['incomes']} incomes{total_str}, {elapsed:.1f}s)")
                 processed += 1
+            else:
+                cur.execute(
+                    "UPDATE economic_declarations SET raw_data = %s WHERE id = %s",
+                    (psycopg2.extras.Json(result["raw_data"]), result["id"]),
+                )
+                print(f"[{idx+1}/{total}] {status.upper()} ({elapsed:.1f}s)")
+                errors += 1
 
-            income_count = len(fields.get("incomes", []))
-            total = fields.get("total_income")
-            total_str = f", total={total:,.0f}€" if total else ""
-            print(f"OK ({income_count} incomes{total_str})")
+            touched += 1
+            _commit_if_batch_boundary(conn, touched, dry_run)
 
-        # Commit periodically
-        if processed > 0 and processed % BATCH_SIZE == 0 and not dry_run:
-            conn.commit()
-            print(f"  [committed {processed} records]")
+            # Progress estimate
+            if touched % 10 == 0:
+                elapsed_total = time.monotonic() - started_at
+                rate = touched / elapsed_total
+                remaining = (total - touched) / rate if rate > 0 else 0
+                print(f"  [{touched}/{total}] {rate:.2f}/s, ETA {remaining/60:.0f}m")
 
     if not dry_run:
         conn.commit()
     cur.close()
     conn.close()
-    print(f"\nDone! {processed} processed, {errors} errors.")
+    total_elapsed = time.monotonic() - started_at
+    print(f"\nDone! {processed} processed, {errors} errors in {total_elapsed/60:.1f}m")
 
 
 def main() -> None:
@@ -297,8 +398,21 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--resume", action="store_true",
                         help="Only process declarations not yet OCR'd")
+    parser.add_argument("--kind", choices=[*DECLARATION_KIND_PATTERNS.keys(), "all"],
+                        default="bienes_rentas")
+    parser.add_argument("--retry-failed", action="store_true",
+                        help="Include previously failed OCR records when used with --resume")
+    parser.add_argument("--workers", type=int, default=PARALLEL_WORKERS,
+                        help=f"Number of parallel OCR workers (default: {PARALLEL_WORKERS})")
     args = parser.parse_args()
-    run(dry_run=args.dry_run, limit=args.limit, resume=args.resume)
+    run(
+        dry_run=args.dry_run,
+        limit=args.limit,
+        resume=args.resume,
+        kind=args.kind,
+        retry_failed=args.retry_failed,
+        workers=args.workers,
+    )
 
 
 if __name__ == "__main__":
