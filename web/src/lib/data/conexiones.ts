@@ -36,6 +36,7 @@ export const getIndicators = unstable_cache(
       .select("indicator_code, indicator_name, unit, period, value")
       .order("indicator_code")
       .order("period", { ascending: false })
+      .limit(500)
     return data ?? []
   },
   ["indicators"],

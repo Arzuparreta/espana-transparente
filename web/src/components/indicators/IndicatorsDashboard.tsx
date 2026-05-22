@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { IndicatorSparkline } from "@/components/indicators/IndicatorSparkline"
+import { CopyLinkButton } from "@/components/indicators/CopyLinkButton"
+import { getIndicatorExplanation } from "@/lib/indicator-explanations"
 import { cn } from "@/lib/utils"
 
 export interface IndicatorPoint {
@@ -120,15 +122,17 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                   ? "text-accent"
                   : "text-muted-foreground"
 
+            const explanation = getIndicatorExplanation(indicator.code)
+
             return (
-              <ResponsiveLink
+              <article
                 key={indicator.code}
-                href={`/indicadores/${indicator.code}`}
-                className="group block h-full rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                data-slot="card"
+                className="group flex h-full min-h-[260px] flex-col justify-between rounded border border-border bg-card p-4 transition-colors duration-150 hover:border-foreground/30"
               >
-                <article
-                  data-slot="card"
-                  className="flex h-full min-h-[230px] flex-col justify-between rounded border border-border bg-card p-4 transition-colors duration-150 group-hover:border-foreground/30"
+                <ResponsiveLink
+                  href={`/indicadores/${indicator.code}`}
+                  className="block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-3">
@@ -150,6 +154,12 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                         {formatDelta(indicator.deltaPct)}
                       </div>
                     </div>
+
+                    {explanation.short && (
+                      <p className="text-xs leading-5 text-muted-foreground text-pretty">
+                        {explanation.short}
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-5 space-y-3">
@@ -159,8 +169,15 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
                       <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </div>
                   </div>
-                </article>
-              </ResponsiveLink>
+                </ResponsiveLink>
+
+                <div className="mt-2 border-t border-border/40 pt-2">
+                  <CopyLinkButton
+                    url={`/indicadores/${indicator.code}`}
+                    label="Copiar enlace"
+                  />
+                </div>
+              </article>
             )
           })}
         </div>

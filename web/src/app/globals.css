@@ -211,3 +211,9 @@
     }
   }
 }
+
+@media (pointer: coarse) {
+  .chart-tooltip-touch-offset {
+    transform: translateY(-72px);
+  }
+}

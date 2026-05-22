@@ -1,6 +1,21 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, PAGE_SIZE, type OrganizationPublicRow } from "./shared"
 
+const SEPI_SUBSIDIARY_NAMES = [
+  "SEPI-NAVANTIA",
+  "SEPI-CORREOS",
+  "SEPI-TRAGSA",
+  "SEPI-MERCASA",
+  "SEPI-HUNOSA",
+  "SEPI-ENUSA",
+  "SEPI-ENSA",
+  "SEPI-SEPIDES",
+  "SEPI-EFE",
+  "SEPI-CETARSA",
+  "SEPI-MAYASA",
+  "SEPI-SAECA",
+]
+
 export const getOrganizationsList = unstable_cache(
   async (page: number) => {
     const offset = (page - 1) * PAGE_SIZE.organizations
@@ -17,7 +32,7 @@ export const getOrganizationsList = unstable_cache(
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds] =
+    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments] =
       await Promise.all([
         supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
         supabase
@@ -50,7 +65,23 @@ export const getOrganizationPageData = unstable_cache(
           .eq("beneficiary_organization_id", id)
           .order("eu_budget", { ascending: false, nullsFirst: false })
           .limit(20),
+        supabase
+          .from("institutional_appointments")
+          .select("institution, position_title, person_name, political_party, appointment_date, source_url")
+          .or(
+            SEPI_SUBSIDIARY_NAMES.map((n) => `institution.eq.${n}`).join(","),
+          )
+          .limit(100),
       ])
+
+    // Filter appointments to those whose institution matches the org name
+    const orgName = (organization.data as { name?: string } | null)?.name ?? ""
+    const orgAppointments = (appointments.data ?? []).filter((a) => {
+      const instName = (a as { institution: string }).institution.replace("SEPI-", "")
+      return orgName.toUpperCase().includes(instName) || instName.includes(
+        orgName.toUpperCase().split(/[\s,.]/).filter(Boolean).slice(0, 2).join(" "),
+      )
+    })
 
     return {
       organization: organization.data as OrganizationPublicRow | null,
@@ -59,6 +90,7 @@ export const getOrganizationPageData = unstable_cache(
       grantingSubsidies: grantingSubsidies.data ?? [],
       revolvingDoorCases: revolvingDoorCases.data ?? [],
       euFunds: euFunds.data ?? [],
+      appointments: orgAppointments,
     }
   },
   ["organization-page-data"],
