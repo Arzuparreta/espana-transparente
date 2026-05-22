@@ -10,6 +10,7 @@ import {
   getLatestInflationAnchor,
   getSectionIndex,
   getTopContractOfMonth,
+  type SessionDivergenceExample,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 import { ATLAS_GROUPS } from "@/lib/nav-config"
@@ -56,26 +57,39 @@ function formatPeriod(period: string): string {
   })
 }
 
+function formatCount(n: number): string {
+  return n.toLocaleString("es-ES")
+}
+
 function SectionHeader({
+  eyebrow,
   title,
   subtitle,
   href,
   linkLabel = "Ver todo →",
 }: {
+  eyebrow?: string
   title: string
   subtitle?: string
   href: string
   linkLabel?: string
 }) {
   return (
-    <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+    <div className="mb-5 flex min-w-0 items-end justify-between gap-3">
       <div className="min-w-0">
-        <h2 className="font-display text-2xl font-black uppercase tracking-[-0.02em]">{title}</h2>
-        {subtitle && <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>}
+        {eyebrow ? (
+          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl">
+          {title}
+        </h2>
+        {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       <ResponsiveLink
         href={href}
-        className="inline-flex shrink-0 items-center py-2.5 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        className="inline-flex shrink-0 items-end py-2 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
       >
         {linkLabel}
       </ResponsiveLink>
@@ -85,7 +99,7 @@ function SectionHeader({
 
 export default async function HomePage() {
   const [
-    { parties, recentSessions, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
+    { parties, recentSessions, sessionDivergenceExamples, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear, sessionCount },
     topContract,
     inflation,
     sectionIndex,
@@ -103,11 +117,13 @@ export default async function HomePage() {
     ])
   )
 
+  const gobiernoCount = sectionFacts.get("gobierno")?.count ?? gobierno.length
+  const revolvingDoorCount = sectionFacts.get("puertas_giratorias")?.count ?? null
+
   return (
     <div className="space-y-10 sm:space-y-14">
       <LogoHero parties={parties ?? []} />
 
-      {/* Anclas hero — mismo primitive, identidad por repetición */}
       <div className="grid gap-4 lg:grid-cols-3">
         {deudaPerCapita != null && (
           <AnchorCard
@@ -166,10 +182,14 @@ export default async function HomePage() {
         ) : null}
       </div>
 
-      {/* Gobierno */}
       {gobierno.length > 0 && (
         <section>
-          <SectionHeader title="Gobierno" href="/gobierno" linkLabel="Gabinete completo →" />
+          <SectionHeader
+            eyebrow="Miembros del ejecutivo"
+            title="Gobierno"
+            href="/gobierno"
+            linkLabel={gobiernoCount ? `Gabinete completo (${formatCount(gobiernoCount)}) →` : "Gabinete completo →"}
+          />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {gobierno.map((m) => {
               const color = getPartyColor(m.party_color)
@@ -211,13 +231,15 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Qué hay aquí — mapa del portal */}
       <section aria-labelledby="atlas-heading" className="space-y-6">
         <div className="flex min-w-0 items-end justify-between gap-3">
           <div className="min-w-0">
+            <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+              Atlas del portal
+            </p>
             <h2
               id="atlas-heading"
-              className="font-display text-2xl font-black uppercase tracking-[-0.02em]"
+              className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
             >
               Qué hay aquí
             </h2>
@@ -262,48 +284,62 @@ export default async function HomePage() {
         })}
       </section>
 
-      {/* Votaciones recientes */}
       {recentSessions.length > 0 && (
         <section>
           <SectionHeader
+            eyebrow="Sesiones recientes"
             title="Votaciones"
             subtitle="Sesiones del Congreso con diputados que votaron diferente a su grupo"
             href="/votaciones"
+            linkLabel={sessionCount ? `Ver las ${formatCount(sessionCount)} votaciones →` : "Ver todas →"}
           />
           <ul className="space-y-2">
-            {recentSessions.map((s) => (
-              <li key={s.id as string}>
-                <EntityLink
-                  kind="voting-session"
-                  id={s.id as string}
-                  className="flex min-w-0 items-baseline justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
-                >
-                  <span className="min-w-0 truncate font-medium">{s.title as string}</span>
-                  <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
-                    {(s.divergence_count as number) > 0 && (
-                      <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                        {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
+            {recentSessions.map((s) => {
+              const sessionId = s.id as string
+              const example = sessionDivergenceExamples?.[sessionId]
+              const divergenceCount = (s.divergence_count as number) ?? 0
+              return (
+                <li key={sessionId}>
+                  <EntityLink
+                    kind="voting-session"
+                    id={sessionId}
+                    className="flex min-w-0 flex-col gap-1.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
+                  >
+                    <div className="flex min-w-0 items-baseline justify-between gap-4">
+                      <span className="min-w-0 truncate font-medium">{s.title as string}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {divergenceCount > 0 && (
+                          <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+                            {divergenceCount} divergencia{divergenceCount !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        {new Date(s.date as string).toLocaleDateString("es-ES", {
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </span>
-                    )}
-                    {new Date(s.date as string).toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                </EntityLink>
-              </li>
-            ))}
+                    </div>
+                    {example ? <DivergenceTrace example={example} /> : null}
+                  </EntityLink>
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}
 
-      {/* Puertas giratorias */}
       {revolvingDoorCases.length > 0 && (
         <section>
           <SectionHeader
-            title="Puertas giratorias verificadas"
+            eyebrow="Casos verificados"
+            title="Puertas giratorias"
             subtitle="Cargos públicos que pasaron al sector privado tras dejar sus funciones"
             href="/puertas-giratorias"
+            linkLabel={
+              revolvingDoorCount
+                ? `Ver los ${formatCount(revolvingDoorCount)} casos →`
+                : "Ver todos los casos →"
+            }
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {revolvingDoorCases.map((c) => (
@@ -327,3 +363,30 @@ export default async function HomePage() {
     </div>
   )
 }
+
+function DivergenceTrace({ example }: { example: SessionDivergenceExample }) {
+  // Reformat "APELLIDOS, Nombre" already-canonical surname-first names.
+  const nameDisplay = example.full_name.includes(",")
+    ? example.full_name
+    : (() => {
+        // Heuristic for "Nombre Apellidos" → "APELLIDOS, Nombre" (best-effort).
+        const parts = example.full_name.trim().split(/\s+/)
+        if (parts.length < 2) return example.full_name
+        const given = parts[0]
+        const surname = parts.slice(1).join(" ")
+        return `${surname.toUpperCase()}, ${given}`
+      })()
+  const majorityFragment = example.party_majority
+    ? ` · su grupo votó ${example.party_majority}`
+    : ""
+  return (
+    <p className="font-mono text-[11px] leading-snug text-muted-foreground">
+      <span className="text-accent">▲</span>{" "}
+      <span className="text-foreground">{nameDisplay}</span>
+      {example.party_acronym ? <span> ({example.party_acronym})</span> : null}{" "}
+      votó {example.vote}
+      {majorityFragment}
+    </p>
+  )
+}
+

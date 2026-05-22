@@ -19,7 +19,7 @@ export default async function BuscarPage({ searchParams }: PageProps) {
   const results = query.length >= 2 ? await searchDocuments(query, { limit: 24 }) : []
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Búsqueda"
         description="Personas, votaciones, contratos, subvenciones, presupuestos, indicadores y fuentes públicas."

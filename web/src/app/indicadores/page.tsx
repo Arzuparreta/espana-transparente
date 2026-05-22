@@ -60,7 +60,7 @@ export default async function IndicadoresPage() {
     .sort((a, b) => a.name.localeCompare(b.name, "es"))
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="ui-page">
         <PageHeader
           title="Indicadores económicos"
           description="Datos económicos generales del país: cuánto sube el IPC, cuánto crece el PIB, cuánta gente trabaja, cuánta deuda hay. Series del Instituto Nacional de Estadística (INE)."

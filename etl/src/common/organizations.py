@@ -1,5 +1,6 @@
 """Helpers for normalized organizations shared across ETL pipelines."""
 
+import hashlib
 import re
 import unicodedata
 
@@ -13,6 +14,13 @@ def normalize_organization_name(name: str | None) -> str:
     return re.sub(r"\s+", " ", cleaned).strip()
 
 
+def organization_collision_key(name: str, normalized: str | None = None) -> str:
+    """Return a stable unique key for distinct labels with the same normalized form."""
+    base = normalized if normalized is not None else normalize_organization_name(name)
+    digest = hashlib.md5(name.strip().casefold().encode("utf-8")).hexdigest()[:16]
+    return f"{base} {digest}"
+
+
 def upsert_organization(
     cur,
     *,
@@ -22,21 +30,65 @@ def upsert_organization(
     source_url: str | None = None,
 ) -> str:
     normalized = normalize_organization_name(name)
+    display_name = name.strip()
+    if not normalized or not display_name:
+        raise ValueError("organization name must normalize to a non-empty value")
+
+    organization_type_conflict_update = """
+      organization_type = CASE
+        WHEN organizations.organization_type = 'other' THEN EXCLUDED.organization_type
+        ELSE organizations.organization_type
+      END,
+      sector = coalesce(EXCLUDED.sector, organizations.sector),
+      source_url = coalesce(EXCLUDED.source_url, organizations.source_url),
+      updated_at = now()
+    """
+
+    # First try the canonical normalized key. If another source label already
+    # owns that key, do not overwrite its name: preserve both identities.
     cur.execute(
         """
         INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url)
         VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (normalized_name) DO UPDATE SET
-          name = EXCLUDED.name,
-          organization_type = CASE
-            WHEN organizations.organization_type = 'other' THEN EXCLUDED.organization_type
-            ELSE organizations.organization_type
-          END,
-          sector = coalesce(EXCLUDED.sector, organizations.sector),
-          source_url = coalesce(EXCLUDED.source_url, organizations.source_url),
-          updated_at = now()
+        ON CONFLICT (normalized_name) DO NOTHING
         RETURNING id
         """,
-        (name, normalized, organization_type, sector, source_url),
+        (display_name, normalized, organization_type, sector, source_url),
+    )
+    row = cur.fetchone()
+    if row:
+        return row[0]
+
+    cur.execute(
+        f"""
+        UPDATE organizations
+        SET
+          organization_type = CASE
+            WHEN organizations.organization_type = 'other' THEN %s
+            ELSE organizations.organization_type
+          END,
+          sector = coalesce(%s, organizations.sector),
+          source_url = coalesce(%s, organizations.source_url),
+          updated_at = now()
+        WHERE normalized_name = %s
+          AND lower(trim(name)) = lower(trim(%s))
+        RETURNING id
+        """,
+        (organization_type, sector, source_url, normalized, display_name),
+    )
+    row = cur.fetchone()
+    if row:
+        return row[0]
+
+    collision_key = organization_collision_key(display_name, normalized)
+    cur.execute(
+        f"""
+        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (normalized_name) DO UPDATE SET
+          {organization_type_conflict_update}
+        RETURNING id
+        """,
+        (display_name, collision_key, organization_type, sector, source_url),
     )
     return cur.fetchone()[0]

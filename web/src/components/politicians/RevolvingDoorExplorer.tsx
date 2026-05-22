@@ -23,7 +23,7 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
   ]
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Puertas giratorias"
         description={`Personas que ocuparon un cargo público y después pasaron a trabajar en empresas relacionadas con decisiones tomadas durante ese cargo. ${uniquePeople} personas · ${cases.length} movimientos documentados con fuente pública.`}
@@ -88,7 +88,7 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
                         <div
                           key={`${entry.person_name}-${entry.private_organization}-${index}`}
                           id={isFirstForPerson ? `person-${entry.person_id}` : undefined}
-                          className="rounded-xl border border-border/60 bg-background/70 px-3 py-3 text-xs sm:text-sm"
+                          className="rounded-[2px] border border-border/60 bg-background/70 px-3 py-3 text-xs sm:text-sm"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-1.5">

@@ -43,7 +43,7 @@ function ContractRow({ contract }: { contract: MinistrioContract }) {
       </div>
       <div className="shrink-0 text-right">
         {contract.amount != null && (
-          <p className="font-semibold tabular-nums">{formatAmount(contract.amount)}</p>
+          <p className="font-mono font-semibold">{formatAmount(contract.amount)}</p>
         )}
         {contract.date && (
           <p className="text-xs text-muted-foreground">
@@ -80,7 +80,7 @@ export default async function MinistrioPage({ params }: PageProps) {
     : null
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/gobierno", label: "Gobierno" }}
         current={member.organization_name}
@@ -113,7 +113,7 @@ export default async function MinistrioPage({ params }: PageProps) {
 
       {/* Titular */}
       <div
-        className="rounded-xl border bg-card/80 p-5"
+        className="rounded-[2px] border bg-card p-5"
         style={{ borderColor: `${color}28` }}
       >
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -150,7 +150,7 @@ export default async function MinistrioPage({ params }: PageProps) {
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Contratos más elevados
           </h2>
-          <div className="rounded-xl border border-border/70 bg-card/80 px-4 py-1">
+          <div className="rounded-[2px] border border-border bg-card px-4 py-1">
             {contracts.map((c) => (
               <ContractRow key={c.id} contract={c} />
             ))}

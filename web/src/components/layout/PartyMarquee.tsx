@@ -25,7 +25,7 @@ export function PartyMarquee({ parties }: PartyMarqueeProps) {
   return (
     <div
       ref={wrapperRef}
-      className="marquee-mask relative mt-6 overflow-hidden"
+      className="marquee-mask relative overflow-hidden"
       aria-hidden="true"
     >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-card via-card/80 to-transparent" />

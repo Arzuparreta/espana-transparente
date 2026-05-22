@@ -1,4 +1,4 @@
-from common.organizations import normalize_organization_name
+from common.organizations import normalize_organization_name, organization_collision_key
 from common.utils import extract_ministry_from_body, normalize_ministry
 
 
@@ -15,3 +15,17 @@ def test_extract_ministry_from_body_finds_ministry_fragment():
 
 def test_normalize_organization_name_strips_legal_suffixes():
     assert normalize_organization_name("Telefónica, S.A.") == "telefonica"
+
+
+def test_organization_collision_key_preserves_normalized_prefix_but_splits_labels():
+    normalized = "tetra 5 u"
+
+    assert organization_collision_key("TETRA 5, S.L.U.", normalized).startswith("tetra 5 u ")
+    assert organization_collision_key("TETRA 5, S.L.U.", normalized) == organization_collision_key(
+        "tetra 5, s.l.u.",
+        normalized,
+    )
+    assert organization_collision_key("TETRA 5 UTE", normalized) != organization_collision_key(
+        "TETRA 5, S.L.U.",
+        normalized,
+    )

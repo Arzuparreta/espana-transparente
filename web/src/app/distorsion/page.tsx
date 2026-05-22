@@ -4,8 +4,8 @@ import { DistorsionTabs } from "@/components/distorsion/DistorsionTabs"
 export const revalidate = 3600
 
 export const metadata = {
-  title: "Divergencias",
-  description: "Diputados que votaron distinto a la mayoría de su grupo parlamentario, sesión por sesión.",
+  title: "Distorsión electoral",
+  description: "Cómo la ley D'Hondt y el tamaño de las circunscripciones distorsionan la representación: votos por escaño y umbral efectivo por provincia en las elecciones generales de 2023.",
 }
 
 const ELECTION_2023 = {
@@ -49,7 +49,7 @@ export default async function DistorsionElectoralPage() {
   const minVotesPerSeat = Math.min(...withVotesPerSeat.map((r) => r.votesPerSeat))
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Distorsión electoral"
         description={`Elecciones generales del ${ELECTION_2023.date} · ${ELECTION_2023.totalSeats} escaños · participación ${ELECTION_2023.participation}%`}

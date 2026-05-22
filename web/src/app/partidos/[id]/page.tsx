@@ -124,7 +124,7 @@ export default async function PartyPage({ params }: PageProps) {
                       key={s.id}
                       kind="voting-session"
                       id={s.id}
-                      className="flex min-w-0 items-start justify-between gap-4 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm transition-colors hover:border-border hover:bg-card"
+                      className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
                     >
                       <div className="min-w-0">
                         <p className="min-w-0 truncate font-medium">{s.title}</p>

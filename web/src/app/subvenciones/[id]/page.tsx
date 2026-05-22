@@ -66,7 +66,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
   const titleText = subsidy.convocatoria ?? subsidy.beneficiario ?? `BDNS ${subsidy.bdns_id}`
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/subvenciones", label: "Subvenciones" }}
         current={titleText}
@@ -100,12 +100,12 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
         description={`BDNS ${subsidy.bdns_id}${subsidy.cod_concesion ? ` · ${subsidy.cod_concesion}` : ""}`}
       />
 
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-5">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-5">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe</p>
-        <p className="mt-1 text-3xl font-bold tabular-nums">{formatAmount(subsidy.importe)}</p>
+        <p className="mt-1 font-mono text-3xl font-bold">{formatAmount(subsidy.importe)}</p>
       </div>
 
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-2">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-2">
         <dl>
           {dateStr && <Row label="Fecha concesión">{dateStr}</Row>}
           {subsidy.instrumento && <Row label="Instrumento">{subsidy.instrumento}</Row>}
@@ -150,7 +150,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
       </div>
 
       {responsible && (
-        <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-4">
+        <div className="rounded-[2px] border border-border bg-card px-6 py-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Responsable político
           </p>

@@ -9,6 +9,7 @@ export const revalidate = 3600
 
 interface PageProps {
   params: { section: string; program: string }
+  searchParams?: { year?: string }
 }
 
 const CHAPTER_NAMES: Record<string, string> = {
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function BudgetProgramDetailPage({ params }: PageProps) {
+export default async function BudgetProgramDetailPage({ params, searchParams }: PageProps) {
   const sectionCode = decodeURIComponent(params.section)
   const programCode = decodeURIComponent(params.program)
   const rows = await getBudgetProgram(sectionCode, programCode)
@@ -52,9 +53,13 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
   const programName = latest.program_name ?? programCode
   const sectionName = latest.section_name ?? sectionCode
   const ministry = latest.ministry_normalized
+  const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
+  const traceYear = rows.some((row) => row.year === requestedYear)
+    ? requestedYear
+    : latest.year
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/presupuestos", label: "Presupuestos" }}
         current={programName}
@@ -69,7 +74,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
           },
           latest?.year
             ? {
-                href: `/dinero-publico?year=${latest.year}&section=${encodeURIComponent(sectionCode)}#program-${encodeURIComponent(programCode)}`,
+                href: `/dinero-publico?year=${traceYear}&section=${encodeURIComponent(sectionCode)}&program=${encodeURIComponent(programCode)}#program-${encodeURIComponent(programCode)}`,
                 label: "Trazabilidad del gasto",
               }
             : null,
@@ -118,11 +123,11 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
             return (
               <div
                 key={row.year}
-                className="rounded-xl border border-border/70 bg-card/80 px-4 py-3"
+                className="rounded-[2px] border border-border bg-card px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold tabular-nums">
+                    <p className="font-mono text-sm font-semibold">
                       {row.year}
                       {meta ? (
                         <span className="ml-2 font-normal text-xs text-muted-foreground">
@@ -144,7 +149,7 @@ export default async function BudgetProgramDetailPage({ params }: PageProps) {
                     ) : null}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-base font-semibold tabular-nums">
+                    <p className="font-mono text-base font-semibold">
                       {formatAmount(row.total_credit_initial)}
                     </p>
                     {row.total_credit_final != null &&

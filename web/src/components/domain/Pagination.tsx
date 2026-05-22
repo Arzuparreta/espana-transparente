@@ -15,7 +15,7 @@ export function Pagination({ page, totalPages, hrefForPage, className, label = "
   const previousPage = Math.max(1, page - 1)
   const nextPage = Math.min(totalPages, page + 1)
   const linkClass =
-    "inline-flex min-h-11 items-center rounded-full border border-border/70 px-3 py-2 text-sm font-medium transition-colors"
+    "inline-flex min-h-11 items-center rounded-[2px] border border-border/70 px-3 py-2 text-sm font-medium transition-colors"
   const edgeClass = "hidden sm:inline-flex"
 
   return (
@@ -40,7 +40,7 @@ export function Pagination({ page, totalPages, hrefForPage, className, label = "
           Anterior
         </ResponsiveLink>
       </div>
-      <span className="shrink-0 rounded-full border border-border/60 bg-card px-3 py-2 text-xs text-muted-foreground">
+      <span className="shrink-0 rounded-[2px] border border-border/60 bg-card px-3 py-2 text-xs text-muted-foreground">
         Página <span className="font-mono text-foreground">{page}</span> de{" "}
         <span className="font-mono text-foreground">{totalPages}</span>
       </span>

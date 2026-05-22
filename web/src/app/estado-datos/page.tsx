@@ -61,7 +61,7 @@ export default async function EstadoDatosPage() {
       .at(-1) ?? null
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="ui-page">
       <PageHeader
         title="Estado de datos"
         description="Frescura de pipelines ETL, cobertura histórica y conflictos de resolución de responsable."
@@ -76,7 +76,7 @@ export default async function EstadoDatosPage() {
 
       {/* ETL pipeline freshness */}
       {pipelines.length > 0 && (
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
+        <section className="space-y-4 rounded-[2px] border border-border bg-card p-4 sm:p-5">
           <h2 className="text-xl font-semibold">Pipelines ETL</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -111,8 +111,8 @@ export default async function EstadoDatosPage() {
                         {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
                       </td>
                       <td className="py-3 pr-4">{dateStr}</td>
-                      <td className="py-3 pr-4 tabular-nums">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
-                      <td className="py-3 tabular-nums">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      <td className="py-3 pr-4 font-mono">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      <td className="py-3 font-mono">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
                     </tr>
                   )
                 })}
@@ -130,7 +130,7 @@ export default async function EstadoDatosPage() {
         const examplesRows = examplesByDataset[dataset] ?? []
 
         return (
-          <section key={dataset} className="space-y-4 rounded-xl border border-border/70 bg-card/80 p-4 sm:p-5">
+          <section key={dataset} className="space-y-4 rounded-[2px] border border-border bg-card p-4 sm:p-5">
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <h2 className="text-xl font-semibold">{datasetLabel(dataset)}</h2>
@@ -165,10 +165,10 @@ export default async function EstadoDatosPage() {
                   {rows.map((row) => (
                     <tr key={`${dataset}-${row.administration_level}`} className="border-t border-border/60">
                       <td className="py-3 pr-4 font-medium">{levelLabel(row.administration_level)}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.total_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.resolved_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.unresolved_rows.toLocaleString("es-ES")}</td>
-                      <td className="py-3 pr-4 tabular-nums">{row.conflict_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.total_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.resolved_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.unresolved_rows.toLocaleString("es-ES")}</td>
+                      <td className="py-3 pr-4 font-mono">{row.conflict_rows.toLocaleString("es-ES")}</td>
                       <td className="py-3 pr-4">{formatDate(row.coverage_start_date)}</td>
                       <td className="py-3">{formatDate(row.latest_record_date)}</td>
                     </tr>
@@ -187,7 +187,7 @@ export default async function EstadoDatosPage() {
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">
                   {examplesRows.map((row) => (
-                    <article key={row.record_id} className="rounded-2xl border border-border/60 bg-background/70 p-3">
+                    <article key={row.record_id} className="rounded-[2px] border border-border/60 bg-background/70 p-3">
                       <div className="flex min-w-0 items-center justify-between gap-3 text-xs text-muted-foreground">
                         <span className="min-w-0 truncate">{levelLabel(row.administration_level ?? "sin_clasificar")}</span>
                         <span className="shrink-0">{row.issue_type === "conflict" ? "Conflicto" : "Sin resolver"}</span>

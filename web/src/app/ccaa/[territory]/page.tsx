@@ -56,7 +56,7 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
     .at(-1)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/ccaa", label: "CCAA" }}
         current={detail.territory.territoryName}

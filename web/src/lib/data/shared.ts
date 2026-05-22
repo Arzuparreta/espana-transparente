@@ -220,6 +220,7 @@ export type OrganizationPublicRow = {
   subsidy_beneficiary_count: number
   subsidy_granting_count: number
   revolving_door_count: number
+  eu_fund_count: number
 }
 
 export type MoneyCoverageRow = {

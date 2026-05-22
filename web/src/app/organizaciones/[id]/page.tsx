@@ -37,13 +37,13 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function OrganizacionPage({ params }: PageProps) {
   const { id } = await params
-  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases } =
+  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds } =
     await getOrganizationPageData(id)
 
   if (!organization) notFound()
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/organizaciones", label: "Organizaciones" }}
         current={organization.name}
@@ -73,6 +73,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
           { label: "Subvenciones recibidas", value: organization.subsidy_beneficiary_count, hint: "Concesiones donde figura como beneficiaria." },
           { label: "Subvenciones concedidas", value: organization.subsidy_granting_count, hint: "Concesiones donde figura como órgano concedente." },
           { label: "Puertas giratorias", value: organization.revolving_door_count, hint: "Movimientos publicados asociados a esta organización." },
+          { label: "Fondos europeos", value: organization.eu_fund_count, hint: "Beneficiario de fondos UE (Kohesio)." },
         ]}
       />
 
@@ -191,6 +192,34 @@ export default async function OrganizacionPage({ params }: PageProps) {
                   <div className="text-xs text-muted-foreground">
                     {entry.public_role} → {entry.private_role}
                     {entry.private_start_date ? ` · ${formatDate(entry.private_start_date)}` : ""}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Fondos europeos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {euFunds.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sin fondos europeos registrados para esta organización.</p>
+            ) : (
+              euFunds.map((fund) => (
+                <div key={fund.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
+                  <ResponsiveLink
+                    href={`/fondos-ue/${fund.id.split("/").pop()}`}
+                    className="font-medium underline-offset-2 hover:underline"
+                  >
+                    {fund.label}
+                  </ResponsiveLink>
+                  <div className="text-xs text-muted-foreground">
+                    {fund.number_projects != null ? `${fund.number_projects} proyectos` : "—"}
+                    {" · "}
+                    {formatAmount(fund.eu_budget)}
+                    {fund.cofinancing_rate != null ? ` · cofin. ${fund.cofinancing_rate}%` : ""}
                   </div>
                 </div>
               ))

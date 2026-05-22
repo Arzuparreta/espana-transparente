@@ -38,15 +38,15 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
   return (
     <div
       data-slot="card"
-      className="flex min-w-0 items-start justify-between gap-4 rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
     >
       <div className="flex min-w-0 items-start gap-3">
-        <span className="mt-0.5 w-7 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        <span className="mt-0.5 w-7 shrink-0 text-right font-mono text-xs text-muted-foreground">
           {rank}
         </span>
         <div className="min-w-0">
           <p className="truncate font-medium leading-snug">{fund.label}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {fund.number_projects != null ? `${fund.number_projects.toLocaleString("es-ES")} proyectos` : "—"}
             {fund.cofinancing_rate != null
               ? ` · ${Number(fund.cofinancing_rate).toFixed(1)} % cofinanciación UE`
@@ -57,9 +57,9 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="text-right">
-          <p className="text-sm font-semibold tabular-nums">{formatEuros(fund.eu_budget)}</p>
+          <p className="font-mono text-sm font-semibold">{formatEuros(fund.eu_budget)}</p>
           {fund.total_budget && fund.eu_budget && (
-            <p className="text-xs text-muted-foreground tabular-nums">
+            <p className="font-mono text-xs text-muted-foreground">
               total {formatEuros(fund.total_budget)}
             </p>
           )}
@@ -68,7 +68,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
           href={kohesioUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 rounded-md border border-border/60 bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="shrink-0 rounded-[2px] border border-border/60 bg-background px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           title="Ver en Kohesio"
         >
           Kohesio →
@@ -90,7 +90,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
   const offset = (page - 1) * PAGE_SIZE.euFunds
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Fondos europeos"
         description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."

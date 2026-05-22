@@ -65,7 +65,7 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
   return (
     <>
       <ContextTrail
-        className="mx-auto max-w-5xl"
+        className="mx-auto w-full max-w-6xl"
         section={{ href: "/diputados", label: "Diputados" }}
         current={fullName}
         meta={currentGroup || undefined}

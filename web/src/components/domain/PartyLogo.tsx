@@ -35,7 +35,7 @@ export function PartyLogo({ src, color, acronym, size = "md", className }: Party
   return (
     <div
       aria-label={acronym}
-      className={cn("shrink-0 rounded-full border border-border/40", className)}
+      className={cn("shrink-0 rounded-[2px] border border-border/40", className)}
       style={{ backgroundColor: color ?? undefined, width: px, height: px }}
     />
   )

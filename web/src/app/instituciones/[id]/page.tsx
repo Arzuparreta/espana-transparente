@@ -65,7 +65,7 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
   const institutionLabel = INSTITUTION_LABEL[member.institution] ?? member.institution
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/instituciones", label: "Instituciones" }}
         current={formatName(member.person_name)}
@@ -92,7 +92,7 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
         }
       />
 
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-2">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-2">
         <dl>
           <Row label="Organismo">{institutionLabel}</Row>
           <Row label="Cargo">{member.position_title}</Row>

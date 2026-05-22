@@ -31,7 +31,7 @@ export default async function CcaaPage() {
   const visibleTerritories = territories.slice(0, 24)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Gasto autonómico"
         description="Drilldowns por comunidad autónoma basados en los campos territoriales que publican BDNS y PCSP. Cuando una fuente no publica territorio resoluble, el registro queda fuera del listado territorial y se cuenta aparte."
@@ -89,7 +89,7 @@ export default async function CcaaPage() {
                       {territory.subsidyCount.toLocaleString("es-ES")} subvenciones ·{" "}
                       {territory.contractCount.toLocaleString("es-ES")} contratos
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
+                    <div className="mt-2 font-mono text-xs text-muted-foreground">
                       {formatAmount(territory.subsidyAmount + territory.contractAmount)}
                     </div>
                   </ResponsiveLink>
@@ -109,11 +109,11 @@ export default async function CcaaPage() {
                 <CardContent className="space-y-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Con territorio visible:</span>{" "}
-                    {row.resolvedCount.toLocaleString("es-ES")}
+                    <span className="font-mono">{row.resolvedCount.toLocaleString("es-ES")}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Sin territorio reutilizable:</span>{" "}
-                    {row.unresolvedCount.toLocaleString("es-ES")}
+                    <span className="font-mono">{row.unresolvedCount.toLocaleString("es-ES")}</span>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
                     {row.dataset === "subsidies"

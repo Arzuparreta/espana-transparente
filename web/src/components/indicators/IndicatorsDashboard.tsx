@@ -100,7 +100,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar por nombre, código o unidad"
-            className="h-10 rounded-md pl-8"
+            className="h-10 rounded-[2px] pl-8"
             aria-label="Buscar indicadores"
           />
         </label>

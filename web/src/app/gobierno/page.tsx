@@ -57,7 +57,7 @@ function MemberCard({ member, partyId }: { member: GobiernoMember; partyId: stri
   return (
     <div
       data-slot="card"
-      className="flex min-h-[5.5rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-h-[5.5rem] flex-col justify-between rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
       style={{ borderColor: `${color}28` }}
     >
       <div className="space-y-1">
@@ -71,7 +71,7 @@ function MemberCard({ member, partyId }: { member: GobiernoMember; partyId: stri
           partyId={partyId}
         />
         {member.contract_count > 0 ? (
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">
             {member.contract_count} contrato{member.contract_count !== 1 ? "s" : ""}{" "}
             · {formatAmount(member.total_amount_eur)}
           </span>
@@ -99,7 +99,7 @@ export default async function GobiernoPage() {
   const totalAmount = members.reduce((s, m) => s + m.total_amount_eur, 0)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="ui-page">
       <PageHeader
         title="Gobierno"
         description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. A qué partido pertenecen y qué contratos adjudica cada ministerio.`}

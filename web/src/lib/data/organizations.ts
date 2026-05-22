@@ -6,7 +6,7 @@ export const getOrganizationsList = unstable_cache(
     const offset = (page - 1) * PAGE_SIZE.organizations
     const { data, count } = await supabase
       .from("v_organization_public")
-      .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count", { count: "exact" })
+      .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count", { count: "exact" })
       .order("contract_count", { ascending: false, nullsFirst: false })
       .range(offset, offset + 49)
     return { organizations: data ?? [], total: count ?? 0 }
@@ -17,7 +17,7 @@ export const getOrganizationsList = unstable_cache(
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases] =
+    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds] =
       await Promise.all([
         supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
         supabase
@@ -44,6 +44,12 @@ export const getOrganizationPageData = unstable_cache(
           .eq("organization_id", id)
           .order("private_start_date", { ascending: false, nullsFirst: false })
           .limit(20),
+        supabase
+          .from("eu_funds")
+          .select("id, label, eu_budget, total_budget, cofinancing_rate, number_projects, wikidata_link")
+          .eq("beneficiary_organization_id", id)
+          .order("eu_budget", { ascending: false, nullsFirst: false })
+          .limit(20),
       ])
 
     return {
@@ -52,6 +58,7 @@ export const getOrganizationPageData = unstable_cache(
       beneficiarySubsidies: beneficiarySubsidies.data ?? [],
       grantingSubsidies: grantingSubsidies.data ?? [],
       revolvingDoorCases: revolvingDoorCases.data ?? [],
+      euFunds: euFunds.data ?? [],
     }
   },
   ["organization-page-data"],

@@ -64,7 +64,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
   return (
     <div
       data-slot="card"
-      className="flex min-h-[6rem] flex-col justify-between rounded-xl border bg-card/80 p-4 transition-colors hover:bg-card"
+      className="flex min-h-[6rem] flex-col justify-between rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
       style={{ borderColor: `${color}28` }}
     >
       <div className="space-y-1">
@@ -110,7 +110,7 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
       </div>
 
       {member.appointment_date && (
-        <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+        <p className="mt-1 font-mono text-xs text-muted-foreground">
           Desde {formatDate(member.appointment_date)}
         </p>
       )}
@@ -140,7 +140,7 @@ export default async function InstitucionesPage() {
     .at(-1)
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10">
+    <div className="ui-page">
       <PageHeader
         title="Organismos institucionales"
         description="Personas nombradas para dirigir organismos públicos clave —Tribunal Constitucional, Consejo General del Poder Judicial, RTVE, SEPI— y por qué partido fue propuesta cada una."

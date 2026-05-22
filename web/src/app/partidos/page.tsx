@@ -15,7 +15,7 @@ export default async function PartidosPage() {
     .sort((a, b) => (b.stats?.deputy_count ?? 0) - (a.stats?.deputy_count ?? 0))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <PageHeader
         title="Partidos"
         description="Los partidos con representación en el Congreso. Cuántos diputados tienen, en qué provincias, y cómo votan."
@@ -23,7 +23,7 @@ export default async function PartidosPage() {
       <div className="space-y-2">
         {withDeputies.map((p) => (
           <ResponsiveLink key={(p as Party).id} href={`/partidos/${(p as Party).id}`}>
-            <div className="flex min-w-0 items-center gap-4 rounded-xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:border-border hover:bg-card">
+            <div className="flex min-w-0 items-center gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 transition-colors hover:border-foreground/40">
               <PartyLogo
                 src={(p as unknown as { logo_url?: string | null }).logo_url}
                 color={(p as Party).color}

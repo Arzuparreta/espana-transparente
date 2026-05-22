@@ -55,7 +55,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
             )}
           </div>
           {displayGroup ? (
-            <div className="rounded-xl bg-muted/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
+            <div className="rounded-[2px] bg-muted/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
               Grupo parlamentario: {displayGroup}
             </div>
           ) : null}
@@ -63,7 +63,7 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
       </Card>
       <Link
         href={`/diputados/${politician.id}`}
-        className="absolute inset-0 z-10 rounded-xl"
+        className="absolute inset-0 z-10 rounded-[2px]"
         aria-label={politician.full_name}
         prefetch={false}
       />

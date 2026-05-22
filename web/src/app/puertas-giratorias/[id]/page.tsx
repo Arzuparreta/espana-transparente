@@ -55,7 +55,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
   const otherSources = sources.filter((s) => s.source_type !== "primary")
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/puertas-giratorias", label: "Puertas giratorias" }}
         current={item.person_name}
@@ -84,7 +84,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
         }
       />
 
-      <div className="rounded-xl border border-border/70 bg-card/80 px-6 py-2">
+      <div className="rounded-[2px] border border-border bg-card px-6 py-2">
         <dl>
           {item.person_id && (
             <Row label="Persona">
@@ -132,7 +132,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
                   href={s.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm hover:border-border hover:bg-card"
+                  className="flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm hover:border-foreground/40"
                 >
                   <span className="truncate font-medium">{s.title ?? s.source_name}</span>
                   <span className="text-xs text-muted-foreground">
@@ -158,7 +158,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
                   href={s.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-w-0 flex-col gap-0.5 rounded-lg border border-border/60 bg-card/80 px-4 py-3 text-sm hover:border-border hover:bg-card"
+                  className="flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm hover:border-foreground/40"
                 >
                   <span className="truncate font-medium">{s.title ?? s.source_name}</span>
                   <span className="text-xs text-muted-foreground">
