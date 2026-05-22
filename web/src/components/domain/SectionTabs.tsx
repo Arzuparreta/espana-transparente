@@ -1,7 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { Suspense } from "react"
+import type { ReactNode, RefObject } from "react"
+import { useEffect, useRef, Suspense } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -23,16 +23,19 @@ function TabRow({
   tabs,
   activeTab,
   onChange,
+  scrollRef,
 }: {
   tabs: TabItem[]
   activeTab: string
   onChange: (next: string) => void
+  scrollRef?: RefObject<HTMLDivElement>
 }) {
   return (
     <div
+      ref={scrollRef}
       role="tablist"
       aria-orientation="horizontal"
-      className="relative -mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0 [mask-image:linear-gradient(to_right,black_0%,black_85%,transparent_100%)] sm:[mask-image:none]"
+      className="relative -mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0 [mask-image:linear-gradient(to_right,black_0%,black_93%,transparent_100%)] sm:[mask-image:none]"
     >
       <div className="inline-flex min-w-full gap-2 border-b border-border/80 pb-1">
         {tabs.map((tab) => {
@@ -84,6 +87,14 @@ function SectionTabsBody({
   const validValues = tabs.map((t) => t.value)
   const fromUrl = searchParams.get(paramName)
   const activeTab = fromUrl && validValues.includes(fromUrl) ? fromUrl : defaultTab
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const btn = container.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (btn) btn.scrollIntoView({ block: "nearest", inline: "nearest" })
+  }, [activeTab])
 
   function setActiveTab(next: string) {
     if (next === activeTab) return
@@ -96,7 +107,7 @@ function SectionTabsBody({
 
   return (
     <div className="space-y-6">
-      <TabRow tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <TabRow tabs={tabs} activeTab={activeTab} onChange={setActiveTab} scrollRef={scrollRef} />
       {panels ? panels[activeTab] : children?.(activeTab)}
     </div>
   )

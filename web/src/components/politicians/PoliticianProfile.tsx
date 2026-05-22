@@ -1,6 +1,5 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -106,16 +105,9 @@ export function PoliticianProfile({
   govPosition,
   ministryContracts = [],
 }: Props) {
-  const searchParams = useSearchParams()
-
-  function tabHref(updates: Record<string, string | null>) {
-    const params = new URLSearchParams(searchParams.toString())
-    for (const [k, v] of Object.entries(updates)) {
-      if (v === null) params.delete(k)
-      else params.set(k, v)
-    }
-    const query = params.toString()
-    return query ? `?${query}` : "?"
+  function tabHref(tab: string, extra?: Record<string, string>) {
+    const params = new URLSearchParams({ tab, ...extra })
+    return `?${params.toString()}`
   }
 
   const fullName = String(p.full_name || "")
@@ -562,7 +554,7 @@ export function PoliticianProfile({
                   <Pagination
                     page={votePage}
                     totalPages={Math.ceil(totalVotes / votePageSize)}
-                    hrefForPage={(nextPage) => tabHref({ tab: "votes", page: String(nextPage) })}
+                    hrefForPage={(nextPage) => tabHref("votes", { page: String(nextPage) })}
                     label="Paginación del historial de voto"
                     className="pt-2"
                   />
@@ -620,7 +612,7 @@ export function PoliticianProfile({
                       <Pagination
                         page={attendancePage}
                         totalPages={Math.ceil(attendanceTotal / attendancePageSize)}
-                        hrefForPage={(nextPage) => tabHref({ tab: "asistencia", apage: String(nextPage) })}
+                        hrefForPage={(nextPage) => tabHref("asistencia", { apage: String(nextPage) })}
                         label="Paginación de asistencia"
                       />
                     ) : null}
