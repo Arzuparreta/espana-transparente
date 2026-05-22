@@ -35,7 +35,7 @@ PYTHONPATH=src python -m pytest tests/test_responsibility.py::test_name  # singl
 ```
 
 Daily pipelines (run via GH Actions cron `0 4 * * *`): `src.congreso.diputados`, `src.congreso.asistencia --from-date 20250101`, `src.ine.indicadores`, `src.contratacion.contratos`, `src.bdns.subvenciones`, `src.photos.run --refresh-missing`, then `common.search_refresh`.
-Weekly (`0 5 * * 1`): `src.congreso.cods --resume`, `src.congreso.declaraciones`, `src.congreso.gobierno`, `src.congreso.responsables`, `src.photos.run --no-refresh-missing --max-age-days 30`, `src.presupuestos.presupuestos --year $(date +%Y) --resume`, `src.puertas_giratorias.ingest`, `src.instituciones.instituciones`, `src.kohesio.fondos_ue`, `src.senado.senadores`, `src.senado.votaciones`, then `common.search_refresh`.
+Weekly (`0 5 * * 1`): `src.congreso.cods --resume`, `src.congreso.declaraciones`, `src.congreso.iniciativas`, `src.congreso.gobierno`, `src.congreso.responsables`, `src.photos.run --no-refresh-missing --max-age-days 30`, `src.presupuestos.presupuestos --year $(date +%Y) --resume`, `src.puertas_giratorias.ingest`, `src.instituciones.instituciones`, `src.kohesio.fondos_ue`, `src.senado.senadores`, `src.senado.votaciones`, then `common.search_refresh`.
 
 ETL writes need `DATABASE_URL` (direct Postgres URI from Supabase → Settings → Database). Reads use the publishable key. The Supabase Python SDK is only used for reads; **all writes go through `psycopg2` via `common.db.get_pg_conn()`** — do not try to write through the SDK.
 

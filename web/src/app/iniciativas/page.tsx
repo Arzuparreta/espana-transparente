@@ -22,6 +22,7 @@ interface PageProps {
 const TYPE_LABELS: Record<string, string> = {
   proyecto_ley: "Proyecto de Ley",
   proposicion_ley: "Proposición de Ley",
+  propuesta_reforma_estatuto: "Propuesta de reforma",
   proposicion_no_de_ley: "Proposición no de Ley",
   mocion: "Moción",
   interpelacion: "Interpelación",
@@ -34,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
   retirada: "Retirada",
   en_tramitacion: "En tramitación",
   caducada: "Caducada",
+  cerrada: "Cerrada",
 }
 
 export default async function IniciativasPage({ searchParams }: PageProps) {
