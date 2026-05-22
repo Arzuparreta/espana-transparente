@@ -47,6 +47,69 @@ function fmtEuro(value: number): string {
   }).format(value)
 }
 
+interface Activity {
+  type: string
+  period: string
+  employer: string
+  sector: string
+  description: string
+  declaration: string
+}
+
+function OpenDataExtract({ data }: { data: Record<string, unknown> }) {
+  const activities = data.activities as Activity[] | undefined
+  const activityCount = data.activity_count as number | undefined
+
+  if (!activities || activities.length === 0) return null
+
+  const byType = new Map<string, Activity[]>()
+  for (const act of activities) {
+    const t = act.type || "Otros"
+    const list = byType.get(t) ?? []
+    list.push(act)
+    byType.set(t, list)
+  }
+
+  const typeLabels: Record<string, string> = {
+    ACTIVIDAD: "Actividades",
+    DONACION: "Donaciones",
+    FUNDACIONES: "Fundaciones y asociaciones",
+    OBSERVACIONES: "Observaciones",
+  }
+
+  return (
+    <div className="mt-3 space-y-3 border-t border-border/60 pt-3">
+      <div className="text-xs text-muted-foreground">
+        Datos estructurados del Portal de Datos Abiertos del Congreso
+        {activityCount ? ` · ${activityCount} registros` : ""}
+      </div>
+      {Array.from(byType.entries()).map(([type, acts]) => (
+        <details key={type} className="text-sm" open={type === "ACTIVIDAD"}>
+          <summary className="cursor-pointer font-medium text-muted-foreground hover:text-foreground">
+            {typeLabels[type] || type} ({acts.length})
+          </summary>
+          <div className="mt-2 space-y-2 max-h-56 overflow-y-auto">
+            {acts.map((act, i) => (
+              <div key={i} className="border-l-2 border-muted/50 pl-3 text-xs">
+                {act.employer && (
+                  <div className="font-medium text-foreground">{act.employer}</div>
+                )}
+                {act.description && (
+                  <div className="text-muted-foreground">{act.description}</div>
+                )}
+                <div className="mt-0.5 flex gap-2 text-muted-foreground/70">
+                  {act.sector && <span>{act.sector}</span>}
+                  {act.period && <span>{act.period}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      ))}
+    </div>
+  )
+}
+
 function OcrExtract({ data }: { data: Record<string, unknown> }) {
   const [showOcr, setShowOcr] = useState(false)
   const incomes = data.incomes as Array<{ source: string; amount: number }> | undefined
@@ -202,7 +265,11 @@ export function EconomicDeclarationList({ declarations }: Props) {
                         </a>
                       ) : null}
                     </div>
-                    <OcrExtract data={rawData} />
+                    {rawData.source === "congreso_opendata" ? (
+                      <OpenDataExtract data={rawData} />
+                    ) : (
+                      <OcrExtract data={rawData} />
+                    )}
                   </li>
                 )
               })}
