@@ -324,6 +324,65 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 
 ---
 
+## GSTACK REVIEW REPORT
+
+Engineering review by /plan-eng-review on 2026-05-22. Branch: dev.
+
+### Decisions made (6)
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| D1 | Phase A ships with IPC only (3 codes) | Plan's own pre-condition: "do not block Phase A on missing data." salario_medio, paro, deuda, PIB filed as gaps. IndicadoresDashboard shows ~3 cards, not 7. Step 3 (comparison chart) skipped. |
+| D2 | Phase B gated on PDF format audit | No PDF library chosen yet. Audit 20 PDFs (4 deputies × 5 years) first. Classify formats. Only commit to library + timeline after. |
+| D3 | Add CI coverage check for explanations | New or updated content:audit rule: every indicator_code in economic_indicators must have a corresponding entry in indicator-explanations.ts. Prevents silent gaps when ETL adds new indicators. |
+| D4 | Typed interface for indicator explanations | `IndicatorExplanation = { short: string; long: string; implications: string[] }`. Compiler catches missing fields. Consistent with existing typed patterns. |
+| D5 | Add vitest tests for Phase A | 3-5 unit tests: IndicatorExplanation type validity, explanation rendering, copy-link behavior. Mirrors ETL testing culture (20 test files). |
+| D6 | Add LIMIT to getIndicators() | `.limit(500)` on the economic_indicators query. Prevents unbounded growth when new INE indicators are ingested. Mirrors existing `.limit(120)` on getIndicatorPoints. |
+
+### Architecture findings
+
+- **Phase A data reality**: Only 3 IPC indicators exist (IPC, IPC_VAR_MENSUAL, IPC_VAR_ANUAL). ETL `ine/indicadores.py:8-30` defines them via INE API series IDs. No salario_medio, tasa_paro, deuda, or PIB data exists — these require new ETL pipelines with INE API schemas different from the IPC one.
+- **IndicatorChart is single-series only** (`IndicatorChart.tsx` uses single `<Area dataKey="value">`). Multi-series comparison requires extending the component or creating a dedicated ComparisonChart. Step 3 (IPC vs salario_medio) is skipped for Phase A since salario_medio doesn't exist.
+- **Phase B foundations exist but are hollow**: `economic_declarations` table has no structured columns (all in `raw_data jsonb`). `EconomicDeclarationList` component shows URLs/dates but no structured income/asset data. PDF parsing adds significant new structure.
+- **Phase C architecture is correctly deferred**: `v_organization_public` view and org detail page already handle multi-dimension data. Materialized view design happens after Phase B reveals data shape.
+
+### Code quality notes
+
+- `IndicatorChart:93` uses `useId().replace(/:/g, "")` for gradient IDs — React 18 useId returns strings with colons. This works but is fragile if React changes the ID format.
+- `IndicatorSparkline:18` `range = max - min || 1` — safe, but single-point datasets produce a degenerated path (all points at same coordinate).
+- `EconomicDeclarationList` reads structured data from `raw_data.type` — fragile. Phase B should add proper columns or define a typed extraction layer.
+
+### Test coverage
+
+- ETL: 20 test files with fixtures (IPC, BDNS, contracts, BORME, budgets, etc.)
+- Web: 3 test files (etl-pipelines.test.ts, source-footnote-format.test.ts, utils). No component tests, no data layer tests.
+- Phase A adds 3-5 vitest tests for explanations + copy-link behavior.
+
+### Performance
+
+- `getIndicators()` (conexiones.ts:22) has no LIMIT. Currently safe at ~720 rows (3 indicators × 240 points). Add `.limit(500)` now.
+- `getIndicatorPoints()` (conexiones.ts:32) already has `.limit(120)` — good.
+- Both functions use `unstable_cache` with 1-hour ISR — correctly avoids hitting Supabase on every request.
+- Phase C requires `v_entity_summary` materialized view (cold starts can hit 5-8s). Not a Phase A concern.
+
+### NOT in scope for Phase A (confirmations from D1-D6)
+
+- Comparison chart (IPC vs salario_medio) — skipped, salario_medio data doesn't exist
+- New INE ETL pipelines — deferred, filed as gap in Data Gaps Register
+- Phase B PDF parser — gated on pre-audit results
+- BORME integration — already documented as post-C
+
+### Updated Next Steps (Phase A)
+
+1. Create `web/src/lib/indicator-explanations.ts` with typed `IndicatorExplanation` interface + entries for IPC, IPC_VAR_MENSUAL, IPC_VAR_ANUAL.
+2. Write plain-language explanations. Run through `content:audit`.
+3. Add explanation render to `IndicatorsDashboard` (one-liner subtitle) and `indicadores/[code]/page.tsx` (long explanation + collapsible "¿Qué significa esto para ti?").
+4. Add copy-link button to indicator cards and detail page.
+5. Add `.limit(500)` to `getIndicators()`.
+6. Add `content:audit` rule: every indicator_code must have an explanation.
+7. Add vitest tests for explanations + copy-link.
+8. Ship. Then audit Phase B PDFs.
+
 <!-- Session notes (not normative — for context only):
 - Vision articulated in session: "what the government doesn't want you to know + you
   understand what IPC is" — dual mission: accountability + economic literacy.

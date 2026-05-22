@@ -24,7 +24,22 @@ from puertas_giratorias.db import match_politician
 
 DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "instituciones_nombramientos.yml"
 
-VALID_INSTITUTIONS = {"TC", "CGPJ", "RTVE", "SEPI"}
+VALID_INSTITUTIONS = {
+    "TC", "CGPJ", "RTVE", "SEPI",
+    # SEPI majority-owned subsidiaries (empresas participadas mayoritariamente)
+    "SEPI-NAVANTIA",
+    "SEPI-CORREOS",
+    "SEPI-TRAGSA",
+    "SEPI-MERCASA",
+    "SEPI-HUNOSA",
+    "SEPI-ENUSA",
+    "SEPI-ENSA",
+    "SEPI-SEPIDES",
+    "SEPI-EFE",
+    "SEPI-CETARSA",
+    "SEPI-MAYASA",
+    "SEPI-SAECA",
+}
 MATCH_THRESHOLD = 0.85
 
 

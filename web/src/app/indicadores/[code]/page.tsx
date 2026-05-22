@@ -4,9 +4,11 @@ import { ArrowLeft, Database } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { IndicatorChart } from "@/components/indicators/IndicatorChart"
+import { CopyLinkButton } from "@/components/indicators/CopyLinkButton"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getIndicatorPoints } from "@/lib/data"
+import { getIndicatorExplanation } from "@/lib/indicator-explanations"
 
 export const revalidate = 3600
 
@@ -71,6 +73,9 @@ export default async function IndicadorPage({ params }: PageProps) {
     { label: "Mínimo", value: formatValue(min), hint: unit },
   ]
 
+  const explanation = getIndicatorExplanation(code)
+  const detailUrl = `/indicadores/${code}`
+
   return (
     <div className="ui-page">
         <ContextTrail
@@ -102,6 +107,7 @@ export default async function IndicadorPage({ params }: PageProps) {
                     <Database className="h-3.5 w-3.5" aria-hidden="true" />
                     INE
                   </span>
+                  <CopyLinkButton url={detailUrl} />
                 </div>
                 <h1 className="font-display text-2xl font-black uppercase leading-tight tracking-[-0.02em] text-balance sm:text-4xl">
                   {name}
@@ -146,6 +152,31 @@ export default async function IndicadorPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+
+        {(explanation.long || explanation.implications.length > 0) && (
+          <section className="space-y-4">
+            {explanation.long && (
+              <p className="text-sm leading-6 text-muted-foreground text-pretty">
+                {explanation.long}
+              </p>
+            )}
+
+            {explanation.implications.length > 0 && (
+              <details className="text-sm">
+                <summary className="cursor-pointer font-semibold text-muted-foreground hover:text-foreground">
+                  ¿Qué significa esto para ti?
+                </summary>
+                <ul className="mt-3 space-y-2 pl-4 text-muted-foreground">
+                  {explanation.implications.map((item, i) => (
+                    <li key={i} className="list-disc text-pretty leading-6">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </section>
+        )}
 
         <details className="text-sm">
           <summary className="mb-3 cursor-pointer text-muted-foreground hover:text-foreground">

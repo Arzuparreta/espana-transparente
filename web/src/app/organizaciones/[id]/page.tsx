@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function OrganizacionPage({ params }: PageProps) {
   const { id } = await params
-  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds } =
+  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments } =
     await getOrganizationPageData(id)
 
   if (!organization) notFound()
@@ -98,6 +98,25 @@ export default async function OrganizacionPage({ params }: PageProps) {
             ) : null}
           </CardContent>
         </Card>
+
+        {appointments && appointments.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Consejo de administración</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {appointments.map((a: Record<string, unknown>) => (
+                <div key={`${a.institution}-${a.person_name}`} className="border-l-2 border-muted py-1 pl-3 text-sm">
+                  <div className="font-medium">{a.person_name as string}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {a.position_title as string}
+                    {a.political_party ? ` · ${a.political_party}` : ""}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

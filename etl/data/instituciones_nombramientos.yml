@@ -606,3 +606,1306 @@ appointments:
     start:
     end:
     source: "https://www.sepi.es/es/quienes-somos/organos-de-direccion"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SEPI SUBSIDIARY BOARDS (empresas participadas mayoritariamente)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Boards sourced from SEPI-published PDFs at sepi.es/sites/default/files.
+  # Data as of 2025-03 to 2025-12 depending on subsidiary.
+  # Last verification: 2026-05-22
+  # Party = Gobierno (PSOE-led coalition) for government-appointed directors.
+  # Union representatives have no party affiliation. Secretaries not included
+  # unless they are consejeros with voz y voto.
+
+  # ── NAVANTIA (100% SEPI, updated 2025-09) ─────────────────────────────────
+
+  - institution: SEPI-NAVANTIA
+    position_title: Presidente
+    person: "Domínguez García-Baquero, Ricardo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Tejuca González, Enrique"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Céspedes Camacho, Ignacio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Díez-Hochlether Cousteau, Ricardo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Rosique Nieto, Aniceto"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Pazos Fernández, Mª Estela"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Rubio Ángel, María de la Esperanza"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Moisén Gutiérrez, Roberto"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "García Juanatey, Emilio José"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Martínez de Marigorta Tejer, Mª Teresa"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Moreno de Acevedo Sánchez, Enrique"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Obrero Loma, Marta"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  - institution: SEPI-NAVANTIA
+    position_title: Vocal
+    person: "Arnau Linares Sanjuan, Jordi"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/navantia_consejo_de_administracion.pdf"
+
+  # ── CORREOS (100% SEPI, updated 2025-03) ──────────────────────────────────
+
+  - institution: SEPI-CORREOS
+    position_title: Presidente
+    person: "Saura García, Pedro"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Blanco Chinarro, Pedro Enrique"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Pérez Rosado, José Mª"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Fano González, Marta"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Riaño López, Dámaso"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Serrano de Toledo, Luis Gonzaga"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Valdés Lorenzo, Lucía"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Álvarez-Ossorio Álvarez, Luis"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Martín de Andrés, Juan Pablo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Alonso Galdo, Dolores"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Pérez de la Cruz, Jaime"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Requena Navarro, Alberto Julián"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Suárez-Inclán González, Tomás"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Pacheco Manchado, Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  - institution: SEPI-CORREOS
+    position_title: Vocal
+    person: "Joaquín Acosta, Aída"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/correos_consejo_administracion.pdf"
+
+  # ── TRAGSA (51% SEPI, updated 2025-03) ────────────────────────────────────
+
+  - institution: SEPI-TRAGSA
+    position_title: Presidente
+    person: "Casas Grande, Jesús"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Álvarez Quintana, Ángel"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Estela Gallego, Sergio"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Gutiérrez Gilsanz, Ignacio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Pablos López, Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Alonso González, Mª Esther"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Díez Muyo, Francisca Esther"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Ruiz de Villalobos Zabala, Elisenda"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Fernández Domínguez, Mª Victoria"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Cobo González, Concepción"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Boy Carmona, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Pérez Burgos, Fernando"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Fiscal López, José Gregorio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Hernández Droth, Nadine"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  - institution: SEPI-TRAGSA
+    position_title: Vocal
+    person: "Vázquez Rojas, Juan Mª"
+    party: PP
+    nominating_body: Autonómico
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/tragsa_consejo_administracion.pdf"
+
+  # ── MERCASA (51% SEPI, updated 2025-10) ───────────────────────────────────
+
+  - institution: SEPI-MERCASA
+    position_title: Presidente
+    person: "Miñones Conde, José Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vicepresidenta 1ª
+    person: "Fernández Sanz, María"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Casilla Pérez, Álvaro"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Pascual Casas, Ana Belén"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Alba Rubio, María Dolores"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Lorca Ruíz, Alejandro"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Fabíán Salazar, Miguel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Camps Almiñana, Jaime"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "García Hidalgo, Borja"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Coloma Ojeda, Rafael"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Sánchez Hernández, Laura"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MERCASA
+    position_title: Vocal
+    person: "Revilla Huerta, Mª Dolores"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mercasa_consejo_administracion.pdf"
+
+  # ── HUNOSA (100% SEPI, updated 2025-03) ───────────────────────────────────
+
+  - institution: SEPI-HUNOSA
+    position_title: Presidente
+    person: "Fernández Rodríguez, Enrique"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Alperi Jove, José Luis"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "García Fernández, Rubén"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Fernández Roces, José Luis"
+    party: PSOE
+    nominating_body: Autonómico
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "González Fernández, Eduardo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Hernanz Tudela, Domingo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Jiménez Díaz, Daniel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Galindo Ayuso, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Paniagua García, Mercedes"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Torrejón Braojos, Daniel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  - institution: SEPI-HUNOSA
+    position_title: Vocal
+    person: "Vallina Suárez, Andrés"
+    party: PSOE
+    nominating_body: Autonómico
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/hunosa_consejo_administracion.pdf"
+
+  # ── ENUSA (60% SEPI, updated 2025-03) ─────────────────────────────────────
+
+  - institution: SEPI-ENUSA
+    position_title: Presidente
+    person: "Moreno Pavón, Mariano"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vicepresidenta
+    person: "Benito Moreno, Yolanda"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Pastor Les, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Ramiro Ródenas, Gonzalo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Serrano de Toledo, Luis Gonzaga"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Aguado Díaz, Luis Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Báscones Ramos, Juan Miguel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Redondo García, José Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Ruiz Saiz-Aja, Margarita"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Gómez-Jover Torregrosa, María Francisca"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Muñoz Salinero, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENUSA
+    position_title: Vocal
+    person: "Valero Carrasco, Pablo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/enusa_consejo_administracion.pdf"
+
+  # ── ENSA (78.75% SEPI, updated 2024-01) ───────────────────────────────────
+
+  - institution: SEPI-ENSA
+    position_title: Presidente
+    person: "Gomila Benítez, José David"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Rodríguez Navarro, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "González Sánchez, José Antonio"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Castro Maroto, Óscar"
+    party:
+    nominating_body: Sindical
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Muñoz Cuesta, Marta"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Pastor Les, Elena"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Prieto Barrio, José Manuel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Sánchez Mayoral, Jaime"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Carrión Malo, Javier"
+    party:
+    nominating_body: Autonómico
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Soto Peña, Inmaculada"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  - institution: SEPI-ENSA
+    position_title: Vocal
+    person: "Tebar Chumillas, Juan Antonio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/ensa_consejo_administracion.pdf"
+
+  # ── SEPIDES (100% SEPI, updated 2024-01) ──────────────────────────────────
+
+  - institution: SEPI-SEPIDES
+    position_title: Presidente
+    person: "Blanco Ángel, Francisco Antonio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Corral Guadaño, Ignacio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "García Guillén, Roberto Miguel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Rueda Vázquez, Luis Javier"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Valladar Mínguez, Mª Isabel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Ruiz-Moreno Martín, Alba"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "López Fernández, Raúl"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Tovar Rodríguez, Francisco Gabriel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Hernández Martín, Cristina"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Rico Urios, Luis"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Varela Donoso, Juan"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  - institution: SEPI-SEPIDES
+    position_title: Vocal
+    person: "Viada Rubio, José"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2024-02/sepides_consejo_administracion.pdf"
+
+  # ── AGENCIA EFE (100% SEPI, updated 2025-06) ──────────────────────────────
+
+  - institution: SEPI-EFE
+    position_title: Presidente
+    person: "Oliver Fernández, Miguel Ángel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Llorach Cartaña, María"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Merino Andrades, Manuel Humberto"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Martínez Aldama, Paloma"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Rostoll Fernández, Pere"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Viñas Coll, Jaume"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "de Andrés, Caridad"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Rubio Jiménez, María Ela"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "García Cebada, Ismael"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Corbatón del Campo, Ana"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Monreal Martínez, Pedro Julio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  - institution: SEPI-EFE
+    position_title: Vocal
+    person: "Caballero García, Iván"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/agencia_efe_consejo_administracion.pdf"
+
+  # ── CETARSA (79.18% SEPI, updated 2025-12) ────────────────────────────────
+
+  - institution: SEPI-CETARSA
+    position_title: Presidente
+    person: "Tovar Mena, Juan Andrés"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Alonso Rueda, Jorge"
+    party:
+    nominating_body: Privado
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Ingelmo Heras, Rocío"
+    party:
+    nominating_body: Privado
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Escudero Población, Andrés"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Fernández Rodríguez, Paula"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Settanni Gomis, Luisa"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Mateos Corchero, Concesa"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Sevillano, José Miguel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Morales Domínguez, Luisa María"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "González Martín, Carmen"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Pérez Crespo, Bernardino"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  - institution: SEPI-CETARSA
+    position_title: Vocal
+    person: "Ormaechea Gómez, Rocío"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/cetarsa_consejo_administracion.pdf"
+
+  # ── MAYASA (100% SEPI, updated 2025-04) ───────────────────────────────────
+
+  - institution: SEPI-MAYASA
+    position_title: Presidente
+    person: "Tejero Manzanares, José"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Settanni Gomis, Luisa"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Aller Fernández, Laura"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Arteaga Montón, Amaya"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Pérez López, José Vicente"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Soto Peña, Inmaculada"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "Viada Rubio, José Luis"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  - institution: SEPI-MAYASA
+    position_title: Vocal
+    person: "de la Torre Valentín, Juan Antonio"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-12/mayasa_consejo_administracion.pdf"
+
+  # ── SAECA (80% SEPI, updated 2025-03) ─────────────────────────────────────
+
+  - institution: SEPI-SAECA
+    position_title: Presidente
+    person: "Pombo González, Pablo"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vicepresidenta
+    person: "García García, Inés"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "García Manzanares, Mª Esther"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "Heredia Noguer, Fernando"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "Jiménez Ramos, Lourdes"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "Pascual Fernández, Pedro Miguel"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "Rodríguez Álvarez, Roberto"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
+
+  - institution: SEPI-SAECA
+    position_title: Vocal
+    person: "Sánchez Heras, Carlos"
+    party: PSOE
+    nominating_body: Gobierno
+    start:
+    end:
+    source: "https://www.sepi.es/sites/default/files/2025-04/saeca_consejo_administracion.pdf"
