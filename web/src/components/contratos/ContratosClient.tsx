@@ -21,6 +21,14 @@ interface Contrato {
   date: string | null
   responsible: Responsible | null
   source_url: string | null
+  contractor_nif: string | null
+  contractor_is_sme: boolean | null
+  contractor_is_ute: boolean | null
+  award_amount: number | null
+  award_amount_with_taxes: number | null
+  award_date: string | null
+  contract_number: string | null
+  received_tender_quantity: number | null
 }
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -80,6 +88,8 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
     ? new Date(c.date).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
     : null
 
+  const tenderCount = c.received_tender_quantity
+
   return (
     <Card className="transition-colors hover:bg-card">
       <ResponsiveLink href={`/contratos/${c.id}`}>
@@ -96,6 +106,16 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
                 {c.contract_type}
               </span>
             ) : null}
+            {c.contractor_is_sme && (
+              <span className="rounded-[2px] border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+                PYME
+              </span>
+            )}
+            {tenderCount != null && tenderCount <= 2 && (
+              <span className="rounded-[2px] border border-red-500/30 bg-red-500/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-red-400">
+                {tenderCount} oferta{tenderCount !== 1 ? "s" : ""}
+              </span>
+            )}
             <ResponsibleChip
               responsible={c.responsible}
               ministryHref={c.responsible?.ministry && !activeMinistry ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}` : null}
@@ -114,6 +134,7 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
               c.awarding_body ?? "—"
             )}
             {c.region ? ` · ${c.region}` : ""}
+            {tenderCount != null && tenderCount >= 3 ? ` · ${tenderCount} ofertas` : ""}
           </div>
           {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
         </div>

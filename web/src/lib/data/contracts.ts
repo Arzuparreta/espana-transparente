@@ -8,7 +8,7 @@ export const getContractPage = unstable_cache(
     let query = supabase
       .from("contracts")
       .select(
-        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url",
+        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
         { count: "exact" }
       )
       .order("amount", { ascending: false, nullsFirst: false })
@@ -65,7 +65,7 @@ export const getContractPageFiltered = unstable_cache(
     let query = supabase
       .from("contracts")
       .select(
-        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url",
+        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
         { count: "exact" }
       )
       .order("amount", { ascending: false, nullsFirst: false })
@@ -115,7 +115,7 @@ export const getContractDetail = unstable_cache(
       supabase
         .from("contracts")
         .select(
-          "id, contract_folder_id, title, awarding_body, awarding_body_normalized, awarding_body_organization_id, amount, currency, date, contractor, description, source_url, contract_type, cpv_code, region, ministry_normalized, administration_level"
+          "id, contract_folder_id, title, awarding_body, awarding_body_normalized, awarding_body_organization_id, amount, currency, date, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity, description, source_url, contract_type, cpv_code, region, ministry_normalized, administration_level"
         )
         .eq("id", id)
         .single(),

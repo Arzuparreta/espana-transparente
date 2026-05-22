@@ -30,7 +30,7 @@ export const getMinistrioDetail = unstable_cache(
 
     const { data: contracts } = await supabase
       .from("contracts")
-      .select("id, title, amount, date, awarding_body, contractor")
+      .select("id, title, amount, date, awarding_body, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity")
       .ilike("ministry_normalized", (member as GobiernoMember).organization_name)
       .order("amount", { ascending: false, nullsFirst: false })
       .limit(20)
