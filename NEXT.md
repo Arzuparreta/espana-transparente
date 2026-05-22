@@ -94,7 +94,12 @@ ministries, contracts, and subsidies.
 
 - Contract awarding bodies are linked to organizations (97.3%).
   Contractor org links exist when source data includes contractor names
-  (178 of 3,803 contracts have contractor data; all linked).
+  (829 of 5,440 contracts have contractor data; 654 have contractor NIF/CIF).
+  New fields extracted from CODICE XML §4.35.2-4.35.7: `contractor_nif`,
+  `contractor_is_sme`, `contractor_is_ute`, `award_amount`,
+  `award_amount_with_taxes`, `award_date`, `contract_number`,
+  `received_tender_quantity`. The ETL now uses the live paginated ATOM feed
+  instead of deprecated monthly ZIP archives.
 - Subsidy beneficiaries linked to organizations (47.3% of 515 subsidies).
 - EU fund beneficiaries now linked to organizations via the
   `beneficiary_organization_id` FK on `eu_funds` (30,000/30,000 linked).
@@ -146,8 +151,13 @@ territory fields.
   `PLENO DEL AYUNTAMIENTO`, `EMPRESA MUNICIPAL DE ... DE {city}`, and
   known named companies (EMAYA → Palma).
 - `src.contratacion.backfill_territory` backfills existing records.
-- **Current coverage**: 3,258 / 3,803 contracts classified (85.7%);
-  0 autonomic and 0 municipal contracts without region.
+- **Current coverage**: 5,191 / 5,440 contracts classified (95.4%),
+  up from 85.7%. 249 contracts (4.6%) remain unclassified — mostly unique
+  minor entities.  Governance prefix stripping (`strip_governance_prefix()`)
+  removes 80+ role prefixes ("Consejo de Administración de",
+  "Presidencia de", "Gerencia de", etc.) before classification.
+  CCAA/province keyword fallback on stripped body handles 30+ additional
+  autonomic and municipal entity patterns.
 
 ### Profiles And Annotations
 
