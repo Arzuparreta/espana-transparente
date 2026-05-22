@@ -92,15 +92,14 @@ These are the highest-value product closures after P1.
 Current `/dinero-publico` connects budget sections/programs to responsible
 ministries, contracts, and subsidies.
 
-- Contract awarding bodies are linked to organizations (97.3%).
-  Contractor org links exist when source data includes contractor names
-  (829 of 5,440 contracts have contractor data; 654 have contractor NIF/CIF).
-  New fields extracted from CODICE XML §4.35.2-4.35.7: `contractor_nif`,
+- Contract awarding bodies linked to organizations (97.3%).
+  Contractor org links: 829 of 5,440 contracts have contractor data;
+  654 have contractor NIF/CIF.  New fields: `contractor_nif`,
   `contractor_is_sme`, `contractor_is_ute`, `award_amount`,
   `award_amount_with_taxes`, `award_date`, `contract_number`,
-  `received_tender_quantity`. The ETL now uses the live paginated ATOM feed
-  instead of deprecated monthly ZIP archives.
-- Subsidy beneficiaries linked to organizations (47.3% of 515 subsidies).
+  `received_tender_quantity`.  ETL uses the live paginated ATOM feed
+  (monthly ZIP archives were deprecated by PLACSP in 2026).
+- Subsidy beneficiaries linked to organizations (100% of 515 subsidies).
 - EU fund beneficiaries now linked to organizations via the
   `beneficiary_organization_id` FK on `eu_funds` (30,000/30,000 linked).
   The bridge is name-based: each Kohesio beneficiary label is normalized and
@@ -152,17 +151,19 @@ territory fields.
   known named companies (EMAYA → Palma).
 - `src.contratacion.backfill_territory` backfills existing records.
 - **Current coverage**: 5,191 / 5,440 contracts classified (95.4%),
-  up from 85.7%. 249 contracts (4.6%) remain unclassified — mostly unique
-  minor entities.  Governance prefix stripping (`strip_governance_prefix()`)
-  removes 80+ role prefixes ("Consejo de Administración de",
-  "Presidencia de", "Gerencia de", etc.) before classification.
-  CCAA/province keyword fallback on stripped body handles 30+ additional
-  autonomic and municipal entity patterns.
+  up from 85.7%.  ~4.6% remain unclassified (mostly unique minor entities).
+  Governance prefix stripping (`strip_governance_prefix()`) removes 80+
+  role prefixes before classification.  CCAA/province keyword fallback on
+  stripped body handles 30+ additional autonomic/municipal patterns.
 
 ### Profiles And Annotations
 
-Profiles and annotations should mature as factual context surfaces.
+Profiles and annotations exist as working infrastructure (tables, routes,
+components) but are empty — they require real users to populate.
 
+- `/perfil` — logged-in user profile editor.
+- `/usuarios/[handle]` — public profile with annotation feed.
+- Tables: `user_profiles`, `user_profile_settings`, `annotations`.
 - Keep public profiles useful for attribution and saved context.
 - Keep annotations tied to verifiable records.
 - Avoid ranking/scoring public officials or turning comments into partisan
