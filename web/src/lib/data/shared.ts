@@ -109,6 +109,14 @@ export interface MinistrioContract {
   date: string | null
   awarding_body: string | null
   contractor: string | null
+  contractor_nif: string | null
+  contractor_is_sme: boolean | null
+  contractor_is_ute: boolean | null
+  award_amount: number | null
+  award_amount_with_taxes: number | null
+  award_date: string | null
+  contract_number: string | null
+  received_tender_quantity: number | null
 }
 
 export interface InstitucionMember {

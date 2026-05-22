@@ -30,6 +30,17 @@ function formatAmount(amount: number | null, currency = "EUR"): string {
   }).format(amount)
 }
 
+function formatDateLabel(value: string | null): string | null {
+  if (!value) return null
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1 border-t border-border/50 py-3 text-sm first:border-0 sm:grid-cols-[10rem_1fr] sm:gap-3">
@@ -45,9 +56,10 @@ const ADMIN_LEVEL: Record<string, string> = {
   municipal: "Entidad Local",
 }
 
-function buildShareText(contract: { title?: string | null; amount?: number | null; awarding_body?: string | null; contractor?: string | null }): string {
-  const amountStr = contract.amount != null
-    ? new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(contract.amount)
+function buildShareText(contract: { title?: string | null; amount?: number | null; award_amount?: number | null; awarding_body?: string | null; contractor?: string | null }): string {
+  const displayAmount = contract.award_amount ?? contract.amount
+  const amountStr = displayAmount != null
+    ? new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(displayAmount)
     : null
   const parts: string[] = []
   if (contract.awarding_body) parts.push(contract.awarding_body)
@@ -69,13 +81,15 @@ export default async function ContractDetailPage({ params }: PageProps) {
     ? partyMap[responsible.political_party.toLowerCase()] ?? null
     : null
 
-  const dateStr = contract.date
-    ? new Date(contract.date).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
-    : null
+  const dateStr = formatDateLabel(contract.date)
+  const awardDateStr = formatDateLabel(contract.award_date)
+  // Only show award date separately if it differs from the main date
+  const showAwardDate = awardDateStr && awardDateStr !== dateStr
+  const budgetAmount = contract.amount
+  const awardAmount = contract.award_amount
+  // Show award amount distinctly when it differs from budget by > 1%
+  const showAwardAmount = awardAmount != null && budgetAmount != null
+    && Math.abs(awardAmount - budgetAmount) / budgetAmount > 0.01
 
   return (
     <div className="ui-page">
@@ -140,6 +154,27 @@ export default async function ContractDetailPage({ params }: PageProps) {
               </Row>
             )}
             {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
+            {contract.contractor_nif && (
+              <Row label="NIF">
+                <span className="font-mono">{contract.contractor_nif}</span>
+              </Row>
+            )}
+            {(contract.contractor_is_sme || contract.contractor_is_ute) && (
+              <Row label="Tipo de empresa">
+                <div className="flex flex-wrap gap-2">
+                  {contract.contractor_is_sme && (
+                    <span className="rounded-[2px] border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+                      PYME
+                    </span>
+                  )}
+                  {contract.contractor_is_ute && (
+                    <span className="rounded-[2px] border border-border bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                      UTE
+                    </span>
+                  )}
+                </div>
+              </Row>
+            )}
             {contract.ministry_normalized && (
               <Row label="Ministerio">
                 <ResponsiveLink
@@ -156,6 +191,19 @@ export default async function ContractDetailPage({ params }: PageProps) {
                 {ADMIN_LEVEL[contract.administration_level] ?? contract.administration_level}
               </Row>
             )}
+            {contract.contract_number && (
+              <Row label="Nº de contrato">
+                <span className="font-mono">{contract.contract_number}</span>
+              </Row>
+            )}
+            {contract.received_tender_quantity != null && (
+              <Row label="Ofertas recibidas">
+                <span className="font-mono tabular-nums">{contract.received_tender_quantity}</span>
+              </Row>
+            )}
+            {showAwardDate && (
+              <Row label="Fecha de adjudicación">{awardDateStr}</Row>
+            )}
             {contract.cpv_code && (
               <Row label="Código CPV">{contract.cpv_code}</Row>
             )}
@@ -169,11 +217,28 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
         <aside className="space-y-4 lg:sticky lg:top-20">
           <div className="rounded-[2px] border border-border bg-card px-5 py-5">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Importe sin IVA</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Presupuesto sin IVA</p>
             <p className="mt-1 break-words font-mono text-3xl font-bold">
-              {formatAmount(contract.amount, contract.currency ?? "EUR")}
+              {formatAmount(budgetAmount, contract.currency ?? "EUR")}
             </p>
           </div>
+
+          {showAwardAmount && (
+            <div className="rounded-[2px] border border-accent/35 bg-accent/[0.03] px-5 py-5">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                Importe adjudicado sin IVA
+              </p>
+              <p className="mt-1 break-words font-mono text-3xl font-bold text-accent">
+                {formatAmount(awardAmount, contract.currency ?? "EUR")}
+              </p>
+              {awardAmount != null && budgetAmount != null && (
+                <p className="mt-1 font-mono text-xs tabular-nums text-accent/70">
+                  {awardAmount < budgetAmount ? "−" : "+"}
+                  {Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto
+                </p>
+              )}
+            </div>
+          )}
 
           {responsible && (
             <div className="rounded-[2px] border border-border bg-card px-5 py-4">

@@ -1,39 +1,37 @@
-"""ETL script: ingest public contracts from PCSP (Plataforma de Contratación del Sector Público).
+"""ETL script: ingest public contracts from PLACSP (Plataforma de Contratación del Sector Público).
 
-Downloads the monthly ATOM feed ZIP from contrataciondelsectorpublico.gob.es,
-extracts the summary ATOM file, and upserts records to the contracts table.
+Downloads the paginated ATOM syndication feed and upserts records to the contracts
+table.  Supports both a full-feed backfill and a targeted monthly download.
 
 Usage:
     PYTHONPATH=src python -m src.contratacion.contratos
-    PYTHONPATH=src python -m src.contratacion.contratos --year 2026 --month 4
+    PYTHONPATH=src python -m src.contratacion.contratos --backfill
+    PYTHONPATH=src python -m src.contratacion.contratos --max-pages 5
 """
 
 import argparse
-import io
-import os
 import re
 import subprocess
 import tempfile
-import zipfile
+import os
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timezone
 
 import psycopg2.extras
 from common.db import get_pg_conn
-from common.etl_runs import finish_run, is_chunk_succeeded, start_run
+from common.etl_runs import finish_run, start_run
 from common.organizations import upsert_organization
 from common.responsibility import (
     infer_autonomic_territory,
     infer_contract_administration_level,
     infer_municipal_territory,
-    iter_months,
-    month_bounds,
     normalize_public_body,
 )
 from common.utils import extract_ministry_from_body
 
-BASE_URL = "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643"
-SUMMARY_ATOM = "licitacionesPerfilesContratanteCompleto3.atom"
+# PLACSP live ATOM feed (paginated).  The monthly ZIP archives at this same
+# base URL were deprecated in 2026; the ``.atom`` endpoint remains active.
+BASE_FEED_URL = "https://contrataciondelsectorpublico.gob.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3.atom"
 
 NS = {
     "atom": "http://www.w3.org/2005/Atom",
@@ -65,6 +63,23 @@ def _decimal(el, path: str) -> float | None:
     try:
         return float(val) if val else None
     except (ValueError, TypeError):
+        return None
+
+
+def _bool(el, path: str) -> bool | None:
+    val = _text(el, path)
+    if val is None:
+        return None
+    return val.lower() in ("true", "1", "yes", "s")
+
+
+def _date(el, path: str) -> date | None:
+    val = _text(el, path)
+    if not val:
+        return None
+    try:
+        return date.fromisoformat(val)
+    except ValueError:
         return None
 
 
@@ -139,17 +154,62 @@ def parse_entry(entry: ET.Element) -> dict | None:
             region = infer_municipal_territory(awarding_body_normalized)
         elif admin_level == "autonomic":
             region = infer_autonomic_territory(awarding_body_normalized)
-        # For state level with no region, leave as-is (national scope)
 
-    # Winning contractor (only present in awarded contracts)
+    # ── TenderResult block (winning contractor + awarded amounts) ──
     contractor = None
+    contractor_nif = None
+    contractor_is_sme = None
+    contractor_is_ute = None
+    award_amount = None
+    award_amount_with_taxes = None
+    award_date = None
+    contract_number = None
+    received_tender_quantity = None
+
     tender_result = status_root.find("cac:TenderResult", NS)
     if tender_result is not None:
+        # Contractor identity (section 4.35.2)
         winning_party = tender_result.find("cac:WinningParty", NS)
         if winning_party is not None:
             contractor = _text(winning_party, "cac:PartyName/cbc:Name")
+            party_id_el = winning_party.find("cac:PartyIdentification/cbc:ID", NS)
+            if party_id_el is not None:
+                contractor_nif = party_id_el.text.strip() if party_id_el.text else None
+            # SME indicator
+            sme_el = winning_party.find("cbc_ext:EconomicOperatorIsSME", NS)
+            if sme_el is not None:
+                contractor_is_sme = _bool(winning_party, "cbc_ext:EconomicOperatorIsSME")
+            # UTE indicator (section 4.35.2, added 15-Sep-2022)
+            ute_el = winning_party.find("cbc_ext:EconomicOperatorIsUTE", NS)
+            if ute_el is not None:
+                contractor_is_ute = _bool(winning_party, "cbc_ext:EconomicOperatorIsUTE")
 
-    return {
+        # Award amounts (section 4.35.3)
+        awarded_project = tender_result.find("cac:AwardedTenderedProject", NS)
+        if awarded_project is not None:
+            monetary_total = awarded_project.find("cac:LegalMonetaryTotal", NS)
+            if monetary_total is not None:
+                award_amount = _decimal(monetary_total, "cbc:TaxExclusiveAmount")
+                award_amount_with_taxes = _decimal(monetary_total, "cbc:PayableAmount")
+            # Contract number (section 4.35.7, inside AwardedTenderedProject)
+            contract_number = _text(awarded_project, "cbc:ContractFolderID")
+            if not contract_number:
+                contract_number = _text(awarded_project, "cbc:ID")
+
+        # Award date (section 4.35)
+        award_date_val = _date(tender_result, "cbc:AwardDate") or _text(tender_result, "cbc:AwardDate")
+        if award_date_val and isinstance(award_date_val, date):
+            award_date = award_date_val
+
+        # Received tender quantity (section 4.35.6)
+        qty = _text(tender_result, "cbc:ReceivedTenderQuantity")
+        if qty:
+            try:
+                received_tender_quantity = int(qty)
+            except (ValueError, TypeError):
+                pass
+
+    record = {
         "contract_folder_id": contract_folder_id,
         "title": title,
         "awarding_body": contracting_authority,
@@ -166,16 +226,27 @@ def parse_entry(entry: ET.Element) -> dict | None:
         "contractor_organization_id": None,
         "source_url": source_url,
         "contractor": contractor,
+        "contractor_nif": contractor_nif,
+        "contractor_is_sme": contractor_is_sme,
+        "contractor_is_ute": contractor_is_ute,
+        "award_amount": award_amount,
+        "award_amount_with_taxes": award_amount_with_taxes,
+        "award_date": award_date,
+        "contract_number": contract_number,
+        "received_tender_quantity": received_tender_quantity,
     }
+    # Remove None values that aren't in the upsert columns
+    return record
 
 
-def download_zip(year: int, month: int) -> bytes:
-    url = f"{BASE_URL}/licitacionesPerfilesContratanteCompleto3_{year}{month:02d}.zip"
-    print(f"Downloading {url} ...")
-    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+def download_feed_page(url: str) -> bytes:
+    """Download a single ATOM feed page with curl."""
+    print(f"  Fetching {url} ...")
+    with tempfile.NamedTemporaryFile(suffix=".atom", delete=False) as tmp:
         result = subprocess.run(
             ["curl", "-sL", "--max-time", "120",
-             "-H", "User-Agent: Mozilla/5.0 (compatible; AccionHumana/1.0)", url, "-o", tmp.name],
+             "-H", "User-Agent: Mozilla/5.0 (compatible; AccionHumana/1.0)",
+             url, "-o", tmp.name],
             capture_output=True, timeout=130,
         )
         if result.returncode != 0:
@@ -186,15 +257,25 @@ def download_zip(year: int, month: int) -> bytes:
     return data
 
 
-def parse_atom(xml_bytes: bytes) -> list[dict]:
+def parse_atom(xml_bytes: bytes) -> tuple[list[dict], str | None]:
+    """Parse an ATOM feed page. Returns (records, next_page_url)."""
     root = ET.fromstring(xml_bytes)
     records = []
     for entry in root.findall("atom:entry", NS):
         rec = parse_entry(entry)
         if rec:
             records.append(rec)
-    print(f"  Parsed {len(records)} entries")
-    return records
+
+    # Find pagination link
+    next_url = None
+    for link in root.findall("atom:link", NS):
+        rel = link.get("rel", "")
+        if rel == "next":
+            next_url = link.get("href")
+            break
+
+    print(f"  Parsed {len(records)} entries, next page: {next_url is not None}")
+    return records, next_url
 
 
 def upsert(conn, records: list[dict]) -> int:
@@ -222,12 +303,18 @@ def upsert(conn, records: list[dict]) -> int:
               (contract_folder_id, title, awarding_body,
                awarding_body_normalized, amount, status, contract_type,
                cpv_code, region, date, ministry_normalized, administration_level,
-               awarding_body_organization_id, contractor_organization_id, source_url, contractor)
+               awarding_body_organization_id, contractor_organization_id, source_url,
+               contractor, contractor_nif, contractor_is_sme, contractor_is_ute,
+               award_amount, award_amount_with_taxes, award_date, contract_number,
+               received_tender_quantity)
             VALUES
               (%(contract_folder_id)s, %(title)s, %(awarding_body)s,
                %(awarding_body_normalized)s, %(amount)s, %(status)s, %(contract_type)s,
                %(cpv_code)s, %(region)s, %(date)s, %(ministry_normalized)s, %(administration_level)s,
-               %(awarding_body_organization_id)s, %(contractor_organization_id)s, %(source_url)s, %(contractor)s)
+               %(awarding_body_organization_id)s, %(contractor_organization_id)s, %(source_url)s,
+               %(contractor)s, %(contractor_nif)s, %(contractor_is_sme)s, %(contractor_is_ute)s,
+               %(award_amount)s, %(award_amount_with_taxes)s, %(award_date)s, %(contract_number)s,
+               %(received_tender_quantity)s)
             ON CONFLICT (contract_folder_id) DO UPDATE SET
               title = EXCLUDED.title,
               awarding_body = EXCLUDED.awarding_body,
@@ -249,7 +336,18 @@ def upsert(conn, records: list[dict]) -> int:
                 contracts.contractor_organization_id
               ),
               source_url = EXCLUDED.source_url,
-              contractor = coalesce(EXCLUDED.contractor, contracts.contractor)
+              contractor = coalesce(EXCLUDED.contractor, contracts.contractor),
+              contractor_nif = coalesce(EXCLUDED.contractor_nif, contracts.contractor_nif),
+              contractor_is_sme = coalesce(EXCLUDED.contractor_is_sme, contracts.contractor_is_sme),
+              contractor_is_ute = coalesce(EXCLUDED.contractor_is_ute, contracts.contractor_is_ute),
+              award_amount = coalesce(EXCLUDED.award_amount, contracts.award_amount),
+              award_amount_with_taxes = coalesce(EXCLUDED.award_amount_with_taxes, contracts.award_amount_with_taxes),
+              award_date = coalesce(EXCLUDED.award_date, contracts.award_date),
+              contract_number = coalesce(EXCLUDED.contract_number, contracts.contract_number),
+              received_tender_quantity = coalesce(
+                EXCLUDED.received_tender_quantity, contracts.received_tender_quantity
+              ),
+              updated_at = NOW()
         """, rec)
         upserted += 1
     conn.commit()
@@ -257,24 +355,12 @@ def upsert(conn, records: list[dict]) -> int:
     return upserted
 
 
-def run_month(*, year: int, month: int, resume: bool, dry_run: bool) -> tuple[int, int]:
-    window_start, window_end = month_bounds(year, month)
-    pipeline = "contracts_backfill" if (year, month) != (datetime.now(timezone.utc).year, datetime.now(timezone.utc).month) else "contracts_daily"
-    chunk_key = f"{year}-{month:02d}"
+def run_feed(*, max_pages: int | None, dry_run: bool) -> tuple[int, int]:
+    """Download the paginated ATOM feed and upsert all entries."""
+    pipeline = "contracts_daily"
+    chunk_key = f"feed-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M')}"
     conn = None if dry_run else get_pg_conn()
     cur = conn.cursor() if conn else None
-
-    if cur and resume and is_chunk_succeeded(
-        cur,
-        pipeline=pipeline,
-        chunk_key=chunk_key,
-        window_start=window_start,
-        window_end=window_end,
-    ):
-        print(f"Skipping {chunk_key}: already succeeded")
-        cur.close()
-        conn.close()
-        return 0, 0
 
     run_id = None
     if cur:
@@ -282,41 +368,45 @@ def run_month(*, year: int, month: int, resume: bool, dry_run: bool) -> tuple[in
             cur,
             pipeline=pipeline,
             chunk_key=chunk_key,
-            window_start=window_start,
-            window_end=window_end,
+            window_start=date.today(),
+            window_end=date.today(),
         )
         conn.commit()
 
+    total_parsed = 0
+    total_upserted = 0
+    url = BASE_FEED_URL
+    page_count = 0
+
     try:
-        zip_bytes = download_zip(year, month)
-        print(f"  Downloaded {len(zip_bytes) / 1_000_000:.1f} MB")
+        while url and (max_pages is None or page_count < max_pages):
+            page_count += 1
+            print(f"\n--- Page {page_count} ---")
+            xml_bytes = download_feed_page(url)
+            records, next_url = parse_atom(xml_bytes)
+            total_parsed += len(records)
 
-        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-            names = zf.namelist()
-            print(f"  ZIP contains {len(names)} files")
-            if SUMMARY_ATOM not in names:
-                raise RuntimeError(f"{SUMMARY_ATOM} not found in ZIP. Files: {names[:5]}")
-            atom_bytes = zf.read(SUMMARY_ATOM)
-            print(f"  Extracted {SUMMARY_ATOM} ({len(atom_bytes) / 1000:.1f} KB)")
+            if conn and records:
+                upserted = upsert(conn, records)
+                total_upserted += upserted
 
-        records = parse_atom(atom_bytes)
-        upserted = 0
+            url = next_url
 
-        if conn:
-            upserted = upsert(conn, records)
-            cur = conn.cursor()
+        if cur:
             finish_run(
                 cur,
                 run_id=run_id,
                 status="succeeded",
-                rows_read=len(records),
-                rows_inserted=upserted,
+                rows_read=total_parsed,
+                rows_inserted=total_upserted,
             )
             conn.commit()
             cur.close()
             conn.close()
-        print(f"Done! Upserted {upserted} contracts for {year}-{month:02d}")
-        return len(records), upserted
+
+        print(f"\nDone! {page_count} pages, {total_parsed} entries, {total_upserted} upserted")
+        return total_parsed, total_upserted
+
     except Exception as exc:
         if conn and run_id:
             cur = conn.cursor()
@@ -324,7 +414,7 @@ def run_month(*, year: int, month: int, resume: bool, dry_run: bool) -> tuple[in
                 cur,
                 run_id=run_id,
                 status="failed",
-                rows_read=0,
+                rows_read=total_parsed,
                 error_summary=str(exc)[:500],
             )
             conn.commit()
@@ -333,32 +423,17 @@ def run_month(*, year: int, month: int, resume: bool, dry_run: bool) -> tuple[in
         raise
 
 
-def run_backfill(*, start: date, end: date, resume: bool, dry_run: bool) -> None:
-    for year, month in iter_months(start, end):
-        print(f"\n== contracts {year}-{month:02d} ==")
-        run_month(year=year, month=month, resume=resume, dry_run=dry_run)
-
-
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Ingest PCSP contracts")
-    now = datetime.now(timezone.utc)
-    parser.add_argument("--year", type=int, default=now.year)
-    parser.add_argument("--month", type=int, default=now.month)
-    parser.add_argument("--from-month", help="YYYY-MM for resumable historical backfill")
-    parser.add_argument("--to-month", help="YYYY-MM for resumable historical backfill")
-    parser.add_argument("--resume", action="store_true", help="Skip chunks already marked as succeeded in etl_runs")
+    parser = argparse.ArgumentParser(description="Ingest PLACSP contracts from ATOM feed")
+    parser.add_argument("--backfill", action="store_true",
+                        help="Fetch all available pages (no page limit)")
+    parser.add_argument("--max-pages", type=int, default=3,
+                        help="Maximum number of feed pages to fetch (default: 3)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    if args.from_month or args.to_month:
-        start_raw = args.from_month or "2016-01"
-        end_raw = args.to_month or f"{now.year}-{now.month:02d}"
-        start = date.fromisoformat(f"{start_raw}-01")
-        end = date.fromisoformat(f"{end_raw}-01")
-        run_backfill(start=start, end=end, resume=args.resume, dry_run=args.dry_run)
-        return
-
-    run_month(year=args.year, month=args.month, resume=args.resume, dry_run=args.dry_run)
+    max_pages = None if args.backfill else args.max_pages
+    run_feed(max_pages=max_pages, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

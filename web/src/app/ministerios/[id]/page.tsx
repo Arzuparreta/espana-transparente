@@ -37,9 +37,21 @@ function ContractRow({ contract }: { contract: MinistrioContract }) {
     >
       <div className="min-w-0">
         <p className="font-medium leading-snug line-clamp-2">{contract.title}</p>
-        {contract.contractor && (
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">{contract.contractor}</p>
-        )}
+        <p className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+          {contract.contractor && (
+            <span className="truncate">{contract.contractor}</span>
+          )}
+          {contract.contractor_is_sme && (
+            <span className="shrink-0 rounded-[2px] border border-accent/35 bg-accent/10 px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
+              PYME
+            </span>
+          )}
+          {contract.received_tender_quantity != null && (
+            <span className="shrink-0 font-mono text-[10px]">
+              {contract.received_tender_quantity} oferta{contract.received_tender_quantity !== 1 ? "s" : ""}
+            </span>
+          )}
+        </p>
       </div>
       <div className="shrink-0 text-right">
         {contract.amount != null && (
