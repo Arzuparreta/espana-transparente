@@ -11,6 +11,7 @@ from common.search_aliases import refresh_curated_aliases
 
 
 def refresh_search_corpus(cur) -> int:
+    cur.execute("SET statement_timeout = '10min'")
     cur.execute("SELECT refresh_search_documents()")
     return int(cur.fetchone()[0])
 
@@ -18,6 +19,7 @@ def refresh_search_corpus(cur) -> int:
 def refresh_search_aliases(cur) -> int:
     from common.search_aliases import upsert_curated_aliases
 
+    cur.execute("SET statement_timeout = '10min'")
     cur.execute("SELECT refresh_search_person_aliases()")
     generated = int(cur.fetchone()[0])
     cur.execute("DELETE FROM search_aliases WHERE source = 'curated' AND entity_id IS NOT NULL")
@@ -43,9 +45,14 @@ def refresh_all() -> tuple[int, int]:
         return docs, aliases
     except Exception as exc:
         if run_id:
-            with conn.cursor() as cur:
-                finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
-                conn.commit()
+            try:
+                if conn.closed:
+                    conn = get_pg_conn()
+                with conn.cursor() as cur:
+                    finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                    conn.commit()
+            except Exception as finish_exc:
+                print(f"failed to mark search_refresh run as failed: {finish_exc}")
         raise
     finally:
         conn.close()
@@ -57,6 +64,10 @@ def main() -> None:
     parser.add_argument("--aliases-only", action="store_true")
     args = parser.parse_args()
 
+    if not args.aliases_only and not args.corpus_only:
+        refresh_all()
+        return
+
     with get_pg_conn() as conn:
         with conn.cursor() as cur:
             if args.aliases_only:
@@ -65,9 +76,6 @@ def main() -> None:
             elif args.corpus_only:
                 count = refresh_search_corpus(cur)
                 print(f"corpus refreshed: {count}")
-            else:
-                refresh_all()
-                return
             conn.commit()
 
 

@@ -125,6 +125,9 @@ jobs:
       - run: PYTHONPATH=src python -m src.congreso.declaraciones
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.iniciativas
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.congreso.gobierno
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
