@@ -232,6 +232,80 @@ composition in machine-readable HTML or only as PDFs. Check sepi.es for each tar
 
 ---
 
+## Phase B.5 — Judicial Accountability: corruption proceedings + active contracts
+
+Before starting the full entity graph, ship this judicial-accountability slice. It uses the same
+person/company/contract foundations Phase C needs, but has stricter source and review rules.
+
+**Goal:** Let a citizen or researcher check whether a company, executive, or public office holder
+appears in a sourced corruption-related proceeding, and whether that actor is connected to active
+contracts or subsidies already in the portal.
+
+This is not an opinion layer. The UI must show only procedural facts: status, offence category,
+court/body, dates, source URL, and reviewed links to people, organizations, contracts, subsidies,
+and municipalities.
+
+### Source baseline
+
+- Primary source: CGPJ "Repositorio de datos sobre procesos por corrupción", including reusable
+  files where available. It covers proceedings with apertura de juicio oral or procesamiento,
+  final convictions, and prison population for corruption-related offences. Updated quarterly.
+- Secondary source for named case detail: CENDOJ/official judgment pages, BOE where applicable,
+  court press notes, and official institutional releases. Media can be a discovery aid only, not
+  the final source for public rows.
+
+### What to build
+
+1. **Schema and ETL foundation.**
+   Add `etl/src/judicial/` and migrations for:
+   - `corruption_cases`: source, court/body, offence category, procedural status, dates, summary,
+     source URL, last verified.
+   - `corruption_case_actors`: person or organization label, role in proceeding, optional
+     `politician_id`, optional `organization_id`, match confidence, review status.
+   - `corruption_contract_links`: reviewed links between a case actor and `contracts`,
+     `subsidies`, or an `organization_id`, with evidence URL and link reason.
+
+2. **Review gate for named actors.**
+   Fuzzy matching may create candidates, but public rows require human review. A record must not
+   appear on `/organizaciones/[id]`, `/diputados/[id]`, `/contratos/[id]`, or search until the
+   actor link is reviewed.
+
+3. **Public surfaces.**
+   - `/corrupcion`: factual index of sourced proceedings and aggregate coverage.
+   - `/corrupcion/[id]`: case detail with procedural status, offences, source links, reviewed
+     actors, and linked contracts/subsidies.
+   - `/organizaciones/[id]`: "Procedimientos relacionados" section when reviewed organization
+     links exist.
+   - `/contratos/[id]`: factual notice only when the contractor or awarding organization has a
+     reviewed link to a proceeding.
+
+4. **Phase C integration.**
+   The future entity summary must include reviewed judicial links alongside contracts, subsidies,
+   EU funds, SEPI boards, declarations, and revolving-door records.
+
+### Status vocabulary
+
+Use only these UI labels unless a source requires a more precise factual phrase:
+- `procesamiento_o_juicio_oral`
+- `condena_no_firme`
+- `condena_firme`
+- `absuelto`
+- `sobreseido`
+- `desconocido`
+
+Never label a person or company as "corrupto". Do not infer guilt from investigation status.
+
+### Acceptance
+
+- `npm run content:audit` passes with no judgemental corruption copy.
+- Unreviewed actor matches are not publicly readable.
+- Every public case row has a source URL, source type, last verified date, and procedural status.
+- A reviewed organization with an active contract can be reached from both the organization page
+  and the contract page.
+- Judicial ETL has a dry-run mode and tests for status mapping, review gating, and link creation.
+
+---
+
 ## Phase C — Unified Entity Graph
 
 **Goal:** Searching any company or person returns one view connecting everything:
@@ -242,6 +316,9 @@ previously sat on this company's board." Everything else is infrastructure.
 
 **Prerequisites:**
 - Phase B complete (declarations + SEPI data sources).
+- Phase B.5 judicial-accountability tables and review gate exist if corruption/contract links are
+  included in the first public entity graph release. If not, the entity graph must show the data
+  gap explicitly instead of implying judicial coverage.
 - Revolving door data: at least one `revolving_door` record with a matching `organization_id`
   must exist in production before the cross-entity link can be surfaced. Verify before starting.
 - BORME integration (company director registry) is NOT required for Phase C — the entity
@@ -271,6 +348,7 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 |---|---|---|---|
 | Asset/income declarations | Partial pipeline exists | Phase B | PDF parsing; brittle |
 | SEPI subsidiary boards | Major entities missing | Phase B | SEPI publishes HTML/PDFs |
+| Corruption proceedings + contract links | Not started | Phase B.5 | CGPJ/CENDOJ/official sources; reviewed actor links only |
 | Lobbying register (REL) | Not started | Post-C | SEPI lobbying portal is new |
 | Ministerial meeting agendas | Not started | Post-C | Partially on SAGE portal |
 | BORME company directors | Not started | Post-C (not required for Phase C) | Registry of official company boards |
