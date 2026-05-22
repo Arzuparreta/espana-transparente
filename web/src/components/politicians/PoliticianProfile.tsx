@@ -304,44 +304,6 @@ export function PoliticianProfile({
         </Card>
       )}
 
-      {voteDistribution.length > 0 ? (
-        <Card>
-          <CardContent className="space-y-3 px-4 py-4">
-            <div>
-              <div className="text-sm font-semibold">Distribución reciente del voto</div>
-              <div className="text-xs text-muted-foreground">
-                Un vistazo rápido al patrón visible antes de entrar al detalle.
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              {voteDistribution.map(([vote, count]) => (
-                <div key={vote} className="flex items-center gap-1.5 text-sm">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0"
-                    style={{ backgroundColor: getVoteColor(vote) }}
-                  />
-                  <span className="font-medium">{vote}</span>
-                  <span className="text-muted-foreground">
-                    {Math.round((count / v.length) * 100)}%
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="flex h-2.5 overflow-hidden rounded-[2px] bg-muted">
-              {voteDistribution.map(([vote, count]) => (
-                <div
-                  key={vote}
-                  style={{
-                    width: `${(count / v.length) * 100}%`,
-                    backgroundColor: getVoteColor(vote),
-                  }}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
       <SectionTabs tabs={tabs} defaultTab="power">
         {(active) => (
           <>
@@ -496,6 +458,44 @@ export function PoliticianProfile({
 
             {active === "votes" ? (
               <div className="space-y-3">
+                {voteDistribution.length > 0 ? (
+                  <Card>
+                    <CardContent className="space-y-3 px-4 py-4">
+                      <div>
+                        <div className="text-sm font-semibold">Distribución reciente del voto</div>
+                        <div className="text-xs text-muted-foreground">
+                          Un vistazo rápido al patrón visible antes de entrar al detalle.
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        {voteDistribution.map(([vote, count]) => (
+                          <div key={vote} className="flex items-center gap-1.5 text-sm">
+                            <span
+                              className="h-2.5 w-2.5 shrink-0"
+                              style={{ backgroundColor: getVoteColor(vote) }}
+                            />
+                            <span className="font-medium">{vote}</span>
+                            <span className="text-muted-foreground">
+                              {Math.round((count / v.length) * 100)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex h-2.5 overflow-hidden rounded-[2px] bg-muted">
+                        {voteDistribution.map(([vote, count]) => (
+                          <div
+                            key={vote}
+                            style={{
+                              width: `${(count / v.length) * 100}%`,
+                              backgroundColor: getVoteColor(vote),
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
                 {v.length === 0 ? (
                   <EmptyState
                     title="Sin votaciones registradas"
