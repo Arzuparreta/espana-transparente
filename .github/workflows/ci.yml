@@ -157,6 +157,12 @@ jobs:
       - run: PYTHONPATH=src python -m src.senado.votaciones
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 50 --resume
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.opendata_intereses
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m common.search_refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

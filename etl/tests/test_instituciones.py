@@ -120,7 +120,8 @@ def test_real_yaml_institutions_coverage():
 
 @pytest.mark.skipif(not _YAML.exists(), reason="instituciones_nombramientos.yml not yet created")
 def test_real_yaml_nominating_body_valid():
-    valid = {"Congreso", "Senado", "CGPJ", "Gobierno"}
+    # Valid bodies include all governmental branches and SEPI-specific appointment sources
+    valid = {"Congreso", "Senado", "CGPJ", "Gobierno", "Sindical", "Autonómico", "Privado"}
     rows = load_appointments(_YAML)
     for r in rows:
         if r["nominating_body"]:
