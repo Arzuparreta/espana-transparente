@@ -5,6 +5,7 @@
 
 -- ── Organization-level EU fund aggregate ─────────────────────────────────────
 
+DROP VIEW IF EXISTS v_organization_eu_funds CASCADE;
 CREATE OR REPLACE VIEW v_organization_eu_funds AS
 SELECT
   beneficiary_organization_id                              AS organization_id,
@@ -21,6 +22,7 @@ GRANT SELECT ON v_organization_eu_funds TO anon, authenticated;
 
 -- ── Cascade beneficiaries with EU fund context ───────────────────────────────
 
+DROP VIEW IF EXISTS v_ministry_top_beneficiaries CASCADE;
 CREATE OR REPLACE VIEW v_ministry_top_beneficiaries AS
 WITH contracts_with_ministry AS (
   SELECT
@@ -95,6 +97,7 @@ GRANT SELECT ON v_ministry_top_beneficiaries TO anon, authenticated;
 
 -- ── Organization public profile with EU fund count ───────────────────────────
 
+DROP VIEW IF EXISTS v_organization_public CASCADE;
 CREATE OR REPLACE VIEW v_organization_public AS
 SELECT
   o.id,

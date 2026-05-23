@@ -26,6 +26,48 @@ def refresh_search_aliases(cur) -> int:
     return generated + upsert_curated_aliases(cur)
 
 
+def refresh_section_index(cur) -> int:
+    """Refresh the section_index_cache table used by the homepage."""
+    cur.execute("SET statement_timeout = '5min'")
+    cur.execute("SELECT refresh_section_index()")
+    cur.execute("SELECT COUNT(*) FROM section_index_cache")
+    return int(cur.fetchone()[0])
+
+
+def refresh_organization_counts(cur) -> int:
+    """Populate organization_counts materialized cache table."""
+    cur.execute("SET statement_timeout = '5min'")
+    cur.execute("""
+        INSERT INTO organization_counts (id, contract_count, subsidy_beneficiary_count,
+               subsidy_granting_count, revolving_door_count, eu_fund_count, updated_at)
+        SELECT
+          o.id,
+          COUNT(DISTINCT c.id)::integer,
+          COUNT(DISTINCT sb.id)::integer,
+          COUNT(DISTINCT sg.id)::integer,
+          COUNT(DISTINCT rd.id)::integer,
+          COUNT(DISTINCT ef.id)::integer,
+          now()
+        FROM organizations o
+        LEFT JOIN contracts c
+          ON c.awarding_body_organization_id = o.id
+          OR c.contractor_organization_id = o.id
+        LEFT JOIN subsidies sb ON sb.beneficiary_organization_id = o.id
+        LEFT JOIN subsidies sg ON sg.granting_body_organization_id = o.id
+        LEFT JOIN revolving_door rd ON rd.organization_id = o.id AND rd.verification_status = 'verified'
+        LEFT JOIN eu_funds ef ON ef.beneficiary_organization_id = o.id
+        GROUP BY o.id
+        ON CONFLICT (id) DO UPDATE SET
+          contract_count = EXCLUDED.contract_count,
+          subsidy_beneficiary_count = EXCLUDED.subsidy_beneficiary_count,
+          subsidy_granting_count = EXCLUDED.subsidy_granting_count,
+          revolving_door_count = EXCLUDED.revolving_door_count,
+          eu_fund_count = EXCLUDED.eu_fund_count,
+          updated_at = EXCLUDED.updated_at
+    """)
+    return cur.rowcount
+
+
 def refresh_all() -> tuple[int, int]:
     started = time.perf_counter()
     conn = get_pg_conn()
@@ -36,12 +78,14 @@ def refresh_all() -> tuple[int, int]:
             conn.commit()
             docs = refresh_search_corpus(cur)
             aliases = refresh_search_aliases(cur)
+            sections = refresh_section_index(cur)
+            org_counts = refresh_organization_counts(cur)
             conn.commit()
         with conn.cursor() as cur:
             finish_run(cur, run_id=run_id, status="succeeded", rows_updated=docs + aliases)
             conn.commit()
         elapsed = time.perf_counter() - started
-        print(f"search corpus: {docs} rows touched, aliases: {aliases}, {elapsed:.1f}s")
+        print(f"search corpus: {docs} rows, aliases: {aliases}, sections: {sections}, org_counts: {org_counts}, {elapsed:.1f}s")
         return docs, aliases
     except Exception as exc:
         if run_id:
@@ -62,9 +106,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Refresh search_documents and search_aliases")
     parser.add_argument("--corpus-only", action="store_true")
     parser.add_argument("--aliases-only", action="store_true")
+    parser.add_argument("--sections-only", action="store_true")
+    parser.add_argument("--counts-only", action="store_true")
     args = parser.parse_args()
 
-    if not args.aliases_only and not args.corpus_only:
+    if not any([args.aliases_only, args.corpus_only, args.sections_only, args.counts_only]):
         refresh_all()
         return
 
@@ -76,6 +122,12 @@ def main() -> None:
             elif args.corpus_only:
                 count = refresh_search_corpus(cur)
                 print(f"corpus refreshed: {count}")
+            elif args.sections_only:
+                count = refresh_section_index(cur)
+                print(f"section index refreshed: {count} sections")
+            elif args.counts_only:
+                count = refresh_organization_counts(cur)
+                print(f"organization counts refreshed: {count} rows")
             conn.commit()
 
 

@@ -53,61 +53,45 @@ export type EtlFreshness = {
   pipelineCount: number
 }
 
-// One RPC, ~14 sections. Replaces the per-section count fanout the home would
-// otherwise need for the Phase 1 "Qué hay aquí" map. Returns [] silently if the
-// migration is not yet applied — the home falls back to label-only cards.
+// Reads from section_index_cache table (populated by ETL, refreshed daily).
+// Falls back to get_section_index() RPC if cache is empty (first deploy).
+// Cached for 4 hours since counts change at most daily.
 export const getSectionIndex = unstable_cache(
   async (): Promise<SectionIndexRow[]> => {
-    const { data, error } = await supabase.rpc("get_section_index")
-    if (error || !data) return []
-    return (data as SectionIndexRow[]).map((row) => ({
+    const { data, error } = await supabase
+      .from("section_index_cache")
+      .select("section_key, record_count, latest_date")
+    if (!error && data && data.length > 0) {
+      return (data as SectionIndexRow[]).map((row) => ({
+        section_key: row.section_key,
+        record_count: row.record_count != null ? Number(row.record_count) : null,
+        latest_date: row.latest_date ?? null,
+      }))
+    }
+    // Fallback to RPC (will be slower but correct)
+    const { data: rpcData, error: rpcError } = await supabase.rpc("get_section_index")
+    if (rpcError || !rpcData) return []
+    return (rpcData as SectionIndexRow[]).map((row) => ({
       section_key: row.section_key,
       record_count: row.record_count != null ? Number(row.record_count) : null,
       latest_date: row.latest_date ?? null,
     }))
   },
   ["section-index"],
-  { revalidate: HOUR }
+  { revalidate: 4 * HOUR }
 )
 
 export const getHomeData = unstable_cache(
   async () => {
-    const currentBudgetYear = new Date().getFullYear()
-
     const [
-      politicians,
-      politicianCount,
       parties,
-      contractCount,
-      subsidyCount,
-      budgetSummaryRows,
       recentSessions,
       sessionCount,
       revolvingDoorCases,
       gobierno,
       deudaPublica,
     ] = await Promise.all([
-      supabase
-        .from("politicians")
-        .select(
-          "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, party:parties(id, acronym, color, name))"
-        )
-        .eq("politician_memberships.is_active", true)
-        .eq("politician_memberships.chamber", "congress")
-        .order("full_name")
-        .limit(12),
-      supabase
-        .from("politician_memberships")
-        .select("*", { count: "exact", head: true })
-        .eq("is_active", true)
-        .eq("chamber", "congress"),
       supabase.from("parties").select("acronym, color, name").order("acronym"),
-      supabase.from("contracts").select("*", { count: "exact", head: true }),
-      supabase.from("subsidies").select("*", { count: "exact", head: true }),
-      supabase
-        .from("v_budget_summary")
-        .select("year, budget_type, total_credit_initial")
-        .eq("year", currentBudgetYear),
       supabase
         .from("v_voting_session_summary")
         .select("id, date, title, total_votes, votes_yes, votes_no, divergence_count")
@@ -133,15 +117,6 @@ export const getHomeData = unstable_cache(
         .maybeSingle(),
     ])
 
-    const budgetTotal = (budgetSummaryRows.data ?? []).reduce(
-      (sum, r) => sum + ((r.total_credit_initial as number) ?? 0),
-      0
-    )
-    const currentBudgetType =
-      budgetSummaryRows.data?.[0]?.budget_type != null
-        ? String(budgetSummaryRows.data[0].budget_type)
-        : null
-
     const deudaRow = deudaPublica.data
     const POBLACION_ESPANA = 47_400_000
     const deudaPerCapita =
@@ -151,16 +126,8 @@ export const getHomeData = unstable_cache(
     const deudaYear = deudaRow?.period ? String(deudaRow.period).slice(0, 4) : null
 
     return {
-      politicians: politicians.data ?? [],
-      politicianCount: politicianCount.count ?? 0,
       parties: parties.data ?? [],
-      contractCount: contractCount.count ?? 0,
-      subsidyCount: subsidyCount.count ?? 0,
       sessionCount: sessionCount.count ?? 0,
-      currentBudget:
-        budgetTotal > 0
-          ? { year: currentBudgetYear, total: budgetTotal, budgetType: currentBudgetType }
-          : null,
       recentSessions: recentSessions.data ?? [],
       sessionDivergenceExamples: await fetchSessionDivergenceExamples(
         (recentSessions.data ?? [])
@@ -174,7 +141,7 @@ export const getHomeData = unstable_cache(
     }
   },
   ["home-data", PHOTOS_CACHE_VERSION],
-  { revalidate: HOUR }
+  { revalidate: 4 * HOUR }
 )
 
 export const getTopContractOfMonth = unstable_cache(

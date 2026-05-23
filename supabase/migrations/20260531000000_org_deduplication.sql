@@ -227,10 +227,23 @@ BEGIN
   RAISE NOTICE 'Fixing % remaining name mismatches (simple UPDATE)', n;
 END $$;
 
+-- Keep only one org per recomputed value to avoid unique violations
+CREATE TEMP TABLE _name_mismatches_dedup AS
+SELECT DISTINCT ON (recomputed) id, recomputed
+FROM _name_mismatches
+ORDER BY recomputed, id;
+
 UPDATE organizations o
 SET normalized_name = nm.recomputed
-FROM _name_mismatches nm
-WHERE o.id = nm.id;
+FROM _name_mismatches_dedup nm
+WHERE o.id = nm.id
+  AND NOT EXISTS (
+    SELECT 1 FROM organizations o2
+    WHERE o2.normalized_name = nm.recomputed
+    AND o2.id != o.id
+  );
+
+DROP TABLE IF EXISTS _name_mismatches_dedup;
 
 -- ── Cleanup ──────────────────────────────────────────────────────────────────
 

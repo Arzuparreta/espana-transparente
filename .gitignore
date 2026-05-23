@@ -28,3 +28,4 @@ supabase/.temp/
 Thumbs.db
 .gstack/
 ~/
+.vercel
