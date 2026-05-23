@@ -365,7 +365,7 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 | SEPI subsidiary boards | ✅ Phase B complete | Done | 12 subsidiaries with board data |
 | BORME company directors | 🚧 In progress (2026-05-23) | Post-C | OpenMercantil API ingestion; schema + ETL + UI done |
 | Corruption proceedings + contract links | Not started | Phase B.5 | CGPJ/CENDOJ/official sources; reviewed actor links only |
-| Lobbying register (REL) | Not started | Post-C | CNMC RGI public register (~800 groups); data available |
+| Lobbying register (CNMC RGI) | 🚧 In progress (2026-05-23) | Post-C | Schema + scraper done; ~1,200 groups; scraping in CI |
 | Ministerial meeting agendas | Not started | Post-C | Partially on SAGE portal |
 | Historical budget execution | Not started | Post-C | Intervención General publishes monthly reports |
 | Lobbying meetings (SAGE) | Not started | Post-C | Ministerial agenda disclosures |
