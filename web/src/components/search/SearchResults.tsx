@@ -19,6 +19,7 @@ const TYPE_LABEL: Record<SearchResult["entity_type"], string> = {
   indicator: "Indicadores",
   eu_fund: "Fondos UE",
   revolving_door: "Puertas giratorias",
+  judicial_case: "Procesos judiciales",
   source_document: "Fuentes",
 }
 
@@ -39,6 +40,7 @@ const TYPE_ORDER: SearchResult["entity_type"][] = [
   "party",
   "eu_fund",
   "revolving_door",
+  "judicial_case",
   "source_document",
 ]
 

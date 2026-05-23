@@ -48,6 +48,7 @@ export const PRIMARY_NAV: NavGroup[] = [
     label: "Conexiones y contexto",
     items: [
       { href: "/iniciativas", label: "Iniciativas" },
+      { href: "/corrupcion", label: "Procesos judiciales" },
       { href: "/declaraciones", label: "Declaraciones", longLabel: "Declaraciones económicas" },
       { href: "/puertas-giratorias", label: "Puertas giratorias" },
       { href: "/organizaciones", label: "Organizaciones" },
@@ -73,6 +74,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "partidos", href: "/partidos", label: "Partidos", groupLabel: "Personas" },
   { key: "instituciones", href: "/instituciones", label: "Instituciones", groupLabel: "Personas" },
   { key: "votaciones", href: "/votaciones", label: "Votaciones", groupLabel: "Dinero y leyes" },
+  { key: "corrupcion", href: "/corrupcion", label: "Procesos judiciales", shortLabel: "procesos judiciales", groupLabel: "Dinero y leyes" },
   { key: "presupuestos", href: "/presupuestos", label: "Presupuestos", groupLabel: "Dinero y leyes" },
   { key: "contratos", href: "/contratos", label: "Contratos", groupLabel: "Dinero y leyes" },
   { key: "subvenciones", href: "/subvenciones", label: "Subvenciones", groupLabel: "Dinero y leyes" },

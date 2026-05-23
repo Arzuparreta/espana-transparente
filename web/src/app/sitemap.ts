@@ -11,6 +11,7 @@ import {
   getSitemapIndicatorCodes,
   getSitemapInitiativeIds,
   getSitemapInstitucionIds,
+  getSitemapJudicialCaseIds,
   getSitemapOrganizationIds,
   getSitemapRevolvingDoorIds,
   getSitemapSenatorIds,
@@ -30,6 +31,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/instituciones",      changeFrequency: "weekly",  priority: 0.7 },
   { path: "/partidos",           changeFrequency: "weekly",  priority: 0.7 },
   { path: "/puertas-giratorias", changeFrequency: "weekly",  priority: 0.8 },
+  { path: "/corrupcion",         changeFrequency: "weekly",  priority: 0.7 },
   { path: "/contratos",          changeFrequency: "daily",   priority: 0.8 },
   { path: "/subvenciones",       changeFrequency: "daily",   priority: 0.8 },
   { path: "/presupuestos",       changeFrequency: "monthly", priority: 0.7 },
@@ -81,6 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     subsidies,
     euFunds,
     revolvingDoor,
+    judicialCases,
     organizations,
     indicators,
     instituciones,
@@ -107,6 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tryGet(() => getSitemapSubsidyIds(), [] as { id: string; date: string | null }[]),
     tryGet(() => getSitemapEuFundSlugs(), [] as { slug: string }[]),
     tryGet(() => getSitemapRevolvingDoorIds(), [] as { id: string }[]),
+    tryGet(() => getSitemapJudicialCaseIds(), [] as { id: string; date: string | null }[]),
     tryGet(() => getSitemapOrganizationIds(), [] as { id: string }[]),
     tryGet(() => getSitemapIndicatorCodes(), [] as { code: string }[]),
     tryGet(() => getSitemapInstitucionIds(), [] as { id: string }[]),
@@ -182,6 +186,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }))
 
+  const judicialCaseEntries: MetadataRoute.Sitemap = judicialCases.map((item) => ({
+    url: url(`/corrupcion/${item.id}`),
+    lastModified: lastModified(item.date, now),
+    changeFrequency: "monthly",
+    priority: 0.4,
+  }))
+
   const organizationEntries: MetadataRoute.Sitemap = organizations.map((o) => ({
     url: url(`/organizaciones/${o.id}`),
     lastModified: now,
@@ -249,6 +260,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...subsidyEntries,
     ...euFundEntries,
     ...revolvingDoorEntries,
+    ...judicialCaseEntries,
     ...organizationEntries,
     ...indicatorEntries,
     ...institucionEntries,

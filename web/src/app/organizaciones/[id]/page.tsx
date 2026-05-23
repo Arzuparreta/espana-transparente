@@ -4,7 +4,8 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getOrganizationPageData } from "@/lib/data"
+import { getOrganizationPageData, JUDICIAL_STATUS_LABEL } from "@/lib/data"
+import type { JudicialStatus } from "@/lib/data"
 
 export const revalidate = 3600
 
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function OrganizacionPage({ params }: PageProps) {
   const { id } = await params
-  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers } =
+  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks } =
     await getOrganizationPageData(id)
 
   if (!organization) notFound()
@@ -74,6 +75,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
           { label: "Subvenciones concedidas", value: organization.subsidy_granting_count, hint: "Concesiones donde figura como órgano concedente." },
           { label: "Puertas giratorias", value: organization.revolving_door_count, hint: "Movimientos publicados asociados a esta organización." },
           { label: "Fondos europeos", value: organization.eu_fund_count, hint: "Beneficiario de fondos UE (Kohesio)." },
+          { label: "Procesos judiciales", value: organization.judicial_case_count, hint: "Vínculos revisados con procedimientos publicados." },
         ]}
       />
 
@@ -260,6 +262,30 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {formatAmount(fund.eu_budget)}
                     {fund.cofinancing_rate != null ? ` · cofin. ${fund.cofinancing_rate}%` : ""}
                   </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Procesos judiciales relacionados</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {judicialLinks.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sin vínculos revisados publicados.</p>
+            ) : (
+              judicialLinks.map((link) => (
+                <div key={link.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
+                  <ResponsiveLink href={`/corrupcion/${link.case_id}`} className="font-medium underline-offset-2 hover:underline">
+                    {link.case_title}
+                  </ResponsiveLink>
+                  <div className="text-xs text-muted-foreground">
+                    {JUDICIAL_STATUS_LABEL[link.procedural_status as JudicialStatus]}
+                    {link.offence_category ? ` · ${link.offence_category}` : ""}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{link.link_reason}</div>
                 </div>
               ))
             )}

@@ -6,7 +6,8 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ShareButton } from "@/components/domain/ShareButton"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getContractDetail, getPartyAcronymMap } from "@/lib/data"
+import { getContractDetail, getJudicialLinksForContract, getPartyAcronymMap, JUDICIAL_STATUS_LABEL } from "@/lib/data"
+import type { JudicialStatus } from "@/lib/data"
 import { BRAND_URL } from "@/lib/brand"
 
 export const revalidate = 3600
@@ -77,6 +78,11 @@ export default async function ContractDetailPage({ params }: PageProps) {
     getPartyAcronymMap(),
   ])
   if (!contract) notFound()
+  const organizationIds = [
+    contract.awarding_body_organization_id,
+    contract.contractor_organization_id,
+  ].filter((value): value is string => Boolean(value))
+  const judicialLinks = await getJudicialLinksForContract(id, organizationIds)
   const responsiblePartyId = responsible?.political_party
     ? partyMap[responsible.political_party.toLowerCase()] ?? null
     : null
@@ -272,6 +278,31 @@ export default async function ContractDetailPage({ params }: PageProps) {
                     className="text-xs"
                   />
                 ) : null}
+              </div>
+            </div>
+          )}
+
+          {judicialLinks.length > 0 && (
+            <div className="rounded-[2px] border border-border bg-card px-5 py-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Procedimientos relacionados
+              </p>
+              <div className="space-y-3">
+                {judicialLinks.map((link) => (
+                  <div key={link.id} className="text-sm">
+                    <ResponsiveLink
+                      href={`/corrupcion/${link.case_id}`}
+                      className="font-semibold underline-offset-2 hover:underline"
+                    >
+                      {link.case_title}
+                    </ResponsiveLink>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {JUDICIAL_STATUS_LABEL[link.procedural_status as JudicialStatus]}
+                      {link.offence_category ? ` · ${link.offence_category}` : ""}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{link.link_reason}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -11,6 +11,7 @@ const SITEMAP_CAPS = {
   organizations: 5000,
   initiatives: 3000,
   budgetPrograms: 5000,
+  judicialCases: 3000,
 } as const
 
 const DAY = HOUR * 24
@@ -85,6 +86,22 @@ export const getSitemapRevolvingDoorIds = unstable_cache(
     return (data ?? []).map((r) => ({ id: r.id as string }))
   },
   ["sitemap-revolving-door"],
+  { revalidate: DAY }
+)
+
+export const getSitemapJudicialCaseIds = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("v_corruption_cases_public")
+      .select("id, source_published_at")
+      .order("source_published_at", { ascending: false, nullsFirst: false })
+      .limit(SITEMAP_CAPS.judicialCases)
+    return (data ?? []).map((r) => ({
+      id: r.id as string,
+      date: (r.source_published_at as string | null) ?? null,
+    }))
+  },
+  ["sitemap-judicial-cases"],
   { revalidate: DAY }
 )
 

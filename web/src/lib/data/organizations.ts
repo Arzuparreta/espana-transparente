@@ -21,7 +21,7 @@ export const getOrganizationsList = unstable_cache(
     const offset = (page - 1) * PAGE_SIZE.organizations
     const { data, count } = await supabase
       .from("v_organization_public")
-      .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count", { count: "exact" })
+      .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count, judicial_case_count", { count: "exact" })
       .order("contract_count", { ascending: false, nullsFirst: false })
       .range(offset, offset + 49)
     return { organizations: data ?? [], total: count ?? 0 }
@@ -32,7 +32,7 @@ export const getOrganizationsList = unstable_cache(
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers] =
+    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks] =
       await Promise.all([
         supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
         supabase
@@ -80,6 +80,12 @@ export const getOrganizationPageData = unstable_cache(
             SEPI_SUBSIDIARY_NAMES.map((n) => `institution.eq.${n}`).join(","),
           )
           .limit(100),
+        supabase
+          .from("v_corruption_contract_links_public")
+          .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url")
+          .eq("organization_id", id)
+          .order("last_verified_at", { ascending: false, nullsFirst: false })
+          .limit(10),
       ])
 
     // Filter appointments to those whose institution matches the org name
@@ -101,6 +107,7 @@ export const getOrganizationPageData = unstable_cache(
       euFunds: euFunds.data ?? [],
       appointments: orgAppointments,
       bormeOfficers: bormeOfficers.data ?? [],
+      judicialLinks: judicialLinks.data ?? [],
     }
   },
   ["organization-page-data"],
