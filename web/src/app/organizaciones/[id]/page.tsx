@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function OrganizacionPage({ params }: PageProps) {
   const { id } = await params
-  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments } =
+  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers } =
     await getOrganizationPageData(id)
 
   if (!organization) notFound()
@@ -99,13 +99,15 @@ export default async function OrganizacionPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {appointments && appointments.length > 0 && (
+        {(appointments && appointments.length > 0 || bormeOfficers && bormeOfficers.length > 0) && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Consejo de administración</CardTitle>
+              <CardTitle className="text-base">
+                {appointments && appointments.length > 0 ? "Consejo de administración" : "Administradores (BORME)"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {appointments.map((a: Record<string, unknown>) => (
+              {appointments && appointments.length > 0 && appointments.map((a: Record<string, unknown>) => (
                 <div key={`${a.institution}-${a.person_name}`} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <div className="font-medium">{a.person_name as string}</div>
                   <div className="text-xs text-muted-foreground">
@@ -114,6 +116,24 @@ export default async function OrganizacionPage({ params }: PageProps) {
                   </div>
                 </div>
               ))}
+              {bormeOfficers && bormeOfficers.length > 0 && (
+                <>
+                  {appointments && appointments.length > 0 && bormeOfficers.length > 0 && (
+                    <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                      También en el Registro Mercantil (BORME)
+                    </div>
+                  )}
+                  {bormeOfficers.map((o: Record<string, unknown>) => (
+                    <div key={`borme-${o.person_name}-${o.role}`} className="border-l-2 border-muted/50 py-1 pl-3 text-sm">
+                      <div className="font-medium">{o.person_name as string}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {o.role as string}
+                        {o.since ? ` · desde ${(o.since as string).slice(0, 7)}` : ""}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </CardContent>
           </Card>
         )}

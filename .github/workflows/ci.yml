@@ -160,6 +160,9 @@ jobs:
       - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 50 --resume
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.borme.officers --limit 200 --resume
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.congreso.opendata_intereses
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

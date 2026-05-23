@@ -32,7 +32,7 @@ export const getOrganizationsList = unstable_cache(
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments] =
+    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers] =
       await Promise.all([
         supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
         supabase
@@ -66,6 +66,14 @@ export const getOrganizationPageData = unstable_cache(
           .order("eu_budget", { ascending: false, nullsFirst: false })
           .limit(20),
         supabase
+          .from("borme_officers")
+          .select("person_name, role, since, source_url")
+          .eq("organization_id", id)
+          .eq("is_current", true)
+          .order("role")
+          .order("person_name")
+          .limit(30),
+        supabase
           .from("institutional_appointments")
           .select("institution, position_title, person_name, political_party, appointment_date, source_url")
           .or(
@@ -76,8 +84,9 @@ export const getOrganizationPageData = unstable_cache(
 
     // Filter appointments to those whose institution matches the org name
     const orgName = (organization.data as { name?: string } | null)?.name ?? ""
-    const orgAppointments = (appointments.data ?? []).filter((a) => {
-      const instName = (a as { institution: string }).institution.replace("SEPI-", "")
+    const appts = (appointments.data ?? []) as unknown as { institution: string }[]
+    const orgAppointments = appts.filter((a) => {
+      const instName = a.institution.replace("SEPI-", "")
       return orgName.toUpperCase().includes(instName) || instName.includes(
         orgName.toUpperCase().split(/[\s,.]/).filter(Boolean).slice(0, 2).join(" "),
       )
@@ -91,6 +100,7 @@ export const getOrganizationPageData = unstable_cache(
       revolvingDoorCases: revolvingDoorCases.data ?? [],
       euFunds: euFunds.data ?? [],
       appointments: orgAppointments,
+      bormeOfficers: bormeOfficers.data ?? [],
     }
   },
   ["organization-page-data"],
