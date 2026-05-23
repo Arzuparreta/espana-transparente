@@ -34,12 +34,20 @@ def refresh_section_index(cur) -> int:
     return int(cur.fetchone()[0])
 
 
+def refresh_judicial_search(cur) -> int:
+    """Populate reviewed judicial cases into the public search corpus."""
+    cur.execute("SET statement_timeout = '5min'")
+    cur.execute("SELECT refresh_judicial_search_documents()")
+    return int(cur.fetchone()[0])
+
+
 def refresh_organization_counts(cur) -> int:
     """Populate organization_counts materialized cache table."""
     cur.execute("SET statement_timeout = '5min'")
     cur.execute("""
         INSERT INTO organization_counts (id, contract_count, subsidy_beneficiary_count,
-               subsidy_granting_count, revolving_door_count, eu_fund_count, updated_at)
+               subsidy_granting_count, revolving_door_count, eu_fund_count,
+               judicial_case_count, updated_at)
         SELECT
           o.id,
           COUNT(DISTINCT c.id)::integer,
@@ -47,6 +55,7 @@ def refresh_organization_counts(cur) -> int:
           COUNT(DISTINCT sg.id)::integer,
           COUNT(DISTINCT rd.id)::integer,
           COUNT(DISTINCT ef.id)::integer,
+          COUNT(DISTINCT jca.case_id)::integer,
           now()
         FROM organizations o
         LEFT JOIN contracts c
@@ -56,6 +65,7 @@ def refresh_organization_counts(cur) -> int:
         LEFT JOIN subsidies sg ON sg.granting_body_organization_id = o.id
         LEFT JOIN revolving_door rd ON rd.organization_id = o.id AND rd.verification_status = 'verified'
         LEFT JOIN eu_funds ef ON ef.beneficiary_organization_id = o.id
+        LEFT JOIN v_corruption_case_actors_public jca ON jca.organization_id = o.id
         GROUP BY o.id
         ON CONFLICT (id) DO UPDATE SET
           contract_count = EXCLUDED.contract_count,
@@ -63,6 +73,7 @@ def refresh_organization_counts(cur) -> int:
           subsidy_granting_count = EXCLUDED.subsidy_granting_count,
           revolving_door_count = EXCLUDED.revolving_door_count,
           eu_fund_count = EXCLUDED.eu_fund_count,
+          judicial_case_count = EXCLUDED.judicial_case_count,
           updated_at = EXCLUDED.updated_at
     """)
     return cur.rowcount
@@ -77,15 +88,16 @@ def refresh_all() -> tuple[int, int]:
             run_id = start_run(cur, pipeline="common.search_refresh", chunk_key="full")
             conn.commit()
             docs = refresh_search_corpus(cur)
+            judicial_docs = refresh_judicial_search(cur)
             aliases = refresh_search_aliases(cur)
             sections = refresh_section_index(cur)
             org_counts = refresh_organization_counts(cur)
             conn.commit()
         with conn.cursor() as cur:
-            finish_run(cur, run_id=run_id, status="succeeded", rows_updated=docs + aliases)
+            finish_run(cur, run_id=run_id, status="succeeded", rows_updated=docs + judicial_docs + aliases)
             conn.commit()
         elapsed = time.perf_counter() - started
-        print(f"search corpus: {docs} rows, aliases: {aliases}, sections: {sections}, org_counts: {org_counts}, {elapsed:.1f}s")
+        print(f"search corpus: {docs} rows, judicial: {judicial_docs}, aliases: {aliases}, sections: {sections}, org_counts: {org_counts}, {elapsed:.1f}s")
         return docs, aliases
     except Exception as exc:
         if run_id:
@@ -108,9 +120,10 @@ def main() -> None:
     parser.add_argument("--aliases-only", action="store_true")
     parser.add_argument("--sections-only", action="store_true")
     parser.add_argument("--counts-only", action="store_true")
+    parser.add_argument("--judicial-only", action="store_true")
     args = parser.parse_args()
 
-    if not any([args.aliases_only, args.corpus_only, args.sections_only, args.counts_only]):
+    if not any([args.aliases_only, args.corpus_only, args.sections_only, args.counts_only, args.judicial_only]):
         refresh_all()
         return
 
@@ -128,6 +141,9 @@ def main() -> None:
             elif args.counts_only:
                 count = refresh_organization_counts(cur)
                 print(f"organization counts refreshed: {count} rows")
+            elif args.judicial_only:
+                count = refresh_judicial_search(cur)
+                print(f"judicial search refreshed: {count} rows")
             conn.commit()
 
 

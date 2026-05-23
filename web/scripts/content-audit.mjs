@@ -49,6 +49,9 @@ const FORBIDDEN = [
   { name: "fatal arrogancia",   pattern: /fatal\s+arrogancia/i },
   { name: "robo del estado",    pattern: /robo\s+del\s+estado/i },
   { name: "robar al",           pattern: /robar\s+al\b/i },
+  { name: "corrupto/corrupta",   pattern: /\bcorrupt[oa]s?\b/i },
+  { name: "culpable",            pattern: /\bculpables?\b/i },
+  { name: "delincuente",         pattern: /\bdelincuentes?\b/i },
 ]
 
 const targets = []

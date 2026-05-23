@@ -20,6 +20,7 @@ function preferredTypes(query: string): Set<SearchResult["entity_type"]> {
   if (/\b(contrato|contratos|licitacion|pcsp)\b/.test(normalized)) return typeSet(["contract"])
   if (/\b(presupuesto|presupuestos|pge|programa|pension|pensiones|jubilacion|seguridad social|clases pasivas)\b/.test(normalized)) return typeSet(["budget", "budget_program"])
   if (/\b(indicador|indicadores|ipc|deuda|pib)\b/.test(normalized)) return typeSet(["indicator"])
+  if (/\b(corrupcion|judicial|juzgado|tribunal|condena|procesamiento|juicio oral)\b/.test(normalized)) return typeSet(["judicial_case"])
   if (/\b(iniciativa|iniciativas|ley|boe|normativa)\b/.test(normalized)) return typeSet(["initiative", "source_document"])
   if (/\b(voto|vota|votacion|votaciones|grupo|divergencia|divergencias)\b/.test(normalized)) {
     return typeSet(["vote_divergence", "voting_session"])

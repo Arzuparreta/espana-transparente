@@ -14,6 +14,7 @@ export const PAGE_SIZE = {
   organizations: 50,
   initiatives: 50,
   declarations: 50,
+  judicialCases: 50,
 }
 
 export function parsePage(value: string | string[] | undefined) {
@@ -153,6 +154,7 @@ export interface SearchResult {
     | "indicator"
     | "eu_fund"
     | "revolving_door"
+    | "judicial_case"
     | "source_document"
   id: string
   title: string
@@ -229,6 +231,7 @@ export type OrganizationPublicRow = {
   subsidy_granting_count: number
   revolving_door_count: number
   eu_fund_count: number
+  judicial_case_count: number
 }
 
 export type MoneyCoverageRow = {

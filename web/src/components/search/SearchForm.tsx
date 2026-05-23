@@ -37,6 +37,7 @@ const TYPE_LABEL: Record<SearchResult["entity_type"], string> = {
   indicator: "Indicadores",
   eu_fund: "Fondos UE",
   revolving_door: "Puertas giratorias",
+  judicial_case: "Procesos judiciales",
   source_document: "Fuentes",
 }
 

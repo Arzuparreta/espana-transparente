@@ -111,6 +111,14 @@ export {
   searchDocuments,
   searchSuggestions,
 } from "./search"
+export {
+  getJudicialCaseDetail,
+  getJudicialCasesPage,
+  getJudicialLinksForContract,
+  getJudicialLinksForOrganizations,
+  JUDICIAL_STATUS_LABEL,
+} from "./judicial"
+export type { JudicialStatus } from "./judicial"
 
 // ── Revolving doors, Indicators, Initiatives ─────────────────────────────────
 export {
