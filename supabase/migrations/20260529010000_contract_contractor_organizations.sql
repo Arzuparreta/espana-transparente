@@ -71,6 +71,7 @@ FROM organizations o
 WHERE c.contractor_organization_id IS NULL
   AND normalize_organization_name_sql(c.contractor) = o.normalized_name;
 
+DROP VIEW IF EXISTS v_ministry_top_beneficiaries CASCADE;
 CREATE OR REPLACE VIEW v_ministry_top_beneficiaries AS
 WITH contracts_with_ministry AS (
   SELECT
@@ -128,6 +129,7 @@ UNION ALL
 SELECT ministry_normalized, name, source_type, record_count, total_amount, organization_id
 FROM subsidy_agg WHERE rnk <= 5;
 
+DROP VIEW IF EXISTS v_organization_public CASCADE;
 CREATE OR REPLACE VIEW v_organization_public AS
 SELECT
   o.id,

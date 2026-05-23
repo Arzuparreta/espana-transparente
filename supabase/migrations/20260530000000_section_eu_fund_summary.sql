@@ -41,6 +41,7 @@ $$;
 
 -- ── Per-section EU fund aggregation (name-based) ─────────────────────────────
 
+DROP VIEW IF EXISTS v_section_eu_fund_summary CASCADE;
 CREATE OR REPLACE VIEW v_section_eu_fund_summary AS
 WITH eu_normalized AS (
   SELECT DISTINCT
@@ -89,6 +90,7 @@ GRANT SELECT ON v_section_eu_fund_summary TO anon, authenticated;
 
 -- ── Extend v_ministry_top_beneficiaries with name-based EU fund data ──────────
 
+DROP VIEW IF EXISTS v_ministry_top_beneficiaries CASCADE;
 CREATE OR REPLACE VIEW v_ministry_top_beneficiaries AS
 WITH contracts_with_ministry AS (
   SELECT
