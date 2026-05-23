@@ -232,6 +232,21 @@ composition in machine-readable HTML or only as PDFs. Check sepi.es for each tar
 
 ---
 
+### Phase B status (updated 2026-05-23)
+
+✅ **Done.** All acceptance criteria met:
+- ✅ 566 structured declaration records for 349 politicians (threshold: 200)
+- ✅ 12 SEPI subsidiaries with board data (threshold: 10)
+- ✅ SEPI board members visible on `/organizaciones/[id]` pages
+- ✅ OCR pipeline (`declaraciones_ocr.py`) handles `bienes_rentas` and `intereses_economicos` PDFs
+- ✅ OpenData pipeline (`opendata_intereses.py`) ingests machine-readable docacteco JSON
+- ✅ 182 ETL tests pass
+- ✅ CI workflow runs OCR (50 PDFs/week) + OpenData + search refresh
+
+Remaining: full OCR run on 418 remaining bienes_rentas PDFs (scheduled weekly in CI, 50 per batch).
+
+---
+
 ## Phase B.5 — Judicial Accountability: corruption proceedings + active contracts
 
 Before starting the full entity graph, ship this judicial-accountability slice. It uses the same
@@ -346,13 +361,13 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 
 | Data Source | Current Status | Priority | Notes |
 |---|---|---|---|
-| Asset/income declarations | Partial pipeline exists | Phase B | PDF parsing; brittle |
-| SEPI subsidiary boards | Major entities missing | Phase B | SEPI publishes HTML/PDFs |
+| Asset/income declarations | ✅ Phase B complete | Done | OCR + OpenData pipelines shipping |
+| SEPI subsidiary boards | ✅ Phase B complete | Done | 12 subsidiaries with board data |
+| BORME company directors | 🚧 In progress (2026-05-23) | Post-C | OpenMercantil API ingestion; schema + ETL + UI done |
 | Corruption proceedings + contract links | Not started | Phase B.5 | CGPJ/CENDOJ/official sources; reviewed actor links only |
-| Lobbying register (REL) | Not started | Post-C | SEPI lobbying portal is new |
+| Lobbying register (CNMC RGI) | 🚧 In progress (2026-05-23) | Post-C | Schema + scraper done; ~1,200 groups; scraping in CI |
 | Ministerial meeting agendas | Not started | Post-C | Partially on SAGE portal |
-| BORME company directors | Not started | Post-C (not required for Phase C) | Registry of official company boards |
-| Historical budget execution | Not started | Post-C | Intervención General publishes this |
+| Historical budget execution | Not started | Post-C | Intervención General publishes monthly reports |
 | Lobbying meetings (SAGE) | Not started | Post-C | Ministerial agenda disclosures |
 
 ---
