@@ -16,6 +16,7 @@ import { getVoteColor } from "@/lib/domain-style"
 import { getResponsivePhoto } from "@/lib/photos"
 import { EconomicDeclarationList } from "@/components/politicians/EconomicDeclaration"
 import type { EconomicDeclaration } from "@/types"
+import type { EntitySummaryRow } from "@/lib/data"
 
 const RELATION_LABELS: Record<string, string> = {
   party_leader: "Responde ante",
@@ -85,6 +86,7 @@ interface Props {
   divergentSessionIds?: string[]
   govPosition?: GovPosition | null
   ministryContracts?: MinistryContract[]
+  entitySummary?: EntitySummaryRow | null
 }
 
 export function PoliticianProfile({
@@ -104,6 +106,7 @@ export function PoliticianProfile({
   divergentSessionIds,
   govPosition,
   ministryContracts = [],
+  entitySummary,
 }: Props) {
   function tabHref(tab: string, extra?: Record<string, string>) {
     const params = new URLSearchParams({ tab, ...extra })
@@ -152,6 +155,30 @@ export function PoliticianProfile({
     }
     return Object.entries(counts).sort((a, b) => b[1] - a[1])
   })()
+  const linkedSummaryItems = entitySummary
+    ? [
+        {
+          label: "Cargos públicos",
+          value: entitySummary.responsibility_position_count,
+        },
+        {
+          label: "Nombramientos institucionales",
+          value: entitySummary.institutional_appointment_count,
+        },
+        {
+          label: "Puertas giratorias",
+          value: entitySummary.revolving_door_count,
+        },
+        {
+          label: "Procesos judiciales revisados",
+          value: entitySummary.judicial_case_count,
+        },
+        {
+          label: "Cargos mercantiles revisados",
+          value: entitySummary.borme_match_count,
+        },
+      ].filter((item) => item.value > 0)
+    : []
 
   return (
     <div className="ui-page">
@@ -240,6 +267,34 @@ export function PoliticianProfile({
             : []),
         ]}
       />
+
+      {linkedSummaryItems.length > 0 ? (
+        <Card>
+          <CardContent className="px-4 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">Registros enlazados</div>
+                <div className="text-xs text-muted-foreground">
+                  Datos asociados a esta persona en fuentes normalizadas.
+                </div>
+              </div>
+              {entitySummary?.latest_record_date ? (
+                <span className="text-xs text-muted-foreground">
+                  Último registro: {formatProfileDate(entitySummary.latest_record_date)}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {linkedSummaryItems.map((item) => (
+                <div key={item.label} className="rounded-[2px] border border-border/60 px-3 py-2">
+                  <div className="text-xl font-semibold tabular-nums">{item.value}</div>
+                  <div className="text-xs text-muted-foreground">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* Cargo gubernamental actual */}
       {govPosition && (

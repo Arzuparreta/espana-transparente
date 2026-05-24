@@ -360,7 +360,7 @@ in the UI (loading skeleton + "Cargando datos..." state). Do not promise sub-2s 
 **This phase will be fully specced after Phase B ships.** The architecture may change
 based on what Phase B reveals about data shape and join complexity. Do not over-design now.
 
-### Phase C v1 status (updated 2026-05-24)
+### Phase C v1/v2 status (updated 2026-05-24)
 
 ✅ **Organization-first summary implemented.**
 - `v_entity_summary` materializes organization totals across contracts, subsidies, EU funds,
@@ -373,8 +373,17 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 - `/organizaciones/[id]` uses the summary for its headline snapshot and renders only evidence
   sections with linked records.
 
-Next Phase C slice: decide whether to add person-level summaries or build a dedicated
-`/entidades/[type]/[id]` route once organization search/page behavior has been verified in production.
+✅ **Person-level summary implemented.**
+- `v_entity_summary` also materializes active Congress politician rows with vote,
+  declaration, responsibility-position, institutional-appointment, verified revolving-door,
+  reviewed judicial, and reviewed BORME-match counters.
+- Politician summary rows are upserted into `search_documents` as `politician` documents.
+- `/diputados/[id]` reads the unified summary and shows linked record counters when evidence
+  exists.
+
+Next Phase C slice: after production verification, choose between a dedicated
+`/entidades/[type]/[id]` route or a cross-entity cascade section on existing organization
+and politician pages.
 
 **Rough acceptance (to be refined):**
 - Searching "Navantia" returns contracts, subsidies, EU funds, board members, revolving door

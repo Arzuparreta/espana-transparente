@@ -235,7 +235,7 @@ export type OrganizationPublicRow = {
 }
 
 export type EntitySummaryRow = {
-  entity_type: "organization"
+  entity_type: "organization" | "politician"
   entity_id: string
   name: string
   route: string
@@ -243,6 +243,12 @@ export type EntitySummaryRow = {
   organization_type: string | null
   sector: string | null
   country: string | null
+  party: string | null
+  chamber: string | null
+  constituency: string | null
+  current_role: string | null
+  current_organization: string | null
+  current_government: string | null
   source_url: string | null
   awarded_contract_count: number
   awarded_contract_total: number
@@ -261,6 +267,10 @@ export type EntitySummaryRow = {
   institutional_appointment_count: number
   judicial_case_count: number
   lobbying_group_count: number
+  vote_count: number
+  declaration_count: number
+  responsibility_position_count: number
+  borme_match_count: number
   latest_record_date: string | null
   updated_at: string
 }

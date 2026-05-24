@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION } from "./shared"
+import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type EntitySummaryRow } from "./shared"
 
 export const getDeputyCards = unstable_cache(
   async () => {
@@ -19,7 +19,7 @@ export const getDeputyCards = unstable_cache(
 
 export const getPoliticianProfileData = unstable_cache(
   async (id: string) => {
-    const [pol, votes, totalVotes, powerRels, subordinates, revolvingDoors, attendance, divergences, govPosition] =
+    const [pol, votes, totalVotes, powerRels, subordinates, revolvingDoors, attendance, divergences, govPosition, entitySummary] =
       await Promise.all([
         supabase
           .from("politicians")
@@ -61,6 +61,12 @@ export const getPoliticianProfileData = unstable_cache(
           .is("end_date", null)
           .eq("administration_level", "state")
           .maybeSingle(),
+        supabase
+          .from("v_entity_summary")
+          .select("*")
+          .eq("entity_type", "politician")
+          .eq("entity_id", id)
+          .maybeSingle(),
       ])
 
     const govPos = govPosition.data ?? null
@@ -88,6 +94,7 @@ export const getPoliticianProfileData = unstable_cache(
       ),
       govPosition: govPos,
       ministryContracts,
+      entitySummary: entitySummary.data as EntitySummaryRow | null,
     }
   },
   ["politician-profile-data", PHOTOS_CACHE_VERSION],
