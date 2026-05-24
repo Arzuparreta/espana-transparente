@@ -319,6 +319,17 @@ Never label a person or company as "corrupto". Do not infer guilt from investiga
   and the contract page.
 - Judicial ETL has a dry-run mode and tests for status mapping, review gating, and link creation.
 
+### Phase B.5 status (updated 2026-05-24)
+
+✅ **Implemented in repo.** The codebase already contains:
+- `supabase/migrations/20260623170000_judicial_accountability.sql`
+- `etl/src/judicial/cgpj.py` and `etl/src/judicial/review.py`
+- `/corrupcion` and `/corrupcion/[id]`
+- reviewed-only integration on organization and contract pages
+- judicial search corpus refresh through `common.search_refresh`
+
+Remaining: populate and review enough named actor/link rows for public coverage to become useful.
+
 ---
 
 ## Phase C — Unified Entity Graph
@@ -349,6 +360,22 @@ in the UI (loading skeleton + "Cargando datos..." state). Do not promise sub-2s 
 **This phase will be fully specced after Phase B ships.** The architecture may change
 based on what Phase B reveals about data shape and join complexity. Do not over-design now.
 
+### Phase C v1 status (updated 2026-05-24)
+
+✅ **Organization-first summary implemented.**
+- `v_entity_summary` materializes organization totals across contracts, subsidies, EU funds,
+  SEPI/BORME roles, verified revolving-door records, reviewed judicial links, and reviewed
+  CNMC lobbying links.
+- `refresh_entity_summary()` keeps the materialized view warm and upserts richer organization
+  rows into `search_documents`.
+- `etl/src/common/search_refresh.py` now refreshes the entity summary during the full refresh
+  and exposes `--entity-summary-only`.
+- `/organizaciones/[id]` uses the summary for its headline snapshot and renders only evidence
+  sections with linked records.
+
+Next Phase C slice: decide whether to add person-level summaries or build a dedicated
+`/entidades/[type]/[id]` route once organization search/page behavior has been verified in production.
+
 **Rough acceptance (to be refined):**
 - Searching "Navantia" returns contracts, subsidies, EU funds, board members, revolving door
   links — all in one page.
@@ -364,7 +391,7 @@ based on what Phase B reveals about data shape and join complexity. Do not over-
 | Asset/income declarations | ✅ Phase B complete | Done | OCR + OpenData pipelines shipping |
 | SEPI subsidiary boards | ✅ Phase B complete | Done | 12 subsidiaries with board data |
 | BORME company directors | 🚧 In progress (2026-05-23) | Post-C | OpenMercantil API ingestion; schema + ETL + UI done |
-| Corruption proceedings + contract links | Not started | Phase B.5 | CGPJ/CENDOJ/official sources; reviewed actor links only |
+| Corruption proceedings + contract links | ✅ Foundation implemented | Phase B.5 | CGPJ ETL, review gate, `/corrupcion`, reviewed public links |
 | Lobbying register (CNMC RGI) | 🚧 In progress (2026-05-23) | Post-C | Schema + scraper done; ~1,200 groups; scraping in CI |
 | Ministerial meeting agendas | Not started | Post-C | Partially on SAGE portal |
 | Historical budget execution | Not started | Post-C | Intervención General publishes monthly reports |

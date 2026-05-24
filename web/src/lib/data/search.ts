@@ -30,7 +30,7 @@ function inferSearchEntityTypes(query: string): SearchResult["entity_type"][] | 
     .replace(/[\u0300-\u036f]/g, "")
 
   if (isNameLikeQuery(normalized)) {
-    return ["politician", "senator", "government_position", "institution"]
+    return ["politician", "senator", "government_position", "institution", "organization"]
   }
 
   if (/\b(subvencion|subvenciones|bdns)\b/.test(normalized)) return ["subsidy"]
@@ -45,6 +45,9 @@ function inferSearchEntityTypes(query: string): SearchResult["entity_type"][] | 
   if (/\b(senador|senadora|senado)\b/.test(normalized)) return ["senator"]
   if (/\b(diputado|diputada|persona|personas)\b/.test(normalized)) {
     return ["politician", "senator", "government_position", "institution"]
+  }
+  if (/\b(empresa|empresas|organizacion|organizaciones|entidad|entidades|fundacion|asociacion)\b/.test(normalized)) {
+    return ["organization"]
   }
   return null
 }

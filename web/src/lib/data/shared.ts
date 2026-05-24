@@ -234,6 +234,37 @@ export type OrganizationPublicRow = {
   judicial_case_count: number
 }
 
+export type EntitySummaryRow = {
+  entity_type: "organization"
+  entity_id: string
+  name: string
+  route: string
+  subtitle: string | null
+  organization_type: string | null
+  sector: string | null
+  country: string | null
+  source_url: string | null
+  awarded_contract_count: number
+  awarded_contract_total: number
+  contractor_contract_count: number
+  contractor_contract_total: number
+  contract_count: number
+  contract_total: number
+  subsidy_received_count: number
+  subsidy_received_total: number
+  subsidy_granted_count: number
+  subsidy_granted_total: number
+  eu_fund_count: number
+  eu_fund_total: number
+  revolving_door_count: number
+  borme_officer_count: number
+  institutional_appointment_count: number
+  judicial_case_count: number
+  lobbying_group_count: number
+  latest_record_date: string | null
+  updated_at: string
+}
+
 export type MoneyCoverageRow = {
   dataset: string
   administration_level: string

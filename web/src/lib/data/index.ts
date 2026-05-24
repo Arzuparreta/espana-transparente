@@ -15,6 +15,7 @@ export {
   type EuFundRow,
   type EuFundsSummary,
   type Senator,
+  type EntitySummaryRow,
 } from "./shared"
 
 // ── Home ─────────────────────────────────────────────────────────────────────

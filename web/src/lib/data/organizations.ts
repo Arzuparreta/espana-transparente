@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PAGE_SIZE, type OrganizationPublicRow } from "./shared"
+import { unstable_cache, HOUR, PAGE_SIZE, type EntitySummaryRow, type OrganizationPublicRow } from "./shared"
 
 const SEPI_SUBSIDIARY_NAMES = [
   "SEPI-NAVANTIA",
@@ -32,9 +32,15 @@ export const getOrganizationsList = unstable_cache(
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks] =
+    const [organization, entitySummary, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks, lobbyingLinks] =
       await Promise.all([
         supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
+        supabase
+          .from("v_entity_summary")
+          .select("*")
+          .eq("entity_type", "organization")
+          .eq("entity_id", id)
+          .maybeSingle(),
         supabase
           .from("contracts")
           .select("id, title, amount, date, source_url")
@@ -86,6 +92,13 @@ export const getOrganizationPageData = unstable_cache(
           .eq("organization_id", id)
           .order("last_verified_at", { ascending: false, nullsFirst: false })
           .limit(10),
+        supabase
+          .from("lobbying_organization_links")
+          .select("id, confidence, match_method, lobbying_groups(name, category, subcategory, source_url)")
+          .eq("organization_id", id)
+          .eq("reviewed", true)
+          .order("created_at", { ascending: false })
+          .limit(10),
       ])
 
     // Filter appointments to those whose institution matches the org name
@@ -100,6 +113,7 @@ export const getOrganizationPageData = unstable_cache(
 
     return {
       organization: organization.data as OrganizationPublicRow | null,
+      entitySummary: entitySummary.data as EntitySummaryRow | null,
       contracts: contracts.data ?? [],
       beneficiarySubsidies: beneficiarySubsidies.data ?? [],
       grantingSubsidies: grantingSubsidies.data ?? [],
@@ -108,6 +122,7 @@ export const getOrganizationPageData = unstable_cache(
       appointments: orgAppointments,
       bormeOfficers: bormeOfficers.data ?? [],
       judicialLinks: judicialLinks.data ?? [],
+      lobbyingLinks: lobbyingLinks.data ?? [],
     }
   },
   ["organization-page-data"],

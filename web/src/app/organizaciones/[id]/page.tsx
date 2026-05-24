@@ -30,6 +30,12 @@ function formatDate(value: string | null | undefined) {
   })
 }
 
+function getLobbyingGroup(link: Record<string, unknown>) {
+  const group = link.lobbying_groups
+  if (Array.isArray(group)) return (group[0] as Record<string, unknown> | undefined) ?? null
+  return (group as Record<string, unknown> | null) ?? null
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
   const { organization } = await getOrganizationPageData(id)
@@ -38,10 +44,22 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function OrganizacionPage({ params }: PageProps) {
   const { id } = await params
-  const { organization, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks } =
+  const { organization, entitySummary, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks, lobbyingLinks } =
     await getOrganizationPageData(id)
 
   if (!organization) notFound()
+
+  const summary = entitySummary
+  const contractCount = summary?.contract_count ?? organization.contract_count
+  const subsidyReceivedCount = summary?.subsidy_received_count ?? organization.subsidy_beneficiary_count
+  const subsidyGrantedCount = summary?.subsidy_granted_count ?? organization.subsidy_granting_count
+  const euFundCount = summary?.eu_fund_count ?? organization.eu_fund_count
+  const revolvingDoorCount = summary?.revolving_door_count ?? organization.revolving_door_count
+  const judicialCaseCount = summary?.judicial_case_count ?? organization.judicial_case_count
+  const bormeOfficerCount = summary?.borme_officer_count ?? bormeOfficers.length
+  const appointmentCount = summary?.institutional_appointment_count ?? appointments.length
+  const lobbyingGroupCount = summary?.lobbying_group_count ?? lobbyingLinks.length
+  const hasGovernanceData = appointments.length > 0 || bormeOfficers.length > 0
 
   return (
     <div className="ui-page">
@@ -52,10 +70,10 @@ export default async function OrganizacionPage({ params }: PageProps) {
         fallbackHref="/organizaciones"
         fallbackLabel="Volver a Organizaciones"
         related={[
-          organization.contract_count > 0
+          contractCount > 0
             ? { href: `/contratos?ministry=${encodeURIComponent(organization.name)}`, label: "Contratos asociados" }
             : null,
-          organization.subsidy_beneficiary_count > 0
+          subsidyReceivedCount > 0
             ? { href: `/subvenciones?ministry=${encodeURIComponent(organization.name)}`, label: "Subvenciones asociadas" }
             : null,
           organization.source_url
@@ -65,17 +83,25 @@ export default async function OrganizacionPage({ params }: PageProps) {
       />
       <PageHeader
         title={organization.name}
-        description="Ficha de organización enlazada a contratos, subvenciones y movimientos público-privados detectados en la base."
+        description="Ficha de organización enlazada a contratos, subvenciones, fondos europeos, cargos publicados y vínculos revisados."
       />
 
       <StatGrid
         items={[
-          { label: "Contratos", value: organization.contract_count, hint: "Expedientes donde figura como órgano contratante o adjudicataria." },
-          { label: "Subvenciones recibidas", value: organization.subsidy_beneficiary_count, hint: "Concesiones donde figura como beneficiaria." },
-          { label: "Subvenciones concedidas", value: organization.subsidy_granting_count, hint: "Concesiones donde figura como órgano concedente." },
-          { label: "Puertas giratorias", value: organization.revolving_door_count, hint: "Movimientos publicados asociados a esta organización." },
-          { label: "Fondos europeos", value: organization.eu_fund_count, hint: "Beneficiario de fondos UE (Kohesio)." },
-          { label: "Procesos judiciales", value: organization.judicial_case_count, hint: "Vínculos revisados con procedimientos publicados." },
+          { label: "Contratos", value: formatAmount(summary?.contract_total ?? 0), hint: `${contractCount.toLocaleString("es-ES")} expedientes como órgano contratante o adjudicataria.`, valueClassName: "text-2xl" },
+          { label: "Subvenciones recibidas", value: formatAmount(summary?.subsidy_received_total ?? 0), hint: `${subsidyReceivedCount.toLocaleString("es-ES")} concesiones como beneficiaria.`, valueClassName: "text-2xl" },
+          { label: "Subvenciones concedidas", value: formatAmount(summary?.subsidy_granted_total ?? 0), hint: `${subsidyGrantedCount.toLocaleString("es-ES")} concesiones como órgano concedente.`, valueClassName: "text-2xl" },
+          { label: "Fondos UE", value: formatAmount(summary?.eu_fund_total ?? 0), hint: `${euFundCount.toLocaleString("es-ES")} registros Kohesio vinculados.`, valueClassName: "text-2xl" },
+        ]}
+      />
+
+      <StatGrid
+        items={[
+          { label: "Cargos SEPI", value: appointmentCount, hint: "Nombramientos publicados para filiales SEPI." },
+          { label: "BORME", value: bormeOfficerCount, hint: "Administradores vigentes en el Registro Mercantil." },
+          { label: "Puertas giratorias", value: revolvingDoorCount, hint: "Movimientos publicados asociados a esta organización." },
+          { label: "Procesos judiciales", value: judicialCaseCount, hint: "Vínculos revisados con procedimientos publicados." },
+          { label: "Grupos de interés", value: lobbyingGroupCount, hint: "Vínculos revisados con el registro CNMC." },
         ]}
       />
 
@@ -101,7 +127,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {(appointments && appointments.length > 0 || bormeOfficers && bormeOfficers.length > 0) && (
+        {hasGovernanceData && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -142,15 +168,13 @@ export default async function OrganizacionPage({ params }: PageProps) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Contratos vinculados</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {contracts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin contratos vinculados.</p>
-            ) : (
-              contracts.map((contract) => (
+        {contracts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Contratos vinculados</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {contracts.map((contract) => (
                 <div key={contract.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <ResponsiveLink href={`/contratos/${contract.id}`} className="font-medium underline-offset-2 hover:underline">
                     {contract.title}
@@ -159,20 +183,18 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {formatDate(contract.date)} · {formatAmount(contract.amount)}
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Subvenciones recibidas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {beneficiarySubsidies.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin subvenciones recibidas enlazadas.</p>
-            ) : (
-              beneficiarySubsidies.map((subsidy) => (
+        {beneficiarySubsidies.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Subvenciones recibidas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {beneficiarySubsidies.map((subsidy) => (
                 <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
                     {subsidy.beneficiario || organization.name}
@@ -181,20 +203,18 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {formatDate(subsidy.fecha_concesion)} · {formatAmount(subsidy.importe)}
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Subvenciones concedidas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {grantingSubsidies.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin subvenciones concedidas enlazadas.</p>
-            ) : (
-              grantingSubsidies.map((subsidy) => (
+        {grantingSubsidies.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Subvenciones concedidas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {grantingSubsidies.map((subsidy) => (
                 <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
                     {subsidy.beneficiario || "Beneficiario sin nombre"}
@@ -203,20 +223,18 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {formatDate(subsidy.fecha_concesion)} · {formatAmount(subsidy.importe)}
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Puertas giratorias</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {revolvingDoorCases.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin movimientos publicados.</p>
-            ) : (
-              revolvingDoorCases.map((entry) => (
+        {revolvingDoorCases.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Puertas giratorias</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {revolvingDoorCases.map((entry) => (
                 <div key={entry.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <div className="font-medium">
                     {entry.person_id ? (
@@ -235,20 +253,18 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {entry.private_start_date ? ` · ${formatDate(entry.private_start_date)}` : ""}
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Fondos europeos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {euFunds.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin fondos europeos registrados para esta organización.</p>
-            ) : (
-              euFunds.map((fund) => (
+        {euFunds.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Fondos europeos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {euFunds.map((fund) => (
                 <div key={fund.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <ResponsiveLink
                     href={`/fondos-ue/${fund.id.split("/").pop()}`}
@@ -263,20 +279,18 @@ export default async function OrganizacionPage({ params }: PageProps) {
                     {fund.cofinancing_rate != null ? ` · cofin. ${fund.cofinancing_rate}%` : ""}
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Procesos judiciales relacionados</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {judicialLinks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin vínculos revisados publicados.</p>
-            ) : (
-              judicialLinks.map((link) => (
+        {judicialLinks.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Procesos judiciales relacionados</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {judicialLinks.map((link) => (
                 <div key={link.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
                   <ResponsiveLink href={`/corrupcion/${link.case_id}`} className="font-medium underline-offset-2 hover:underline">
                     {link.case_title}
@@ -287,10 +301,39 @@ export default async function OrganizacionPage({ params }: PageProps) {
                   </div>
                   <div className="text-xs text-muted-foreground">{link.link_reason}</div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {lobbyingLinks.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Grupos de interés relacionados</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {lobbyingLinks.map((link: Record<string, unknown>) => {
+                const group = getLobbyingGroup(link)
+                if (!group) return null
+                return (
+                  <div key={link.id as string} className="border-l-2 border-muted py-1 pl-3 text-sm">
+                    <a
+                      href={group.source_url as string}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline-offset-2 hover:underline"
+                    >
+                      {group.name as string}
+                    </a>
+                    <div className="text-xs text-muted-foreground">
+                      {[group.category, group.subcategory].filter(Boolean).join(" · ") || "Registro de Grupos de Interés CNMC"}
+                    </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
