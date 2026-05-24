@@ -266,6 +266,155 @@ def build_organization_actors(case: WikiCase) -> list[WikiActor]:
     return actors
 
 
+def extract_person_actors_from_page(
+    html: str, case: WikiCase
+) -> list[WikiActor]:
+    """Extract individual person names from a Wikipedia case page.
+
+    Looks for sections whose heading matches ACTOR_SECTION_KEYWORDS
+    (e.g. 'Imputados', 'Acusados', 'Condenados') and extracts list items
+    or bullet points containing person names.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    content = soup.find("div", class_="mw-parser-output")
+    if not content or not isinstance(content, Tag):
+        return []
+
+    actors: list[WikiActor] = []
+    seen: set[str] = set()
+
+    # Find relevant section headings
+    for heading in content.find_all(["h2", "h3", "h4"]):
+        heading_text = heading.get_text(strip=True).lower()
+
+        # Check if this heading matches an actor section keyword
+        is_actor_section = any(
+            kw in heading_text for kw in ACTOR_SECTION_KEYWORDS
+        )
+        if not is_actor_section:
+            continue
+
+        # Collect all list items and paragraphs until the next heading
+        current = heading.next_sibling
+        while current:
+            if isinstance(current, Tag) and current.name in ("h2", "h3", "h4"):
+                break
+
+            if isinstance(current, Tag):
+                # List items (<li>) — common in Wikipedia
+                for li in current.find_all("li"):
+                    text = clean_text(li.get_text(" ", strip=True))
+                    if not text or len(text) < 5:
+                        continue
+                    # Try to extract just the person name (before any role/parenthetical)
+                    person_name = extract_person_name(text)
+                    if person_name and person_name.lower() not in seen:
+                        seen.add(person_name.lower())
+                        actors.append(WikiActor(
+                            case_external_id=case.external_id,
+                            actor_label=person_name,
+                            actor_type="person",
+                            role=extract_person_role(text, person_name),
+                            evidence_url=case.wiki_page_url or case.source_url,
+                        ))
+
+                # Also check paragraphs with bold names
+                for bold in current.find_all("b"):
+                    text = clean_text(bold.get_text(" ", strip=True))
+                    if not text or len(text) < 5:
+                        continue
+                    person_name = extract_person_name(text)
+                    if person_name and person_name.lower() not in seen:
+                        seen.add(person_name.lower())
+                        actors.append(WikiActor(
+                            case_external_id=case.external_id,
+                            actor_label=person_name,
+                            actor_type="person",
+                            role="implicated",
+                            evidence_url=case.wiki_page_url or case.source_url,
+                        ))
+
+            current = current.next_sibling
+
+    return actors
+
+
+def extract_person_name(text: str) -> str | None:
+    """Extract a person's full name from a Wikipedia list item.
+
+    Handles formats like:
+      - "Fulano Mengano (expresidente)"
+      - "Fulano Mengano, exconsejero"
+      - "Fulano Mengano — condenado a X años"
+    """
+    if not text:
+        return None
+
+    # Remove leading numbering like "1." or "1)"
+    text = re.sub(r"^\d+[\.\)]\s*", "", text)
+
+    # Split on common delimiters that indicate role/status info
+    for delim in [" — ", " - ", " (", "(", ",", ";"]:
+        if delim in text:
+            text = text.split(delim)[0].strip()
+            break
+
+    text = text.strip()
+
+    # Must look like a person name: at least two words, capital letters,
+    # no more than 5 words (avoid long descriptions)
+    words = text.split()
+    if len(words) < 2 or len(words) > 5:
+        return None
+
+    # Should start with capital letters (Spanish name convention)
+    if not words[0][0].isupper():
+        return None
+
+    # Filter out non-name strings
+    lower = text.lower()
+    if any(kw in lower for kw in (
+        "artículo", "referencia", "véase", "categoría", "anexo",
+        "sr.", "dra.", "excmo", "ilmo", "ministerio", "tribunal",
+        "juzgado", "audiencia", "sentencia", "tribunal supremo",
+    )):
+        return None
+
+    return text
+
+
+def extract_person_role(full_text: str, person_name: str) -> str | None:
+    """Extract the role/position from text after the person's name."""
+    after_name = full_text[len(person_name):].strip()
+    # Remove leading delimiters
+    for delim in ["—", "-", ",", ";", "("]:
+        if after_name.startswith(delim):
+            after_name = after_name[1:].strip()
+    # Remove trailing parenthesis
+    after_name = after_name.rstrip(")")
+    if after_name and len(after_name) < 100:
+        return after_name[:100]
+    return None
+
+
+def fetch_case_page_actors(
+    client: httpx.Client, case: WikiCase
+) -> list[WikiActor]:
+    """Fetch a Wikipedia case page and extract person actors from it."""
+    if not case.wiki_page_url:
+        return []
+
+    try:
+        resp = client.get(case.wiki_page_url)
+        resp.raise_for_status()
+        time.sleep(REQUEST_DELAY)
+    except Exception as exc:
+        print(f"  Warning: failed to fetch {case.wiki_page_url}: {exc}")
+        return []
+
+    return extract_person_actors_from_page(resp.text, case)
+
+
 def extract_page_title_from_url(url: str) -> str | None:
     """Extract Wikipedia page title from a URL like /wiki/Caso_Gürtel."""
     if "/wiki/" in url:
@@ -322,6 +471,47 @@ def upsert_cases(cur, cases: list[WikiCase]) -> int:
     return count
 
 
+def match_party(cur, label: str) -> tuple[str | None, float | None]:
+    """Try to match an actor label against the parties table.
+
+    Returns (party_id, confidence) or (None, None).
+    """
+    # Exact match (case insensitive) on name or acronym
+    cur.execute(
+        """
+        SELECT id, 1.0::numeric AS conf
+        FROM parties
+        WHERE LOWER(name) = LOWER(%s) OR LOWER(acronym) = LOWER(%s)
+        LIMIT 1
+        """,
+        (label, label),
+    )
+    row = cur.fetchone()
+    if row:
+        return row[0], row[1]
+
+    # Fuzzy match
+    cur.execute(
+        """
+        SELECT id, GREATEST(
+          SIMILARITY(LOWER(name), LOWER(%s)),
+          SIMILARITY(LOWER(acronym), LOWER(%s))
+        ) AS conf
+        FROM parties
+        WHERE SIMILARITY(LOWER(name), LOWER(%s)) >= 0.6
+           OR SIMILARITY(LOWER(acronym), LOWER(%s)) >= 0.6
+        ORDER BY conf DESC
+        LIMIT 1
+        """,
+        (label, label, label, label),
+    )
+    row = cur.fetchone()
+    if row:
+        return row[0], row[1]
+
+    return None, None
+
+
 def upsert_actors(cur, actors: list[WikiActor], case_external_id: str) -> int:
     """Upsert case actors. Uses (case_id, actor_label) for dedup.
 
@@ -340,8 +530,14 @@ def upsert_actors(cur, actors: list[WikiActor], case_external_id: str) -> int:
             continue
         case_id = case_row[0]
 
-        # Try fuzzy match against organizations
-        if actor.actor_type in ("organization", "unknown"):
+        org_id = None
+        party_id = None
+        politician_id = None
+        match_confidence = None
+        match_method = None
+
+        if actor.actor_type == "organization":
+            # Try fuzzy match against organizations
             cur.execute(
                 """
                 SELECT id FROM organizations
@@ -351,19 +547,41 @@ def upsert_actors(cur, actors: list[WikiActor], case_external_id: str) -> int:
                 (actor.actor_label,),
             )
             org_row = cur.fetchone()
-            org_id = org_row[0] if org_row else None
-        else:
-            org_id = None
+            if org_row:
+                org_id = org_row[0]
+                match_confidence = 0.85
+                match_method = "fuzzy_name"
+            else:
+                # If no org match, try party match (political party names)
+                party_id, match_confidence = match_party(cur, actor.actor_label)
+                if party_id:
+                    match_method = "fuzzy_party"
+
+        elif actor.actor_type == "person":
+            # Try fuzzy match against politicians
+            cur.execute(
+                """
+                SELECT id FROM politicians
+                WHERE SIMILARITY(LOWER(full_name), LOWER(%s)) >= 0.85
+                LIMIT 1
+                """,
+                (actor.actor_label,),
+            )
+            pol_row = cur.fetchone()
+            if pol_row:
+                politician_id = pol_row[0]
+                match_confidence = 0.85
+                match_method = "fuzzy_name"
 
         cur.execute(
             """
             INSERT INTO corruption_case_actors (
               case_id, actor_type, actor_label, role,
-              politician_id, organization_id,
+              politician_id, organization_id, party_id,
               match_confidence, match_method,
               review_status, evidence_url, raw_data
             )
-            VALUES (%s, %s, %s, %s, NULL, %s, %s, %s, 'needs_review', %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'needs_review', %s, %s)
             ON CONFLICT DO NOTHING
             """,
             (
@@ -371,9 +589,11 @@ def upsert_actors(cur, actors: list[WikiActor], case_external_id: str) -> int:
                 actor.actor_type,
                 actor.actor_label,
                 actor.role,
+                politician_id,
                 org_id,
-                0.85 if org_id else None,
-                "fuzzy_name" if org_id else None,
+                party_id,
+                match_confidence,
+                match_method,
                 actor.evidence_url,
                 psycopg2.extras.Json({}),
             ),
@@ -387,10 +607,11 @@ def run(
     dry_run: bool = False,
     max_cases: int = 0,
     skip_actors: bool = False,
-) -> tuple[int, int]:
+    extract_people: bool = False,
+) -> tuple[int, int, int]:
     """Main ETL run.
 
-    Returns (cases_parsed, actors_inserted).
+    Returns (cases_parsed, org_actors_inserted, person_actors_inserted).
     """
     with httpx.Client(
         timeout=45.0,
@@ -412,7 +633,7 @@ def run(
                 print(f"  {case.procedural_status:20s} | {case.title[:80]}")
                 if case.organizations_text:
                     print(f"    Orgs: {case.organizations_text[:100]}")
-            return len(cases), 0
+            return len(cases), 0, 0
 
         # 2. Upsert cases
         conn = get_pg_conn()
@@ -429,19 +650,33 @@ def run(
             print(f"Upserted {case_count} cases")
 
             # 3. Build organization actors from annex data
+            org_actor_count = 0
+            person_actor_count = 0
             if not skip_actors:
-                actor_count = 0
                 for case in cases:
-                    actors = build_organization_actors(case)
-                    if actors:
+                    # Organization actors from annex table column
+                    org_actors = build_organization_actors(case)
+                    if org_actors:
                         with conn.cursor() as cur:
-                            added = upsert_actors(cur, actors, case.external_id)
+                            added = upsert_actors(cur, org_actors, case.external_id)
                             conn.commit()
-                            actor_count += added
-                print(f"Organization actors added: {actor_count}")
-                return case_count, actor_count
+                            org_actor_count += added
 
-            return case_count, 0
+                    # Individual person actors from case detail pages
+                    if extract_people and case.wiki_page_url:
+                        person_actors = fetch_case_page_actors(client, case)
+                        if person_actors:
+                            with conn.cursor() as cur:
+                                added = upsert_actors(cur, person_actors, case.external_id)
+                                conn.commit()
+                                person_actor_count += added
+
+                print(f"Organization actors added: {org_actor_count}")
+                if extract_people:
+                    print(f"Person actors added: {person_actor_count}")
+                return case_count, org_actor_count, person_actor_count
+
+            return case_count, 0, 0
 
         except Exception as exc:
             conn.rollback()
@@ -469,20 +704,25 @@ def main() -> None:
     )
     parser.add_argument(
         "--skip-actors", action="store_true",
-        help="Only ingest cases, skip actor extraction from individual pages"
+        help="Only ingest cases, skip actor extraction"
+    )
+    parser.add_argument(
+        "--extract-people", action="store_true",
+        help="Fetch individual case pages and extract person names from actor sections"
     )
     parser.add_argument(
         "--resume", action="store_true",
         help="Accepted for scheduler compatibility; upserts are idempotent."
     )
     args = parser.parse_args()
-    cases_count, actors_count = run(
+    cases_count, org_actors, person_actors = run(
         dry_run=args.dry_run,
         max_cases=args.max_cases,
         skip_actors=args.skip_actors,
+        extract_people=args.extract_people,
     )
     if not args.dry_run:
-        print(f"\nDone. Cases: {cases_count}, Actors: {actors_count}")
+        print(f"\nDone. Cases: {cases_count}, Org actors: {org_actors}, Person actors: {person_actors}")
 
 
 if __name__ == "__main__":

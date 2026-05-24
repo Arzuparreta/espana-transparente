@@ -31,6 +31,8 @@ export interface EntityTrail {
     people: TrailConnection[]
     /** Organizations connected to this person/org. */
     organizations: TrailConnection[]
+    /** Judicial cases linked to this entity or its party. */
+    judicial: TrailConnection[]
   }
 }
 
@@ -41,6 +43,7 @@ function buildOrganizationTrail(
 ): EntityTrail {
   const people: TrailConnection[] = []
   const organizations: TrailConnection[] = []
+  const judicial: TrailConnection[] = []
   const seen = new Set<string>()
 
   for (const row of rows) {
@@ -69,13 +72,15 @@ function buildOrganizationTrail(
       if (connRoute !== `/organizaciones/${orgId}`) {
         organizations.push(connection)
       }
+    } else if (connType === "judicial_case") {
+      judicial.push(connection)
     }
   }
 
   return {
     entity_type: "organization",
     entity_id: orgId,
-    connections: { people, organizations },
+    connections: { people, organizations, judicial },
   }
 }
 
@@ -86,6 +91,7 @@ function buildPoliticianTrail(
 ): EntityTrail {
   const people: TrailConnection[] = []
   const organizations: TrailConnection[] = []
+  const judicial: TrailConnection[] = []
   const seen = new Set<string>()
 
   for (const row of rows) {
@@ -113,13 +119,15 @@ function buildPoliticianTrail(
       }
     } else if (connType === "organization") {
       organizations.push(connection)
+    } else if (connType === "judicial_case") {
+      judicial.push(connection)
     }
   }
 
   return {
     entity_type: "politician",
     entity_id: polId,
-    connections: { people, organizations },
+    connections: { people, organizations, judicial },
   }
 }
 
@@ -136,7 +144,7 @@ export const getEntityTrail = unstable_cache(
       return {
         entity_type: entityType,
         entity_id: entityId,
-        connections: { people: [], organizations: [] },
+        connections: { people: [], organizations: [], judicial: [] },
       }
     }
 

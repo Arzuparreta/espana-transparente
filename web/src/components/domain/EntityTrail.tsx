@@ -54,8 +54,8 @@ function ConnectionGroup({
 export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
   const trail = await getEntityTrail(entityType, entityId)
 
-  const { people, organizations } = trail.connections
-  if (people.length === 0 && organizations.length === 0) return null
+  const { people, organizations, judicial } = trail.connections
+  if (people.length === 0 && organizations.length === 0 && judicial.length === 0) return null
 
   return (
     <Card>
@@ -70,6 +70,10 @@ export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
         <ConnectionGroup
           title="Organizaciones"
           connections={organizations}
+        />
+        <ConnectionGroup
+          title="Casos judiciales"
+          connections={judicial}
         />
       </CardContent>
     </Card>
