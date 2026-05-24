@@ -35,9 +35,11 @@ if not sql_file.exists():
 sql = sql_file.read_text()
 print(f"Applying {sql_file.name} ...")
 
-conn = psycopg2.connect(DATABASE_URL)
+url = DATABASE_URL.replace(":5432", ":6543")
+conn = psycopg2.connect(url)
 conn.autocommit = True
 with conn.cursor() as cur:
+    cur.execute("SET SESSION CHARACTERISTICS AS TRANSACTION READ WRITE")
     cur.execute(sql)
 conn.close()
 

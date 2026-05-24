@@ -3,7 +3,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getEntityTrail, type TrailConnection } from "@/lib/data/entity-trail"
 
 interface EntityTrailProps {
-  entityType: "organization" | "politician"
+  entityType: "organization" | "politician" | "party"
   entityId: string
 }
 
@@ -28,9 +28,11 @@ function ConnectionGroup({
       <h3 className="text-sm font-semibold">{title}</h3>
       {Object.entries(grouped).map(([source, items]) => (
         <div key={source} className="space-y-1">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            {source}
-          </div>
+          {Object.keys(grouped).length > 1 && (
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {source}
+            </div>
+          )}
           <div className="flex flex-wrap gap-1.5">
             {items.map((conn, i) => (
               <ResponsiveLink
