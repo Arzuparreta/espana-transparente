@@ -1,9 +1,11 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { getOrganizationPageData, JUDICIAL_STATUS_LABEL } from "@/lib/data"
 import type { JudicialStatus } from "@/lib/data"
 
@@ -335,6 +337,10 @@ export default async function OrganizacionPage({ params }: PageProps) {
           </Card>
         )}
       </div>
+
+      <Suspense fallback={<EntityTrailSkeleton />}>
+        <EntityTrail entityType="organization" entityId={id} />
+      </Suspense>
     </div>
   )
 }

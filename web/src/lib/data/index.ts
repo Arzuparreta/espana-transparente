@@ -106,6 +106,12 @@ export {
   getOrganizationPageData,
 } from "./organizations"
 
+// ── Entity Trail (cross-entity connections) ──────────────────────────────────
+export {
+  getEntityTrail,
+} from "./entity-trail"
+export type { EntityTrail as EntityTrailData, TrailConnection } from "./entity-trail"
+
 // ── Search ───────────────────────────────────────────────────────────────────
 export {
   searchGlobal,

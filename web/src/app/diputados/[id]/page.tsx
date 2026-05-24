@@ -1,7 +1,9 @@
+import { Suspense } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notFound } from "next/navigation"
 import { ContextTrail, type ContextTrailLink } from "@/components/navigation/ContextTrail"
 import { PoliticianProfile } from "@/components/politicians/PoliticianProfile"
+import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { getPoliticianProfileData, getDeputyVotes, getDeputyAttendanceSessions, parsePage, PAGE_SIZE } from "@/lib/data"
 
 export const revalidate = 3600
@@ -92,6 +94,11 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
         ministryContracts={ministryContracts as Parameters<typeof PoliticianProfile>[0]["ministryContracts"]}
         entitySummary={entitySummary}
       />
+      <div className="mx-auto w-full max-w-6xl mt-6">
+        <Suspense fallback={<EntityTrailSkeleton />}>
+          <EntityTrail entityType="politician" entityId={id} />
+        </Suspense>
+      </div>
     </>
   )
 }
