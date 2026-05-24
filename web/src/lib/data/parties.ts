@@ -161,6 +161,19 @@ export const getPartyJudicialCases = unstable_cache(
   { revalidate: HOUR }
 )
 
+export const getPartyCaseCounts = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    const { data } = await supabase.rpc("get_party_case_counts")
+    const map: Record<string, number> = {}
+    for (const row of (data ?? []) as { party_id: string; case_count: number }[]) {
+      if (row.party_id) map[row.party_id] = row.case_count
+    }
+    return map
+  },
+  ["party-case-counts"],
+  { revalidate: HOUR }
+)
+
 export const getPartyAcronymMap = unstable_cache(
   async () => {
     const { data } = await supabase.from("parties").select("id, acronym, name")
