@@ -139,6 +139,28 @@ export const getPartyVotingSessions = unstable_cache(
   { revalidate: HOUR }
 )
 
+export interface PartyCaseRow {
+  case_id: string
+  title: string
+  procedural_status: string | null
+  territory: string | null
+  offence_category: string | null
+  source_published_at: string | null
+  court_body: string | null
+  source_url: string | null
+  actor_label: string | null
+  actor_role: string | null
+}
+
+export const getPartyJudicialCases = unstable_cache(
+  async (partyId: string): Promise<PartyCaseRow[]> => {
+    const { data } = await supabase.rpc("get_party_cases", { p_party_id: partyId })
+    return (data ?? []) as PartyCaseRow[]
+  },
+  ["party-judicial-cases"],
+  { revalidate: HOUR }
+)
+
 export const getPartyAcronymMap = unstable_cache(
   async () => {
     const { data } = await supabase.from("parties").select("id, acronym, name")

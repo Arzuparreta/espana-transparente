@@ -46,7 +46,9 @@ export {
   getParties,
   getPartyPageData,
   getPartyVotingSessions,
+  getPartyJudicialCases,
   getPartyAcronymMap,
+  type PartyCaseRow,
 } from "./parties"
 
 // ── Voting ───────────────────────────────────────────────────────────────────

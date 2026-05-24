@@ -3,7 +3,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getEntityTrail, type TrailConnection } from "@/lib/data/entity-trail"
 
 interface EntityTrailProps {
-  entityType: "organization" | "politician"
+  entityType: "organization" | "politician" | "party"
   entityId: string
 }
 

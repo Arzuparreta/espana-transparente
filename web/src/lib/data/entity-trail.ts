@@ -22,7 +22,7 @@ export interface TrailConnection {
 
 export interface EntityTrail {
   /** The entity this trail is about. */
-  entity_type: "organization" | "politician"
+  entity_type: "organization" | "politician" | "party"
   entity_id: string
 
   /** Connections grouped by dimension. */
@@ -131,8 +131,36 @@ function buildPoliticianTrail(
   }
 }
 
+function buildPartyTrail(partyId: string, rows: Record<string, unknown>[]): EntityTrail {
+  const judicial: TrailConnection[] = []
+  const seen = new Set<string>()
+
+  for (const row of rows) {
+    const source = row.source_table as string
+    const connLabel = row.connected_name as string | null
+    const connRoute = row.connected_route as string | null
+    const connType = row.connected_type as string | null
+    const meta = row.connection_meta as string | null
+
+    if (!connLabel || !connRoute) continue
+    const key = `${connType}:${connRoute}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    if (connType === "judicial_case") {
+      judicial.push({ label: connLabel, route: connRoute, connection: source, meta })
+    }
+  }
+
+  return {
+    entity_type: "party",
+    entity_id: partyId,
+    connections: { people: [], organizations: [], judicial },
+  }
+}
+
 export const getEntityTrail = unstable_cache(
-  async (entityType: "organization" | "politician", entityId: string): Promise<EntityTrail> => {
+  async (entityType: "organization" | "politician" | "party", entityId: string): Promise<EntityTrail> => {
     // Query the entity_trail SQL function (or inline the logic)
     const { data, error } = await supabase.rpc("get_entity_trail", {
       p_entity_type: entityType,
@@ -149,9 +177,8 @@ export const getEntityTrail = unstable_cache(
     }
 
     const rows = data as Record<string, unknown>[]
-    if (entityType === "organization") {
-      return buildOrganizationTrail(entityId, "", rows)
-    }
+    if (entityType === "organization") return buildOrganizationTrail(entityId, "", rows)
+    if (entityType === "party") return buildPartyTrail(entityId, rows)
     return buildPoliticianTrail(entityId, "", rows)
   },
   ["entity-trail"],

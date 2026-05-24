@@ -1,13 +1,17 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
+import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SectionTabs } from "@/components/domain/SectionTabs"
-import { getPartyPageData, getPartyVotingSessions } from "@/lib/data"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { getPartyPageData, getPartyVotingSessions, getPartyJudicialCases, JUDICIAL_STATUS_LABEL } from "@/lib/data"
+import type { JudicialStatus } from "@/lib/data"
 import type { PoliticianWithMemberships } from "@/types"
 
 export const revalidate = 3600
@@ -22,11 +26,17 @@ export async function generateMetadata({ params }: PageProps) {
   return { title: party?.acronym ?? "Partido" }
 }
 
+function formatDate(iso: string | null) {
+  if (!iso) return null
+  return new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
+}
+
 export default async function PartyPage({ params }: PageProps) {
   const { id } = await params
-  const [{ party, memberships, stats }, votingSessions] = await Promise.all([
+  const [{ party, memberships, stats }, votingSessions, judicialCases] = await Promise.all([
     getPartyPageData(id),
     getPartyVotingSessions(id),
+    getPartyJudicialCases(id),
   ])
   if (!party) notFound()
 
@@ -40,9 +50,34 @@ export default async function PartyPage({ params }: PageProps) {
           { label: "Abstenciones", value: `${stats.pct_abstain ?? "—"}%`, hint: "Porcentaje de abstenciones sobre el total registrado." },
         ]
       : []),
+    ...(judicialCases.length > 0
+      ? [
+          {
+            label: "Casos judiciales",
+            value: judicialCases.length,
+            hint: "Procedimientos judiciales en los que el partido está identificado como actor, según fuentes oficiales.",
+          },
+        ]
+      : []),
   ]
 
   const partyLabel = party.name ?? party.acronym ?? "Partido"
+
+  // Deduplicate cases (one row per case, multiple actors possible)
+  const seenCaseIds = new Set<string>()
+  const uniqueCases = judicialCases.filter((c) => {
+    if (seenCaseIds.has(c.case_id)) return false
+    seenCaseIds.add(c.case_id)
+    return true
+  })
+
+  const tabs: { value: string; label: string; count: number }[] = [
+    { value: "diputados", label: "Diputados", count: memberships.length },
+    { value: "votaciones", label: "Votaciones", count: votingSessions.length },
+  ]
+  if (uniqueCases.length > 0) {
+    tabs.push({ value: "casos", label: "Casos judiciales", count: uniqueCases.length })
+  }
 
   return (
     <div className="space-y-8">
@@ -58,6 +93,9 @@ export default async function PartyPage({ params }: PageProps) {
             : null,
           votingSessions.length > 0
             ? { href: "#votaciones", label: "Votaciones", meta: String(votingSessions.length) }
+            : null,
+          uniqueCases.length > 0
+            ? { href: "#casos", label: "Casos judiciales", meta: String(uniqueCases.length) }
             : null,
         ]}
       />
@@ -77,10 +115,7 @@ export default async function PartyPage({ params }: PageProps) {
       <StatGrid items={statItems} />
 
       <SectionTabs
-        tabs={[
-          { value: "diputados", label: "Diputados", count: memberships.length },
-          { value: "votaciones", label: "Votaciones", count: votingSessions.length },
-        ]}
+        tabs={tabs}
         defaultTab="diputados"
         panels={{
           diputados: (
@@ -152,8 +187,51 @@ export default async function PartyPage({ params }: PageProps) {
               )}
             </div>
           ),
+          ...(uniqueCases.length > 0
+            ? {
+                casos: (
+                  <div id="casos" className="space-y-2 scroll-mt-24">
+                    <p className="text-xs text-muted-foreground">
+                      Procedimientos en los que el partido está identificado como actor por fuentes oficiales.
+                    </p>
+                    <ul className="space-y-2">
+                      {uniqueCases.map((c) => (
+                        <li key={c.case_id}>
+                          <div className="rounded-[2px] border border-border bg-card px-4 py-3">
+                            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0 space-y-1">
+                                <ResponsiveLink
+                                  href={`/corrupcion/${c.case_id}`}
+                                  className="block min-w-0 text-sm font-medium underline-offset-2 hover:underline"
+                                >
+                                  {c.title}
+                                </ResponsiveLink>
+                                <p className="text-xs text-muted-foreground">
+                                  {c.procedural_status
+                                    ? JUDICIAL_STATUS_LABEL[c.procedural_status as JudicialStatus] ?? c.procedural_status
+                                    : "Estado no especificado"}
+                                  {c.court_body ? ` · ${c.court_body}` : ""}
+                                  {c.territory ? ` · ${c.territory}` : ""}
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-left font-mono text-xs text-muted-foreground sm:text-right">
+                                {formatDate(c.source_published_at)}
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ),
+              }
+            : {}),
         }}
       />
+
+      <Suspense fallback={<EntityTrailSkeleton />}>
+        <EntityTrail entityType="party" entityId={id} />
+      </Suspense>
     </div>
   )
 }
