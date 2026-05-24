@@ -27,10 +27,18 @@ from bs4 import BeautifulSoup
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
 
-CGPJ_REUSABLE_FILES_URL = (
+# The main Ficheros-reutilizables listing page requires JavaScript to render
+# period-specific detail links. Use detail page URLs (Datos-del-...) directly.
+CGPJ_DETAIL_URLS = [
     "https://www.poderjudicial.es/cgpj/es/Temas/Transparencia/"
     "Repositorio-de-datos-sobre-procesos-por-corrupcion/Ficheros-reutilizables/"
-)
+    "Datos-del-cuarto-trimestre-2025-Resumen-nacional",
+    "https://www.poderjudicial.es/cgpj/es/Temas/Transparencia/"
+    "Repositorio-de-datos-sobre-procesos-por-corrupcion/Ficheros-reutilizables/"
+    "Datos-del-cuarto-trimestre-2025-Comunidades-Autonomas",
+]
+
+CGPJ_REUSABLE_FILES_URL = CGPJ_DETAIL_URLS[0]  # default: latest national summary
 
 STATUS_VALUES = {
     "procesamiento_o_juicio_oral",
@@ -195,29 +203,52 @@ def read_cases_from_bytes(content: bytes, source_url: str) -> list[JudicialCase]
 
 
 def discover_reusable_file_url(html: str, base_url: str) -> str | None:
+    """Find the .xlsx/.csv download link embedded in a CGPJ detail page."""
     soup = BeautifulSoup(html, "html.parser")
     for link in soup.find_all("a", href=True):
         href = link["href"]
-        label = link.get_text(" ", strip=True).lower()
-        if re.search(r"\.(csv|xlsx?|ods)(\?|$)", href.lower()) or "descargar" in label:
+        if re.search(r"\.(csv|xlsx?|ods)(\?|$)", href.lower()):
             return str(httpx.URL(base_url).join(href))
     return None
 
 
+def fetch_cases_from_detail_page(client: httpx.Client, detail_url: str) -> list[JudicialCase]:
+    """Fetch and parse cases from a single CGPJ detail page.
+
+    Each detail page (e.g. Datos-del-cuarto-trimestre-2025-Resumen-nacional)
+    contains a link to the actual .xlsx file.
+    """
+    response = client.get(detail_url)
+    response.raise_for_status()
+    file_url = discover_reusable_file_url(response.text, str(response.url))
+    if not file_url:
+        raise RuntimeError(f"No .xlsx/.csv link found on detail page: {detail_url}")
+    file_resp = client.get(file_url)
+    file_resp.raise_for_status()
+    return read_cases_from_bytes(file_resp.content, str(file_resp.url))
+
+
 def fetch_cases(source_url: str) -> list[JudicialCase]:
-    with httpx.Client(timeout=45.0, follow_redirects=True) as client:
+    """Fetch cases from a CGPJ URL.
+
+    Supports:
+      - Direct .xlsx/.csv URL → download and parse immediately.
+      - Detail page URL (Datos-del-...) → discover the embedded .xlsx link.
+    """
+    with httpx.Client(timeout=60.0, follow_redirects=True) as client:
         response = client.get(source_url)
         response.raise_for_status()
         content_type = response.headers.get("content-type", "")
         final_url = str(response.url)
-        if "text/html" in content_type and not final_url.lower().endswith((".csv", ".xls", ".xlsx")):
-            discovered = discover_reusable_file_url(response.text, final_url)
-            if not discovered:
-                raise RuntimeError("No reusable CSV/XLS link found on CGPJ page")
-            response = client.get(discovered)
-            response.raise_for_status()
-            final_url = str(response.url)
-        return read_cases_from_bytes(response.content, final_url)
+
+        # Direct file URL
+        if final_url.lower().endswith((".csv", ".xls", ".xlsx")):
+            return read_cases_from_bytes(response.content, final_url)
+
+        if "text/html" in content_type:
+            return fetch_cases_from_detail_page(client, final_url)
+
+        raise RuntimeError(f"Unexpected content type: {content_type}")
 
 
 def upsert_cases(cur, cases: list[JudicialCase]) -> int:
@@ -267,29 +298,41 @@ def upsert_cases(cur, cases: list[JudicialCase]) -> int:
     return count
 
 
-def run(source_url: str, dry_run: bool = False) -> tuple[int, int]:
-    cases = fetch_cases(source_url)
+def run(source_url: str, dry_run: bool = False, all_periods: bool = False) -> tuple[int, int]:
+    """Run CGPJ ingestion.
+
+    By default, ingests from the given source_url (default: latest national detail page).
+    With --all, ingests from all known CGPJ_DETAIL_URLS.
+    """
+    urls = CGPJ_DETAIL_URLS if all_periods else [source_url]
+    all_cases: list[JudicialCase] = []
+
+    for url in urls:
+        cases = fetch_cases(url)
+        all_cases.extend(cases)
+
     if dry_run:
-        print(f"[DRY-RUN] Parsed {len(cases)} CGPJ rows")
-        for case in cases[:10]:
+        print(f"[DRY-RUN] Parsed {len(all_cases)} CGPJ rows from {len(urls)} source(s)")
+        for case in all_cases[:10]:
             print(f"  {case.procedural_status} | {case.title[:120]} | {case.source_url}")
-        return len(cases), 0
+        return len(all_cases), 0
 
     conn = get_pg_conn()
     run_id = None
     try:
         with conn.cursor() as cur:
-            run_id = start_run(cur, pipeline="judicial.cgpj", chunk_key=source_url)
-            inserted = upsert_cases(cur, cases)
-            finish_run(cur, run_id=run_id, status="succeeded", rows_read=len(cases), rows_updated=inserted)
+            chunk_key = "all" if all_periods else source_url
+            run_id = start_run(cur, pipeline="judicial.cgpj", chunk_key=chunk_key)
+            inserted = upsert_cases(cur, all_cases)
+            finish_run(cur, run_id=run_id, status="succeeded", rows_read=len(all_cases), rows_updated=inserted)
             conn.commit()
-        print(f"CGPJ judicial rows: read={len(cases)} upserted={inserted}")
-        return len(cases), inserted
+        print(f"CGPJ judicial rows: read={len(all_cases)} upserted={inserted}")
+        return len(all_cases), inserted
     except Exception as exc:
         conn.rollback()
         if run_id:
             with conn.cursor() as cur:
-                finish_run(cur, run_id=run_id, status="failed", rows_read=len(cases), error_summary=str(exc)[:500])
+                finish_run(cur, run_id=run_id, status="failed", rows_read=len(all_cases), error_summary=str(exc)[:500])
                 conn.commit()
         raise
     finally:
@@ -298,11 +341,15 @@ def run(source_url: str, dry_run: bool = False) -> tuple[int, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest CGPJ corruption-process reusable files")
-    parser.add_argument("--source-url", default=CGPJ_REUSABLE_FILES_URL)
+    parser.add_argument("--source-url", default=CGPJ_REUSABLE_FILES_URL,
+                        help="Detail page URL or direct .xlsx URL (default: latest national summary)")
+    parser.add_argument("--all", action="store_true",
+                        help="Ingest all known periods (national + CCAA detail pages)")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--resume", action="store_true", help="Accepted for scheduler compatibility; upserts are idempotent.")
+    parser.add_argument("--resume", action="store_true",
+                        help="Accepted for scheduler compatibility; upserts are idempotent.")
     args = parser.parse_args()
-    run(source_url=args.source_url, dry_run=args.dry_run)
+    run(source_url=args.source_url, dry_run=args.dry_run, all_periods=args.all)
 
 
 if __name__ == "__main__":
