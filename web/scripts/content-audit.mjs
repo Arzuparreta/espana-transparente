@@ -12,15 +12,23 @@ const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
 
 /** @returns {string[]} */
 function extractEtlIndicatorCodes() {
-  const etlPath = join(projectRoot, "..", "etl", "src", "ine", "indicadores.py")
-  if (!existsSync(etlPath)) {
-    console.warn("content-audit: ETL indicadores.py not found, skipping indicator coverage check.")
-    return []
+  const files = [
+    join(projectRoot, "..", "etl", "src", "ine", "indicadores.py"),
+    join(projectRoot, "..", "etl", "src", "ine", "indicadores_ampliados.py"),
+    join(projectRoot, "..", "etl", "src", "ine", "bde.py"),
+  ]
+  const codes = []
+  for (const etlPath of files) {
+    if (!existsSync(etlPath)) continue
+    const source = readFileSync(etlPath, "utf8")
+    // Extract the "code" values from INDICATORS dicts, e.g.: "code": "IPC"
+    const matches = source.matchAll(/"code":\s*"([^"]+)"/g)
+    for (const m of matches) codes.push(m[1])
   }
-  const source = readFileSync(etlPath, "utf8")
-  // Extract the "code" values from the INDICATORS dict, e.g.: "code": "IPC"
-  const matches = source.matchAll(/"code":\s*"([^"]+)"/g)
-  return [...matches].map((m) => m[1])
+  if (codes.length === 0) {
+    console.warn("content-audit: no ETL indicator files found, skipping indicator coverage check.")
+  }
+  return codes
 }
 
 /** @returns {string[]} */

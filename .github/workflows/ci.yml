@@ -169,10 +169,13 @@ jobs:
       - run: PYTHONPATH=src python -m src.congreso.opendata_intereses
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.judicial.wikipedia --resume
+      - run: PYTHONPATH=src python -m src.judicial.wikipedia --resume --extract-people
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.judicial.cgpj --resume
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.ine.indicadores_ampliados
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m common.search_refresh

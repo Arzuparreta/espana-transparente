@@ -19,10 +19,21 @@ def get_client() -> Client:
 
 
 def get_pg_conn():
-    """Get direct PostgreSQL connection (for writes)."""
+    """Get direct PostgreSQL connection (for writes).
+
+    Supabase pooler (Pgbouncer) defaults to read-only for session mode.
+    We use transaction mode port (6543) and set the session to read-write.
+    """
     if not DB_URL:
         raise RuntimeError("DATABASE_URL env var is required for ETL writes")
-    return psycopg2.connect(DB_URL)
+    url = DB_URL.replace(":5432", ":6543")
+    conn = psycopg2.connect(url)
+    # Supabase pooler defaults to read-only; override per session
+    conn.autocommit = True
+    with conn.cursor() as cur:
+        cur.execute("SET SESSION CHARACTERISTICS AS TRANSACTION READ WRITE")
+    conn.autocommit = False
+    return conn
 
 
 def upsert_politicians(rows: list[dict]) -> int:
