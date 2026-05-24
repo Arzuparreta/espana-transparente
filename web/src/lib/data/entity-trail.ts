@@ -8,6 +8,12 @@
 
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR } from "./shared"
+import { JUDICIAL_STATUS_LABEL, type JudicialStatus } from "./judicial"
+
+function judicialMeta(status: string | null): string | null {
+  if (!status) return null
+  return JUDICIAL_STATUS_LABEL[status as JudicialStatus] ?? status
+}
 
 export interface TrailConnection {
   /** Display label for the connected entity. */
@@ -73,7 +79,7 @@ function buildOrganizationTrail(
         organizations.push(connection)
       }
     } else if (connType === "judicial_case") {
-      judicial.push(connection)
+      judicial.push({ ...connection, meta: judicialMeta(meta) })
     }
   }
 
@@ -120,7 +126,7 @@ function buildPoliticianTrail(
     } else if (connType === "organization") {
       organizations.push(connection)
     } else if (connType === "judicial_case") {
-      judicial.push(connection)
+      judicial.push({ ...connection, meta: judicialMeta(meta) })
     }
   }
 
@@ -148,7 +154,7 @@ function buildPartyTrail(partyId: string, rows: Record<string, unknown>[]): Enti
     seen.add(key)
 
     if (connType === "judicial_case") {
-      judicial.push({ label: connLabel, route: connRoute, connection: source, meta })
+      judicial.push({ label: connLabel, route: connRoute, connection: source, meta: judicialMeta(meta) })
     }
   }
 
