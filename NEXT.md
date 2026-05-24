@@ -85,15 +85,17 @@ The project has advanced faster than the original phased plan. Here's where ever
 
 **Remaining**: Review actor links via `review.py` to make them publicly visible on `/corrupcion`.
 
-### ✅ Phase C v1/v2 — Unified Entity Graph (ORGANIZATION + PERSON SUMMARIES COMPLETE)
+### ✅ Phase C v1/v2/v3 — Unified Entity Graph (COMPLETE)
 
-- `v_entity_summary` materialized view with organization totals: contracts, subsidies, EU funds, SEPI/BORME roles, verified revolving-door, reviewed judicial links, reviewed CNMC lobbying links
-- Person-level summaries: active Congress politicians with vote, declaration, responsibility-position, institutional-appointment, revolving-door, judicial, and BORME-match counters
-- `refresh_entity_summary()` keeps the view warm; upserts into `search_documents`
-- `/organizaciones/[id]` and `/diputados/[id]` use summary data
-- `search_refresh.py --entity-summary-only` for targeted refresh
+- `v_entity_summary` materialized view with organization + person totals
+- `get_entity_trail()` SQL function: returns connected people and orgs for any entity
+- `EntityTrail` React component: renders cross-entity connections on org and politician pages
+  - Connections: SEPI appointments, revolving doors, BORME directorships, government positions, power relationships, contract/subsidy counterparties
+  - All connections are navigable — user follows the money trail entity by entity
+- Integration: added to `/organizaciones/[id]` and `/diputados/[id]` with Suspense loading
+- Search: entity trail data available; search finds organizations and politicians with entity summaries
 
-**Next Phase C slice**: Decide between dedicated `/entidades/[type]/[id]` route vs cross-entity cascade sections on existing pages.
+**Remaining**: BORME and CNMC pipelines need more data (currently 1 and 10 rows). Surface will auto-populate as pipelines accumulate data in weekly CI.
 
 ### 🚧 BORME Company Directors (IN PROGRESS)
 
@@ -128,32 +130,23 @@ The project has advanced faster than the original phased plan. Here's where ever
 
 ## What To Do Now (2026-05-24)
 
-### 1. Review judicial actor links (B.5) ← NEXT
+### 1. Let BORME + CNMC pipelines accumulate data
 
-138 cases and 209 organization actors ingested from Wikipedia. Cases appear on `/corrupcion`.
-Actors stay hidden until reviewed (all `review_status = 'needs_review'`).
+Both pipelines run weekly in CI but have limited data (1 BORME officer, 10 CNMC groups).
+EntityTrail component and organization pages already render this data — they'll auto-populate
+as the pipelines ingest more rows over the coming weeks.
 
-- Run `PYTHONPATH=src python -m src.judicial.review list-actors` to see pending actors
-- Approve/reject with `approve-actor` / `reject-actor`
-- Once approved, actors appear on `/corrupcion/[id]` and org pages
-- Contract/subsidy links can be created via `corruption_contract_links` table
+No code changes needed. Monitor CI runs and verify data appears on entity pages.
 
-### 2. Phase C next slice
+### 2. OCR batch completion
 
-After Phase B.5 has data, decide and build:
-- Option A: Dedicated `/entidades/[type]/[id]` route with unified cross-entity view
-- Option B: Cross-entity cascade sections on existing `/organizaciones/[id]` and `/diputados/[id]` pages
+351 PDFs remaining at 50/week in weekly CI. Not blocking anything.
 
-Option B is lower effort and reuses existing routes. Option A is cleaner for the "one search → everything" vision.
+### 3. Future: Individual defendant extraction
 
-### 3. Surface BORME + CNMC data on existing pages
-
-- Show BORME officer matches on `/diputados/[id]` when confidence ≥ 0.85
-- Show reviewed CNMC lobbying links on `/organizaciones/[id]`
-
-### 4. OCR batch completion
-
-Continue CI pipeline. 351 PDFs remaining at 50/week. Not blocking anything.
+Current judicial actors are organizations (from Wikipedia annex). Individual defendants
+(person names) could be extracted from Wikipedia case pages using the MediaWiki API's
+`parse` action for structured HTML. This is Phase B.5 follow-up work.
 
 ---
 
