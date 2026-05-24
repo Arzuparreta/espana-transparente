@@ -144,7 +144,10 @@ export {
 // ── Declarations ─────────────────────────────────────────────────────────────
 export {
   getDeclarationsPage,
+  getDeclarationsRegister,
   type DeclarationListRow,
+  type DeclarationRegisterRow,
+  type DeclarationType,
 } from "./declarations"
 
 // ── Money flow (Trazabilidad del gasto) ──────────────────────────────────────
