@@ -199,12 +199,21 @@ removed from `web/src/app/page.tsx`.
 - A one-line scoping test exists for any new dataset ("which thread does it deepen?").
 - No divergence surface anywhere on the home.
 
-### Next validation action
+### Hallway test results (2026-05-25)
 
-**5-person hallway test of the thread vocabulary:** show five non-technical people the five
-thread questions and, for something each genuinely wants to know, ask which thread they'd
-click. Mismatches = taxonomy corrections. Then run an engineering review to lock taxonomy,
-routing, and the 4-vs-5 decision.
+5 personas, 3 mismatches found and fixed:
+
+| Persona | Want | Clicked | Correct | Fix |
+|---|---|---|---|---|
+| María (jubilada) | IPC / pensión | Economía | Economía | ✅ no fix |
+| Carlos (autónomo) | Contratos a empresas | **Integridad** | Dinero | Dinero description now signals watchdog intent |
+| Elena (enfermera) | Puertas giratorias | Integridad | Integridad | ✅ no fix |
+| Ramón (agricultor) | Fondos UE por región | **Territorio** | Dinero | Fondos UE cross-listed in Territorio sources |
+| Sofía (funcionaria) | Nombramientos TC | **Poder** | Integridad | Instituciones cross-listed in Poder as "Organismos de control" |
+
+4 vs 5 threads verdict: **keep 5**. Territorio works as a standalone thread — Ramón's mental model is genuinely territorial. Problem was content gaps, not taxonomy. Fixed by cross-listing EU funds in Territorio.
+
+Taxonomy now locked. SECTION_META groupLabel unchanged (breadcrumbs show primary thread).
 
 ---
 
