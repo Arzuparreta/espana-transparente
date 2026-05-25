@@ -1,9 +1,11 @@
-export type ThreadKey = "dinero" | "economia" | "integridad" | "poder" | "territorio"
+export type ThreadKey = "personas" | "dinero" | "economia" | "territorio"
 
 export interface ThreadSource {
   href: string
   label: string
   description: string
+  /** Optional sub-group caption (e.g. "Cargos" / "Decisiones") for grouped threads. */
+  section?: string
   countKey?: string
   countUnit?: string
 }
@@ -20,10 +22,102 @@ export interface ThreadConfig {
 
 export const THREADS: ThreadConfig[] = [
   {
+    key: "personas",
+    href: "/personas",
+    label: "Personas",
+    question: "Cargos públicos, sus decisiones y su conducta",
+    description:
+      "Diputados, senado, gobierno y partidos; sus votaciones e iniciativas; y su conducta: declaraciones, puertas giratorias y procesos judiciales.",
+    curationRule:
+      "Prioriza cargos y decisiones actuales; las votaciones divergentes y los procesos se quedan en páginas de detalle.",
+    sources: [
+      {
+        href: "/diputados",
+        label: "Diputados",
+        description: "Diputados activos del Congreso con grupo y circunscripción.",
+        section: "Cargos",
+        countKey: "diputados",
+        countUnit: "activos",
+      },
+      {
+        href: "/senado",
+        label: "Senado",
+        description: "Senadores activos y composición de la cámara alta.",
+        section: "Cargos",
+        countKey: "senado",
+        countUnit: "activos",
+      },
+      {
+        href: "/gobierno",
+        label: "Gobierno",
+        description: "Presidencia, vicepresidencias y ministerios del gabinete actual.",
+        section: "Cargos",
+        countKey: "gobierno",
+        countUnit: "cargos",
+      },
+      {
+        href: "/partidos",
+        label: "Partidos",
+        description: "Partidos y grupos parlamentarios con representación.",
+        section: "Cargos",
+        countKey: "partidos",
+        countUnit: "registrados",
+      },
+      {
+        href: "/instituciones",
+        label: "Nombramientos",
+        description: "Personas nombradas en TC, CGPJ, RTVE y SEPI, y por qué partido fue propuesta cada una.",
+        section: "Cargos",
+        countKey: "instituciones",
+        countUnit: "nombramientos",
+      },
+      {
+        href: "/votaciones",
+        label: "Votaciones",
+        description: "Sesiones con voto nominal y resultado individual.",
+        section: "Decisiones",
+        countKey: "votaciones",
+        countUnit: "sesiones",
+      },
+      {
+        href: "/iniciativas",
+        label: "Iniciativas",
+        description: "Proyectos de ley, proposiciones y mociones en tramitación.",
+        section: "Decisiones",
+        countKey: "iniciativas",
+        countUnit: "registradas",
+      },
+      {
+        href: "/declaraciones",
+        label: "Declaraciones",
+        description: "Bienes, rentas, actividades e intereses económicos declarados.",
+        section: "Conducta",
+        countKey: "declaraciones",
+        countUnit: "declaraciones",
+      },
+      {
+        href: "/puertas-giratorias",
+        label: "Puertas giratorias",
+        description: "Casos verificados de paso entre cargo público y sector privado.",
+        section: "Conducta",
+        countKey: "puertas-giratorias",
+        countUnit: "casos",
+      },
+      {
+        href: "/corrupcion",
+        label: "Procesos judiciales",
+        description: "Procedimientos publicados por fuentes judiciales oficiales.",
+        section: "Conducta",
+        countKey: "corrupcion",
+        countUnit: "casos",
+      },
+    ],
+  },
+  {
     key: "dinero",
     href: "/dinero",
     label: "Dinero",
-    question: "¿A dónde va el dinero público?",
+    question: "A dónde va el dinero público",
     description:
       "Presupuestos, contratos, subvenciones y fondos europeos: a quién se adjudica, cuánto importa y qué organismo lo autoriza.",
     curationRule:
@@ -76,7 +170,7 @@ export const THREADS: ThreadConfig[] = [
     key: "economia",
     href: "/economia",
     label: "Economía",
-    question: "¿Cómo me afecta la economía?",
+    question: "Precios, deuda, empleo y salarios",
     description:
       "Series económicas públicas con explicación directa: precios, deuda, empleo, salarios y actividad.",
     curationRule:
@@ -89,120 +183,13 @@ export const THREADS: ThreadConfig[] = [
         countKey: "indicadores",
         countUnit: "series",
       },
-      {
-        href: "/estado-datos",
-        label: "Estado de los datos",
-        description: "Frescura de los pipelines que alimentan las series económicas.",
-        countKey: "estado-datos",
-      },
-    ],
-  },
-  {
-    key: "integridad",
-    href: "/integridad",
-    label: "Integridad",
-    question: "¿Es honesto quien me representa?",
-    description:
-      "Declaraciones económicas, puertas giratorias, procesos judiciales y nombramientos institucionales.",
-    curationRule:
-      "Publica solo registros con fuente explícita y separa hechos declarados, nombramientos y procedimientos.",
-    sources: [
-      {
-        href: "/declaraciones",
-        label: "Declaraciones",
-        description: "Bienes, rentas, actividades e intereses económicos declarados.",
-        countKey: "declaraciones",
-        countUnit: "declaraciones",
-      },
-      {
-        href: "/puertas-giratorias",
-        label: "Puertas giratorias",
-        description: "Casos verificados de paso entre cargo público y sector privado.",
-        countKey: "puertas-giratorias",
-        countUnit: "casos",
-      },
-      {
-        href: "/corrupcion",
-        label: "Procesos judiciales",
-        description: "Procedimientos publicados por fuentes judiciales oficiales.",
-        countKey: "corrupcion",
-        countUnit: "casos",
-      },
-      {
-        href: "/instituciones",
-        label: "Instituciones",
-        description: "Nombramientos en TC, CGPJ, RTVE y SEPI.",
-        countKey: "instituciones",
-        countUnit: "nombramientos",
-      },
-    ],
-  },
-  {
-    key: "poder",
-    href: "/poder",
-    label: "Poder",
-    question: "¿Quién manda y cómo decide?",
-    description:
-      "Personas, partidos, Gobierno, cámaras, organismos de control e iniciativas legislativas enlazadas por decisiones públicas.",
-    curationRule:
-      "Prioriza cargos y decisiones actuales; las votaciones divergentes se quedan en páginas de detalle.",
-    sources: [
-      {
-        href: "/gobierno",
-        label: "Gobierno",
-        description: "Presidencia, vicepresidencias y ministerios del gabinete actual.",
-        countKey: "gobierno",
-        countUnit: "cargos",
-      },
-      {
-        href: "/diputados",
-        label: "Diputados",
-        description: "Diputados activos del Congreso con grupo y circunscripción.",
-        countKey: "diputados",
-        countUnit: "activos",
-      },
-      {
-        href: "/senado",
-        label: "Senado",
-        description: "Senadores activos y composición de la cámara alta.",
-        countKey: "senado",
-        countUnit: "activos",
-      },
-      {
-        href: "/partidos",
-        label: "Partidos",
-        description: "Partidos y grupos parlamentarios con representación.",
-        countKey: "partidos",
-        countUnit: "registrados",
-      },
-      {
-        href: "/votaciones",
-        label: "Votaciones",
-        description: "Sesiones con voto nominal y resultado individual.",
-        countKey: "votaciones",
-        countUnit: "sesiones",
-      },
-      {
-        href: "/iniciativas",
-        label: "Iniciativas",
-        description: "Proyectos de ley, proposiciones y mociones en tramitación.",
-        countKey: "iniciativas",
-        countUnit: "registradas",
-      },
-      {
-        href: "/instituciones",
-        label: "Organismos de control",
-        description: "Nombramientos en TC, CGPJ, RTVE y SEPI — quién ocupa los organismos de control.",
-        countKey: "instituciones",
-        countUnit: "nombramientos",
-      },
     ],
   },
   {
     key: "territorio",
     href: "/territorio",
     label: "Territorio",
-    question: "¿Qué pasa donde vivo?",
+    question: "El gasto público desde tu comunidad o municipio",
     description:
       "Gasto autonómico, gasto municipal y fondos europeos: el dinero público visto desde tu comunidad o municipio.",
     curationRule:
@@ -219,13 +206,6 @@ export const THREADS: ThreadConfig[] = [
         label: "Municipios",
         description: "Contratos y subvenciones con ámbito local.",
         countKey: "municipios",
-      },
-      {
-        href: "/fondos-ue",
-        label: "Fondos UE",
-        description: "Beneficiarios españoles de fondos europeos 2014-2027, por comunidad.",
-        countKey: "fondos-ue",
-        countUnit: "beneficiarios",
       },
     ],
   },

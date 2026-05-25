@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
@@ -74,25 +74,33 @@ export function MobileNavDropdown() {
                     {group.label}
                   </div>
                   <div className="flex flex-col">
-                    {group.items.map((item) => {
+                    {group.items.map((item, idx) => {
                       const isActive =
                         pathname === item.href ||
                         (item.href !== "/" && !item.href.startsWith("http") && pathname?.startsWith(item.href))
+                      const showSection =
+                        item.section && item.section !== group.items[idx - 1]?.section
 
                       return (
-                        <ResponsiveLink
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setIsOpen(false)}
-                          className={cn(
-                            "flex min-h-11 items-center text-[17px] font-semibold tracking-tight select-none transition-colors",
-                            isActive
-                              ? "text-foreground"
-                              : "text-muted-foreground active:text-foreground"
-                          )}
-                        >
-                          {item.longLabel ?? item.label}
-                        </ResponsiveLink>
+                        <Fragment key={item.href}>
+                          {showSection ? (
+                            <div className="select-none pb-1 pt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+                              {item.section}
+                            </div>
+                          ) : null}
+                          <ResponsiveLink
+                            href={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                              "flex min-h-11 items-center text-[17px] font-semibold tracking-tight select-none transition-colors",
+                              isActive
+                                ? "text-foreground"
+                                : "text-muted-foreground active:text-foreground"
+                            )}
+                          >
+                            {item.longLabel ?? item.label}
+                          </ResponsiveLink>
+                        </Fragment>
                       )
                     })}
                   </div>

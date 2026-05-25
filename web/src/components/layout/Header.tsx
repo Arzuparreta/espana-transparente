@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { Menu } from "@base-ui/react/menu"
 import { Menubar } from "@base-ui/react/menubar"
 import { usePathname } from "next/navigation"
+import { Fragment } from "react"
 
 const triggerBase =
   "relative inline-flex h-9 shrink-0 items-center gap-1 rounded px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground"
@@ -75,16 +76,26 @@ export function Header() {
                 <Menu.Portal>
                   <Menu.Positioner sideOffset={10} align="start" className="z-50">
                     <Menu.Popup className="min-w-[200px] rounded border border-border bg-popover p-1 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
-                      {group.items.map((item) => (
-                        <Menu.LinkItem
-                          key={item.href}
-                          closeOnClick
-                          className={cn(itemBase, isItemActive(item.href) && itemActive)}
-                          render={<ResponsiveLink href={item.href} prefetch />}
-                        >
-                          {item.label}
-                        </Menu.LinkItem>
-                      ))}
+                      {group.items.map((item, idx) => {
+                        const showSection =
+                          item.section && item.section !== group.items[idx - 1]?.section
+                        return (
+                          <Fragment key={item.href}>
+                            {showSection ? (
+                              <div className="select-none px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70 first:pt-1">
+                                {item.section}
+                              </div>
+                            ) : null}
+                            <Menu.LinkItem
+                              closeOnClick
+                              className={cn(itemBase, isItemActive(item.href) && itemActive)}
+                              render={<ResponsiveLink href={item.href} prefetch />}
+                            >
+                              {item.label}
+                            </Menu.LinkItem>
+                          </Fragment>
+                        )
+                      })}
                     </Menu.Popup>
                   </Menu.Positioner>
                 </Menu.Portal>
