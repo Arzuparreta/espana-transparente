@@ -182,17 +182,58 @@ def find_company(client: httpx.Client, org_name: str, org_cif: str | None = None
         if len(term) < 3:
             continue
         result = search_company(client, term)
-        if result:
+        if result and _validate_match(org_name, result):
             return result
 
     # Fallback: try with CIF if we have one
     if org_cif:
         # Search by CIF
         result = search_company(client, org_cif)
-        if result:
+        if result and _validate_match(org_name, result):
             return result
 
     return None
+
+
+def _validate_match(org_name: str, match: dict, min_similarity: float = 0.35) -> bool:
+    """Check that the matched company name is plausibly related to the org name.
+
+    Uses simple token overlap: at least one significant word (len > 3) from
+    the core name must appear in the matched company name.
+    """
+    matched_name = match.get('name', '').lower()
+    core = extract_core_company_name(org_name).lower()
+
+    if not core or not matched_name:
+        return False
+
+    # Tokenize and filter short/stop words
+    stopwords = {'de', 'la', 'las', 'los', 'del', 'el', 'y', 'e', 'en', 'a', 'con',
+                 'para', 'por', 'su', 'al', 'un', 'una', 'o', 'lo', 'se', 'es',
+                 'sociedad', 'limitada', 'anonima', 'estatal'}
+    core_tokens = [t for t in core.split() if len(t) > 3 and t not in stopwords]
+    matched_tokens = matched_name.split()
+
+    if not core_tokens:
+        return False
+
+    # At least one significant token must appear as a whole word or word-start
+    # in the matched name (substring match only for tokens >= 5 chars to avoid
+    # false matches like "ADIF" matching "ADIFORM")
+    overlap = 0
+    for t in core_tokens:
+        for mt in matched_tokens:
+            if len(t) >= 5:
+                if t in mt:  # substring ok for longer tokens
+                    overlap += 1
+                    break
+            else:
+                if mt == t:  # exact match for short tokens
+                    overlap += 1
+                    break
+    ratio = overlap / len(core_tokens)
+
+    return ratio >= min_similarity
 
 
 def fetch_officers_for_slug(client: httpx.Client, slug: str) -> dict[str, Any] | None:
@@ -235,6 +276,16 @@ def get_orgs_to_process(cur, limit: int | None = None, resume: bool = False) -> 
           AND o.name IS NOT NULL
           AND trim(o.name) <> ''
           AND o.name !~ '^[A-Z][0-9]'  -- skip CIF-only names
+          -- Exclude municipal/administrative positions (not in Mercantil Registry)
+          AND o.name !~* '^Alcald(e|ía)'
+          AND o.name !~* '^Alcalde'
+          AND o.name !~* '^Teniente de Alcalde'
+          AND o.name !~* '^Concejal'
+          AND o.name !~* '^Portavoz de(l| la)? (Grupo|Ayuntamiento|Diputación)'
+          AND o.name !~* '^Diputado'
+          AND o.name !~* '^Senador'
+          AND o.name !~* '^Ministro'
+          AND o.name !~* '^Secretario de Estado'
     """
     if resume:
         query += """
@@ -297,7 +348,11 @@ def upsert_officers(cur, org_id: str, data: dict) -> int:
 
 
 def cross_reference_politicians(cur) -> int:
-    """Fuzzy-match BORME officer names against our politicians table."""
+    """Fuzzy-match BORME officer names against our politicians table.
+
+    Uses the GIN trigram index on politicians.full_name via the % operator
+    for pre-filtering, then similarity() for scoring.
+    """
     cur.execute("""
         WITH new_officers AS (
             SELECT bo.id AS officer_id, bo.person_name
@@ -306,26 +361,24 @@ def cross_reference_politicians(cur) -> int:
                 SELECT borme_officer_id FROM borme_politician_matches
             )
         ),
-        matches AS (
+        candidates AS (
             SELECT
                 no.officer_id,
                 p.id AS politician_id,
-                similarity(
-                    lower(unaccent(no.person_name)),
-                    lower(unaccent(p.full_name))
-                ) AS conf
+                p.full_name
             FROM new_officers no
-            CROSS JOIN politicians p
-            WHERE similarity(
-                lower(unaccent(no.person_name)),
-                lower(unaccent(p.full_name))
-            ) >= 0.65
+            JOIN politicians p
+              ON p.full_name % no.person_name
+            WHERE similarity(p.full_name, no.person_name) >= 0.65
         ),
         best_matches AS (
             SELECT DISTINCT ON (officer_id)
-                officer_id, politician_id, conf::numeric(3,2) AS confidence
-            FROM matches
-            ORDER BY officer_id, conf DESC
+                officer_id,
+                politician_id,
+                similarity(c.full_name, no.person_name)::numeric(3,2) AS confidence
+            FROM candidates c
+            JOIN new_officers no ON c.officer_id = no.officer_id
+            ORDER BY officer_id, similarity(c.full_name, no.person_name) DESC
         )
         INSERT INTO borme_politician_matches
             (borme_officer_id, politician_id, confidence, match_method)

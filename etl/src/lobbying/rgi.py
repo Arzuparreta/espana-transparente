@@ -196,7 +196,12 @@ def upsert_group(cur, data: dict[str, Any]) -> bool:
 
 
 def link_to_organizations(cur) -> int:
-    """Fuzzy-match lobbying groups to organizations we track."""
+    """Fuzzy-match lobbying groups to organizations we track.
+
+    Two-step strategy to use the GIN trigram index:
+    1. Pre-filter using the % (similarity) operator which uses the index
+    2. Score the survivors with similarity() and keep best match
+    """
     cur.execute("""
         WITH new_groups AS (
             SELECT lg.id AS group_id, lg.name
@@ -205,26 +210,26 @@ def link_to_organizations(cur) -> int:
                 SELECT lobbying_group_id FROM lobbying_organization_links
             )
         ),
-        matches AS (
+        candidates AS (
             SELECT
                 ng.group_id,
                 o.id AS organization_id,
-                similarity(
-                    lower(unaccent(ng.name)),
-                    lower(unaccent(o.name))
-                ) AS conf
+                o.name AS org_name
             FROM new_groups ng
-            CROSS JOIN organizations o
-            WHERE similarity(
-                lower(unaccent(ng.name)),
-                lower(unaccent(o.name))
-            ) >= 0.55
+            JOIN organizations o
+              ON lower(o.name) % lower(ng.name)
+            WHERE o.name IS NOT NULL
+              AND trim(o.name) <> ''
+              AND similarity(lower(o.name), lower(ng.name)) >= 0.55
         ),
         best_matches AS (
-            SELECT DISTINCT ON (group_id)
-                group_id, organization_id, conf::numeric(3,2) AS confidence
-            FROM matches
-            ORDER BY group_id, conf DESC
+            SELECT DISTINCT ON (c.group_id)
+                c.group_id,
+                c.organization_id,
+                similarity(lower(c.org_name), lower(ng.name))::numeric(3,2) AS confidence
+            FROM candidates c
+            JOIN new_groups ng ON c.group_id = ng.group_id
+            ORDER BY c.group_id, similarity(lower(c.org_name), lower(ng.name)) DESC
         )
         INSERT INTO lobbying_organization_links
             (lobbying_group_id, organization_id, confidence, match_method)
