@@ -1,0 +1,28 @@
+name: Auth config
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: auth-config
+  cancel-in-progress: false
+
+jobs:
+  configure:
+    name: Apply hosted Auth settings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      AUTH_EXPECTED_SUPABASE_REF: ${{ vars.AUTH_EXPECTED_SUPABASE_REF || 'zktpodkvlgciluhbulwr' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/auth-config.mjs

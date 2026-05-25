@@ -50,11 +50,21 @@ su puesto en la lista electoral. La cadena de mando ES el dato. Cada acción
 se enlaza a un individuo. Cada agregado —partido, grupo parlamentario— se
 muestra como lo que es: un conjunto de personas, no un ente con voluntad propia.
 
-### 2. La excepción es la información
+### 2. La excepción es la información (señal interna, NO titular de portada)
 
-Si 349 diputados votan en bloque, eso no es noticia. Si 1 vota distinto a su
-grupo, eso ES la noticia. Construir la UI para resaltar divergencias, no para
-listar uniformidades.
+Como criterio de MODELADO DE DATOS y de ANÁLISIS: una uniformidad no informa,
+una anomalía sí. Lo usamos para decidir qué calculamos y qué resaltamos en las
+PÁGINAS PROFUNDAS (la ficha de una persona, organización o caso), donde la
+excepción es relevante dentro de su contexto.
+
+NO es un criterio de PORTADA. Una divergencia de voto (un diputado que vota
+distinto a su grupo) es un dato analítico de nicho: como mucho interesa en la
+ficha de ESE diputado la semana en que ocurre, nunca como titular del home. Al
+ciudadano que entra no le mueve "el diputado X rompió la disciplina de voto"; le
+mueve a dónde va su dinero, qué significa el IPC para su vida y si su
+representante es honesto. La "excepción" que merece portada es esa —dinero,
+economía cotidiana e integridad—, no la mecánica parlamentaria interna. No
+pongas recuentos de divergencias en la home.
 
 ### 3. Trazabilidad sobre estadística
 

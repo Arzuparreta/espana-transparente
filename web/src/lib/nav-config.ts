@@ -239,6 +239,20 @@ export const ATLAS_GROUPS: AtlasGroup[] = [
         description: "Cargos públicos que pasaron al sector privado, verificados con fuentes.",
         countUnit: "casos",
       },
+      {
+        countKey: "corrupcion",
+        href: "/corrupcion",
+        label: "Procesos judiciales",
+        description: "Procedimientos publicados por fuentes judiciales oficiales con vínculos a personas y organizaciones.",
+        countUnit: "casos",
+      },
+      {
+        countKey: "declaraciones",
+        href: "/declaraciones",
+        label: "Declaraciones económicas",
+        description: "Bienes, rentas, actividades e intereses económicos declarados por los diputados.",
+        countUnit: "declaraciones",
+      },
     ],
   },
   {

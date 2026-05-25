@@ -1,0 +1,31 @@
+name: Auth health
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 4 * * *"
+
+concurrency:
+  group: auth-health-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  health:
+    name: Read-only auth checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      AUTH_EXPECTED_SUPABASE_REF: ${{ vars.AUTH_EXPECTED_SUPABASE_REF || 'zktpodkvlgciluhbulwr' }}
+      AUTH_MIN_USERS: ${{ vars.AUTH_MIN_USERS || '1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Run auth health
+        run: node web/scripts/auth-health.mjs

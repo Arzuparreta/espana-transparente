@@ -214,7 +214,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6" data-testid="profile-editor">
       <section className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-center gap-4">

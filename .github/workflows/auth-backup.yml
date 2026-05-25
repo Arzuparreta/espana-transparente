@@ -1,0 +1,34 @@
+name: Auth backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 4 * * *"
+
+concurrency:
+  group: auth-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Encrypted logical export
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}
+      AUTH_EXPECTED_SUPABASE_REF: ${{ vars.AUTH_EXPECTED_SUPABASE_REF || 'zktpodkvlgciluhbulwr' }}
+      BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create encrypted backup
+        run: bash etl/scripts/backup_auth_data.sh
+      - name: Upload encrypted artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-backup-${{ github.run_id }}
+          path: ${{ runner.temp }}/auth-backups/*.tar.gz.enc
+          if-no-files-found: error
+          retention-days: 14
