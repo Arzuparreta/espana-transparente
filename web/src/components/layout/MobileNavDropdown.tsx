@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { SearchForm } from "@/components/search/SearchForm"
 import { useAuth } from "@/lib/auth/AuthContext"
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,10 @@ export function MobileNavDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
   const { user, openModal, signOut } = useAuth()
+
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
 
   return (
     <div className="lg:hidden">
@@ -58,6 +63,9 @@ export function MobileNavDropdown() {
                   <span className="absolute h-[2px] w-full -rotate-45 bg-foreground" />
                 </span>
               </DialogPrimitive.Close>
+            </div>
+            <div className="border-b border-border/60 px-5 py-3">
+              <SearchForm size="header" live className="w-full" />
             </div>
             <nav className="flex flex-col px-5 pb-8 pt-2">
               {navGroups.map((group) => (

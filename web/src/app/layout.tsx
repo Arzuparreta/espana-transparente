@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import { cn } from "@/lib/utils"
 import { ClientProviders } from "@/components/layout/ClientProviders"
+import { ContextBreadcrumb } from "@/components/layout/ContextBreadcrumb"
 import { Footer } from "@/components/layout/Footer"
 import { Header } from "@/components/layout/Header"
 import { NavigationProgress } from "@/components/navigation/NavigationProgress"
@@ -99,6 +100,7 @@ export default function RootLayout({
           <NavigationProgress />
           <Header />
           <main className="ui-shell overflow-x-hidden py-5 sm:py-8">
+            <ContextBreadcrumb />
             {children}
           </main>
           <Footer />
