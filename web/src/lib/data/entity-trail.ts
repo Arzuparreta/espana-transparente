@@ -165,6 +165,48 @@ function buildPartyTrail(partyId: string, rows: Record<string, unknown>[]): Enti
   }
 }
 
+export interface EntityLabel {
+  label: string
+  subtitle?: string
+}
+
+export const getEntityLabel = unstable_cache(
+  async (entityType: "organization" | "politician" | "party", entityId: string): Promise<EntityLabel | null> => {
+    if (entityType === "politician") {
+      const { data } = await supabase
+        .from("politicians")
+        .select("full_name")
+        .eq("id", entityId)
+        .single()
+      if (!data) return null
+      return { label: data.full_name as string }
+    }
+    if (entityType === "organization") {
+      const { data } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", entityId)
+        .single()
+      if (!data) return null
+      return { label: data.name as string }
+    }
+    if (entityType === "party") {
+      const { data } = await supabase
+        .from("parties")
+        .select("acronym, name")
+        .eq("id", entityId)
+        .single()
+      if (!data) return null
+      const acronym = data.acronym as string | null
+      const name = data.name as string | null
+      return { label: acronym ?? name ?? entityId, subtitle: acronym ? (name ?? undefined) : undefined }
+    }
+    return null
+  },
+  ["entity-label"],
+  { revalidate: HOUR },
+)
+
 export const getEntityTrail = unstable_cache(
   async (entityType: "organization" | "politician" | "party", entityId: string): Promise<EntityTrail> => {
     // Query the entity_trail SQL function (or inline the logic)

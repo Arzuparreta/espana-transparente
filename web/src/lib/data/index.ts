@@ -111,8 +111,9 @@ export {
 // ── Entity Trail (cross-entity connections) ──────────────────────────────────
 export {
   getEntityTrail,
+  getEntityLabel,
 } from "./entity-trail"
-export type { EntityTrail as EntityTrailData, TrailConnection } from "./entity-trail"
+export type { EntityTrail as EntityTrailData, TrailConnection, EntityLabel } from "./entity-trail"
 
 // ── Search ───────────────────────────────────────────────────────────────────
 export {
