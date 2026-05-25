@@ -1,6 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getEntityTrail, type TrailConnection } from "@/lib/data/entity-trail"
+
+const TRAIL_SLUG: Record<"organization" | "politician" | "party", string> = {
+  organization: "organizacion",
+  politician: "diputado",
+  party: "partido",
+}
 
 interface EntityTrailProps {
   entityType: "organization" | "politician" | "party"
@@ -59,25 +65,26 @@ export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
   const { people, organizations, judicial } = trail.connections
   if (people.length === 0 && organizations.length === 0 && judicial.length === 0) return null
 
+  const rastroHref = `/rastro/${TRAIL_SLUG[entityType]}/${entityId}`
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Conexiones</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
-        <ConnectionGroup
-          title="Personas"
-          connections={people}
-        />
-        <ConnectionGroup
-          title="Organizaciones"
-          connections={organizations}
-        />
-        <ConnectionGroup
-          title="Casos judiciales"
-          connections={judicial}
-        />
+        <ConnectionGroup title="Personas" connections={people} />
+        <ConnectionGroup title="Organizaciones" connections={organizations} />
+        <ConnectionGroup title="Casos judiciales" connections={judicial} />
       </CardContent>
+      <CardFooter className="border-t border-border pt-3">
+        <ResponsiveLink
+          href={rastroHref}
+          className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          Ver rastro completo →
+        </ResponsiveLink>
+      </CardFooter>
     </Card>
   )
 }

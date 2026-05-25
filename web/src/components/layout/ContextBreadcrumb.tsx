@@ -11,6 +11,9 @@ export function ContextBreadcrumb() {
 
   if (!section?.groupLabel) return null
 
+  // Detail pages (deeper than the section index) already render ContextTrail — skip
+  if (pathname !== section.href) return null
+
   const thread = THREADS.find((t) => t.label === section.groupLabel)
   if (!thread) return null
 
