@@ -36,7 +36,9 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
 
       {anchors ? (
         <RevealSection>
-          <div className="grid gap-4 lg:grid-cols-3">{anchors}</div>
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
+            {anchors}
+          </div>
         </RevealSection>
       ) : null}
 
