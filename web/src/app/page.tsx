@@ -178,6 +178,25 @@ export default async function HomePage() {
         ) : null}
       </div>
 
+      <section aria-labelledby="threads-heading">
+        <div className="mb-5">
+          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            Cinco temas
+          </p>
+          <h2
+            id="threads-heading"
+            className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
+          >
+            Explora por lo que te importa
+          </h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {THREADS.map((thread) => (
+            <ThreadCard key={thread.key} thread={thread} />
+          ))}
+        </div>
+      </section>
+
       {gobierno.length > 0 && (
         <section>
           <SectionHeader
@@ -227,24 +246,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="threads-heading">
-        <div className="mb-5">
-          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
-            Cinco temas
-          </p>
-          <h2
-            id="threads-heading"
-            className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
-          >
-            Explora por lo que te importa
-          </h2>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {THREADS.map((thread) => (
-            <ThreadCard key={thread.key} thread={thread} />
-          ))}
-        </div>
-      </section>
     </div>
   )
 }

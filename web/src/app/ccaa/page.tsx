@@ -3,6 +3,7 @@ import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { TerritoryFlag } from "@/components/domain/TerritoryFlag"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getAutonomicLanding } from "@/lib/data/multilevel"
 
@@ -82,15 +83,18 @@ export default async function CcaaPage() {
                   <ResponsiveLink
                     key={territory.territoryKey}
                     href={`/ccaa/${encodeURIComponent(territory.territoryKey)}`}
-                    className="block rounded-[2px] border border-border bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
+                    className="flex gap-3 rounded-[2px] border border-border bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
                   >
-                    <div className="font-medium">{territory.territoryName}</div>
-                    <div className="mt-1 font-mono text-xs text-muted-foreground">
-                      {territory.subsidyCount.toLocaleString("es-ES")} subvenciones ·{" "}
-                      {territory.contractCount.toLocaleString("es-ES")} contratos
-                    </div>
-                    <div className="mt-2 font-mono text-xs text-muted-foreground">
-                      {formatAmount(territory.subsidyAmount + territory.contractAmount)}
+                    <TerritoryFlag territoryName={territory.territoryName} className="shrink-0" />
+                    <div className="min-w-0">
+                      <div className="font-medium">{territory.territoryName}</div>
+                      <div className="mt-1 font-mono text-xs text-muted-foreground">
+                        {territory.subsidyCount.toLocaleString("es-ES")} subvenciones ·{" "}
+                        {territory.contractCount.toLocaleString("es-ES")} contratos
+                      </div>
+                      <div className="mt-2 font-mono text-xs text-muted-foreground">
+                        {formatAmount(territory.subsidyAmount + territory.contractAmount)}
+                      </div>
                     </div>
                   </ResponsiveLink>
                 ))}

@@ -30,12 +30,11 @@ España Transparente reúne en un mismo sitio los datos que ya son públicos per
 
 - **XV Legislatura** — 350 diputados activos con partido, circunscripción, biografía y foto oficial.
 - **Votaciones nominales** — votos individuales enlazados a cada diputado, sesión a sesión.
-- **Divergencias** — detección automática de votos contra el grupo parlamentario (`get_divergences()`).
-- **Distorsión electoral** — D'Hondt, votos por escaño, umbral provincial.
 - **Cadenas de responsabilidad** — cargos estatales, autonómicos y municipales conectados al gasto público.
 - **Contratos y subvenciones** — PCSP (Plataforma de Contratación) y BDNS (`infosubvenciones.es`).
 - **Indicadores macro** — IPC, PIB, EPA y deuda desde la API del INE.
 - **Puertas giratorias** — pipeline de tres fases con curación humana obligatoria antes de publicar.
+- **Divergencias** — detección automática de votos contra el grupo parlamentario.
 - **Anotaciones** — sistema propio para que la comunidad añada contexto verificable.
 
 ## Arquitectura
