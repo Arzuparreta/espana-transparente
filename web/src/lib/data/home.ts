@@ -9,15 +9,6 @@ export type SectionIndexRow = {
   latest_date: string | null
 }
 
-export type SessionDivergenceExample = {
-  full_name: string
-  party_acronym: string | null
-  party_color: string | null
-  vote: "Sí" | "No" | "Abstención"
-  party_majority: "Sí" | "No" | "Abstención" | null
-  divergent_count: number
-}
-
 export type HomeHeroAnchor =
   | {
       kind: "deuda"
@@ -85,19 +76,11 @@ export const getHomeData = unstable_cache(
   async () => {
     const [
       parties,
-      recentSessions,
-      sessionCount,
       revolvingDoorCases,
       gobierno,
       deudaPublica,
     ] = await Promise.all([
       supabase.from("parties").select("acronym, color, name").order("acronym"),
-      supabase
-        .from("v_voting_session_summary")
-        .select("id, date, title, total_votes, votes_yes, votes_no, divergence_count")
-        .order("date", { ascending: false })
-        .limit(5),
-      supabase.from("voting_sessions").select("*", { count: "exact", head: true }),
       supabase
         .from("v_revolving_door_public")
         .select("id, person_name, public_role, private_organization, sector, person_id")
@@ -127,13 +110,6 @@ export const getHomeData = unstable_cache(
 
     return {
       parties: parties.data ?? [],
-      sessionCount: sessionCount.count ?? 0,
-      recentSessions: recentSessions.data ?? [],
-      sessionDivergenceExamples: await fetchSessionDivergenceExamples(
-        (recentSessions.data ?? [])
-          .filter((s) => ((s.divergence_count as number | null) ?? 0) > 0)
-          .map((s) => s.id as string)
-      ),
       revolvingDoorCases: revolvingDoorCases.data ?? [],
       gobierno: gobierno.data ?? [],
       deudaPerCapita,
@@ -198,96 +174,6 @@ export const getTopDivergenceSessionOfMonth = unstable_cache(
   ["top-divergence-session-of-month"],
   { revalidate: HOUR }
 )
-
-// For each session id, fetch one example diverging deputy (politician whose vote
-// differs from the most-voted option among their party-mates in that session,
-// excluding "No vota"). Returns a Map keyed by session id. Bounded queries: each
-// session is ~350 rows. Caller passes only sessions known to have ≥1 divergence.
-async function fetchSessionDivergenceExamples(
-  sessionIds: string[]
-): Promise<Record<string, SessionDivergenceExample>> {
-  if (sessionIds.length === 0) return {}
-  const results = await Promise.all(
-    sessionIds.map(async (id) => {
-      const { data } = await supabase
-        .from("votes")
-        .select(
-          "vote, politician:politicians(full_name, politician_memberships(is_active, chamber, party:parties(acronym, color)))"
-        )
-        .eq("voting_session_id", id)
-      if (!data || data.length === 0) return [id, null] as const
-      type Row = {
-        vote: string
-        politician: {
-          full_name: string
-          politician_memberships: {
-            is_active: boolean
-            chamber: string
-            party: { acronym: string | null; color: string | null } | null
-          }[]
-        } | null
-      }
-      const rows = (data as unknown as Row[]).map((r) => {
-        const membership = r.politician?.politician_memberships?.find(
-          (m) => m.is_active && m.chamber === "congress"
-        )
-        return {
-          vote: r.vote,
-          fullName: r.politician?.full_name ?? null,
-          partyAcronym: membership?.party?.acronym ?? null,
-          partyColor: membership?.party?.color ?? null,
-        }
-      })
-
-      const tally: Record<string, Record<string, number>> = {}
-      for (const row of rows) {
-        if (!row.partyAcronym || row.vote === "No vota") continue
-        if (!["Sí", "No", "Abstención"].includes(row.vote)) continue
-        const inner = tally[row.partyAcronym] ?? {}
-        inner[row.vote] = (inner[row.vote] ?? 0) + 1
-        tally[row.partyAcronym] = inner
-      }
-      const partyMajority: Record<string, string> = {}
-      for (const party of Object.keys(tally)) {
-        const counts = tally[party]
-        let best: [string, number] | null = null
-        for (const vote of Object.keys(counts)) {
-          const count = counts[vote]
-          if (!best || count > best[1]) best = [vote, count]
-        }
-        if (best) partyMajority[party] = best[0]
-      }
-
-      const divergent: typeof rows = []
-      for (const row of rows) {
-        if (!row.partyAcronym || !row.fullName) continue
-        if (row.vote === "No vota") continue
-        if (!["Sí", "No", "Abstención"].includes(row.vote)) continue
-        const majority = partyMajority[row.partyAcronym]
-        if (majority && row.vote !== majority) divergent.push(row)
-      }
-      if (divergent.length === 0) return [id, null] as const
-
-      divergent.sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? "", "es"))
-      const pick = divergent[0]
-      const majority = pick.partyAcronym ? (partyMajority[pick.partyAcronym] ?? null) : null
-      const example: SessionDivergenceExample = {
-        full_name: pick.fullName ?? "",
-        party_acronym: pick.partyAcronym,
-        party_color: pick.partyColor,
-        vote: pick.vote as SessionDivergenceExample["vote"],
-        party_majority: (majority ?? null) as SessionDivergenceExample["party_majority"],
-        divergent_count: divergent.length,
-      }
-      return [id, example] as const
-    })
-  )
-  const out: Record<string, SessionDivergenceExample> = {}
-  for (const [id, ex] of results) {
-    if (ex) out[id] = ex
-  }
-  return out
-}
 
 // Picks the strongest available headline data point. Tried in order:
 // 1. Deuda pública per cápita (Eurostat) — most consequential macro stat

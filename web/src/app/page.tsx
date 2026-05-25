@@ -1,19 +1,16 @@
 import { LogoHero } from "@/components/layout/LogoHero"
 import { AnchorCard } from "@/components/domain/AnchorCard"
-import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { SectionIndexCard } from "@/components/domain/SectionIndexCard"
-import { SectionIcon, groupIconName, sectionIconForKey } from "@/components/brand/SectionIcon"
+import { ThreadCard } from "@/components/domain/ThreadCard"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
   getLatestInflationAnchor,
   getSectionIndex,
   getTopContractOfMonth,
-  type SessionDivergenceExample,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
-import { ATLAS_GROUPS } from "@/lib/nav-config"
+import { THREADS } from "@/lib/thread-config"
 
 export const revalidate = 3600
 
@@ -99,7 +96,7 @@ function SectionHeader({
 
 export default async function HomePage() {
   const [
-    { parties, recentSessions, sessionDivergenceExamples, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear, sessionCount },
+    { parties, gobierno, deudaPerCapita, deudaYear },
     topContract,
     inflation,
     sectionIndex,
@@ -118,7 +115,6 @@ export default async function HomePage() {
   )
 
   const gobiernoCount = sectionFacts.get("gobierno")?.count ?? gobierno.length
-  const revolvingDoorCount = sectionFacts.get("puertas_giratorias")?.count ?? null
 
   return (
     <div className="space-y-10 sm:space-y-14">
@@ -231,162 +227,24 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="atlas-heading" className="space-y-6">
-        <div className="flex min-w-0 items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
-              Atlas del portal
-            </p>
-            <h2
-              id="atlas-heading"
-              className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
-            >
-              Qué hay aquí
-            </h2>
-          </div>
-          <ResponsiveLink
-            href="/estado-datos"
-            className="hidden shrink-0 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:inline-flex"
+      <section aria-labelledby="threads-heading">
+        <div className="mb-5">
+          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            Cinco temas
+          </p>
+          <h2
+            id="threads-heading"
+            className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
           >
-            Estado de los datos →
-          </ResponsiveLink>
+            Explora por lo que te importa
+          </h2>
         </div>
-
-        {ATLAS_GROUPS.map((group) => {
-          const groupIcon = groupIconName(group.label)
-          return (
-            <div key={group.label} className="space-y-3">
-              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                {groupIcon ? (
-                  <SectionIcon name={groupIcon} size={16} className="text-foreground/80" />
-                ) : null}
-                {group.label}
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {group.items.map((item) => {
-                  const facts = sectionFacts.get(item.countKey)
-                  return (
-                    <SectionIndexCard
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      description={item.description}
-                      count={facts?.count ?? null}
-                      countUnit={item.countUnit}
-                      latestDate={facts?.latestDate ?? null}
-                      icon={sectionIconForKey(item.countKey)}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {THREADS.map((thread) => (
+            <ThreadCard key={thread.key} thread={thread} />
+          ))}
+        </div>
       </section>
-
-      {recentSessions.length > 0 && (
-        <section>
-          <SectionHeader
-            eyebrow="Sesiones recientes"
-            title="Votaciones"
-            subtitle="Sesiones del Congreso con diputados que votaron diferente a su grupo"
-            href="/votaciones"
-            linkLabel={sessionCount ? `Ver las ${formatCount(sessionCount)} votaciones →` : "Ver todas →"}
-          />
-          <ul className="space-y-2">
-            {recentSessions.map((s) => {
-              const sessionId = s.id as string
-              const example = sessionDivergenceExamples?.[sessionId]
-              const divergenceCount = (s.divergence_count as number) ?? 0
-              return (
-                <li key={sessionId}>
-                  <EntityLink
-                    kind="voting-session"
-                    id={sessionId}
-                    className="flex min-w-0 flex-col gap-1.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
-                  >
-                    <div className="flex min-w-0 items-baseline justify-between gap-4">
-                      <span className="min-w-0 truncate font-medium">{s.title as string}</span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {divergenceCount > 0 && (
-                          <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                            {divergenceCount} divergencia{divergenceCount !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {new Date(s.date as string).toLocaleDateString("es-ES", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
-                    </div>
-                    {example ? <DivergenceTrace example={example} /> : null}
-                  </EntityLink>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
-
-      {revolvingDoorCases.length > 0 && (
-        <section>
-          <SectionHeader
-            eyebrow="Casos verificados"
-            title="Puertas giratorias"
-            subtitle="Cargos públicos que pasaron al sector privado tras dejar sus funciones"
-            href="/puertas-giratorias"
-            linkLabel={
-              revolvingDoorCount
-                ? `Ver los ${formatCount(revolvingDoorCount)} casos →`
-                : "Ver todos los casos →"
-            }
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {revolvingDoorCases.map((c) => (
-              <ResponsiveLink
-                key={c.id as string}
-                href={c.person_id ? `/diputados/${c.person_id as string}` : "/puertas-giratorias"}
-                className="rounded border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
-              >
-                <p className="font-semibold">{c.person_name as string}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
-                  {c.public_role as string} → {c.private_organization as string}
-                </p>
-                {c.sector && (
-                  <p className="mt-1 text-xs text-muted-foreground">{c.sector as string}</p>
-                )}
-              </ResponsiveLink>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }
-
-function DivergenceTrace({ example }: { example: SessionDivergenceExample }) {
-  // Reformat "APELLIDOS, Nombre" already-canonical surname-first names.
-  const nameDisplay = example.full_name.includes(",")
-    ? example.full_name
-    : (() => {
-        // Heuristic for "Nombre Apellidos" → "APELLIDOS, Nombre" (best-effort).
-        const parts = example.full_name.trim().split(/\s+/)
-        if (parts.length < 2) return example.full_name
-        const given = parts[0]
-        const surname = parts.slice(1).join(" ")
-        return `${surname.toUpperCase()}, ${given}`
-      })()
-  const majorityFragment = example.party_majority
-    ? ` · su grupo votó ${example.party_majority}`
-    : ""
-  return (
-    <p className="font-mono text-[11px] leading-snug text-muted-foreground">
-      <span className="text-accent">▲</span>{" "}
-      <span className="text-foreground">{nameDisplay}</span>
-      {example.party_acronym ? <span> ({example.party_acronym})</span> : null}{" "}
-      votó {example.vote}
-      {majorityFragment}
-    </p>
-  )
-}
-

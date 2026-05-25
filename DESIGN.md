@@ -102,7 +102,7 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 
 ## Components
 
-- **Stat cards:** Geist Mono for all values. Signal color only for divergence/exception counts.
+- **Stat cards:** Geist Mono for all values. Signal color only for highlighted evidence, sourced anomalies and exception counts.
 - **Data tables:** `font-family: var(--font-mono)` on all `<td>` containing numbers, IDs, dates. Surname-first for politician names (`APELLIDOS, Nombre`). Divergence marks as `▲ DIV` in signal color.
 - **Badges:** `font-family: var(--font-mono)`, uppercase, 2px radius. Use badge-signal for divergences and anomalies.
 - **Buttons:** Primary uses signal background with `#0B0B0A` text. Secondary uses border-only. Ghost uses no border. All 2px radius.

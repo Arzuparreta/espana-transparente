@@ -23,6 +23,11 @@ export const revalidate = 86400
 
 const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]; priority: number }[] = [
   { path: "/",                   changeFrequency: "daily",   priority: 1.0 },
+  { path: "/dinero",             changeFrequency: "daily",   priority: 0.9 },
+  { path: "/economia",           changeFrequency: "weekly",  priority: 0.8 },
+  { path: "/integridad",         changeFrequency: "weekly",  priority: 0.7 },
+  { path: "/poder",              changeFrequency: "weekly",  priority: 0.7 },
+  { path: "/territorio",         changeFrequency: "weekly",  priority: 0.7 },
   { path: "/diputados",          changeFrequency: "daily",   priority: 0.9 },
   { path: "/votaciones",         changeFrequency: "daily",   priority: 0.9 },
   { path: "/distorsion",         changeFrequency: "weekly",  priority: 0.8 },
