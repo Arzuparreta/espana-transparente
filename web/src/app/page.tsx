@@ -1,6 +1,5 @@
 import { LogoHero } from "@/components/layout/LogoHero"
 import { AnchorCard } from "@/components/domain/AnchorCard"
-import { EntityLink } from "@/components/domain/EntityLink"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { SectionIndexCard } from "@/components/domain/SectionIndexCard"
 import { SectionIcon, groupIconName, sectionIconForKey } from "@/components/brand/SectionIcon"
@@ -10,7 +9,6 @@ import {
   getLatestInflationAnchor,
   getSectionIndex,
   getTopContractOfMonth,
-  type SessionDivergenceExample,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 import { ATLAS_GROUPS } from "@/lib/nav-config"
@@ -99,7 +97,7 @@ function SectionHeader({
 
 export default async function HomePage() {
   const [
-    { parties, recentSessions, sessionDivergenceExamples, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear, sessionCount },
+    { parties, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
     topContract,
     inflation,
     sectionIndex,
@@ -284,50 +282,6 @@ export default async function HomePage() {
         })}
       </section>
 
-      {recentSessions.length > 0 && (
-        <section>
-          <SectionHeader
-            eyebrow="Sesiones recientes"
-            title="Votaciones"
-            subtitle="Sesiones del Congreso con diputados que votaron diferente a su grupo"
-            href="/votaciones"
-            linkLabel={sessionCount ? `Ver las ${formatCount(sessionCount)} votaciones →` : "Ver todas →"}
-          />
-          <ul className="space-y-2">
-            {recentSessions.map((s) => {
-              const sessionId = s.id as string
-              const example = sessionDivergenceExamples?.[sessionId]
-              const divergenceCount = (s.divergence_count as number) ?? 0
-              return (
-                <li key={sessionId}>
-                  <EntityLink
-                    kind="voting-session"
-                    id={sessionId}
-                    className="flex min-w-0 flex-col gap-1.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
-                  >
-                    <div className="flex min-w-0 items-baseline justify-between gap-4">
-                      <span className="min-w-0 truncate font-medium">{s.title as string}</span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {divergenceCount > 0 && (
-                          <span className="mr-2 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                            {divergenceCount} divergencia{divergenceCount !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {new Date(s.date as string).toLocaleDateString("es-ES", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
-                    </div>
-                    {example ? <DivergenceTrace example={example} /> : null}
-                  </EntityLink>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
-
       {revolvingDoorCases.length > 0 && (
         <section>
           <SectionHeader
@@ -363,30 +317,3 @@ export default async function HomePage() {
     </div>
   )
 }
-
-function DivergenceTrace({ example }: { example: SessionDivergenceExample }) {
-  // Reformat "APELLIDOS, Nombre" already-canonical surname-first names.
-  const nameDisplay = example.full_name.includes(",")
-    ? example.full_name
-    : (() => {
-        // Heuristic for "Nombre Apellidos" → "APELLIDOS, Nombre" (best-effort).
-        const parts = example.full_name.trim().split(/\s+/)
-        if (parts.length < 2) return example.full_name
-        const given = parts[0]
-        const surname = parts.slice(1).join(" ")
-        return `${surname.toUpperCase()}, ${given}`
-      })()
-  const majorityFragment = example.party_majority
-    ? ` · su grupo votó ${example.party_majority}`
-    : ""
-  return (
-    <p className="font-mono text-[11px] leading-snug text-muted-foreground">
-      <span className="text-accent">▲</span>{" "}
-      <span className="text-foreground">{nameDisplay}</span>
-      {example.party_acronym ? <span> ({example.party_acronym})</span> : null}{" "}
-      votó {example.vote}
-      {majorityFragment}
-    </p>
-  )
-}
-

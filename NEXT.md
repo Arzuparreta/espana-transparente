@@ -120,10 +120,22 @@ instructed "build UI to highlight divergences"; CLAUDE.md flagged `get_divergenc
 only named "Key function"; DESIGN.md reserves the signal color exclusively for divergences;
 the live homepage renders a divergence section. **Patched:** AGENTS.md §2 (scoped to
 deep-page/data-modeling, "No pongas recuentos de divergencias en la home") + CLAUDE.md note.
-**Still pending in the build:** broaden the DESIGN.md signal-color clause (≈line 105) from
-"divergence/exception counts" to "highlighted evidence / sourced anomalies" (needs explicit
-approval — it's the visual bible); remove the divergence section from `web/src/app/page.tsx`
-(dies in the redesign).
+**Build status:** fixed 2026-05-25. `DESIGN.md` now scopes signal color to highlighted
+evidence / sourced anomalies / exception counts, and the homepage divergence section was
+removed from `web/src/app/page.tsx`.
+
+### Phase D foundation slice (started 2026-05-25)
+
+- `web/src/lib/thread-config.ts` is now the source of truth for the five intent threads:
+  Dinero, Economía, Integridad, Poder and Territorio.
+- Top-level navigation is generated from the thread config. Existing source routes stay
+  stable and appear as deep links inside their thread menus.
+- New thread routes exist for `/dinero`, `/economia`, `/integridad`, `/poder` and
+  `/territorio`.
+- `/dinero` and `/economia` have first-pass live-data anchor cards using existing cached
+  data helpers. The other three thread routes are factual source indexes ready for the next
+  composition pass.
+- Sitemap includes all five thread routes.
 
 ### Execution notes (direction for the eng review, not final architecture)
 
@@ -164,7 +176,7 @@ approval — it's the visual bible); remove the divergence section from `web/src
 - A one-line scoping test exists for any new dataset ("which thread does it deepen?").
 - No divergence surface anywhere on the home.
 
-### First action (before any code)
+### Next validation action
 
 **5-person hallway test of the thread vocabulary:** show five non-technical people the five
 thread questions and, for something each genuinely wants to know, ask which thread they'd
