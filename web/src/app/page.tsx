@@ -1,8 +1,7 @@
 import { LogoHero } from "@/components/layout/LogoHero"
 import { AnchorCard } from "@/components/domain/AnchorCard"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { SectionIndexCard } from "@/components/domain/SectionIndexCard"
-import { SectionIcon, groupIconName, sectionIconForKey } from "@/components/brand/SectionIcon"
+import { ThreadCard } from "@/components/domain/ThreadCard"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getHomeData,
@@ -11,7 +10,7 @@ import {
   getTopContractOfMonth,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
-import { ATLAS_GROUPS } from "@/lib/nav-config"
+import { THREADS } from "@/lib/thread-config"
 
 export const revalidate = 3600
 
@@ -97,7 +96,7 @@ function SectionHeader({
 
 export default async function HomePage() {
   const [
-    { parties, revolvingDoorCases, gobierno, deudaPerCapita, deudaYear },
+    { parties, gobierno, deudaPerCapita, deudaYear },
     topContract,
     inflation,
     sectionIndex,
@@ -116,7 +115,6 @@ export default async function HomePage() {
   )
 
   const gobiernoCount = sectionFacts.get("gobierno")?.count ?? gobierno.length
-  const revolvingDoorCount = sectionFacts.get("puertas_giratorias")?.count ?? null
 
   return (
     <div className="space-y-10 sm:space-y-14">
@@ -229,91 +227,24 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="atlas-heading" className="space-y-6">
-        <div className="flex min-w-0 items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
-              Atlas del portal
-            </p>
-            <h2
-              id="atlas-heading"
-              className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
-            >
-              Qué hay aquí
-            </h2>
-          </div>
-          <ResponsiveLink
-            href="/estado-datos"
-            className="hidden shrink-0 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline sm:inline-flex"
+      <section aria-labelledby="threads-heading">
+        <div className="mb-5">
+          <p className="mb-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
+            Cinco temas
+          </p>
+          <h2
+            id="threads-heading"
+            className="font-display text-3xl font-black uppercase tracking-[-0.02em] sm:text-4xl"
           >
-            Estado de los datos →
-          </ResponsiveLink>
+            Explora por lo que te importa
+          </h2>
         </div>
-
-        {ATLAS_GROUPS.map((group) => {
-          const groupIcon = groupIconName(group.label)
-          return (
-            <div key={group.label} className="space-y-3">
-              <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                {groupIcon ? (
-                  <SectionIcon name={groupIcon} size={16} className="text-foreground/80" />
-                ) : null}
-                {group.label}
-              </h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {group.items.map((item) => {
-                  const facts = sectionFacts.get(item.countKey)
-                  return (
-                    <SectionIndexCard
-                      key={item.href}
-                      href={item.href}
-                      label={item.label}
-                      description={item.description}
-                      count={facts?.count ?? null}
-                      countUnit={item.countUnit}
-                      latestDate={facts?.latestDate ?? null}
-                      icon={sectionIconForKey(item.countKey)}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {THREADS.map((thread) => (
+            <ThreadCard key={thread.key} thread={thread} />
+          ))}
+        </div>
       </section>
-
-      {revolvingDoorCases.length > 0 && (
-        <section>
-          <SectionHeader
-            eyebrow="Casos verificados"
-            title="Puertas giratorias"
-            subtitle="Cargos públicos que pasaron al sector privado tras dejar sus funciones"
-            href="/puertas-giratorias"
-            linkLabel={
-              revolvingDoorCount
-                ? `Ver los ${formatCount(revolvingDoorCount)} casos →`
-                : "Ver todos los casos →"
-            }
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {revolvingDoorCases.map((c) => (
-              <ResponsiveLink
-                key={c.id as string}
-                href={c.person_id ? `/diputados/${c.person_id as string}` : "/puertas-giratorias"}
-                className="rounded border border-border bg-card px-4 py-3 transition-colors hover:border-foreground/30"
-              >
-                <p className="font-semibold">{c.person_name as string}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
-                  {c.public_role as string} → {c.private_organization as string}
-                </p>
-                {c.sector && (
-                  <p className="mt-1 text-xs text-muted-foreground">{c.sector as string}</p>
-                )}
-              </ResponsiveLink>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }
