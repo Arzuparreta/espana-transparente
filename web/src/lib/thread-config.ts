@@ -25,7 +25,7 @@ export const THREADS: ThreadConfig[] = [
     label: "Dinero",
     question: "¿A dónde va el dinero público?",
     description:
-      "Presupuestos, contratos, subvenciones y fondos europeos conectados por órgano responsable y organización beneficiaria.",
+      "Presupuestos, contratos, subvenciones y fondos europeos: a quién se adjudica, cuánto importa y qué organismo lo autoriza.",
     curationRule:
       "Ordena primero los importes trazables más recientes y conserva siempre el enlace al registro fuente.",
     sources: [
@@ -143,7 +143,7 @@ export const THREADS: ThreadConfig[] = [
     label: "Poder",
     question: "¿Quién manda y cómo decide?",
     description:
-      "Personas, partidos, Gobierno, cámaras e iniciativas legislativas enlazadas por decisiones públicas.",
+      "Personas, partidos, Gobierno, cámaras, organismos de control e iniciativas legislativas enlazadas por decisiones públicas.",
     curationRule:
       "Prioriza cargos y decisiones actuales; las votaciones divergentes se quedan en páginas de detalle.",
     sources: [
@@ -189,6 +189,13 @@ export const THREADS: ThreadConfig[] = [
         countKey: "iniciativas",
         countUnit: "registradas",
       },
+      {
+        href: "/instituciones",
+        label: "Organismos de control",
+        description: "Nombramientos en TC, CGPJ, RTVE y SEPI — quién ocupa los organismos de control.",
+        countKey: "instituciones",
+        countUnit: "nombramientos",
+      },
     ],
   },
   {
@@ -197,7 +204,7 @@ export const THREADS: ThreadConfig[] = [
     label: "Territorio",
     question: "¿Qué pasa donde vivo?",
     description:
-      "Gasto autonómico, gasto municipal y representación territorial vistos por lugar.",
+      "Gasto autonómico, gasto municipal y fondos europeos: el dinero público visto desde tu comunidad o municipio.",
     curationRule:
       "Agrupa por territorio administrativo y etiqueta la cobertura real de cada fuente.",
     sources: [
@@ -212,6 +219,13 @@ export const THREADS: ThreadConfig[] = [
         label: "Municipios",
         description: "Contratos y subvenciones con ámbito local.",
         countKey: "municipios",
+      },
+      {
+        href: "/fondos-ue",
+        label: "Fondos UE",
+        description: "Beneficiarios españoles de fondos europeos 2014-2027, por comunidad.",
+        countKey: "fondos-ue",
+        countUnit: "beneficiarios",
       },
     ],
   },
