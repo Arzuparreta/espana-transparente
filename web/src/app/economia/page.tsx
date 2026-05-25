@@ -28,6 +28,11 @@ function formatPeriod(period: string): string {
 
 function formatLatest(value: number, unit: string | null): string {
   if (unit === "%") return formatPercent(value)
+  if (unit === "millones EUR") {
+    // 1,698,224 M€ → "1,7 B€" (billones)
+    const billones = value / 1_000_000
+    return `${billones.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} B€`
+  }
   return value.toLocaleString("es-ES", { maximumFractionDigits: 1 })
 }
 
@@ -79,8 +84,8 @@ export default async function EconomiaThreadPage() {
             <ThreadAnchorCard
               label={`Deuda pública · ${debt.period.slice(0, 4)}`}
               value={formatLatest(debt.value, debt.unit)}
-              description="Deuda pública según el criterio de Maastricht."
-              source="Fuente: Eurostat."
+              description="Deuda pública consolidada de las Administraciones Públicas, en billones de euros."
+              source="Fuente: Eurostat · criterio de Maastricht."
               href="/indicadores/DEUDA_PUBLICA"
               linkLabel="Ver serie →"
             />
