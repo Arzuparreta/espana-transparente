@@ -47,7 +47,7 @@ export const getJudicialCaseDetail = unstable_cache(
         .maybeSingle(),
       supabase
         .from("v_corruption_case_actors_public")
-        .select("id, actor_type, actor_label, role, politician_id, organization_id, evidence_url, reviewed_at")
+        .select("id, actor_type, actor_label, role, politician_id, organization_id, party_id, evidence_url, reviewed_at")
         .eq("case_id", id)
         .order("actor_label"),
       supabase

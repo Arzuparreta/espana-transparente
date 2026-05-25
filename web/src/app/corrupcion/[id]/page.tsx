@@ -134,6 +134,10 @@ export default async function CorrupcionDetailPage({ params }: PageProps) {
                       <EntityLink kind="politician" id={actor.politician_id} className="underline-offset-2 hover:underline">
                         {actor.actor_label}
                       </EntityLink>
+                    ) : actor.party_id ? (
+                      <ResponsiveLink href={`/partidos/${actor.party_id}`} className="underline-offset-2 hover:underline">
+                        {actor.actor_label}
+                      </ResponsiveLink>
                     ) : (
                       actor.actor_label
                     )}
