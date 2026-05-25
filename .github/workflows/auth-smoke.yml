@@ -1,0 +1,51 @@
+name: Auth smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: URL to test
+        required: true
+        default: https://xn--espaatransparente-ixb.site
+      browser:
+        description: Run browser persistence check
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: auth-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Temporary signup smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      AUTH_SMOKE_APP_URL: ${{ inputs.app_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Install Playwright
+        if: ${{ inputs.browser }}
+        run: |
+          npm install --no-save --no-package-lock playwright@1.52.0
+          npx playwright install chromium
+      - name: Run API auth smoke
+        if: ${{ !inputs.browser }}
+        run: node scripts/auth-smoke.mjs
+      - name: Run browser auth smoke
+        if: ${{ inputs.browser }}
+        run: node scripts/auth-smoke.mjs --browser

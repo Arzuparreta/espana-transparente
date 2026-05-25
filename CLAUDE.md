@@ -85,7 +85,7 @@ The Congress portal (`congreso.es`) rate-limits aggressively and returns 403 aft
 
 ### Schema
 
-15+ tables under `supabase/migrations/`. Core: `politicians`, `politician_photo_versions`, `parties`, `legislatures`, `politician_memberships`, `voting_sessions`, `votes`, `initiatives`, `power_relationships`, `revolving_door` (+ `_candidates`, `_sources`), `organizations`, `annotations`, `contracts`, `grants`, `economic_declarations`. Key views: `v_attendance_summary`, `v_session_attendance`, `v_voting_session_summary`, `v_revolving_door_public`. Key function: `get_divergences()` — detects deputies voting against their parliamentary group (excludes "No vota" absences).
+15+ tables under `supabase/migrations/`. Core: `politicians`, `politician_photo_versions`, `parties`, `legislatures`, `politician_memberships`, `voting_sessions`, `votes`, `initiatives`, `power_relationships`, `revolving_door` (+ `_candidates`, `_sources`), `organizations`, `annotations`, `contracts`, `grants`, `economic_declarations`. Key views: `v_attendance_summary`, `v_session_attendance`, `v_voting_session_summary`, `v_revolving_door_public`. Key function: `get_divergences()` — detects deputies voting against their parliamentary group (excludes "No vota" absences). This is an internal / deep-page analytical signal (at most relevant on an individual deputy's own profile the week it happens). **It is NOT homepage material** — never surface divergence counts on the home / front door. See AGENTS.md §2.
 
 Multilevel responsibility (state / autonomic / municipal) is modeled across `responsibility_positions.yml` + `public_body_responsibility_map.yml` (in `etl/data/`) and materialized by `responsables.py` into Postgres for cross-linking spending to responsible officials.
 
