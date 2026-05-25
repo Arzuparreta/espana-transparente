@@ -582,7 +582,13 @@ def upsert_actors(cur, actors: list[WikiActor], case_external_id: str) -> int:
               review_status, evidence_url, raw_data
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'needs_review', %s, %s)
-            ON CONFLICT DO NOTHING
+            ON CONFLICT (case_id, actor_label) DO UPDATE SET
+              party_id       = COALESCE(corruption_case_actors.party_id, EXCLUDED.party_id),
+              organization_id = COALESCE(corruption_case_actors.organization_id, EXCLUDED.organization_id),
+              politician_id  = COALESCE(corruption_case_actors.politician_id, EXCLUDED.politician_id),
+              match_confidence = COALESCE(corruption_case_actors.match_confidence, EXCLUDED.match_confidence),
+              match_method   = COALESCE(corruption_case_actors.match_method, EXCLUDED.match_method),
+              updated_at     = now()
             """,
             (
                 case_id,
@@ -693,6 +699,50 @@ def run(
             conn.close()
 
 
+def rematch_parties() -> int:
+    """Re-run party matching against all existing actors where party_id is NULL.
+
+    Useful when new parties are added to the parties table — call with
+    ``python -m src.judicial.wikipedia --rematch-parties``.
+    Returns the number of actors updated.
+    """
+    conn = get_pg_conn()
+    updated = 0
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, actor_label
+                FROM corruption_case_actors
+                WHERE party_id IS NULL
+                  AND organization_id IS NULL
+                  AND politician_id IS NULL
+                  AND actor_type = 'organization'
+                """
+            )
+            rows = cur.fetchall()
+            for actor_id, label in rows:
+                party_id, confidence = match_party(cur, label)
+                if party_id:
+                    cur.execute(
+                        """
+                        UPDATE corruption_case_actors
+                        SET party_id = %s,
+                            match_confidence = %s,
+                            match_method = 'fuzzy_party',
+                            updated_at = now()
+                        WHERE id = %s
+                        """,
+                        (party_id, confidence, actor_id),
+                    )
+                    updated += 1
+        conn.commit()
+        print(f"Re-matched {updated} actors to parties")
+        return updated
+    finally:
+        conn.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Ingest Spanish corruption cases from Wikipedia"
@@ -714,7 +764,17 @@ def main() -> None:
         "--resume", action="store_true",
         help="Accepted for scheduler compatibility; upserts are idempotent."
     )
+    parser.add_argument(
+        "--rematch-parties", action="store_true",
+        help="Re-run party matching for all actors where party_id is NULL. "
+             "Run after adding new parties to the parties table."
+    )
     args = parser.parse_args()
+
+    if args.rematch_parties:
+        rematch_parties()
+        return
+
     cases_count, org_actors, person_actors = run(
         dry_run=args.dry_run,
         max_cases=args.max_cases,
