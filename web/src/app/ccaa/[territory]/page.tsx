@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { TerritoryFlag } from "@/components/domain/TerritoryFlag"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getAutonomicTerritoryDetail,
@@ -76,6 +77,7 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
       <PageHeader
         title={detail.territory.territoryName}
         description="Agrupación territorial construida con el campo nivel2 de BDNS y el campo region de PCSP cuando el registro está clasificado como autonómico."
+        actions={<TerritoryFlag territoryName={detail.territory.territoryName} size="lg" />}
       />
 
       <SourceFootnote
