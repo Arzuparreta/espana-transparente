@@ -37,24 +37,11 @@ export default async function HomePage() {
       </RevealSection>
 
       <RevealSection>
-        <section aria-labelledby="threads-heading">
-          <div className="mb-5">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
-              Cinco temas
-            </p>
-            <h2
-              id="threads-heading"
-              className="mt-1 font-display text-2xl font-black uppercase tracking-[-0.02em] sm:text-3xl"
-            >
-              ¿Qué quieres explorar?
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {THREADS.map((thread) => (
-              <ThreadCard key={thread.key} thread={thread} />
-            ))}
-          </div>
-        </section>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {THREADS.map((thread) => (
+            <ThreadCard key={thread.key} thread={thread} />
+          ))}
+        </div>
       </RevealSection>
     </div>
   )
