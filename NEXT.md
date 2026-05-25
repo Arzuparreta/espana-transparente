@@ -52,6 +52,28 @@ Decided 2026-05-25, approved. This is the next major body of work after the data
 phases (A–C). It is pure IA/UI — **no new data pipeline needed**. No time pressure: the
 correct redesign was chosen over the fast patch.
 
+> **REVISION 2026-05-25 — "persona primero".** The thread spine shipped, but two of the
+> abstract-concept threads (`Poder`, `Integridad`) proved unintuitive and — worse —
+> *ontologically wrong*: `Poder` ("¿Quién manda y cómo decide?") attributed agency to
+> aggregates (Gobierno, Senado, Partidos), and institutions were cross-listed as
+> "Organismos de control" (an actor). This contradicts the core thesis (AGENTS.md §1:
+> "cada agregado se muestra como un conjunto de personas, no un ente con voluntad propia").
+> **Governing principle adopted: top-level categories name *things*, not *agencies*.**
+> Persons are the only agents; everything else is a thing (money, a law, a number, a place)
+> or a container of persons (organization, institution, party).
+>
+> Consequences (current IA, supersedes the table below):
+> - **"Personas" returns as a top-level category** — reversing the earlier "Personas stops
+>   being a top-level group" decision. It absorbs the former `Poder` + `Integridad` as three
+>   sub-groups: **Cargos** (diputados, senado, gobierno, partidos, nombramientos) ·
+>   **Decisiones** (votaciones, iniciativas) · **Conducta** (declaraciones, puertas
+>   giratorias, procesos judiciales).
+> - Top-level threads are now four concrete nouns: **Personas · Dinero · Economía · Territorio**.
+> - `instituciones` lives once, under Personas/Cargos as "Nombramientos" (no more
+>   "Organismos de control" duplicate). `fondos-ue` is canonical under Dinero only.
+>   `organizaciones` stays under Dinero as a recipient (a thing, not an actor).
+> - `/poder` and `/integridad` redirect permanently to `/personas`. Leaf URLs unchanged.
+
 ### The problem
 
 Data coverage has outrun the interface. ~20 datasets now exist, but the IA is organized
