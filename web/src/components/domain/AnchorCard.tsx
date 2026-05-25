@@ -29,7 +29,7 @@ export function AnchorCard({
       className={cn(
         "flex flex-col rounded border border-border bg-card",
         compact
-          ? "min-h-[180px] px-4 py-5 sm:px-5 sm:py-6"
+          ? "min-h-[150px] px-4 py-4 sm:px-5"
           : "min-h-[260px] px-5 py-6 sm:px-6 sm:py-7",
         className
       )}
@@ -41,13 +41,18 @@ export function AnchorCard({
         data-value
         className={cn(
           "mt-2 font-mono font-medium tabular-nums tracking-[-0.03em] text-foreground",
-          compact ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl"
+          compact ? "text-2xl" : "text-3xl sm:text-4xl"
         )}
       >
         {value}
       </div>
       {description ? (
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p
+          className={cn(
+            "mt-3 max-w-2xl text-muted-foreground",
+            compact ? "text-xs leading-5" : "text-sm leading-6"
+          )}
+        >
           {description}
         </p>
       ) : null}
@@ -57,7 +62,10 @@ export function AnchorCard({
       {href ? (
         <ResponsiveLink
           href={href}
-          className="mt-auto inline-flex min-h-11 items-end pt-4 text-sm font-semibold underline underline-offset-4 hover:text-foreground"
+          className={cn(
+            "mt-auto inline-flex items-end pt-4 font-semibold underline underline-offset-4 hover:text-foreground",
+            compact ? "min-h-9 text-xs" : "min-h-11 text-sm"
+          )}
         >
           {linkLabel}
         </ResponsiveLink>

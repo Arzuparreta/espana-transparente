@@ -34,26 +34,11 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
         description={thread.description}
       />
 
-      {anchors ? (
-        <RevealSection>
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
-            {anchors}
-          </div>
-        </RevealSection>
-      ) : null}
-
-      {children}
-
       <RevealSection>
-        <section className="space-y-3">
-          <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              Fuentes principales
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-black uppercase tracking-[-0.02em]">
-              Datos disponibles
-            </h2>
-          </div>
+        <nav aria-label="Datos disponibles" className="space-y-3">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Datos disponibles
+          </p>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {thread.sources.map((source) => {
               const facts = source.countKey ? sectionFacts.get(source.countKey) : null
@@ -71,12 +56,25 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
               )
             })}
           </div>
-        </section>
+        </nav>
       </RevealSection>
+
+      {anchors ? (
+        <RevealSection>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            Resumen
+          </p>
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
+            {anchors}
+          </div>
+        </RevealSection>
+      ) : null}
+
+      {children}
     </div>
   )
 }
 
 export function ThreadAnchorCard(props: Parameters<typeof AnchorCard>[0]) {
-  return <AnchorCard {...props} />
+  return <AnchorCard variant="compact" {...props} />
 }
