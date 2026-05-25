@@ -263,29 +263,21 @@ def fetch_officers_for_slug(client: httpx.Client, slug: str) -> dict[str, Any] |
 
 
 def get_orgs_to_process(cur, limit: int | None = None, resume: bool = False) -> list[dict]:
-    """Get organizations that potentially have BORME data.
+    """Get companies (not public bodies) that may have Registro Mercantil entries.
 
-    Prioritizes companies and public bodies (which are most likely to have
-    Mercantil Registry entries). Skips individual people names.
+    Only processes organization_type='company' — public bodies are not in the
+    Registro Mercantil and are handled by the boe_nombramientos pipeline instead.
+    Prioritizes companies whose names contain a legal form indicator (S.L., S.A., etc.)
+    since those are almost guaranteed to have a Mercantil entry.
     """
     query = """
         SELECT o.id, o.name, o.organization_type,
                (regexp_match(o.source_url, '[A-Z][0-9]{7}[A-Z0-9]'))[1] AS cif
         FROM organizations o
-        WHERE o.organization_type IN ('company', 'public_body')
+        WHERE o.organization_type = 'company'
           AND o.name IS NOT NULL
           AND trim(o.name) <> ''
           AND o.name !~ '^[A-Z][0-9]'  -- skip CIF-only names
-          -- Exclude municipal/administrative positions (not in Mercantil Registry)
-          AND o.name !~* '^Alcald(e|ía)'
-          AND o.name !~* '^Alcalde'
-          AND o.name !~* '^Teniente de Alcalde'
-          AND o.name !~* '^Concejal'
-          AND o.name !~* '^Portavoz de(l| la)? (Grupo|Ayuntamiento|Diputación)'
-          AND o.name !~* '^Diputado'
-          AND o.name !~* '^Senador'
-          AND o.name !~* '^Ministro'
-          AND o.name !~* '^Secretario de Estado'
     """
     if resume:
         query += """
@@ -294,7 +286,9 @@ def get_orgs_to_process(cur, limit: int | None = None, resume: bool = False) -> 
           )
         """
     query += """
-        ORDER BY o.name
+        ORDER BY
+          CASE WHEN o.name ~* '\\mS\\.?[AL]\\.?U?\\.?\\M' THEN 0 ELSE 1 END,
+          o.name
     """
     if limit:
         query += f" LIMIT {limit}"
