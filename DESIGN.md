@@ -48,8 +48,8 @@
 | Surface Alt | `#1D1D1A` | Table row hover, secondary panels, header bar |
 | Text | `#EEEDE9` | Primary text — off-white with slight warmth (aged paper inverted) |
 | Muted | `#999992` | Metadata, timestamps, secondary labels |
-| Signal | `#C8FF00` | Acid yellow-green — divergences, exceptions, highlights. Zero political valence: no red-PSOE, no blue-PP association. Pure forensic highlighter energy. |
-| Signal dim | `rgba(200,255,0,0.12)` | Signal backgrounds, alert panels |
+| Signal | `#C8FF00` | Acid yellow-green — highlighted evidence, sourced anomalies, exception counts. Zero political valence: no red-PSOE, no blue-PP association. Pure forensic highlighter energy. |
+| Signal dim | `rgba(200,255,0,0.12)` | Signal backgrounds, alert panels, evidence callouts |
 | Border | `#2A2A27` | All dividers and card borders |
 
 ### Light variant (accessibility toggle — not default)
@@ -102,7 +102,7 @@ These encode the meaning of votes and are used across all voting UI. Not decorat
 
 ## Components
 
-- **Stat cards:** Geist Mono for all values. Signal color only for highlighted evidence, sourced anomalies and exception counts.
+- **Stat cards:** Geist Mono for all values. Signal color only for highlighted evidence, sourced anomalies, and exception counts. No vote-divergence counts.
 - **Data tables:** `font-family: var(--font-mono)` on all `<td>` containing numbers, IDs, dates. Surname-first for politician names (`APELLIDOS, Nombre`). Divergence marks as `▲ DIV` in signal color.
 - **Badges:** `font-family: var(--font-mono)`, uppercase, 2px radius. Use badge-signal for divergences and anomalies.
 - **Buttons:** Primary uses signal background with `#0B0B0A` text. Secondary uses border-only. Ghost uses no border. All 2px radius.
@@ -154,7 +154,7 @@ Rules:
 
 1. **Geist Mono for ALL numeric data** — not just code. Every number in every context: tables, stat cards, contract amounts, vote counts. Makes data feel like audit evidence rather than dashboard metrics.
 
-2. **Acid yellow-green (#C8FF00) as the sole signal accent** — replaces the previous crimson. Removes partisan color association. Used exclusively for divergences, exceptions, and highlighted evidence. Never decorative.
+2. **Acid yellow-green (#C8FF00) as the sole signal accent** — replaces the previous crimson. Removes partisan color association. Used for highlighted evidence, sourced anomalies, and exception counts. Never decorative. Not for vote-divergence recaps on the homepage (those are deep-page/analytical only).
 
 3. **Dark mode as primary** — the portal opens dark. Light mode is an accessibility toggle. Dark surfaces signal: "you are reading something that wasn't designed to be easy."
 
@@ -183,4 +183,5 @@ Rules:
 | 2026-05-18 | Remove background grid | 44px grid softened the aesthetic; removing it sharpens the forensic register |
 | 2026-05-18 | Remove card hover-float | Too playful for this aesthetic direction |
 | 2026-05-18 | 2px border radius | Near-zero softness everywhere |
+| 2026-05-25 | Signal color scope broadened | "Divergences" removed as primary use case; broadened to highlighted evidence, sourced anomalies, exception counts. Vote-divergence home recaps excluded per AGENTS.md §2. |
 | 2026-05-20 | Root docs flattened into `NEXT.md` + `DESIGN.md` | Keep active product/design truth in durable docs instead of shipped sprint artifacts |

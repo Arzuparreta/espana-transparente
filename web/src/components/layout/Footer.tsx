@@ -9,25 +9,26 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
       { label: "Senado", href: "/senado" },
       { label: "Gobierno", href: "/gobierno" },
       { label: "Partidos", href: "/partidos" },
-      { label: "Instituciones", href: "/instituciones" },
+      { label: "Votaciones", href: "/votaciones" },
+      { label: "Puertas giratorias", href: "/puertas-giratorias" },
     ],
   },
   {
-    heading: "Dinero y leyes",
+    heading: "Dinero",
     items: [
-      { label: "Votaciones", href: "/votaciones" },
       { label: "Presupuestos", href: "/presupuestos" },
       { label: "Contratos", href: "/contratos" },
       { label: "Subvenciones", href: "/subvenciones" },
       { label: "Fondos UE", href: "/fondos-ue" },
+      { label: "Organizaciones", href: "/organizaciones" },
     ],
   },
   {
-    heading: "Conexiones",
+    heading: "Economía · Territorio",
     items: [
-      { label: "Puertas giratorias", href: "/puertas-giratorias" },
-      { label: "Organizaciones", href: "/organizaciones" },
       { label: "Indicadores", href: "/indicadores" },
+      { label: "CCAA", href: "/ccaa" },
+      { label: "Municipios", href: "/municipios" },
     ],
   },
   {

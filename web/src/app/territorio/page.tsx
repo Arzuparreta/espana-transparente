@@ -26,16 +26,16 @@ export default async function TerritorioThreadPage() {
       anchors={
         <>
           <ThreadAnchorCard
-            label="Territorios autonómicos"
-            value={autonomic.territories.length.toLocaleString("es-ES")}
-            description={`${autonomicRecords.toLocaleString("es-ES")} registros autonómicos con contratos o subvenciones.`}
+            label="Registros autonómicos"
+            value={autonomicRecords.toLocaleString("es-ES")}
+            description={`${autonomic.territories.length.toLocaleString("es-ES")} territorios autonómicos con contratos o subvenciones publicados.`}
             href="/ccaa"
             linkLabel="Ver CCAA →"
           />
           <ThreadAnchorCard
-            label="Territorios locales"
-            value={municipal.territories.length.toLocaleString("es-ES")}
-            description={`${municipalRecords.toLocaleString("es-ES")} registros municipales o locales publicados por fuente.`}
+            label="Registros locales"
+            value={municipalRecords.toLocaleString("es-ES")}
+            description={`${municipal.territories.length.toLocaleString("es-ES")} entidades locales con gasto publicado por fuente.`}
             href="/municipios"
             linkLabel="Ver municipios →"
           />
