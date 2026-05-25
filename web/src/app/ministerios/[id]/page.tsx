@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -74,6 +74,7 @@ export default async function MinistrioPage({ params }: PageProps) {
     getPartyAcronymMap(),
   ])
   if (!member) notFound()
+  if (member.politician_id) redirect(`/diputados/${member.politician_id}`)
   const partyId = member.political_party ? partyMap[member.political_party.toLowerCase()] ?? null : null
 
   const color = getPartyColor(member.party_color)
