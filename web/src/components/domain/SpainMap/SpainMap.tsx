@@ -1,12 +1,16 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { feature as topoFeature } from "topojson-client"
+import topoData from "../../../../public/geo/spain.topo.json"
 import type { SpainMapCcaa, SelectedCcaa } from "./types"
 import { TerritoryPanel } from "../TerritoryPanel"
 
 type Props = {
   data: SpainMapCcaa[]
 }
+
+type ColorMode = "none" | "total"
 
 type Bounds = {
   minX: number
@@ -44,15 +48,21 @@ type TopoData = {
 const VIEWBOX_WIDTH = 800
 const VIEWBOX_HEIGHT = 600
 const CANARIAS_KEY = "CANARIAS"
+const MAP_FILL = "#343a35"
+const MAP_FILL_MUTED = "#202421"
+const MAP_STROKE = "#7b857b"
+const MAP_STROKE_MUTED = "#40483f"
+const MAP_ACCENT = "#C8FF00"
+const MAP_ACCENT_SOFT = "#E4FF73"
 
 const INSET_REGIONS = new Set([CANARIAS_KEY])
 
-function spendColor(amount: number, max: number): string {
-  if (max <= 0 || amount <= 0) return "#202020"
+function totalAmountColor(amount: number, max: number): string {
+  if (max <= 0) return MAP_FILL
   const t = Math.pow(amount / max, 0.42)
-  const r = Math.round(0x22 + t * (0xc8 - 0x22))
-  const g = Math.round(0x26 + t * (0xff - 0x26))
-  const b = Math.round(0x20 - t * 0x20)
+  const r = Math.round(0x3a + t * (0xc8 - 0x3a))
+  const g = Math.round(0x40 + t * (0xff - 0x40))
+  const b = Math.round(0x3a - t * 0x3a)
   return `rgb(${r},${g},${b})`
 }
 
@@ -149,55 +159,45 @@ export function SpainMap({ data }: Props) {
   const [selected, setSelected] = useState<SelectedCcaa | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
   const [layer, setLayer] = useState<"ccaa" | "provinces">("ccaa")
-  const [paths, setPaths] = useState<{
-    ccaa: ProjectedPath[]
-    provinces: ProjectedPath[]
-  } | null>(null)
+  const [colorMode, setColorMode] = useState<ColorMode>("none")
 
   const dataByKey = useMemo(() => new Map(data.map((d) => [d.topoKey, d])), [data])
   const maxAmount = useMemo(() => Math.max(...data.map((d) => d.totalAmount), 1), [data])
 
-  useEffect(() => {
-    async function load() {
-      const [topojsonClient, topoData] = await Promise.all([
-        import("topojson-client"),
-        fetch("/geo/spain.topo.json").then((response) => response.json()) as Promise<TopoData>,
-      ])
-      const { feature } = topojsonClient as unknown as {
-        feature: (topology: TopoData, object: object) => { features: GeoFeature[] }
-      }
+  const paths = useMemo(() => {
+    const topology = topoData as TopoData
+    const feature = topoFeature as unknown as (
+      topology: TopoData,
+      object: object
+    ) => { features: GeoFeature[] }
+    const ccaaFeatures = feature(topology, topology.objects.ccaa).features
+    const provinceFeatures = feature(topology, topology.objects.provinces).features
 
-      const ccaaFeatures = feature(topoData, topoData.objects.ccaa).features
-      const provinceFeatures = feature(topoData, topoData.objects.provinces).features
-
-      setPaths({
-        ccaa: ccaaFeatures.map((item) => {
-          const projected = pathFromGeometry(item)
-          return {
-            d: projected.d,
-            bounds: projected.bounds,
-            key: item.properties.ccaa_key,
-            name: item.properties.ccaa_name,
-          }
-        }),
-        provinces: provinceFeatures.map((item) => {
-          const projected = pathFromGeometry(item)
-          return {
-            d: projected.d,
-            bounds: projected.bounds,
-            key: `${item.properties.ccaa_key}_${item.properties.province_key}`,
-            ccaaKey: item.properties.ccaa_key,
-            name: item.properties.province_name,
-          }
-        }),
-      })
-    }
-
-    load().catch(console.error)
+    return {
+      ccaa: ccaaFeatures.map((item) => {
+        const projected = pathFromGeometry(item)
+        return {
+          d: projected.d,
+          bounds: projected.bounds,
+          key: item.properties.ccaa_key,
+          name: item.properties.ccaa_name,
+        }
+      }),
+      provinces: provinceFeatures.map((item) => {
+        const projected = pathFromGeometry(item)
+        return {
+          d: projected.d,
+          bounds: projected.bounds,
+          key: `${item.properties.ccaa_key}_${item.properties.province_key}`,
+          ccaaKey: item.properties.ccaa_key,
+          name: item.properties.province_name,
+        }
+      }),
+    } satisfies { ccaa: ProjectedPath[]; provinces: ProjectedPath[] }
   }, [])
 
   const selectedBounds = useMemo(() => {
-    if (!selected || !paths) return null
+    if (!selected) return null
     const provinces = paths.provinces.filter((path) => path.ccaaKey === selected.topoKey)
     if (provinces.length > 0) return mergeBounds(provinces.map((path) => path.bounds))
     return paths.ccaa.find((path) => path.key === selected.topoKey)?.bounds ?? null
@@ -209,6 +209,7 @@ export function SpainMap({ data }: Props) {
       if (!ccaaData) return
       setSelected({ ...ccaaData, topoKey })
       setLayer("provinces")
+      setColorMode("none")
       setHovered(null)
     },
     [dataByKey]
@@ -220,43 +221,88 @@ export function SpainMap({ data }: Props) {
     setHovered(null)
   }, [])
 
-  if (!paths) {
-    return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center border border-neutral-800 bg-[#0f0f0f]">
-        <span className="font-mono text-xs text-neutral-600">cargando mapa...</span>
-      </div>
-    )
-  }
-
   const detailHref = selected ? `/ccaa/${encodeURIComponent(selected.routeKey)}` : null
   const transform = layer === "provinces" ? zoomForBounds(selectedBounds) : ""
+  const showTotalLegend = layer === "ccaa" && colorMode === "total"
 
   return (
     <div className="flex w-full flex-col border border-neutral-800 bg-[#0f0f0f] lg:flex-row">
-      <div className="relative min-w-0 flex-1">
-        {selected && (
-          <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
-            <button
-              onClick={handleBack}
-              className="border border-neutral-800 bg-[#0f0f0f]/90 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
-              aria-label="Volver al mapa completo"
-            >
-              España
-            </button>
-            {detailHref && (
-              <a
-                href={detailHref}
-                className="border border-neutral-800 bg-[#0f0f0f]/90 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
-              >
-                Ver ficha
-              </a>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-col gap-3 border-b border-neutral-800 p-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-h-7 items-start gap-2">
+            {selected && (
+              <>
+                <button
+                  onClick={handleBack}
+                  className="border border-neutral-800 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
+                  aria-label="Volver al mapa completo"
+                >
+                  España
+                </button>
+                {detailHref && (
+                  <a
+                    href={detailHref}
+                    className="border border-neutral-800 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
+                  >
+                    Ver ficha
+                  </a>
+                )}
+              </>
             )}
           </div>
-        )}
+
+          <div className="flex flex-col gap-2 sm:w-80 sm:items-end">
+            <div className="flex overflow-hidden border border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setColorMode("none")}
+                className={`px-2 py-1 font-mono text-xs transition-colors ${
+                  colorMode === "none" ? "bg-neutral-200 text-neutral-950" : "text-neutral-400 hover:text-neutral-100"
+                }`}
+              >
+                mapa
+              </button>
+              {layer === "ccaa" && (
+                <button
+                  type="button"
+                  onClick={() => setColorMode("total")}
+                  className={`border-l border-neutral-800 px-2 py-1 font-mono text-xs transition-colors ${
+                    colorMode === "total" ? "bg-neutral-200 text-neutral-950" : "text-neutral-400 hover:text-neutral-100"
+                  }`}
+                >
+                  gasto
+                </button>
+              )}
+            </div>
+
+            <div className="w-full text-left sm:text-right">
+              <p className="font-mono text-xs text-neutral-300">
+                {colorMode === "total"
+                  ? "Color: importe total registrado por CCAA"
+                  : "Mapa: límites territoriales y navegación"}
+              </p>
+              <p className="mt-1 text-xs leading-4 text-neutral-500">
+                {colorMode === "total"
+                  ? "Contratos y subvenciones autonómicas disponibles en las fuentes cargadas."
+                  : "Los importes aparecen al seleccionar una comunidad autónoma."}
+              </p>
+              {showTotalLegend && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="font-mono text-[11px] text-neutral-500">menos</span>
+                  <div
+                    className="h-2 flex-1"
+                    style={{ background: `linear-gradient(to right, ${totalAmountColor(0, maxAmount)}, ${MAP_ACCENT})` }}
+                  />
+                  <span className="font-mono text-[11px] text-neutral-500">más</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-          className="block h-auto w-full"
+          className="block h-[430px] w-full sm:h-[520px]"
           role="img"
           aria-label="Mapa interactivo de España por comunidades autónomas"
         >
@@ -268,14 +314,15 @@ export function SpainMap({ data }: Props) {
                 const entry = dataByKey.get(path.key)
                 const amount = entry?.totalAmount ?? 0
                 const isHovered = hovered === path.key
+                const fill = colorMode === "total" ? totalAmountColor(amount, maxAmount) : MAP_FILL
                 return (
                   <path
                     key={path.key}
                     d={path.d}
-                    fill={isHovered ? "#C8FF00" : spendColor(amount, maxAmount)}
+                    fill={isHovered ? MAP_ACCENT : fill}
                     fillRule="evenodd"
-                    stroke={isHovered ? "#E4FF73" : "#0f0f0f"}
-                    strokeWidth={isHovered ? 1.35 : 0.75}
+                    stroke={isHovered ? MAP_ACCENT_SOFT : MAP_STROKE}
+                    strokeWidth={isHovered ? 1.6 : 0.9}
                     vectorEffect="non-scaling-stroke"
                     className="cursor-pointer transition-colors duration-150"
                     onMouseEnter={() => setHovered(path.key)}
@@ -298,22 +345,17 @@ export function SpainMap({ data }: Props) {
               paths.provinces.map((path) => {
                 const isActive = path.ccaaKey === selected?.topoKey
                 const isHovered = hovered === path.key
-                const parentData = path.ccaaKey ? dataByKey.get(path.ccaaKey) : null
-                const fill = isActive
-                  ? isHovered
-                    ? "#C8FF00"
-                    : spendColor(parentData?.totalAmount ?? 0, maxAmount)
-                  : "#171717"
+                const fill = isActive ? (isHovered ? MAP_ACCENT : MAP_FILL) : MAP_FILL_MUTED
 
                 return (
                   <path
                     key={path.key}
                     d={path.d}
                     fill={fill}
-                    fillOpacity={isActive ? 0.92 : 0.28}
+                    fillOpacity={isActive ? 1 : 0.44}
                     fillRule="evenodd"
-                    stroke={isActive ? "#0f0f0f" : "#242424"}
-                    strokeWidth={isActive ? 0.85 : 0.5}
+                    stroke={isActive ? MAP_STROKE : MAP_STROKE_MUTED}
+                    strokeWidth={isActive ? 0.85 : 0.55}
                     vectorEffect="non-scaling-stroke"
                     className={isActive ? "cursor-pointer transition-colors duration-150" : "transition-colors duration-150"}
                     onMouseEnter={() => isActive && setHovered(path.key)}
@@ -341,6 +383,7 @@ export function SpainMap({ data }: Props) {
             Canarias
           </text>
         </svg>
+
       </div>
 
       <TerritoryPanel selected={selected} onClose={handleBack} />

@@ -55,17 +55,6 @@ export default async function TerritorioPage() {
           <TerritoryFallbackList data={mapData} />
         </noscript>
 
-        {/* Color legend */}
-        <div className="flex items-center gap-3 mt-1">
-          <span className="text-xs text-neutral-600 font-mono">Menor gasto</span>
-          <div
-            className="h-2 flex-1 max-w-48"
-            style={{
-              background: "linear-gradient(to right, #1a1a1a, #4a6100, #C8FF00)",
-            }}
-          />
-          <span className="text-xs text-neutral-600 font-mono">Mayor gasto</span>
-        </div>
       </div>
     </main>
   )
