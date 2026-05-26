@@ -27,7 +27,7 @@ export function AnchorCard({
   return (
     <section
       className={cn(
-        "flex flex-col rounded border border-border bg-card",
+        "flex flex-col rounded-[2px] border border-border bg-card",
         compact
           ? "min-h-[150px] px-4 py-4 sm:px-5"
           : "min-h-[260px] px-5 py-6 sm:px-6 sm:py-7",

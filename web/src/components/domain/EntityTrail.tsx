@@ -44,7 +44,7 @@ function ConnectionGroup({
               <ResponsiveLink
                 key={`${conn.route}-${i}`}
                 href={conn.route}
-                className="inline-flex items-center gap-1 rounded border border-border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:border-foreground/30 hover:bg-muted/50"
+                className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:border-foreground/30 hover:bg-muted/50"
               >
                 <span className="truncate">{conn.label}</span>
                 {conn.meta && (

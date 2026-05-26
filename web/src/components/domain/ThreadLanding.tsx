@@ -25,6 +25,10 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
   const sourceCount = thread.sources.length
   const sourceGridCols =
     sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
+  // When sourceCount % 3 === 1 and > 3, the last card is alone in the xl 3-col grid.
+  // Span it across all columns so it doesn't leave an awkward gap.
+  const loneLastCardClass =
+    sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-3" : ""
 
   return (
     <div className="ui-page-wide space-y-6">
@@ -43,7 +47,7 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Datos disponibles
           </p>
-          <div className={`grid gap-3 ${sourceGridCols}`}>
+          <div className={`grid gap-3 ${sourceGridCols} ${loneLastCardClass}`.trim()}>
             {thread.sources.map((source) => {
               const facts = source.countKey ? sectionFacts.get(source.countKey) : null
               return (

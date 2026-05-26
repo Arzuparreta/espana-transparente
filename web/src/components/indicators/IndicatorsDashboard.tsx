@@ -68,28 +68,28 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
 
   return (
     <div className="space-y-5">
-      <section className="hidden overflow-hidden rounded border border-border bg-card p-4 sm:block sm:p-5">
+      <section className="hidden overflow-hidden rounded-[2px] border border-border bg-card p-4 sm:block sm:p-5">
         <div className="grid gap-3 sm:grid-cols-4">
-          <div className="rounded border border-border bg-background/60 px-3 py-3">
+          <div className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
             <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Series</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{indicators.length}</div>
           </div>
-          <div className="rounded border border-border bg-background/60 px-3 py-3">
+          <div className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
             <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Observaciones</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{totalObservations}</div>
           </div>
-          <div className="rounded border border-border bg-background/60 px-3 py-3">
+          <div className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
             <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Último periodo</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{latestPeriod ?? "N/D"}</div>
           </div>
-          <div className="rounded border border-border bg-background/60 px-3 py-3">
+          <div className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
             <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Fuente</div>
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">INE</div>
           </div>
         </div>
       </section>
 
-      <div className="flex flex-col gap-3 rounded border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-[2px] border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="text-sm font-semibold">Panel de indicadores</div>
           <div className="text-xs leading-5 text-muted-foreground">
@@ -128,7 +128,7 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
               <article
                 key={indicator.code}
                 data-slot="card"
-                className="group flex h-full min-h-[260px] flex-col justify-between rounded border border-border bg-card p-4 transition-colors duration-150 hover:border-foreground/30"
+                className="group flex h-full min-h-[260px] flex-col justify-between rounded-[2px] border border-border bg-card p-4 transition-colors duration-150 hover:border-foreground/30"
               >
                 <ResponsiveLink
                   href={`/indicadores/${indicator.code}`}

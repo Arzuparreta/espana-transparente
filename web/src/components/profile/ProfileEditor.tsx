@@ -215,7 +215,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6" data-testid="profile-editor">
-      <section className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
+      <section className="rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <Avatar size="lg" className="size-16">
@@ -244,7 +244,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <form onSubmit={saveProfile} className="space-y-6 rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
+        <form onSubmit={saveProfile} className="space-y-6 rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
           <div>
             <h2 className="text-lg font-semibold">Datos del perfil</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -307,7 +307,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
             </label>
           </div>
 
-          <div className="space-y-3 rounded border border-border/70 bg-background/60 p-4">
+          <div className="space-y-3 rounded-[2px] border border-border/70 bg-background/60 p-4">
             <label className="flex min-w-0 items-start justify-between gap-4">
               <span className="min-w-0">
                 <span className="block text-sm font-medium">Perfil público</span>
@@ -361,7 +361,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
         </form>
 
         <aside className="space-y-4">
-          <section className="rounded border border-border bg-card px-4 py-5">
+          <section className="rounded-[2px] border border-border bg-card px-4 py-5">
             <h2 className="text-lg font-semibold">Foto</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               JPG, PNG o WebP. Máximo 5 MB.
@@ -381,7 +381,7 @@ export function ProfileEditor({ initialData }: ProfileEditorProps) {
             </div>
           </section>
 
-          <section className="rounded border border-border bg-card px-4 py-5">
+          <section className="rounded-[2px] border border-border bg-card px-4 py-5">
             <h2 className="text-lg font-semibold">Opciones futuras</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               La estructura privada de preferencias ya existe para añadir controles sin cambiar el modelo base.

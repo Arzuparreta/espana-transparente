@@ -88,9 +88,9 @@ export default async function IndicadorPage({ params }: PageProps) {
             { href: "/estado-datos", label: "Estado de los datos" },
           ]}
         />
-        <section className="relative min-h-[calc(100svh-7.5rem)] overflow-hidden rounded border border-border bg-card p-3 sm:p-4">
+        <section className="relative min-h-[calc(100svh-7.5rem)] overflow-hidden rounded-[2px] border border-border bg-card p-3 sm:p-4">
           <div className="relative flex min-h-[calc(100svh-9.5rem)] flex-col gap-3">
-            <div className="flex flex-col gap-3 rounded border border-border bg-background/60 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-3 rounded-[2px] border border-border bg-background/60 px-3 py-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <ResponsiveLink
@@ -113,7 +113,7 @@ export default async function IndicadorPage({ params }: PageProps) {
                   {name}
                 </h1>
               </div>
-              <div className="shrink-0 rounded border border-border bg-card px-3 py-2 sm:text-right">
+              <div className="shrink-0 rounded-[2px] border border-border bg-card px-3 py-2 sm:text-right">
                 <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Último dato</div>
                 <div className="mt-1 flex flex-wrap items-end gap-2 sm:justify-end">
                   <span data-value className="font-mono text-4xl font-medium tracking-tight sm:text-5xl">
@@ -125,7 +125,7 @@ export default async function IndicadorPage({ params }: PageProps) {
             </div>
 
             <div className="grid flex-1 min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
-              <div className="min-h-[44svh] rounded border border-border bg-background/60 p-2 sm:min-h-[52svh] sm:p-3 lg:min-h-0">
+              <div className="min-h-[44svh] rounded-[2px] border border-border bg-background/60 p-2 sm:min-h-[52svh] sm:p-3 lg:min-h-0">
                 <IndicatorChart
                   data={sorted.map((point) => ({ period: point.period, value: point.value }))}
                   unit={unit}
@@ -137,7 +137,7 @@ export default async function IndicadorPage({ params }: PageProps) {
 
               <aside className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 {stats.map((stat) => (
-                  <div key={stat.label} className="rounded border border-border bg-background/60 px-3 py-3">
+                  <div key={stat.label} className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
                     <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">{stat.label}</div>
                     <div data-value className="mt-1 break-words font-mono text-3xl font-medium tracking-tight">{stat.value}</div>
                     <div className="mt-1 text-xs leading-5 text-muted-foreground">{stat.hint}</div>
@@ -146,7 +146,7 @@ export default async function IndicadorPage({ params }: PageProps) {
               </aside>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded border border-border bg-background/60 px-3 py-2 font-mono text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] border border-border bg-background/60 px-3 py-2 font-mono text-xs text-muted-foreground">
               <span>{sorted.length} observaciones</span>
               <span>{rangeStart} - {rangeEnd}</span>
             </div>

@@ -132,13 +132,13 @@ function OcrExtract({ data }: { data: Record<string, unknown> }) {
       {hasExtract && (
         <div className="grid grid-cols-2 gap-2 text-sm">
           {totalIncome != null && totalIncome > 0 && (
-            <div className="rounded border border-border bg-background/60 px-2 py-2">
+            <div className="rounded-[2px] border border-border bg-background/60 px-2 py-2">
               <div className="text-xs text-muted-foreground">Ingresos totales</div>
               <div className="font-mono font-medium">{fmtEuro(totalIncome)}</div>
             </div>
           )}
           {irpfPaid != null && irpfPaid > 0 && (
-            <div className="rounded border border-border bg-background/60 px-2 py-2">
+            <div className="rounded-[2px] border border-border bg-background/60 px-2 py-2">
               <div className="text-xs text-muted-foreground">IRPF pagado</div>
               <div className="font-mono font-medium">{fmtEuro(irpfPaid)}</div>
             </div>
@@ -188,7 +188,7 @@ function OcrExtract({ data }: { data: Record<string, unknown> }) {
             Texto OCR{ocrProcessed ? ` (procesado ${new Date(ocrProcessed).toLocaleDateString("es-ES")})` : ""}
           </summary>
           {showOcr && (
-            <pre className="mt-2 max-h-64 overflow-y-auto rounded border border-border bg-muted/30 p-3 text-xs leading-relaxed whitespace-pre-wrap">
+            <pre className="mt-2 max-h-64 overflow-y-auto rounded-[2px] border border-border bg-muted/30 p-3 text-xs leading-relaxed whitespace-pre-wrap">
               {ocrText.slice(0, 4000)}
               {ocrText.length > 4000 && "\n\n[... texto truncado, ver PDF original para contenido completo]"}
             </pre>
