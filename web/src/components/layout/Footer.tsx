@@ -16,19 +16,21 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
   {
     heading: "Dinero",
     items: [
+      { label: "Trazabilidad del gasto", href: "/dinero-publico" },
       { label: "Presupuestos", href: "/presupuestos" },
       { label: "Contratos", href: "/contratos" },
       { label: "Subvenciones", href: "/subvenciones" },
       { label: "Fondos UE", href: "/fondos-ue" },
+      { label: "Mapa del gasto", href: "/territorio" },
+      { label: "CCAA", href: "/ccaa" },
+      { label: "Municipios", href: "/municipios" },
       { label: "Organizaciones", href: "/organizaciones" },
     ],
   },
   {
-    heading: "Economía · Territorio",
+    heading: "Economía",
     items: [
       { label: "Indicadores", href: "/indicadores" },
-      { label: "CCAA", href: "/ccaa" },
-      { label: "Municipios", href: "/municipios" },
     ],
   },
   {

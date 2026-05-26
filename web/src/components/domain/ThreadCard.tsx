@@ -8,15 +8,12 @@ interface ThreadCardProps {
 export function ThreadCard({ thread }: ThreadCardProps) {
   return (
     <div className="relative rounded-[2px] border border-border bg-card p-5 transition-colors hover:border-foreground/30">
-      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-        {thread.question}
-      </p>
-      <h2 className="mt-2 font-display text-2xl font-black uppercase tracking-[-0.02em] sm:text-3xl">
+      <h2 className="font-display text-2xl font-black uppercase tracking-[-0.02em] sm:text-3xl">
         {thread.label}
       </h2>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{thread.description}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{thread.question}</p>
       <p className="mt-4 font-mono text-xs text-muted-foreground/70">
-        {thread.sources.length} fuentes de datos →
+        {thread.sources.length} fuentes →
       </p>
       <ResponsiveLink
         href={thread.href}
