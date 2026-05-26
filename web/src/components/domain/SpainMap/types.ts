@@ -6,6 +6,7 @@ export type MapLayer = "ccaa" | "provinces"
 
 export type SelectedCcaa = {
   topoKey: string
+  routeKey: string
   displayName: string
   flagKey: string
   subsidyTotal: number

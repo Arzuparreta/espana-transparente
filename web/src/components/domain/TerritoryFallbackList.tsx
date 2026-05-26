@@ -18,7 +18,7 @@ export function TerritoryFallbackList({ data }: Props) {
       {sorted.map((ccaa) => (
         <a
           key={ccaa.topoKey}
-          href={`/ccaa/${ccaa.topoKey.toLowerCase().replace(/_/g, "-")}`}
+          href={`/ccaa/${encodeURIComponent(ccaa.routeKey)}`}
           className="flex items-center gap-3 bg-[#0f0f0f] px-4 py-3 hover:bg-neutral-900 transition-colors min-w-0"
         >
           <TerritoryFlag territoryName={ccaa.flagKey} className="shrink-0" />

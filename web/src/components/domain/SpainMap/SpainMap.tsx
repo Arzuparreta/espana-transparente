@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import type { SpainMapCcaa, SelectedCcaa } from "./types"
 import { TerritoryPanel } from "../TerritoryPanel"
 
@@ -8,170 +8,208 @@ type Props = {
   data: SpainMapCcaa[]
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TopoData = any
+type Bounds = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
 
-// Acid green at various opacities for choropleth
+type ProjectedPath = {
+  d: string
+  key: string
+  name: string
+  ccaaKey?: string
+  bounds: Bounds
+}
+
+type GeoGeometry = {
+  type: "Polygon" | "MultiPolygon"
+  coordinates: number[][][] | number[][][][]
+}
+
+type GeoFeature = {
+  type: "Feature"
+  properties: Record<string, string>
+  geometry: GeoGeometry
+}
+
+type TopoData = {
+  objects: {
+    ccaa: object
+    provinces: object
+  }
+}
+
+const VIEWBOX_WIDTH = 800
+const VIEWBOX_HEIGHT = 600
+const CANARIAS_KEY = "CANARIAS"
+
+const INSET_REGIONS = new Set([CANARIAS_KEY])
+
 function spendColor(amount: number, max: number): string {
-  if (max === 0 || amount === 0) return "#1a1a1a"
-  const t = Math.pow(amount / max, 0.4) // sqrt-ish scale for better visual spread
-  const r = Math.round(0x1a + t * (0xc8 - 0x1a))
-  const g = Math.round(0x1a + t * (0xff - 0x1a))
-  const b = Math.round(0x1a + t * (0x00 - 0x1a))
+  if (max <= 0 || amount <= 0) return "#202020"
+  const t = Math.pow(amount / max, 0.42)
+  const r = Math.round(0x22 + t * (0xc8 - 0x22))
+  const g = Math.round(0x26 + t * (0xff - 0x26))
+  const b = Math.round(0x20 - t * 0x20)
   return `rgb(${r},${g},${b})`
 }
 
+function emptyBounds(): Bounds {
+  return { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+}
+
+function includePoint(bounds: Bounds, x: number, y: number) {
+  bounds.minX = Math.min(bounds.minX, x)
+  bounds.minY = Math.min(bounds.minY, y)
+  bounds.maxX = Math.max(bounds.maxX, x)
+  bounds.maxY = Math.max(bounds.maxY, y)
+}
+
+function mergeBounds(bounds: Bounds[]) {
+  const merged = emptyBounds()
+  for (const item of bounds) {
+    includePoint(merged, item.minX, item.minY)
+    includePoint(merged, item.maxX, item.maxY)
+  }
+  return merged
+}
+
+function formatPathNumber(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2)
+}
+
+function createMercatorProjector(
+  lonMin: number,
+  lonMax: number,
+  latMin: number,
+  latMax: number,
+  left: number,
+  top: number,
+  right: number,
+  bottom: number
+) {
+  const toRad = (degrees: number) => (degrees * Math.PI) / 180
+  const mercY = (lat: number) => -Math.log(Math.tan(Math.PI / 4 + toRad(lat) / 2))
+  const x0 = toRad(lonMin)
+  const x1 = toRad(lonMax)
+  const y0 = mercY(latMin)
+  const y1 = mercY(latMax)
+  const width = right - left
+  const height = bottom - top
+  const scale = Math.min(width / (x1 - x0), height / (y0 - y1)) * 0.96
+  const tx = left + (width - scale * (x0 + x1)) / 2
+  const ty = top + (height - scale * (y0 + y1)) / 2
+
+  return ([lon, lat]: number[]) => [tx + scale * toRad(lon), ty + scale * mercY(lat)] as const
+}
+
+const mainlandProject = createMercatorProjector(-9.5, 4.4, 35.7, 43.9, 34, 26, 766, 514)
+const canariasProject = createMercatorProjector(-18.2, -13.3, 27.5, 29.45, 42, 514, 222, 588)
+
+function ringsForGeometry(geometry: GeoGeometry): number[][][][] {
+  if (geometry.type === "Polygon") return [geometry.coordinates as number[][][]]
+  return geometry.coordinates as number[][][][]
+}
+
+function pathFromGeometry(feature: GeoFeature): { d: string; bounds: Bounds } {
+  const project = INSET_REGIONS.has(feature.properties.ccaa_key) ? canariasProject : mainlandProject
+  const bounds = emptyBounds()
+  const d = ringsForGeometry(feature.geometry)
+    .map((polygon) =>
+      polygon
+        .map((ring) => {
+          const points = ring.map((point) => {
+            const [x, y] = project(point)
+            includePoint(bounds, x, y)
+            return `${formatPathNumber(x)},${formatPathNumber(y)}`
+          })
+          return points.length > 0 ? `M${points.join("L")}Z` : ""
+        })
+        .join("")
+    )
+    .join("")
+
+  return { d, bounds }
+}
+
+function zoomForBounds(bounds: Bounds | null) {
+  if (!bounds) return ""
+  const width = Math.max(bounds.maxX - bounds.minX, 1)
+  const height = Math.max(bounds.maxY - bounds.minY, 1)
+  const scale = Math.min(4.2, Math.max(1.35, Math.min(620 / width, 430 / height)))
+  const cx = (bounds.minX + bounds.maxX) / 2
+  const cy = (bounds.minY + bounds.maxY) / 2
+
+  return `translate(${VIEWBOX_WIDTH / 2} ${VIEWBOX_HEIGHT / 2}) scale(${formatPathNumber(scale)}) translate(${-formatPathNumber(cx)} ${-formatPathNumber(cy)})`
+}
+
 export function SpainMap({ data }: Props) {
-  const svgRef = useRef<SVGSVGElement>(null)
   const [selected, setSelected] = useState<SelectedCcaa | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
   const [layer, setLayer] = useState<"ccaa" | "provinces">("ccaa")
   const [paths, setPaths] = useState<{
-    ccaa: Array<{ d: string; key: string; name: string }>
-    provinces: Array<{ d: string; key: string; provKey: string; ccaaKey: string }>
-    borders: string
-    provBorders: string
+    ccaa: ProjectedPath[]
+    provinces: ProjectedPath[]
   } | null>(null)
-  const [zoomTransform, setZoomTransform] = useState("")
 
   const dataByKey = useMemo(() => new Map(data.map((d) => [d.topoKey, d])), [data])
   const maxAmount = useMemo(() => Math.max(...data.map((d) => d.totalAmount), 1), [data])
 
-  // Load and compute paths after mount (d3-geo + topojson are client-only)
   useEffect(() => {
     async function load() {
-      const [
-        { feature, mesh },
-        { geoMercator, geoPath },
-        topoData,
-      ] = await Promise.all([
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        import("topojson-client") as Promise<any>,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        import("d3-geo") as Promise<any>,
-        fetch("/geo/spain.topo.json").then((r) => r.json()) as Promise<TopoData>,
+      const [topojsonClient, topoData] = await Promise.all([
+        import("topojson-client"),
+        fetch("/geo/spain.topo.json").then((response) => response.json()) as Promise<TopoData>,
       ])
-
-      // Continental CCAA (exclude Canarias, Ceuta, Melilla from main projection)
-      const CANARIAS_KEY = "CANARIAS"
-      const ENCLAVES = new Set(["CEUTA", "MELILLA"])
-
-      type GeoFeat = { type: string; properties: Record<string, string>; geometry: object }
-      const allCcaaFeatures: GeoFeat[] = feature(topoData, topoData.objects.ccaa).features
-      const allProvFeatures: GeoFeat[] = feature(topoData, topoData.objects.provinces).features
-
-      const continentalCcaa = allCcaaFeatures.filter(
-        (f) => f.properties.ccaa_key !== CANARIAS_KEY && !ENCLAVES.has(f.properties.ccaa_key)
-      )
-      const canariasFeatures = allCcaaFeatures.filter((f) => f.properties.ccaa_key === CANARIAS_KEY)
-      const enclaveFeatures = allCcaaFeatures.filter((f) => ENCLAVES.has(f.properties.ccaa_key))
-
-      const continentalProv = allProvFeatures.filter(
-        (f) => f.properties.ccaa_key !== CANARIAS_KEY && !ENCLAVES.has(f.properties.ccaa_key)
-      )
-      const canariasProvFeatures = allProvFeatures.filter((f) => f.properties.ccaa_key === CANARIAS_KEY)
-
-      // fitExtent is broken for these features because d3-geo's antimeridian preclip
-      // injects world-spanning background arcs into the bounds stream, making scale ~76
-      // instead of the correct ~2700. Compute scale/translate manually from geo extent.
-      function mercatorFit(
-        lonMin: number, lonMax: number, latMin: number, latMax: number,
-        left: number, top: number, right: number, bottom: number
-      ) {
-        const toRad = (d: number) => d * Math.PI / 180
-        const mercY = (lat: number) => -Math.log(Math.tan(Math.PI / 4 + toRad(lat) / 2))
-        const x0 = toRad(lonMin), x1 = toRad(lonMax)
-        const y0 = mercY(latMin), y1 = mercY(latMax)
-        const w = right - left, h = bottom - top
-        const scale = Math.min(w / (x1 - x0), h / (y0 - y1)) * 0.95
-        const tx = left + (w - scale * (x0 + x1)) / 2
-        const ty = top + (h - scale * (y0 + y1)) / 2
-        return geoMercator().scale(scale).translate([tx, ty])
+      const { feature } = topojsonClient as unknown as {
+        feature: (topology: TopoData, object: object) => { features: GeoFeature[] }
       }
 
-      // Mainland: continental Spain + enclaves, fit into [10,10]→[780,490]
-      // clipExtent is required to prevent d3-geo from prepending a world-spanning
-      // background rectangle that would invert the fill rule for all polygons.
-      const mainProj = mercatorFit(-9.251, 4.303, 36.006, 43.732, 10, 10, 780, 490)
-        .clipExtent([[0, 0], [800, 600]])
+      const ccaaFeatures = feature(topoData, topoData.objects.ccaa).features
+      const provinceFeatures = feature(topoData, topoData.objects.provinces).features
 
-      // Canarias inset: fit into [12,504]→[196,590]
-      const canariasProj = mercatorFit(-18.003, -13.482, 27.734, 29.240, 12, 504, 196, 590)
-        .clipExtent([[12, 504], [196, 590]])
-
-      const mainPath = geoPath(mainProj)
-      const canariasPath = geoPath(canariasProj)
-
-      // geoPath with clipExtent prepends a viewport-rect subpath (M...L...Z) to every
-      // polygon feature. Strip it by taking everything after the first Z so the polygon
-      // subpaths fill correctly with SVG's non-zero fill rule.
-      function stripViewportRect(raw: string): string {
-        const z = raw.indexOf("Z")
-        return z === -1 ? raw : raw.slice(z + 1)
-      }
-
-      // Build CCAA paths
-      const ccaaPaths = [
-        ...continentalCcaa.map((f) => ({
-          d: stripViewportRect(mainPath(f) ?? ""),
-          key: f.properties.ccaa_key,
-          name: f.properties.ccaa_name,
-          isInset: false,
-        })),
-        ...canariasFeatures.map((f) => ({
-          d: stripViewportRect(canariasPath(f) ?? ""),
-          key: f.properties.ccaa_key,
-          name: f.properties.ccaa_name,
-          isInset: true,
-        })),
-        ...enclaveFeatures.map((f) => ({
-          d: stripViewportRect(mainPath(f) ?? ""),
-          key: f.properties.ccaa_key,
-          name: f.properties.ccaa_name,
-          isInset: false,
-        })),
-      ]
-
-      // Build province paths
-      const provPaths = [
-        ...continentalProv.map((f) => ({
-          d: stripViewportRect(mainPath(f) ?? ""),
-          key: `${f.properties.ccaa_key}_${f.properties.province_key}`,
-          provKey: f.properties.province_key,
-          ccaaKey: f.properties.ccaa_key,
-          isInset: false,
-        })),
-        ...canariasProvFeatures.map((f) => ({
-          d: stripViewportRect(canariasPath(f) ?? ""),
-          key: `${f.properties.ccaa_key}_${f.properties.province_key}`,
-          provKey: f.properties.province_key,
-          ccaaKey: f.properties.ccaa_key,
-          isInset: true,
-        })),
-      ]
-
-      // Border meshes — LineString, no viewport rect prefix, no stripping needed
-      const bordersGeo = mesh(topoData, topoData.objects.ccaa, (a: object, b: object) => a !== b)
-      const borders = mainPath(bordersGeo) ?? ""
-
-      const provBordersGeo = mesh(topoData, topoData.objects.provinces, (a: object, b: object) => a !== b)
-      const provBorders = mainPath(provBordersGeo) ?? ""
-
-      setPaths({ ccaa: ccaaPaths as typeof ccaaPaths, provinces: provPaths as typeof provPaths, borders, provBorders })
+      setPaths({
+        ccaa: ccaaFeatures.map((item) => {
+          const projected = pathFromGeometry(item)
+          return {
+            d: projected.d,
+            bounds: projected.bounds,
+            key: item.properties.ccaa_key,
+            name: item.properties.ccaa_name,
+          }
+        }),
+        provinces: provinceFeatures.map((item) => {
+          const projected = pathFromGeometry(item)
+          return {
+            d: projected.d,
+            bounds: projected.bounds,
+            key: `${item.properties.ccaa_key}_${item.properties.province_key}`,
+            ccaaKey: item.properties.ccaa_key,
+            name: item.properties.province_name,
+          }
+        }),
+      })
     }
+
     load().catch(console.error)
   }, [])
 
+  const selectedBounds = useMemo(() => {
+    if (!selected || !paths) return null
+    const provinces = paths.provinces.filter((path) => path.ccaaKey === selected.topoKey)
+    if (provinces.length > 0) return mergeBounds(provinces.map((path) => path.bounds))
+    return paths.ccaa.find((path) => path.key === selected.topoKey)?.bounds ?? null
+  }, [paths, selected])
 
   const handleCcaaClick = useCallback(
     (topoKey: string) => {
       const ccaaData = dataByKey.get(topoKey)
       if (!ccaaData) return
-      const entry = { ...ccaaData, topoKey }
-      setSelected(entry)
+      setSelected({ ...ccaaData, topoKey })
       setLayer("provinces")
-      // Compute zoom: find the bounding box of the selected CCAA paths
-      // For simplicity, we animate the SVG viewBox to focus on that region
+      setHovered(null)
     },
     [dataByKey]
   )
@@ -179,119 +217,133 @@ export function SpainMap({ data }: Props) {
   const handleBack = useCallback(() => {
     setSelected(null)
     setLayer("ccaa")
-    setZoomTransform("")
+    setHovered(null)
   }, [])
 
   if (!paths) {
     return (
-      <div className="w-full aspect-[4/3] flex items-center justify-center bg-[#0f0f0f]">
-        <span className="text-xs text-neutral-600 font-mono">cargando mapa…</span>
+      <div className="flex aspect-[4/3] w-full items-center justify-center border border-neutral-800 bg-[#0f0f0f]">
+        <span className="font-mono text-xs text-neutral-600">cargando mapa...</span>
       </div>
     )
   }
 
-  const viewBox = "0 0 800 600"
+  const detailHref = selected ? `/ccaa/${encodeURIComponent(selected.routeKey)}` : null
+  const transform = layer === "provinces" ? zoomForBounds(selectedBounds) : ""
 
   return (
-    <div className="w-full flex flex-col lg:flex-row gap-0 bg-[#0f0f0f] border border-neutral-800">
-      {/* Map SVG */}
-      <div className="relative flex-1 min-w-0">
+    <div className="flex w-full flex-col border border-neutral-800 bg-[#0f0f0f] lg:flex-row">
+      <div className="relative min-w-0 flex-1">
         {selected && (
-          <button
-            onClick={handleBack}
-            className="absolute top-3 left-3 z-10 text-xs font-mono text-neutral-400 hover:text-[#C8FF00] transition-colors flex items-center gap-1 bg-[#0f0f0f]/80 px-2 py-1 border border-neutral-800"
-            aria-label="Volver al mapa completo"
-          >
-            ← España
-          </button>
+          <div className="absolute left-3 top-3 z-10 flex items-center gap-2">
+            <button
+              onClick={handleBack}
+              className="border border-neutral-800 bg-[#0f0f0f]/90 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
+              aria-label="Volver al mapa completo"
+            >
+              España
+            </button>
+            {detailHref && (
+              <a
+                href={detailHref}
+                className="border border-neutral-800 bg-[#0f0f0f]/90 px-2 py-1 font-mono text-xs text-neutral-400 transition-colors hover:text-[#C8FF00]"
+              >
+                Ver ficha
+              </a>
+            )}
+          </div>
         )}
+
         <svg
-          ref={svgRef}
-          viewBox={viewBox}
-          className="w-full h-auto block"
+          viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+          className="block h-auto w-full"
           role="img"
           aria-label="Mapa interactivo de España por comunidades autónomas"
         >
-          <g style={{ transition: "transform 400ms ease-out" }} transform={zoomTransform}>
-            {/* CCAA layer */}
+          <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="#0f0f0f" />
+
+          <g className="transition-transform duration-500 ease-out" transform={transform}>
             {layer === "ccaa" &&
-              paths.ccaa.map((p) => {
-                if (!p.d) return null
-                const d = dataByKey.get(p.key)
-                const amount = d?.totalAmount ?? 0
-                const fill = spendColor(amount, maxAmount)
-                const isHov = hovered === p.key
+              paths.ccaa.map((path) => {
+                const entry = dataByKey.get(path.key)
+                const amount = entry?.totalAmount ?? 0
+                const isHovered = hovered === path.key
                 return (
                   <path
-                    key={p.key}
-                    d={p.d}
-                    fill={isHov ? "#C8FF00" : fill}
-                    fillOpacity={isHov ? 0.85 : 1}
-                    stroke="none"
-                    strokeWidth={0}
-                    style={{ cursor: "pointer", transition: "fill 150ms, fill-opacity 150ms" }}
-                    onMouseEnter={() => setHovered(p.key)}
+                    key={path.key}
+                    d={path.d}
+                    fill={isHovered ? "#C8FF00" : spendColor(amount, maxAmount)}
+                    fillRule="evenodd"
+                    stroke={isHovered ? "#E4FF73" : "#0f0f0f"}
+                    strokeWidth={isHovered ? 1.35 : 0.75}
+                    vectorEffect="non-scaling-stroke"
+                    className="cursor-pointer transition-colors duration-150"
+                    onMouseEnter={() => setHovered(path.key)}
                     onMouseLeave={() => setHovered(null)}
-                    onClick={() => handleCcaaClick(p.key)}
-                    aria-label={`${p.name} — click para ver detalle`}
+                    onClick={() => handleCcaaClick(path.key)}
                     role="button"
+                    tabIndex={0}
+                    aria-label={`${path.name}. Ver provincias y gasto registrado.`}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        handleCcaaClick(path.key)
+                      }
+                    }}
                   />
                 )
               })}
 
-            {/* Province layer (shown when a CCAA is selected) */}
             {layer === "provinces" &&
-              paths.provinces.map((p) => {
-                if (!p.d) return null
-                const isActive = p.ccaaKey === selected?.topoKey
-                const isHov = hovered === p.key
-                const parentData = dataByKey.get(p.ccaaKey)
+              paths.provinces.map((path) => {
+                const isActive = path.ccaaKey === selected?.topoKey
+                const isHovered = hovered === path.key
+                const parentData = path.ccaaKey ? dataByKey.get(path.ccaaKey) : null
                 const fill = isActive
-                  ? isHov
+                  ? isHovered
                     ? "#C8FF00"
                     : spendColor(parentData?.totalAmount ?? 0, maxAmount)
-                  : "#111111"
+                  : "#171717"
+
                 return (
                   <path
-                    key={p.key}
-                    d={p.d}
+                    key={path.key}
+                    d={path.d}
                     fill={fill}
-                    fillOpacity={isActive ? (isHov ? 0.9 : 0.75) : 0.35}
-                    stroke="#0f0f0f"
-                    strokeWidth={0.5}
-                    style={{
-                      cursor: isActive ? "pointer" : "default",
-                      transition: "fill 150ms, fill-opacity 150ms",
-                    }}
-                    onMouseEnter={() => isActive && setHovered(p.key)}
+                    fillOpacity={isActive ? 0.92 : 0.28}
+                    fillRule="evenodd"
+                    stroke={isActive ? "#0f0f0f" : "#242424"}
+                    strokeWidth={isActive ? 0.85 : 0.5}
+                    vectorEffect="non-scaling-stroke"
+                    className={isActive ? "cursor-pointer transition-colors duration-150" : "transition-colors duration-150"}
+                    onMouseEnter={() => isActive && setHovered(path.key)}
                     onMouseLeave={() => setHovered(null)}
+                    onClick={() => {
+                      if (isActive && detailHref) window.location.href = detailHref
+                    }}
+                    role={isActive ? "link" : undefined}
+                    tabIndex={isActive ? 0 : undefined}
+                    aria-label={isActive ? `${path.name}. Abrir ficha de ${selected?.displayName}.` : undefined}
+                    onKeyDown={(event) => {
+                      if (!isActive || !detailHref) return
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        window.location.href = detailHref
+                      }
+                    }}
                   />
                 )
               })}
-
-            {/* CCAA border mesh overlay */}
-            {layer === "ccaa" && (
-              <path d={paths.borders ?? ""} fill="none" stroke="#0a0a0a" strokeWidth={0.8} />
-            )}
-            {/* CCAA borders in province view for context */}
-            {layer === "provinces" && paths.borders && (
-              <path d={paths.borders} fill="none" stroke="#222" strokeWidth={1} />
-            )}
           </g>
 
-          {/* Canarias inset box */}
-          <rect x={8} y={498} width={196} height={96} fill="none" stroke="#333" strokeWidth={0.5} />
-          <text x={12} y={508} fontSize={7} fill="#555" fontFamily="var(--font-mono, monospace)">
-            Islas Canarias
+          <rect x={36} y={508} width={192} height={84} fill="none" stroke="#343434" strokeWidth={0.75} />
+          <text x={42} y={520} fontSize={8} fill="#666" fontFamily="monospace">
+            Canarias
           </text>
         </svg>
       </div>
 
-      {/* Territory panel */}
-      <TerritoryPanel
-        selected={selected}
-        onClose={handleBack}
-      />
+      <TerritoryPanel selected={selected} onClose={handleBack} />
     </div>
   )
 }
