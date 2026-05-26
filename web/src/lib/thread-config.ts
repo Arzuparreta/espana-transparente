@@ -1,4 +1,4 @@
-export type ThreadKey = "personas" | "dinero" | "economia" | "territorio"
+export type ThreadKey = "personas" | "dinero" | "economia"
 
 export interface ThreadSource {
   href: string
@@ -119,7 +119,7 @@ export const THREADS: ThreadConfig[] = [
     label: "Dinero",
     question: "A dónde va el dinero público",
     description:
-      "Presupuestos, contratos, subvenciones y fondos europeos: a quién se adjudica, cuánto importa y qué organismo lo autoriza.",
+      "Presupuestos, contratos, subvenciones y fondos europeos: a quién se adjudica, cuánto importa, qué organismo lo autoriza y cómo aterriza por territorio.",
     curationRule:
       "Ordena primero los importes trazables más recientes y conserva siempre el enlace al registro fuente.",
     sources: [
@@ -127,12 +127,14 @@ export const THREADS: ThreadConfig[] = [
         href: "/dinero-publico",
         label: "Trazabilidad del gasto",
         description: "Cascada desde presupuesto hasta contratos y subvenciones por ministerio.",
+        section: "Visión general",
         countKey: "dinero-publico",
       },
       {
         href: "/presupuestos",
         label: "Presupuestos",
         description: "Secciones y programas de los Presupuestos Generales del Estado.",
+        section: "Fuentes",
         countKey: "presupuestos",
         countUnit: "secciones-año",
       },
@@ -140,6 +142,7 @@ export const THREADS: ThreadConfig[] = [
         href: "/contratos",
         label: "Contratos",
         description: "Adjudicaciones publicadas por la Plataforma de Contratación.",
+        section: "Fuentes",
         countKey: "contratos",
         countUnit: "licitaciones",
       },
@@ -147,6 +150,7 @@ export const THREADS: ThreadConfig[] = [
         href: "/subvenciones",
         label: "Subvenciones",
         description: "Concesiones publicadas en la Base de Datos Nacional de Subvenciones.",
+        section: "Fuentes",
         countKey: "subvenciones",
         countUnit: "concesiones",
       },
@@ -154,6 +158,7 @@ export const THREADS: ThreadConfig[] = [
         href: "/fondos-ue",
         label: "Fondos UE",
         description: "Beneficiarios españoles de fondos europeos 2014-2027.",
+        section: "Fuentes",
         countKey: "fondos-ue",
         countUnit: "beneficiarios",
       },
@@ -161,8 +166,29 @@ export const THREADS: ThreadConfig[] = [
         href: "/organizaciones",
         label: "Organizaciones",
         description: "Empresas y entidades vinculadas a registros de gasto público.",
+        section: "Contrapartes",
         countKey: "organizaciones",
         countUnit: "entidades",
+      },
+      {
+        href: "/territorio",
+        label: "Mapa del gasto",
+        description: "Vista autonómica del gasto registrado para orientarse antes del drilldown.",
+        section: "Por territorio",
+      },
+      {
+        href: "/ccaa",
+        label: "Gasto autonómico",
+        description: "Contratos y subvenciones agrupados por comunidad autónoma.",
+        section: "Por territorio",
+        countKey: "ccaa",
+      },
+      {
+        href: "/municipios",
+        label: "Gasto municipal",
+        description: "Contratos y subvenciones agrupados por municipio o entidad local.",
+        section: "Por territorio",
+        countKey: "municipios",
       },
     ],
   },
@@ -182,30 +208,6 @@ export const THREADS: ThreadConfig[] = [
         description: "IPC, deuda pública, PIB, empleo y salario medio.",
         countKey: "indicadores",
         countUnit: "series",
-      },
-    ],
-  },
-  {
-    key: "territorio",
-    href: "/territorio",
-    label: "Territorio",
-    question: "El gasto público desde tu comunidad o municipio",
-    description:
-      "Gasto autonómico, gasto municipal y fondos europeos: el dinero público visto desde tu comunidad o municipio.",
-    curationRule:
-      "Agrupa por territorio administrativo y etiqueta la cobertura real de cada fuente.",
-    sources: [
-      {
-        href: "/ccaa",
-        label: "CCAA",
-        description: "Contratos y subvenciones con ámbito autonómico.",
-        countKey: "ccaa",
-      },
-      {
-        href: "/municipios",
-        label: "Municipios",
-        description: "Contratos y subvenciones con ámbito local.",
-        countKey: "municipios",
       },
     ],
   },

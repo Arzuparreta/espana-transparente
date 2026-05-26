@@ -6,8 +6,8 @@ import { ContextBreadcrumb } from "@/components/layout/ContextBreadcrumb"
 export const revalidate = 3600
 
 export const metadata = {
-  title: "Territorio",
-  description: "Gasto público por comunidad autónoma y municipio en España. Contratos y subvenciones por territorio.",
+  title: "Mapa del gasto",
+  description: "Vista autonómica del gasto público registrado en España. Contratos y subvenciones por territorio.",
 }
 
 export default async function TerritorioPage() {
@@ -22,9 +22,9 @@ export default async function TerritorioPage() {
 
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-display font-semibold text-neutral-100">Territorio</h1>
+          <h1 className="text-2xl font-display font-semibold text-neutral-100">Mapa del gasto</h1>
           <p className="text-sm text-neutral-500">
-            Gasto público registrado por comunidad autónoma — contratos y subvenciones de fuentes oficiales.
+            Vista autonómica del gasto público registrado: contratos y subvenciones de fuentes oficiales.
           </p>
         </div>
 

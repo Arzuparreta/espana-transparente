@@ -22,13 +22,18 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
     ])
   )
 
-  const sourceCount = thread.sources.length
-  const sourceGridCols =
-    sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
-  // When sourceCount % 3 === 1 and > 3, the last card is alone in the xl 3-col grid.
-  // Span it across all columns so it doesn't leave an awkward gap.
-  const loneLastCardClass =
-    sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-3" : ""
+  const sourceGroups = Array.from(
+    thread.sources.reduce((groups, source) => {
+      const key = source.section?.trim() || ""
+      const group = groups.get(key)
+      if (group) {
+        group.push(source)
+      } else {
+        groups.set(key, [source])
+      }
+      return groups
+    }, new Map<string, typeof thread.sources>())
+  )
 
   return (
     <div className="ui-page-wide space-y-6">
@@ -47,20 +52,39 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Datos disponibles
           </p>
-          <div className={`grid gap-3 ${sourceGridCols} ${loneLastCardClass}`.trim()}>
-            {thread.sources.map((source) => {
-              const facts = source.countKey ? sectionFacts.get(source.countKey) : null
+          <div className="space-y-5">
+            {sourceGroups.map(([sectionLabel, sources]) => {
+              const sourceCount = sources.length
+              const sourceGridCols =
+                sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
+              const loneLastCardClass =
+                sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-3" : ""
+
               return (
-                <SectionIndexCard
-                  key={source.href}
-                  href={source.href}
-                  label={source.label}
-                  description={source.description}
-                  count={facts?.count ?? null}
-                  countUnit={source.countUnit}
-                  latestDate={facts?.latestDate ?? null}
-                  icon={source.countKey ? sectionIconForKey(source.countKey) : null}
-                />
+                <section key={sectionLabel || "default"} className="space-y-3">
+                  {sectionLabel ? (
+                    <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/80">
+                      {sectionLabel}
+                    </p>
+                  ) : null}
+                  <div className={`grid gap-3 ${sourceGridCols} ${loneLastCardClass}`.trim()}>
+                    {sources.map((source) => {
+                      const facts = source.countKey ? sectionFacts.get(source.countKey) : null
+                      return (
+                        <SectionIndexCard
+                          key={source.href}
+                          href={source.href}
+                          label={source.label}
+                          description={source.description}
+                          count={facts?.count ?? null}
+                          countUnit={source.countUnit}
+                          latestDate={facts?.latestDate ?? null}
+                          icon={source.countKey ? sectionIconForKey(source.countKey) : null}
+                        />
+                      )
+                    })}
+                  </div>
+                </section>
               )
             })}
           </div>
