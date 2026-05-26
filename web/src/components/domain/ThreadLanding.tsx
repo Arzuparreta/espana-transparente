@@ -22,6 +22,10 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
     ])
   )
 
+  const sourceCount = thread.sources.length
+  const sourceGridCols =
+    sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
+
   return (
     <div className="ui-page-wide space-y-6">
       <PageHeader
@@ -39,7 +43,7 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Datos disponibles
           </p>
-          <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))]">
+          <div className={`grid gap-3 ${sourceGridCols}`}>
             {thread.sources.map((source) => {
               const facts = source.countKey ? sectionFacts.get(source.countKey) : null
               return (
