@@ -61,6 +61,13 @@ def parse_record(raw: dict, importe_min: float) -> dict | None:
         return None
     nivel1 = raw.get("nivel1")
     nivel2 = raw.get("nivel2")
+    nivel2_clean = (nivel2 or "").strip().lower()
+    # BDNS sometimes tags pan-Spain grants as AUTONOMICA with nivel2="España".
+    # Those have no meaningful CCAA, so treat them as state-level.
+    if nivel1 == "AUTONOMICA" and nivel2_clean in ("españa", "espana", ""):
+        admin_level = "state"
+    else:
+        admin_level = administration_level_from_bdns(nivel1)
     return {
         "bdns_id": raw["id"],
         "cod_concesion": raw.get("codConcesion"),
@@ -76,7 +83,7 @@ def parse_record(raw: dict, importe_min: float) -> dict | None:
         "granting_body_normalized": normalize_public_body(raw.get("nivel3")),
         "beneficiary_normalized": normalize_public_body(raw.get("beneficiario")),
         "ministry_normalized": normalize_ministry(nivel2) if nivel1 == "ESTADO" else None,
-        "administration_level": administration_level_from_bdns(nivel1),
+        "administration_level": admin_level,
         "beneficiary_organization_id": None,
         "granting_body_organization_id": None,
         "source_url": raw.get("urlBR"),
