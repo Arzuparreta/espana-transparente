@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <section
       className={cn(
-        "flex flex-col gap-4 rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6",
+        "flex flex-col gap-4 rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6",
         className
       )}
     >
