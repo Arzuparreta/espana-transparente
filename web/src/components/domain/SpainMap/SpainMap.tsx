@@ -224,6 +224,8 @@ export function SpainMap({ data }: Props) {
   const detailHref = selected ? `/ccaa/${encodeURIComponent(selected.routeKey)}` : null
   const transform = layer === "provinces" ? zoomForBounds(selectedBounds) : ""
   const showTotalLegend = layer === "ccaa" && colorMode === "total"
+  const hoveredProvince =
+    layer === "provinces" ? paths.provinces.find((path) => path.key === hovered && path.ccaaKey === selected?.topoKey) : null
 
   return (
     <div className="flex w-full flex-col border border-neutral-800 bg-[#0f0f0f] lg:flex-row">
@@ -277,14 +279,20 @@ export function SpainMap({ data }: Props) {
 
             <div className="w-full text-left sm:text-right">
               <p className="font-mono text-xs text-neutral-300">
-                {colorMode === "total"
-                  ? "Color: importe total registrado por CCAA"
-                  : "Mapa: límites territoriales y navegación"}
+                {hoveredProvince
+                  ? `Provincia: ${hoveredProvince.name}`
+                  : layer === "provinces"
+                    ? "Provincias: límites de referencia"
+                    : colorMode === "total"
+                      ? "Color: importe total registrado por CCAA"
+                      : "Mapa: límites territoriales y navegación"}
               </p>
               <p className="mt-1 text-xs leading-4 text-neutral-500">
-                {colorMode === "total"
-                  ? "Contratos y subvenciones autonómicas disponibles en las fuentes cargadas."
-                  : "Los importes aparecen al seleccionar una comunidad autónoma."}
+                {layer === "provinces"
+                  ? "La ficha disponible es la de la comunidad autónoma seleccionada."
+                  : colorMode === "total"
+                    ? "Contratos y subvenciones autonómicas disponibles en las fuentes cargadas."
+                    : "Los importes aparecen al seleccionar una comunidad autónoma."}
               </p>
               {showTotalLegend && (
                 <div className="mt-2 flex items-center gap-2">
@@ -345,7 +353,7 @@ export function SpainMap({ data }: Props) {
               paths.provinces.map((path) => {
                 const isActive = path.ccaaKey === selected?.topoKey
                 const isHovered = hovered === path.key
-                const fill = isActive ? (isHovered ? MAP_ACCENT : MAP_FILL) : MAP_FILL_MUTED
+                const fill = isActive ? MAP_FILL : MAP_FILL_MUTED
 
                 return (
                   <path
@@ -354,26 +362,16 @@ export function SpainMap({ data }: Props) {
                     fill={fill}
                     fillOpacity={isActive ? 1 : 0.44}
                     fillRule="evenodd"
-                    stroke={isActive ? MAP_STROKE : MAP_STROKE_MUTED}
-                    strokeWidth={isActive ? 0.85 : 0.55}
+                    stroke={isHovered ? MAP_ACCENT_SOFT : isActive ? MAP_STROKE : MAP_STROKE_MUTED}
+                    strokeWidth={isHovered ? 1.3 : isActive ? 0.85 : 0.55}
                     vectorEffect="non-scaling-stroke"
-                    className={isActive ? "cursor-pointer transition-colors duration-150" : "transition-colors duration-150"}
+                    className={isActive ? "transition-colors duration-150" : "transition-colors duration-150"}
                     onMouseEnter={() => isActive && setHovered(path.key)}
                     onMouseLeave={() => setHovered(null)}
-                    onClick={() => {
-                      if (isActive && detailHref) window.location.href = detailHref
-                    }}
-                    role={isActive ? "link" : undefined}
-                    tabIndex={isActive ? 0 : undefined}
-                    aria-label={isActive ? `${path.name}. Abrir ficha de ${selected?.displayName}.` : undefined}
-                    onKeyDown={(event) => {
-                      if (!isActive || !detailHref) return
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault()
-                        window.location.href = detailHref
-                      }
-                    }}
-                  />
+                    aria-label={isActive ? `${path.name}. Provincia de referencia dentro de ${selected?.displayName}.` : undefined}
+                  >
+                    {isActive && <title>{path.name}</title>}
+                  </path>
                 )
               })}
           </g>
