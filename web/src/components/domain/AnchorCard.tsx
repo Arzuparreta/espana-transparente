@@ -40,7 +40,7 @@ export function AnchorCard({
       <div
         data-value
         className={cn(
-          "mt-2 font-mono font-medium tracking-[-0.03em] text-foreground",
+          "mt-2 font-mono font-medium tracking-[-0.08em] text-foreground",
           compact ? "text-2xl" : "text-3xl sm:text-4xl"
         )}
       >
