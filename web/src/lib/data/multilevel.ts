@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR } from "./shared"
+import { CCAA_GEO, getCcaaByDbKey } from "@/lib/ccaa-geo-mapping"
 
 export type TerritoryScope = "autonomic" | "municipal"
 
@@ -264,6 +265,58 @@ export const getAutonomicTerritoryDetail = unstable_cache(
 export const getMunicipalTerritoryDetail = unstable_cache(
   (territoryKey: string) => fetchTerritoryDetail("municipal", territoryKey),
   ["multilevel-municipal-detail"],
+  { revalidate: HOUR }
+)
+
+export type SpainMapCcaa = {
+  topoKey: string
+  displayName: string
+  flagKey: string
+  subsidyTotal: number
+  contractTotal: number
+  subsidyCount: number
+  contractCount: number
+  totalAmount: number
+}
+
+async function fetchSpainMapData(): Promise<SpainMapCcaa[]> {
+  const { data } = await supabase
+    .from("v_territory_money_rollups")
+    .select("territory_key, subsidy_count, subsidy_amount, contract_count, contract_amount")
+    .eq("administration_level", "autonomic")
+
+  const spendByTopoKey = new Map<string, { sc: number; sa: number; cc: number; ca: number }>()
+
+  for (const row of data ?? []) {
+    const entry = getCcaaByDbKey(String(row.territory_key))
+    if (!entry) continue
+    const prev = spendByTopoKey.get(entry.topoKey) ?? { sc: 0, sa: 0, cc: 0, ca: 0 }
+    spendByTopoKey.set(entry.topoKey, {
+      sc: prev.sc + toNumber(row.subsidy_count),
+      sa: prev.sa + toNumber(row.subsidy_amount),
+      cc: prev.cc + toNumber(row.contract_count),
+      ca: prev.ca + toNumber(row.contract_amount),
+    })
+  }
+
+  return CCAA_GEO.map((entry) => {
+    const d = spendByTopoKey.get(entry.topoKey) ?? { sc: 0, sa: 0, cc: 0, ca: 0 }
+    return {
+      topoKey: entry.topoKey,
+      displayName: entry.displayName,
+      flagKey: entry.flagKey,
+      subsidyCount: d.sc,
+      subsidyTotal: d.sa,
+      contractCount: d.cc,
+      contractTotal: d.ca,
+      totalAmount: d.sa + d.ca,
+    }
+  })
+}
+
+export const getSpainMapData = unstable_cache(
+  fetchSpainMapData,
+  ["spain-map-data"],
   { revalidate: HOUR }
 )
 
