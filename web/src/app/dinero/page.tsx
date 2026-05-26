@@ -56,11 +56,11 @@ export default async function DineroThreadPage() {
               value={formatAmount(topContract.amount)}
               description={
                 <>
-                  <span className="line-clamp-2 font-medium text-foreground">
+                  <span className="line-clamp-2 font-medium">
                     {topContract.title}
                   </span>
                   {topContract.awarding_body ? (
-                    <span className="mt-1 block text-xs text-muted-foreground line-clamp-1">
+                    <span className="mt-1 block text-xs line-clamp-1">
                       {topContract.awarding_body}
                     </span>
                   ) : null}
