@@ -48,7 +48,7 @@ export function DiputadosFilter({ politicians }: Props) {
   return (
     <div className="space-y-4">
       {/* Search input */}
-      <div className="flex flex-col gap-3 rounded border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex flex-col gap-3 rounded-[2px] border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
         <input
           type="search"
           value={query}
@@ -105,7 +105,7 @@ export function DiputadosFilter({ politicians }: Props) {
           ))}
         </div>
       ) : (
-        <div className="rounded border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+        <div className="rounded-[2px] border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
           Ningún diputado coincide con los filtros aplicados.
         </div>
       )}

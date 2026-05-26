@@ -135,7 +135,7 @@ export function IndicatorChart({
               if (!active || !payload?.length) return null
 
               return (
-                <div className="rounded border border-border bg-background px-3 py-2 font-mono text-xs text-foreground chart-tooltip-touch-offset">
+                <div className="rounded-[2px] border border-border bg-background px-3 py-2 font-mono text-xs text-foreground chart-tooltip-touch-offset">
                   {`${formatPeriod(String(label), "long")} · ${formatTooltipValue(Number(payload[0].value))} ${unit}`}
                 </div>
               )

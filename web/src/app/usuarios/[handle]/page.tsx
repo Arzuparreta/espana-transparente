@@ -36,7 +36,7 @@ export default async function UsuarioPage({ params }: PageProps) {
       <PublicProfileHeader profile={data.profile} avatarUrl={data.avatarUrl} />
 
       {data.profile.public_options.show_recent_annotations ? (
-        <section className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
+        <section className="rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
           <h2 className="text-lg font-semibold">Anotaciones recientes</h2>
           {data.annotations.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Sin anotaciones públicas recientes.</p>

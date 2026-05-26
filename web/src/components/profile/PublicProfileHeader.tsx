@@ -11,7 +11,7 @@ export function PublicProfileHeader({ profile, avatarUrl }: PublicProfileHeaderP
   const initial = name.trim()[0]?.toUpperCase() ?? "U"
 
   return (
-    <section className="rounded border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
+    <section className="rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
       <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start">
         <Avatar size="lg" className="size-20">
           {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
