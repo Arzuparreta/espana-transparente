@@ -25,7 +25,7 @@ export const THREADS: ThreadConfig[] = [
     key: "personas",
     href: "/personas",
     label: "Personas",
-    question: "Cargos públicos, sus decisiones y su conducta",
+    question: "Cargos, decisiones y conducta",
     description:
       "Diputados, senado, gobierno y partidos; sus votaciones e iniciativas; y su conducta: declaraciones, puertas giratorias y procesos judiciales.",
     curationRule:

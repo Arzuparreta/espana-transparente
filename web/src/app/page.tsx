@@ -37,7 +37,7 @@ export default async function HomePage() {
       </RevealSection>
 
       <RevealSection>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           {THREADS.map((thread) => (
             <ThreadCard key={thread.key} thread={thread} />
           ))}
