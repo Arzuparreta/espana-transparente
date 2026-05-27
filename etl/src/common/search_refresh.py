@@ -48,6 +48,13 @@ def refresh_entity_summary(cur) -> int:
     return int(cur.fetchone()[0])
 
 
+def refresh_money_coverage(cur) -> int:
+    """Populate money_coverage_cache and money_examples_cache from the full chain."""
+    cur.execute("SET statement_timeout = '10min'")
+    cur.execute("SELECT refresh_money_coverage()")
+    return int(cur.fetchone()[0])
+
+
 def refresh_organization_counts(cur) -> int:
     """Populate organization_counts materialized cache table."""
     cur.execute("SET statement_timeout = '5min'")
@@ -100,12 +107,13 @@ def refresh_all() -> tuple[int, int]:
             aliases = refresh_search_aliases(cur)
             sections = refresh_section_index(cur)
             org_counts = refresh_organization_counts(cur)
+            money_stats = refresh_money_coverage(cur)
             conn.commit()
         with conn.cursor() as cur:
             finish_run(cur, run_id=run_id, status="succeeded", rows_updated=docs + judicial_docs + entity_summary + aliases)
             conn.commit()
         elapsed = time.perf_counter() - started
-        print(f"search corpus: {docs} rows, judicial: {judicial_docs}, entity_summary: {entity_summary}, aliases: {aliases}, sections: {sections}, org_counts: {org_counts}, {elapsed:.1f}s")
+        print(f"search corpus: {docs} rows, judicial: {judicial_docs}, entity_summary: {entity_summary}, aliases: {aliases}, sections: {sections}, org_counts: {org_counts}, money_coverage: {money_stats}, {elapsed:.1f}s")
         return docs, aliases
     except Exception as exc:
         if run_id:
@@ -130,9 +138,10 @@ def main() -> None:
     parser.add_argument("--counts-only", action="store_true")
     parser.add_argument("--judicial-only", action="store_true")
     parser.add_argument("--entity-summary-only", action="store_true")
+    parser.add_argument("--money-only", action="store_true")
     args = parser.parse_args()
 
-    if not any([args.aliases_only, args.corpus_only, args.sections_only, args.counts_only, args.judicial_only, args.entity_summary_only]):
+    if not any([args.aliases_only, args.corpus_only, args.sections_only, args.counts_only, args.judicial_only, args.entity_summary_only, args.money_only]):
         refresh_all()
         return
 
@@ -156,6 +165,9 @@ def main() -> None:
             elif args.entity_summary_only:
                 count = refresh_entity_summary(cur)
                 print(f"entity summary refreshed: {count} rows")
+            elif args.money_only:
+                count = refresh_money_coverage(cur)
+                print(f"money coverage refreshed: {count} rows")
             conn.commit()
 
 
