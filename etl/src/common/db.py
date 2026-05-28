@@ -21,14 +21,14 @@ def get_client() -> Client:
 def get_pg_conn():
     """Get direct PostgreSQL connection (for writes).
 
-    Supabase pooler (Pgbouncer) defaults to read-only for session mode.
-    We use transaction mode port (6543) and set the session to read-write.
+    Supabase's transaction pooler is the stable path for GitHub Actions and
+    local ETL. Some stored DATABASE_URL values still use pooler port 5432, so
+    normalize to transaction mode (6543) and explicitly request read-write.
     """
     if not DB_URL:
         raise RuntimeError("DATABASE_URL env var is required for ETL writes")
     url = DB_URL.replace(":5432", ":6543")
     conn = psycopg2.connect(url)
-    # Supabase pooler defaults to read-only; override per session
     conn.autocommit = True
     with conn.cursor() as cur:
         cur.execute("SET SESSION CHARACTERISTICS AS TRANSACTION READ WRITE")

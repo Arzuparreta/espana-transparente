@@ -2,8 +2,6 @@ name: Auth backup
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "45 4 * * *"
 
 concurrency:
   group: auth-backup
