@@ -15,7 +15,7 @@ import {
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
-export const revalidate = 3600 * 6
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: "Senado",

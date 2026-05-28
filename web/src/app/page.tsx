@@ -4,7 +4,7 @@ import { ThreadCard } from "@/components/domain/ThreadCard"
 import { getEtlFreshnessSummary, getHomeData } from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 function formatShortDate(d: string): string {
   return new Date(d).toLocaleDateString("es-ES", {
