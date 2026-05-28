@@ -43,7 +43,7 @@ def fetch_page(from_date: str, to_date: str, page: int) -> dict:
         BDNS_API,
         params={
             "pageSize": PAGE_SIZE,
-            "pageNumber": page,
+            "page": page,
             "fechaDesde": from_api,
             "fechaHasta": to_api,
         },

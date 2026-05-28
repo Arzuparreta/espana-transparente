@@ -285,19 +285,25 @@ def upsert(conn, records: list[dict]) -> int:
     upserted = 0
     for rec in records:
         if rec["awarding_body"]:
-            rec["awarding_body_organization_id"] = upsert_organization(
-                cur,
-                name=rec["awarding_body"],
-                organization_type="public_body",
-                source_url=rec["source_url"],
-            )
+            try:
+                rec["awarding_body_organization_id"] = upsert_organization(
+                    cur,
+                    name=rec["awarding_body"],
+                    organization_type="public_body",
+                    source_url=rec["source_url"],
+                )
+            except ValueError:
+                rec["awarding_body_organization_id"] = None
         if rec["contractor"]:
-            rec["contractor_organization_id"] = upsert_organization(
-                cur,
-                name=rec["contractor"],
-                organization_type="company",
-                source_url=rec["source_url"],
-            )
+            try:
+                rec["contractor_organization_id"] = upsert_organization(
+                    cur,
+                    name=rec["contractor"],
+                    organization_type="company",
+                    source_url=rec["source_url"],
+                )
+            except ValueError:
+                rec["contractor_organization_id"] = None
         cur.execute("""
             INSERT INTO contracts
               (contract_folder_id, title, awarding_body,

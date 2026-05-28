@@ -138,7 +138,7 @@ def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 3000) -
     conn.commit()
 
     total = 0
-    last_id = ""  # empty string sorts before all UUIDs / numeric ids as text
+    last_id = "00000000-0000-0000-0000-000000000000"  # UUID that sorts before all real UUIDs
     batch_num = 0
     while True:
         with conn.cursor() as cur:
@@ -156,7 +156,7 @@ def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 3000) -
                 "SELECT max(entity_id) FROM search_documents WHERE entity_type = %s",
                 (entity_type,),
             )
-            last_id = cur.fetchone()[0] or ""
+            last_id = cur.fetchone()[0] or "00000000-0000-0000-0000-000000000000"
         print(f"  {entity_type} batch {batch_num}: {total} so far", flush=True)
     print(f"  {entity_type}: {total}", flush=True)
     return total

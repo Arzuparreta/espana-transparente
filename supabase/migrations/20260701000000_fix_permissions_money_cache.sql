@@ -97,6 +97,8 @@ GRANT SELECT ON money_examples_cache TO anon, authenticated;
 --    on a plain table read.
 -- ═══════════════════════════════════════════════════════════════════════════
 
+DROP VIEW IF EXISTS v_responsibility_coverage;
+DROP VIEW IF EXISTS v_money_data_public;
 CREATE OR REPLACE VIEW v_money_data_public AS
 SELECT
   dataset,
@@ -112,6 +114,27 @@ FROM money_coverage_cache;
 
 GRANT SELECT ON v_money_data_public TO anon, authenticated;
 
+CREATE OR REPLACE VIEW v_responsibility_coverage AS
+SELECT
+  dataset,
+  administration_level,
+  total_rows,
+  resolved_rows,
+  unresolved_rows,
+  conflict_rows,
+  coverage_start_date,
+  latest_record_date,
+  freshness_window,
+  CASE
+    WHEN total_rows = 0 THEN 0
+    ELSE round((resolved_rows::numeric / total_rows::numeric) * 100, 2)
+  END AS resolved_pct
+FROM v_money_data_public;
+
+GRANT SELECT ON v_responsibility_coverage TO anon, authenticated;
+
+DROP VIEW IF EXISTS v_money_resolution_conflicts;
+DROP VIEW IF EXISTS v_unresolved_money_examples;
 CREATE OR REPLACE VIEW v_unresolved_money_examples AS
 SELECT
   dataset,
@@ -126,6 +149,18 @@ SELECT
 FROM money_examples_cache;
 
 GRANT SELECT ON v_unresolved_money_examples TO anon, authenticated;
+
+CREATE OR REPLACE VIEW v_money_resolution_conflicts AS
+SELECT
+  dataset,
+  record_id,
+  body_name,
+  administration_level,
+  record_date
+FROM v_unresolved_money_examples
+WHERE issue_type = 'conflict';
+
+GRANT SELECT ON v_money_resolution_conflicts TO authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 6. refresh_money_coverage() — called by ETL after contracts/subsidies runs
@@ -219,8 +254,9 @@ GRANT EXECUTE ON FUNCTION public.refresh_money_coverage() TO authenticated;
 DELETE FROM etl_runs
 WHERE started_at < now() - interval '90 days';
 
--- Reclaim the freed pages immediately so Supabase sees the storage drop.
-VACUUM ANALYZE etl_runs;
+-- VACUUM cannot run inside Supabase CLI's migration pipeline. Run manually only
+-- on hosted projects if storage pressure requires it:
+--   VACUUM ANALYZE etl_runs;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 8. Seed the cache immediately if the DB allows writes.

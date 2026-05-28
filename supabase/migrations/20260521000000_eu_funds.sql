@@ -18,6 +18,17 @@ CREATE INDEX IF NOT EXISTS eu_funds_eu_budget_idx
 CREATE INDEX IF NOT EXISTS eu_funds_label_trgm_idx
   ON eu_funds USING gin (label gin_trgm_ops);
 
+ALTER TABLE eu_funds ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'eu_funds' AND policyname = 'Public read access'
+  ) THEN
+    CREATE POLICY "Public read access" ON eu_funds FOR SELECT USING (true);
+  END IF;
+END $$;
+
 -- Summary view: totals
 CREATE OR REPLACE VIEW v_eu_funds_summary AS
 SELECT
