@@ -7,6 +7,7 @@ import {
   getHomeData,
   getLatestInflationAnchor,
   getSectionIndex,
+  getTopBudgetSectionAnchor,
   getTopContractOfMonth,
 } from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
@@ -26,13 +27,14 @@ function formatCount(n: number): string {
 }
 
 export default async function HomePage() {
-  const [{ parties, deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract] =
+  const [{ parties, deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract, budgetAnchor] =
     await Promise.all([
       getHomeData(),
       getEtlFreshnessSummary(),
       getSectionIndex(),
       getLatestInflationAnchor(),
       getTopContractOfMonth(),
+      getTopBudgetSectionAnchor(),
     ])
 
   // Build a lookup map from section_key → { count, unit } for ThreadCards.
@@ -69,6 +71,7 @@ export default async function HomePage() {
           deudaYear={deudaYear ?? null}
           topContract={topContract}
           inflation={inflation}
+          budgetAnchor={budgetAnchor}
         />
       </RevealSection>
     </div>
