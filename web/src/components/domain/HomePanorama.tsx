@@ -1,0 +1,141 @@
+import { AnchorCard } from "@/components/domain/AnchorCard"
+import type { InflationAnchor, TopContractAncla } from "@/lib/data"
+
+interface HomePanoramaProps {
+  deudaPerCapita: number | null
+  deudaYear: string | null
+  topContract: TopContractAncla | null
+  inflation: InflationAnchor | null
+}
+
+/**
+ * Live-data panorama for the homepage.
+ *
+ * Renders a responsive grid of 2-3 AnchorCards showing key metrics
+ * that refresh via ISR as the underlying ETL data updates.
+ *
+ * Cards are selected to cover the three citizen concerns:
+ * macro burden (deuda per cápita), everyday prices (IPC), and
+ * traceable spending (mayor contrato público). Any card whose
+ * data is unavailable is gracefully omitted — the grid adapts.
+ */
+function formatAmount(value: number): string {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function windowLabel(days: 30 | 60 | 90 | null): string {
+  if (days === 30) return "últimos 30 días"
+  if (days === 60) return "últimos 60 días"
+  if (days === 90) return "últimos 90 días"
+  return "histórico"
+}
+
+export function HomePanorama({
+  deudaPerCapita,
+  deudaYear,
+  topContract,
+  inflation,
+}: HomePanoramaProps) {
+  const cards: React.ReactNode[] = []
+
+  // 1. Deuda pública per cápita — the most consequential macro stat,
+  //    expressed in per-person terms so it lands for any citizen.
+  if (deudaPerCapita != null) {
+    cards.push(
+      <AnchorCard
+        key="deuda"
+        variant="compact"
+        label={`Deuda pública por ciudadano${deudaYear ? ` · ${deudaYear}` : ""}`}
+        value={`${deudaPerCapita.toLocaleString("es-ES")} €`}
+        description="Deuda consolidada de las administraciones públicas dividida entre la población. No es tu deuda personal, pero es la que el Estado contrae en tu nombre."
+        source="Fuente: Eurostat · criterio de Maastricht."
+        href="/indicadores/DEUDA_PUBLICA"
+        linkLabel="Ver serie histórica →"
+      />
+    )
+  }
+
+  // 2. IPC mensual más reciente — the number every citizen feels
+  //    in their daily purchases but rarely sees explained.
+  if (inflation) {
+    const sign = inflation.monthlyValue > 0 ? "+" : ""
+    const valueLabel = `${sign}${inflation.monthlyValue.toLocaleString("es-ES", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}%`
+    const [year, month] = inflation.period.split("-")
+    const periodLabel = new Date(Number(year), Number(month) - 1, 1).toLocaleDateString(
+      "es-ES",
+      { month: "long", year: "numeric" }
+    )
+
+    const annualSuffix =
+      inflation.annualValue != null
+        ? ` La variación interanual es del ${inflation.annualValue > 0 ? "+" : ""}${inflation.annualValue.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%.`
+        : ""
+
+    cards.push(
+      <AnchorCard
+        key="ipc"
+        variant="compact"
+        label={`IPC · ${periodLabel}`}
+        value={valueLabel}
+        description={`Variación mensual del índice general de precios al consumo.${annualSuffix}`}
+        source="Fuente: INE · serie nacional del IPC."
+        href="/indicadores/IPC_VAR_MENSUAL"
+        linkLabel="Ver serie →"
+      />
+    )
+  }
+
+  // 3. Mayor contrato público — answers "where does the money go?"
+  //    with a concrete, named recipient. Falls back through 30/60/90-day
+  //    windows to all-time; only renders if an amount exists.
+  if (topContract?.amount != null) {
+    cards.push(
+      <AnchorCard
+        key="contrato"
+        variant="compact"
+        label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
+        value={formatAmount(topContract.amount)}
+        description={
+          <>
+            <span className="line-clamp-2 font-medium">{topContract.title}</span>
+            {topContract.contractor ? (
+              <span className="mt-1 block text-xs line-clamp-1 text-muted-foreground">
+                Adjudicatario: {topContract.contractor}
+              </span>
+            ) : null}
+          </>
+        }
+        source="Fuente: Plataforma de Contratación del Sector Público."
+        href={`/contratos/${topContract.id}`}
+        linkLabel="Ver contrato →"
+      />
+    )
+  }
+
+  if (cards.length === 0) return null
+
+  const gridCols =
+    cards.length === 1
+      ? ""
+      : cards.length === 2
+        ? "sm:grid-cols-2"
+        : "sm:grid-cols-2 lg:grid-cols-3"
+
+  return (
+    <section>
+      <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+        En cifras
+      </p>
+      <div className={`grid gap-3 ${gridCols}`.trim()}>
+        {cards}
+      </div>
+    </section>
+  )
+}
