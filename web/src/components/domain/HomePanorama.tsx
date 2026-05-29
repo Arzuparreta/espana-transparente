@@ -1,11 +1,12 @@
 import { AnchorCard } from "@/components/domain/AnchorCard"
-import type { InflationAnchor, TopContractAncla } from "@/lib/data"
+import type { InflationAnchor, TopContractAncla, TopBudgetSectionAncla } from "@/lib/data"
 
 interface HomePanoramaProps {
   deudaPerCapita: number | null
   deudaYear: string | null
   topContract: TopContractAncla | null
   inflation: InflationAnchor | null
+  budgetAnchor: TopBudgetSectionAncla | null
 }
 
 /**
@@ -39,6 +40,7 @@ export function HomePanorama({
   deudaYear,
   topContract,
   inflation,
+  budgetAnchor,
 }: HomePanoramaProps) {
   const cards: React.ReactNode[] = []
 
@@ -119,14 +121,41 @@ export function HomePanorama({
     )
   }
 
-  if (cards.length === 0) return null
+  // 4. Fallback macro — largest budget section when debt data is missing.
+  if (budgetAnchor) {
+    cards.push(
+      <AnchorCard
+        key="presupuesto"
+        variant="compact"
+        label={`Presupuesto · ${budgetAnchor.year}`}
+        value={formatAmount(budgetAnchor.total_credit_initial)}
+        description={
+          <>
+            <span className="line-clamp-2 font-medium">{budgetAnchor.section_name}</span>
+            {budgetAnchor.minister_name ? (
+              <span className="mt-1 block text-xs line-clamp-1 text-muted-foreground">
+                Responsable: {budgetAnchor.minister_name}
+              </span>
+            ) : null}
+          </>
+        }
+        source={`Fuente: SEPG · ${budgetAnchor.statusLabel ?? "PGE"}.`}
+        href={`/presupuestos/${budgetAnchor.year}/${budgetAnchor.section_code}`}
+        linkLabel="Ver partida →"
+      />
+    )
+  }
+
+  // Always render up to 3 cards so the row stays full and balanced.
+  const visibleCards = cards.slice(0, 3)
+  if (visibleCards.length === 0) return null
 
   const gridCols =
-    cards.length === 1
+    visibleCards.length === 1
       ? ""
-      : cards.length === 2
+      : visibleCards.length === 2
         ? "sm:grid-cols-2"
-        : "sm:grid-cols-2 lg:grid-cols-3"
+        : "sm:grid-cols-3"
 
   return (
     <section>
@@ -134,7 +163,7 @@ export function HomePanorama({
         En cifras
       </p>
       <div className={`grid gap-3 ${gridCols}`.trim()}>
-        {cards}
+        {visibleCards}
       </div>
     </section>
   )
