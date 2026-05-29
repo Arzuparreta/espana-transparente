@@ -75,5 +75,3 @@ BEGIN
 
 END;
 $$;
-
-SELECT refresh_section_index();

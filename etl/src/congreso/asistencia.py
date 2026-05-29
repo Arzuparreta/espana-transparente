@@ -146,9 +146,9 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
         cur.execute(
             """
             INSERT INTO voting_sessions
-                (legislature_id, session_number, date, title, initiative_number, votacion_number, raw_data)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (session_number, date, legislature_id, votacion_number) DO NOTHING
+                (legislature_id, session_number, date, title, initiative_number, votacion_number, chamber, raw_data)
+            VALUES (%s, %s, %s, %s, %s, %s, 'congress', %s)
+            ON CONFLICT (session_number, date, legislature_id, votacion_number, chamber) DO NOTHING
             RETURNING id
             """,
             (leg_id, session_num, date_str, title_full, exp_num, vot_num,

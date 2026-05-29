@@ -2,8 +2,11 @@
 -- Sustituye la URL genérica de Wikipedia por la fuente primaria verificada
 -- (BORME, nota de prensa, hemeroteca de diario de referencia).
 
--- 1. Inserta las fuentes en revolving_door_sources (arquitectura correcta)
-INSERT INTO revolving_door_sources (revolving_door_id, source_type, source_name, source_url, title)
+-- 1. Inserta las fuentes en revolving_door_sources (arquitectura correcta).
+-- Some environments are rebuilt from migrations only; in those databases the
+-- manually curated revolving_door rows may not exist yet. Keep the migration
+-- idempotent by inserting sources only for cases already present.
+WITH source_rows (revolving_door_id, source_type, source_name, source_url, title) AS (
 VALUES
   -- Ángel Acebes → Iberdrola (BORME 2012, nombramiento por cooptación)
   ('e2ee603e-8a3f-4f27-a729-705d3f98c77e', 'primary', 'BORME',
@@ -104,6 +107,11 @@ VALUES
   ('8b0727c8-bad9-4057-a26a-593657f714f7', 'primary', 'Newtral',
    'https://www.newtral.es/quien-es-rodrigo-rato/20230530/',
    '¿Quién es Rodrigo Rato? De vicepresidente del Gobierno a dos años preso en Soto del Real')
+)
+INSERT INTO revolving_door_sources (revolving_door_id, source_type, source_name, source_url, title)
+SELECT s.revolving_door_id::uuid, s.source_type, s.source_name, s.source_url, s.title
+FROM source_rows s
+JOIN revolving_door rd ON rd.id = s.revolving_door_id::uuid
 ON CONFLICT DO NOTHING;
 
 -- 2. Actualiza source_url en revolving_door para que el fallback sea correcto

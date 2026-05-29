@@ -3,7 +3,7 @@ import { DiputadosFilter } from "@/components/politicians/DiputadosFilter"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { getDeputyCards } from "@/lib/data"
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: "Diputados",

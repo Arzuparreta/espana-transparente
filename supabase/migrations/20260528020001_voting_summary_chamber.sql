@@ -1,6 +1,8 @@
 -- Rebuild voting summary after voting_sessions.chamber exists.
 -- Divergence and party grouping must use the membership for the same chamber.
 
+DROP VIEW IF EXISTS v_voting_session_summary;
+
 CREATE OR REPLACE VIEW v_voting_session_summary AS
 WITH party_vote_counts AS (
   SELECT

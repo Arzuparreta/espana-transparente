@@ -5,12 +5,26 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from urllib.parse import urlsplit, urlunsplit
 
 load_dotenv()
 
 DB_URL = os.getenv("DATABASE_URL")
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "https://zktpodkvlgciluhbulwr.supabase.co")
 PUBLISHABLE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O")
+
+
+def _normalize_database_url(url: str) -> str:
+    """Route old hosted Supabase direct URLs through the transaction pooler."""
+    try:
+        parsed = urlsplit(url)
+        if parsed.port != 5432:
+            return url
+    except ValueError:
+        return url
+
+    netloc_without_port = parsed.netloc.rsplit(":", 1)[0]
+    return urlunsplit(parsed._replace(netloc=f"{netloc_without_port}:6543"))
 
 
 def get_client() -> Client:
@@ -27,7 +41,7 @@ def get_pg_conn():
     """
     if not DB_URL:
         raise RuntimeError("DATABASE_URL env var is required for ETL writes")
-    url = DB_URL.replace(":5432", ":6543")
+    url = _normalize_database_url(DB_URL)
     conn = psycopg2.connect(url)
     conn.autocommit = True
     with conn.cursor() as cur:

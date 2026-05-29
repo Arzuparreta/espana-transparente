@@ -1,10 +1,16 @@
 import { LogoHero } from "@/components/layout/LogoHero"
 import { RevealSection } from "@/components/layout/RevealSection"
 import { ThreadCard } from "@/components/domain/ThreadCard"
-import { getEtlFreshnessSummary, getHomeData } from "@/lib/data"
+import { HomePanorama } from "@/components/domain/HomePanorama"
+import {
+  getEtlFreshnessSummary,
+  getHomeData,
+  getLatestInflationAnchor,
+  getTopContractOfMonth,
+} from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 function formatShortDate(d: string): string {
   return new Date(d).toLocaleDateString("es-ES", {
@@ -19,10 +25,13 @@ function formatCount(n: number): string {
 }
 
 export default async function HomePage() {
-  const [{ parties }, freshness] = await Promise.all([
-    getHomeData(),
-    getEtlFreshnessSummary(),
-  ])
+  const [{ parties, deudaPerCapita, deudaYear }, freshness, inflation, topContract] =
+    await Promise.all([
+      getHomeData(),
+      getEtlFreshnessSummary(),
+      getLatestInflationAnchor(),
+      getTopContractOfMonth(),
+    ])
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -42,6 +51,15 @@ export default async function HomePage() {
             <ThreadCard key={thread.key} thread={thread} />
           ))}
         </div>
+      </RevealSection>
+
+      <RevealSection delayMs={150}>
+        <HomePanorama
+          deudaPerCapita={deudaPerCapita ?? null}
+          deudaYear={deudaYear ?? null}
+          topContract={topContract}
+          inflation={inflation}
+        />
       </RevealSection>
     </div>
   )

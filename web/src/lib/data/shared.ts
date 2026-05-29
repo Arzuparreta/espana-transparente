@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache"
 export { unstable_cache }
 
 export const HOUR = 3600
-export const PHOTOS_CACHE_VERSION = "photos-v2"
+export const PHOTOS_CACHE_VERSION = "photos-v3"
 
 export const PAGE_SIZE = {
   votingSessions: 30,
