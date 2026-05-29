@@ -1,11 +1,12 @@
 import { LogoHero } from "@/components/layout/LogoHero"
 import { RevealSection } from "@/components/layout/RevealSection"
-import { ThreadCard } from "@/components/domain/ThreadCard"
+import { ThreadCard, type SectionCount } from "@/components/domain/ThreadCard"
 import { HomePanorama } from "@/components/domain/HomePanorama"
 import {
   getEtlFreshnessSummary,
   getHomeData,
   getLatestInflationAnchor,
+  getSectionIndex,
   getTopContractOfMonth,
 } from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
@@ -25,13 +26,22 @@ function formatCount(n: number): string {
 }
 
 export default async function HomePage() {
-  const [{ parties, deudaPerCapita, deudaYear }, freshness, inflation, topContract] =
+  const [{ parties, deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract] =
     await Promise.all([
       getHomeData(),
       getEtlFreshnessSummary(),
+      getSectionIndex(),
       getLatestInflationAnchor(),
       getTopContractOfMonth(),
     ])
+
+  // Build a lookup map from section_key → { count, unit } for ThreadCards.
+  const countMap = new Map<string, SectionCount>()
+  for (const row of sectionIndex) {
+    if (row.record_count != null && row.record_count > 0) {
+      countMap.set(row.section_key, { count: row.record_count })
+    }
+  }
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -48,7 +58,7 @@ export default async function HomePage() {
       <RevealSection>
         <div className="grid gap-3 sm:grid-cols-3">
           {THREADS.map((thread) => (
-            <ThreadCard key={thread.key} thread={thread} />
+            <ThreadCard key={thread.key} thread={thread} counts={countMap} />
           ))}
         </div>
       </RevealSection>
