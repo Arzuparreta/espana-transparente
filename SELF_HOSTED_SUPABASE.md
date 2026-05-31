@@ -53,6 +53,7 @@ export PYTHONPATH=src
 ```bash
 python -m src.congreso.diputados          # 350 deputies, 12 parties
 python -m src.congreso.gobierno            # 80 government positions
+python -m src.congreso.power_relationships # 550+ power relationships (cadena de mando)
 python -m src.ine.indicadores              # 720 IPC data points
 python -m src.ine.indicadores_ampliados    # 380 GDP/unemployment/etc
 ```
@@ -62,13 +63,18 @@ python -m src.ine.indicadores_ampliados    # 380 GDP/unemployment/etc
 ```bash
 python -m src.congreso.iniciativas         # 439 legislative initiatives
 python -m src.congreso.declaraciones --skip-actividades  # 800 declarations
+python -m src.congreso.declaraciones_ocr --limit 50      # OCR-scanned declarations
+python -m src.congreso.opendata_intereses              # financial interests registry
 python -m src.congreso.asistencia --resume # 131 voting sessions, 629K votes
+python -m src.congreso.cods --resume       # congressional records
 ```
 
 ### 3. Senate data (medium, ~4 min)
 
 ```bash
 python -m src.senado.senadores             # 266 senators
+python -m src.senado.bajas                 # former senators (needed for historical votes)
+python -m src.senado.votaciones            # senate voting sessions
 ```
 
 ### 4. Institutions & appointments
@@ -111,10 +117,14 @@ python -m src.bdns.subvenciones --from-date 2024-01-01 --to-date 2024-06-30
 python -m src.lobbying.rgi --limit 100     # or remove --limit for all ~1,200
 ```
 
-### 10. Judicial / Wikipedia (medium)
+### 10. Judicial / Transparency (medium)
 
 ```bash
 python -m src.judicial.wikipedia           # corruption cases from Wikipedia
+python -m src.judicial.cgpj                # judicial appointments (CGPJ)
+python -m src.borme.officers --limit 200    # BORME company officers
+python -m src.lobbying.rgi                 # lobbying register
+python -m src.public_bodies.boe_nombramientos --days 7  # BOE public appointments
 ```
 
 ### 11. Post-processing
@@ -167,6 +177,10 @@ The migration chain has been patched for clean bootstrap from an empty database:
 | `refresh_vote_divergences_cache()` | Added DISTINCT ON to prevent duplicate cache entries |
 | `refresh_search_documents(text)` | Added DISTINCT ON to vote_divergence CTE to prevent duplicate entity_ids |
 | `refresh_search_person_aliases()` | Truncated alias values to 500 chars to avoid btree index size limit |
+| `.github/workflows/ci.yml` | Added `schedule` triggers so ETL daily/weekly jobs actually run |
+| `.github/workflows/ci.yml` | Added `congreso.power_relationships` to weekly ETL job |
+| `SELF_HOSTED_SUPABASE.md` | Documented all missing ETL scripts (senado.bajas, declaraciones_ocr, opendata_intereses, borme.officers, lobbying.rgi, judicial.cgpj, public_bodies.boe_nombramientos) |
+| `web/src/lib/etl-pipelines.ts` | Added missing pipeline labels for /estado-datos page |
 
 ## Notes
 

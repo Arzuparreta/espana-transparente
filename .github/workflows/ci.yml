@@ -16,6 +16,9 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'   # etl-daily
+    - cron: '0 5 * * 1'   # etl-weekly
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -66,7 +69,7 @@ jobs:
 
   etl-daily:
     name: ETL daily pipelines
-    if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *'
+    if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     defaults:
@@ -105,7 +108,7 @@ jobs:
 
   etl-weekly:
     name: ETL weekly pipelines
-    if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1'
+    if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     defaults:
@@ -131,6 +134,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.congreso.responsables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.power_relationships
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.photos.run --no-refresh-missing --max-age-days 30
