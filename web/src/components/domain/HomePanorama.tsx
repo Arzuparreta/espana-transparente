@@ -121,7 +121,7 @@ export function HomePanorama({
           </>
         }
         source={`Fuente: SEPG · ${budgetAnchor.statusLabel ?? "PGE"}.`}
-        href={`/presupuestos/${budgetAnchor.year}/${budgetAnchor.section_code}`}
+        href={`/presupuestos/${encodeURIComponent(budgetAnchor.section_code)}?year=${budgetAnchor.in_force_year ?? budgetAnchor.year}`}
         linkLabel="Ver partida →"
       />
     )
