@@ -84,6 +84,28 @@ def _get_meta(html: str, name: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+# Defensive validation for scraped fields to avoid injecting
+# Akamai challenge pages / JavaScript into the database.
+_MAX_NAME_LEN = 150
+_INVALID_NAME_PATTERNS = [
+    "<script", "</script>", "!function", "var ", "window.",
+    "go-mpulse", "boomerang", "akamai", "content-type",
+]
+
+
+def _is_valid_name(name: str) -> bool:
+    if not name or len(name) > _MAX_NAME_LEN:
+        return False
+    lowered = name.lower()
+    return not any(p.lower() in lowered for p in _INVALID_NAME_PATTERNS)
+
+
+def _is_valid_photo_url(url: str | None) -> bool:
+    if not url:
+        return True  # missing is fine; we'll use initials
+    return url.startswith("https://www.senado.es/legis")
+
+
 def senate_id_from_name(full_name: str) -> str:
     """Stable congress_id-style slug for a senator (used as politicians.congress_id)."""
     slug = (
@@ -267,8 +289,8 @@ def run(dry_run: bool = False) -> None:
             # Fall back to parsing li_text
             nombre = entry["li_text"].split("G")[0].strip()
 
-        if not nombre:
-            print(f"  SKIP: no name for id1={senate_id_num}")
+        if not _is_valid_name(nombre):
+            print(f"  SKIP: invalid name for id1={senate_id_num} (possible Akamai challenge page)")
             continue
 
         first_name, last_name = parse_name(nombre)
@@ -278,6 +300,11 @@ def run(dry_run: bool = False) -> None:
         procedencia = ficha["procedencia"]
         tipo = ficha["tipo_procedencia"]  # ELECTO / DESIGNADO
         photo_url = ficha["photo_url"]
+
+        if not _is_valid_photo_url(photo_url):
+            print(f"  SKIP: invalid photo_url for id1={senate_id_num}")
+            continue
+
         acr = acronym_from_party(partido, grupo)
 
         cid = senate_id_from_name(full_name)
