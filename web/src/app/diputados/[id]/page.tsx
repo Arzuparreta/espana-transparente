@@ -6,7 +6,7 @@ import { PoliticianProfile } from "@/components/politicians/PoliticianProfile"
 import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { getPoliticianProfileData, getDeputyVotes, getDeputyAttendanceSessions, parsePage, PAGE_SIZE } from "@/lib/data"
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ id: string }>
