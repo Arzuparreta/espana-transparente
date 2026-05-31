@@ -53,11 +53,17 @@ export const getSectionIndex = unstable_cache(
       .from("section_index_cache")
       .select("section_key, record_count, latest_date")
     if (!error && data && data.length > 0) {
-      return (data as SectionIndexRow[]).map((row) => ({
+      const rows = (data as SectionIndexRow[]).map((row) => ({
         section_key: row.section_key,
         record_count: row.record_count != null ? Number(row.record_count) : null,
         latest_date: row.latest_date ?? null,
       }))
+      // Sanity check: if every single count is 0 the cache was likely
+      // seeded before any data existed. Fall back to live RPC counts.
+      const hasAnyCount = rows.some((r) => (r.record_count ?? 0) > 0)
+      if (hasAnyCount) {
+        return rows
+      }
     }
     // Fallback to RPC (will be slower but correct)
     const { data: rpcData, error: rpcError } = await supabase.rpc("get_section_index")
