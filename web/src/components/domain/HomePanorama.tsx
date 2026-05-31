@@ -9,17 +9,6 @@ interface HomePanoramaProps {
   budgetAnchor: TopBudgetSectionAncla | null
 }
 
-/**
- * Live-data panorama for the homepage.
- *
- * Renders a responsive grid of 2-3 AnchorCards showing key metrics
- * that refresh via ISR as the underlying ETL data updates.
- *
- * Cards are selected to cover the three citizen concerns:
- * macro burden (deuda per cápita), everyday prices (IPC), and
- * traceable spending (mayor contrato público). Any card whose
- * data is unavailable is gracefully omitted — the grid adapts.
- */
 function formatAmount(value: number): string {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -44,8 +33,6 @@ export function HomePanorama({
 }: HomePanoramaProps) {
   const cards: React.ReactNode[] = []
 
-  // 1. Deuda pública per cápita — the most consequential macro stat,
-  //    expressed in per-person terms so it lands for any citizen.
   if (deudaPerCapita != null) {
     cards.push(
       <AnchorCard
@@ -61,8 +48,6 @@ export function HomePanorama({
     )
   }
 
-  // 2. IPC mensual más reciente — the number every citizen feels
-  //    in their daily purchases but rarely sees explained.
   if (inflation) {
     const sign = inflation.monthlyValue > 0 ? "+" : ""
     const valueLabel = `${sign}${inflation.monthlyValue.toLocaleString("es-ES", {
@@ -94,9 +79,6 @@ export function HomePanorama({
     )
   }
 
-  // 3. Mayor contrato público — answers "where does the money go?"
-  //    with a concrete, named recipient. Falls back through 30/60/90-day
-  //    windows to all-time; only renders if an amount exists.
   if (topContract?.amount != null) {
     cards.push(
       <AnchorCard
@@ -121,7 +103,6 @@ export function HomePanorama({
     )
   }
 
-  // 4. Fallback macro — largest budget section when debt data is missing.
   if (budgetAnchor) {
     cards.push(
       <AnchorCard
@@ -146,7 +127,6 @@ export function HomePanorama({
     )
   }
 
-  // Always render up to 3 cards so the row stays full and balanced.
   const visibleCards = cards.slice(0, 3)
   if (visibleCards.length === 0) return null
 
