@@ -47,6 +47,17 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
         description={thread.description}
       />
 
+      {anchors ? (
+        <RevealSection>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            En cifras
+          </p>
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
+            {anchors}
+          </div>
+        </RevealSection>
+      ) : null}
+
       <RevealSection>
         <nav aria-label="Datos disponibles" className="space-y-3">
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -90,17 +101,6 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
           </div>
         </nav>
       </RevealSection>
-
-      {anchors ? (
-        <RevealSection>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Resumen
-          </p>
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
-            {anchors}
-          </div>
-        </RevealSection>
-      ) : null}
 
       {children}
     </div>
