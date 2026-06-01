@@ -7,7 +7,7 @@ import {
   getHomeData,
   getLatestInflationAnchor,
   getSectionIndex,
-  getTopBudgetSectionAnchor,
+  getBudgetAnchor,
   getTopContractOfMonth,
 } from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
@@ -34,7 +34,7 @@ export default async function HomePage() {
       getSectionIndex(),
       getLatestInflationAnchor(),
       getTopContractOfMonth(),
-      getTopBudgetSectionAnchor(),
+      getBudgetAnchor(),
     ])
 
   // Build a lookup map from section_key → { count, unit } for ThreadCards.

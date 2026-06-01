@@ -1,12 +1,12 @@
 import { AnchorCard } from "@/components/domain/AnchorCard"
-import type { InflationAnchor, TopContractAncla, TopBudgetSectionAncla } from "@/lib/data"
+import { BUDGET_YEARS, type BudgetAnchor, type InflationAnchor, type TopContractAncla } from "@/lib/data"
 
 interface HomePanoramaProps {
   deudaPerCapita: number | null
   deudaYear: string | null
   topContract: TopContractAncla | null
   inflation: InflationAnchor | null
-  budgetAnchor: TopBudgetSectionAncla | null
+  budgetAnchor: BudgetAnchor | null
 }
 
 function formatAmount(value: number): string {
@@ -104,6 +104,12 @@ export function HomePanorama({
   }
 
   if (budgetAnchor) {
+    const latestBudgetYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
+    const presupuestosHref =
+      budgetAnchor.year === latestBudgetYear
+        ? "/presupuestos"
+        : `/presupuestos?year=${budgetAnchor.year}`
+
     cards.push(
       <AnchorCard
         key="presupuesto"
@@ -112,17 +118,20 @@ export function HomePanorama({
         value={formatAmount(budgetAnchor.total_credit_initial)}
         description={
           <>
-            <span className="line-clamp-2 font-medium">{budgetAnchor.section_name}</span>
-            {budgetAnchor.minister_name ? (
+            <span className="line-clamp-2 font-medium">
+              Crédito inicial total · {budgetAnchor.section_count.toLocaleString("es-ES")}{" "}
+              secciones
+            </span>
+            {budgetAnchor.statusLabel ? (
               <span className="mt-1 block text-xs line-clamp-1 text-muted-foreground">
-                Responsable: {budgetAnchor.minister_name}
+                {budgetAnchor.statusLabel}
               </span>
             ) : null}
           </>
         }
         source={`Fuente: SEPG · ${budgetAnchor.statusLabel ?? "PGE"}.`}
-        href={`/presupuestos/${encodeURIComponent(budgetAnchor.section_code)}?year=${budgetAnchor.in_force_year ?? budgetAnchor.year}`}
-        linkLabel="Ver partida →"
+        href={presupuestosHref}
+        linkLabel="Ver presupuestos →"
       />
     )
   }

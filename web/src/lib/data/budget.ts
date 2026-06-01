@@ -115,54 +115,43 @@ export const getBudgetMinister = unstable_cache(
   { revalidate: HOUR }
 )
 
-export type TopBudgetSectionAncla = {
+export type BudgetAnchor = {
   year: number
   budget_type: string | null
   source_kind: string | null
   source_year: number | null
   in_force_year: number | null
-  section_code: string
-  section_name: string
-  ministry_normalized: string | null
   total_credit_initial: number
-  minister_name: string | null
+  section_count: number
   statusLabel: string | null
 }
 
-export const getTopBudgetSectionAnchor = unstable_cache(
-  async (): Promise<TopBudgetSectionAncla | null> => {
+export const getBudgetAnchor = unstable_cache(
+  async (): Promise<BudgetAnchor | null> => {
     for (let i = BUDGET_YEARS.length - 1; i >= 0; i--) {
       const year = BUDGET_YEARS[i]
-      const { data } = await supabase
-      .from("v_budget_summary")
-        .select("year, budget_type, source_kind, source_year, in_force_year, section_code, section_name, ministry_normalized, total_credit_initial")
-        .eq("year", year)
-        .gt("total_credit_initial", 0)
-        .order("total_credit_initial", { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle()
+      const rows = await getBudgetSummary(year)
+      if (rows.length === 0) continue
 
-      if (!data?.total_credit_initial) continue
+      const total = rows.reduce((sum, row) => sum + (row.total_credit_initial ?? 0), 0)
+      if (total <= 0) continue
 
-      const minister = await getBudgetMinister(year, data.section_code as string)
+      const first = rows[0]
       const meta = getBudgetYearMeta(year)
 
       return {
         year,
-        budget_type: (data.budget_type as string | null) ?? null,
-        source_kind: (data.source_kind as string | null) ?? null,
-        source_year: (data.source_year as number | null) ?? null,
-        in_force_year: (data.in_force_year as number | null) ?? null,
-        section_code: data.section_code as string,
-        section_name: data.section_name as string,
-        ministry_normalized: (data.ministry_normalized as string | null) ?? null,
-        total_credit_initial: data.total_credit_initial as number,
-        minister_name: (minister?.minister_name as string | null) ?? null,
+        budget_type: (first.budget_type as string | null) ?? null,
+        source_kind: (first.source_kind as string | null) ?? null,
+        source_year: (first.source_year as number | null) ?? null,
+        in_force_year: (first.in_force_year as number | null) ?? null,
+        total_credit_initial: total,
+        section_count: rows.length,
         statusLabel: meta?.label ?? null,
       }
     }
     return null
   },
-  ["top-budget-section-anchor"],
+  ["budget-anchor-home"],
   { revalidate: HOUR }
 )

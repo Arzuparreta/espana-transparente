@@ -92,8 +92,8 @@ export {
   getBudgetSourceNote,
   type BudgetSourceKind,
   type BudgetType,
-  type TopBudgetSectionAncla,
-  getTopBudgetSectionAnchor,
+  type BudgetAnchor,
+  getBudgetAnchor,
 } from "./budget"
 
 // ── Money overview ───────────────────────────────────────────────────────────
