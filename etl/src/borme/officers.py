@@ -366,13 +366,13 @@ def cross_reference_politicians(cur) -> int:
             WHERE similarity(p.full_name, no.person_name) >= 0.65
         ),
         best_matches AS (
-            SELECT DISTINCT ON (officer_id)
-                officer_id,
-                politician_id,
+            SELECT DISTINCT ON (c.officer_id)
+                c.officer_id,
+                c.politician_id,
                 similarity(c.full_name, no.person_name)::numeric(3,2) AS confidence
             FROM candidates c
             JOIN new_officers no ON c.officer_id = no.officer_id
-            ORDER BY officer_id, similarity(c.full_name, no.person_name) DESC
+            ORDER BY c.officer_id, similarity(c.full_name, no.person_name) DESC
         )
         INSERT INTO borme_politician_matches
             (borme_officer_id, politician_id, confidence, match_method)

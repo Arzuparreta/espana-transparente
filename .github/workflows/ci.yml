@@ -71,7 +71,7 @@ jobs:
     name: ETL daily pipelines
     if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: etl
@@ -102,6 +102,12 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - run: PYTHONPATH=src python -m src.borme.officers --limit 100 --resume
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 25 --resume
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m common.search_refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -165,7 +171,7 @@ jobs:
       - run: PYTHONPATH=src python -m src.senado.votaciones
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 50 --resume
+      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 150 --resume
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.borme.officers --limit 200 --resume
