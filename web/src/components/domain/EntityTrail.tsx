@@ -16,9 +16,11 @@ interface EntityTrailProps {
 function ConnectionGroup({
   title,
   connections,
+  external = false,
 }: {
   title: string
   connections: TrailConnection[]
+  external?: boolean
 }) {
   if (connections.length === 0) return null
 
@@ -40,18 +42,33 @@ function ConnectionGroup({
             </div>
           )}
           <div className="flex flex-wrap gap-1.5">
-            {items.map((conn, i) => (
-              <ResponsiveLink
-                key={`${conn.route}-${i}`}
-                href={conn.route}
-                className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:border-foreground/30 hover:bg-muted/50"
-              >
-                <span className="truncate">{conn.label}</span>
-                {conn.meta && (
-                  <span className="shrink-0 text-muted-foreground">· {conn.meta}</span>
-                )}
-              </ResponsiveLink>
-            ))}
+            {items.map((conn, i) =>
+              external || conn.external ? (
+                <a
+                  key={`${conn.route}-${i}`}
+                  href={conn.route}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:border-foreground/30 hover:bg-muted/50"
+                >
+                  <span className="truncate">{conn.label}</span>
+                  {conn.meta ? (
+                    <span className="shrink-0 text-muted-foreground">· {conn.meta}</span>
+                  ) : null}
+                </a>
+              ) : (
+                <ResponsiveLink
+                  key={`${conn.route}-${i}`}
+                  href={conn.route}
+                  className="inline-flex items-center gap-1 rounded-[2px] border border-border bg-background px-2.5 py-1 text-xs font-medium transition-colors hover:border-foreground/30 hover:bg-muted/50"
+                >
+                  <span className="truncate">{conn.label}</span>
+                  {conn.meta && (
+                    <span className="shrink-0 text-muted-foreground">· {conn.meta}</span>
+                  )}
+                </ResponsiveLink>
+              )
+            )}
           </div>
         </div>
       ))}
@@ -62,8 +79,10 @@ function ConnectionGroup({
 export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
   const trail = await getEntityTrail(entityType, entityId)
 
-  const { people, organizations, judicial } = trail.connections
-  if (people.length === 0 && organizations.length === 0 && judicial.length === 0) return null
+  const { people, organizations, judicial, external } = trail.connections
+  if (people.length === 0 && organizations.length === 0 && judicial.length === 0 && external.length === 0) {
+    return null
+  }
 
   const rastroHref = `/rastro/${TRAIL_SLUG[entityType]}/${entityId}`
 
@@ -75,6 +94,7 @@ export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
       <CardContent className="space-y-5">
         <ConnectionGroup title="Personas" connections={people} />
         <ConnectionGroup title="Organizaciones" connections={organizations} />
+        <ConnectionGroup title="Grupos de interés" connections={external} external />
         <ConnectionGroup title="Casos judiciales" connections={judicial} />
       </CardContent>
       <CardFooter className="border-t border-border pt-3">

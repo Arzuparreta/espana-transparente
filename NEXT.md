@@ -215,6 +215,18 @@ Revisión posterior: **no mantener Territorio como hilo principal mientras solo 
 
 Taxonomy now locked. SECTION_META groupLabel unchanged (breadcrumbs show primary thread).
 
+### Hallway test results (2026-06-01 — three-thread IA)
+
+Re-run against **Personas · Dinero · Economía** after thread landing polish. Five personas, one copy tweak:
+
+| Persona | Want | Clicks | Correct | Fix |
+|---|---|---|---|---|
+| María (jubilada) | IPC / pensión | Economía | Economía | ✅ no fix |
+| Carlos (autónomo) | Contratos a empresas | Dinero | Dinero | ✅ no fix |
+| Elena (enfermera) | Puertas giratorias | Personas | Personas | ✅ no fix |
+| Ramón (agricultor) | Fondos UE por región | Dinero | Dinero | Dinero thread question now mentions territorio |
+| Sofía (funcionaria) | Nombramientos TC | Personas | Personas | ✅ no fix; rastro breadcrumbs fixed (Poder → Personas) |
+
 ---
 
 ## Current Status (2026-05-25)
@@ -279,13 +291,12 @@ The project has advanced faster than the original phased plan. Here's where ever
 - Daily CI processes 100 orgs/batch; weekly CI 200; bulk runs accelerate when API quota allows
 - **Remaining**: Continue ingestion until coverage is useful; surface matches on politician pages
 
-### 🚧 CNMC Lobbying Register (IN PROGRESS — bulk run completed 2026-05-25)
+### ✅ CNMC Lobbying Register (surfacing shipped 2026-06-01)
 
 - Schema + scraper (`src/lobbying/rgi.py`) done; all 618 groups scraped
-- **33 organization links** (up from 10 after fixed GIN-index query)
-- 613 groups remain unlinked to orgs
-- GIN trigram index used for efficient fuzzy matching
-- **Remaining**: Surface reviewed lobbying links on organization pages
+- 33 organization links created via pg_trgm; **15 reviewed** (`src/lobbying/review.py`)
+- Org pages show reviewed groups; EntityTrail links to CNMC register (external URLs)
+- **Remaining**: Link more of the 613 unlinked groups as org coverage grows; triage pending links ≥0.75
 
 ---
 
@@ -297,7 +308,7 @@ The project has advanced faster than the original phased plan. Here's where ever
 | SEPI subsidiary boards | ✅ Complete | Done | 12 subsidiaries with board data |
 | BORME company directors | 🚧 In progress | Now | Ingesting 200/week; EntityTrail surfaces org→people connections |
 | Corruption proceedings + contract links | ✅ Complete | Done | 160 cases + 96 reviewed actors (63 party-matched); EntityTrail connected; person extraction live |
-| Lobbying register (CNMC RGI) | 🚧 In progress | Now | Schema + scraper done; EntityTrail surfaces org→lobbying connections |
+| Lobbying register (CNMC RGI) | 🚧 In progress | Now | 15 reviewed org links live; review CLI + EntityTrail external URLs shipped |
 | Economic indicators (salario, paro, PIB) | ✅ Complete | Done | `indicadores_ampliados.py`: PIB, PIB_VAR_ANUAL, TASA_PARO, PARADOS, SALARIO_MEDIO (379 rows); explanations in place |
 | Deuda pública | ✅ Complete | Done | `bde.py` via Eurostat: 31 years of data; explanation added |
 | Ministerial meeting agendas | Not started | Later | Partially on SAGE portal |
@@ -313,8 +324,9 @@ The project has advanced faster than the original phased plan. Here's where ever
 Full foundation slice shipped. See "Phase D foundation slice" section above for details.
 All web CI checks pass (lint, ui:audit, content:audit, build). Deployed to dev branch.
 
-**Next: 5-person hallway test** — run before any taxonomy/label changes.
-Then: merge dev → main, deploy to Vercel production.
+### ✅ DONE: 5-person hallway test (2026-06-01)
+
+Three-thread IA validated. See table above. **Next:** merge `dev` → `main`, deploy to Vercel production.
 
 ### ✅ DONE: Judicial entity graph connection (Steps 1-4)
 

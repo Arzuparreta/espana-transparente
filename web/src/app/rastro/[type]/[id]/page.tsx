@@ -17,8 +17,8 @@ const TYPE_MAP: Record<TrailType, EntityType> = {
 }
 
 const SECTION_MAP: Record<TrailType, { href: string; label: string; groupLabel: string; fallbackHref: string; fallbackLabel: string }> = {
-  diputado: { href: "/diputados", label: "Diputados", groupLabel: "Poder", fallbackHref: "/diputados", fallbackLabel: "Volver a Diputados" },
-  partido: { href: "/partidos", label: "Partidos", groupLabel: "Poder", fallbackHref: "/partidos", fallbackLabel: "Volver a Partidos" },
+  diputado: { href: "/diputados", label: "Diputados", groupLabel: "Personas", fallbackHref: "/diputados", fallbackLabel: "Volver a Diputados" },
+  partido: { href: "/partidos", label: "Partidos", groupLabel: "Personas", fallbackHref: "/partidos", fallbackLabel: "Volver a Partidos" },
   organizacion: { href: "/organizaciones", label: "Organizaciones", groupLabel: "Dinero", fallbackHref: "/organizaciones", fallbackLabel: "Volver a Organizaciones" },
 }
 

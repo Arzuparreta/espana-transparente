@@ -18,12 +18,14 @@ function judicialMeta(status: string | null): string | null {
 export interface TrailConnection {
   /** Display label for the connected entity. */
   label: string
-  /** Route to the connected entity's page. */
+  /** Route to the connected entity's page, or an external URL. */
   route: string
   /** Connection type: how this entity relates. */
   connection: string
   /** Optional metadata (date, amount, role). */
   meta: string | null
+  /** When true, route points off-site (e.g. CNMC register). */
+  external?: boolean
 }
 
 export interface EntityTrail {
@@ -39,6 +41,8 @@ export interface EntityTrail {
     organizations: TrailConnection[]
     /** Judicial cases linked to this entity or its party. */
     judicial: TrailConnection[]
+    /** External registers (e.g. CNMC lobbying groups). */
+    external: TrailConnection[]
   }
 }
 
@@ -50,6 +54,7 @@ function buildOrganizationTrail(
   const people: TrailConnection[] = []
   const organizations: TrailConnection[] = []
   const judicial: TrailConnection[] = []
+  const external: TrailConnection[] = []
   const seen = new Set<string>()
 
   for (const row of rows) {
@@ -60,7 +65,7 @@ function buildOrganizationTrail(
     const meta = row.connection_meta as string | null
 
     if (!connLabel || !connRoute) continue
-    const key = `${connType}:${connRoute}`
+    const key = `${connType}:${connRoute}:${connLabel}`
     if (seen.has(key)) continue
     seen.add(key)
 
@@ -69,9 +74,12 @@ function buildOrganizationTrail(
       route: connRoute,
       connection: source,
       meta,
+      external: connType === "external",
     }
 
-    if (connType === "politician") {
+    if (connType === "external") {
+      external.push(connection)
+    } else if (connType === "politician") {
       people.push(connection)
     } else if (connType === "organization") {
       // Don't link to self
@@ -86,7 +94,7 @@ function buildOrganizationTrail(
   return {
     entity_type: "organization",
     entity_id: orgId,
-    connections: { people, organizations, judicial },
+    connections: { people, organizations, judicial, external },
   }
 }
 
@@ -133,7 +141,7 @@ function buildPoliticianTrail(
   return {
     entity_type: "politician",
     entity_id: polId,
-    connections: { people, organizations, judicial },
+    connections: { people, organizations, judicial, external: [] },
   }
 }
 
@@ -161,7 +169,7 @@ function buildPartyTrail(partyId: string, rows: Record<string, unknown>[]): Enti
   return {
     entity_type: "party",
     entity_id: partyId,
-    connections: { people: [], organizations: [], judicial },
+    connections: { people: [], organizations: [], judicial, external: [] },
   }
 }
 
@@ -220,7 +228,7 @@ export const getEntityTrail = unstable_cache(
       return {
         entity_type: entityType,
         entity_id: entityId,
-        connections: { people: [], organizations: [], judicial: [] },
+        connections: { people: [], organizations: [], judicial: [], external: [] },
       }
     }
 

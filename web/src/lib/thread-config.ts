@@ -117,7 +117,7 @@ export const THREADS: ThreadConfig[] = [
     key: "dinero",
     href: "/dinero",
     label: "Dinero",
-    question: "A dónde va el dinero público",
+    question: "Gasto público, contratos y territorio",
     description:
       "Presupuestos, contratos, subvenciones y fondos europeos: a quién se adjudica, cuánto importa, qué organismo lo autoriza y cómo aterriza por territorio.",
     curationRule:
