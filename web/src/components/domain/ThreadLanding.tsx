@@ -10,11 +10,20 @@ import type { ThreadConfig } from "@/lib/thread-config"
 interface ThreadLandingProps {
   thread: ThreadConfig
   sectionIndex: SectionIndexRow[]
-  anchors?: ReactNode
+  /** Live-data anchor cards; empty entries are omitted from the grid. */
+  anchors?: ReactNode[]
   children?: ReactNode
 }
 
+function anchorGridClass(count: number): string {
+  if (count <= 1) return ""
+  if (count === 2) return "sm:grid-cols-2"
+  return "sm:grid-cols-2 lg:grid-cols-3"
+}
+
 export function ThreadLanding({ thread, sectionIndex, anchors, children }: ThreadLandingProps) {
+  const visibleAnchors = (anchors ?? []).filter(Boolean)
+  const hasAnchors = visibleAnchors.length > 0
   const sectionFacts = new Map(
     sectionIndex.map((row) => [
       row.section_key,
@@ -36,7 +45,7 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
   )
 
   return (
-    <div className="ui-page-wide space-y-6">
+    <div className="ui-page-wide space-y-8">
       <PageHeader
         title={thread.label}
         eyebrow={
@@ -47,32 +56,40 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
         description={thread.description}
       />
 
-      {anchors ? (
+      {hasAnchors ? (
         <RevealSection>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            En cifras
-          </p>
-          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))]">
-            {anchors}
-          </div>
+          <section aria-label="En cifras">
+            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              En cifras
+            </p>
+            <div className={`grid gap-3 ${anchorGridClass(visibleAnchors.length)}`.trim()}>
+              {visibleAnchors}
+            </div>
+          </section>
         </RevealSection>
       ) : null}
 
       <RevealSection>
-        <nav aria-label="Datos disponibles" className="space-y-3">
+        <nav
+          aria-label="Datos disponibles"
+          className={hasAnchors ? "space-y-3 border-t border-border pt-8" : "space-y-3"}
+        >
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Datos disponibles
           </p>
-          <div className="space-y-5">
-            {sourceGroups.map(([sectionLabel, sources]) => {
+          <div className="space-y-6">
+            {sourceGroups.map(([sectionLabel, sources], groupIndex) => {
               const sourceCount = sources.length
               const sourceGridCols =
                 sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
               const loneLastCardClass =
-                sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-3" : ""
+                sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-2" : ""
 
               return (
-                <section key={sectionLabel || "default"} className="space-y-3">
+                <section
+                  key={sectionLabel || "default"}
+                  className={groupIndex > 0 ? "space-y-3 border-t border-border/60 pt-6" : "space-y-3"}
+                >
                   {sectionLabel ? (
                     <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground/80">
                       {sectionLabel}

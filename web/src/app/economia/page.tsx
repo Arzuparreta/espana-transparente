@@ -1,6 +1,7 @@
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
 import { getIndicators, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
 import { getThread } from "@/lib/thread-config"
+import type { ReactNode } from "react"
 
 export const revalidate = 3600
 
@@ -59,49 +60,59 @@ export default async function EconomiaThreadPage() {
 
   const debt = latestByCode.get("DEUDA_PUBLICA")
   const unemployment = latestByCode.get("TASA_PARO")
+  const anchors: ReactNode[] = []
+
+  if (inflation) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="ipc"
+        label={`IPC mensual · ${formatPeriod(inflation.period)}`}
+        value={formatPercent(inflation.monthlyValue)}
+        description={
+          inflation.annualValue != null
+            ? `Variación anual: ${formatPercent(inflation.annualValue)}.`
+            : "Serie mensual nacional."
+        }
+        source="Fuente: INE, serie nacional del IPC."
+        href="/indicadores/IPC_VAR_MENSUAL"
+        linkLabel="Ver serie →"
+      />
+    )
+  }
+
+  if (debt) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="deuda"
+        label={`Deuda pública · ${debt.period.slice(0, 4)}`}
+        value={formatLatest(debt.value, debt.unit)}
+        description="Deuda pública consolidada de las Administraciones Públicas, en billones de euros."
+        source="Fuente: Eurostat · criterio de Maastricht."
+        href="/indicadores/DEUDA_PUBLICA"
+        linkLabel="Ver serie →"
+      />
+    )
+  }
+
+  if (unemployment) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="paro"
+        label={`Tasa de paro · ${unemployment.period}`}
+        value={formatLatest(unemployment.value, unemployment.unit)}
+        description="Porcentaje de población activa en paro."
+        source="Fuente: INE."
+        href="/indicadores/TASA_PARO"
+        linkLabel="Ver serie →"
+      />
+    )
+  }
 
   return (
     <ThreadLanding
       thread={thread}
       sectionIndex={sectionIndex}
-      anchors={
-        <>
-          {inflation ? (
-            <ThreadAnchorCard
-              label={`IPC mensual · ${formatPeriod(inflation.period)}`}
-              value={formatPercent(inflation.monthlyValue)}
-              description={
-                inflation.annualValue != null
-                  ? `Variación anual: ${formatPercent(inflation.annualValue)}.`
-                  : "Serie mensual nacional."
-              }
-              source="Fuente: INE, serie nacional del IPC."
-              href="/indicadores/IPC_VAR_MENSUAL"
-              linkLabel="Ver serie →"
-            />
-          ) : null}
-          {debt ? (
-            <ThreadAnchorCard
-              label={`Deuda pública · ${debt.period.slice(0, 4)}`}
-              value={formatLatest(debt.value, debt.unit)}
-              description="Deuda pública consolidada de las Administraciones Públicas, en billones de euros."
-              source="Fuente: Eurostat · criterio de Maastricht."
-              href="/indicadores/DEUDA_PUBLICA"
-              linkLabel="Ver serie →"
-            />
-          ) : null}
-          {unemployment ? (
-            <ThreadAnchorCard
-              label={`Tasa de paro · ${unemployment.period}`}
-              value={formatLatest(unemployment.value, unemployment.unit)}
-              description="Porcentaje de población activa en paro."
-              source="Fuente: INE."
-              href="/indicadores/TASA_PARO"
-              linkLabel="Ver serie →"
-            />
-          ) : null}
-        </>
-      }
+      anchors={anchors}
     />
   )
 }

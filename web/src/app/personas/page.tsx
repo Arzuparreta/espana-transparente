@@ -28,31 +28,32 @@ export default async function PersonasThreadPage() {
     <ThreadLanding
       thread={getThread("personas")}
       sectionIndex={sectionIndex}
-      anchors={
-        <>
-          <ThreadAnchorCard
-            label="Gobierno actual"
-            value={gobierno.length.toLocaleString("es-ES")}
-            description={`${ministers.toLocaleString("es-ES")} ministerios con persona responsable enlazada.`}
-            href="/gobierno"
-            linkLabel="Ver Gobierno →"
-          />
-          <ThreadAnchorCard
-            label="Iniciativas parlamentarias"
-            value={initiatives.total.toLocaleString("es-ES")}
-            description="Proyectos, proposiciones y mociones publicados por el Congreso."
-            href="/iniciativas"
-            linkLabel="Ver iniciativas →"
-          />
-          <ThreadAnchorCard
-            label="Puertas giratorias"
-            value={revolvingDoors.length.toLocaleString("es-ES")}
-            description="Casos publicados con fuente primaria o revisión documental."
-            href="/puertas-giratorias"
-            linkLabel="Ver casos →"
-          />
-        </>
-      }
+      anchors={[
+        <ThreadAnchorCard
+          key="gobierno"
+          label="Gobierno actual"
+          value={gobierno.length.toLocaleString("es-ES")}
+          description={`${ministers.toLocaleString("es-ES")} ministerios con persona responsable enlazada.`}
+          href="/gobierno"
+          linkLabel="Ver Gobierno →"
+        />,
+        <ThreadAnchorCard
+          key="iniciativas"
+          label="Iniciativas parlamentarias"
+          value={initiatives.total.toLocaleString("es-ES")}
+          description="Proyectos, proposiciones y mociones publicados por el Congreso."
+          href="/iniciativas"
+          linkLabel="Ver iniciativas →"
+        />,
+        <ThreadAnchorCard
+          key="puertas"
+          label="Puertas giratorias"
+          value={revolvingDoors.length.toLocaleString("es-ES")}
+          description="Casos publicados con fuente primaria o revisión documental."
+          href="/puertas-giratorias"
+          linkLabel="Ver casos →"
+        />,
+      ]}
     />
   )
 }

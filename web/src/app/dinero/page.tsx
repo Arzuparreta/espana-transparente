@@ -1,6 +1,7 @@
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
 import { getSectionIndex, getTopContractOfMonth, getEuFundsSummary, getMoneyDataOverview } from "@/lib/data"
 import { getThread } from "@/lib/thread-config"
+import type { ReactNode } from "react"
 
 export const revalidate = 3600
 
@@ -34,54 +35,64 @@ export default async function DineroThreadPage() {
     getMoneyDataOverview(),
   ])
   const totalMoneyRows = overview.coverage.reduce((sum, row) => sum + Number(row.total_rows ?? 0), 0)
+  const anchors: ReactNode[] = []
+
+  if (totalMoneyRows > 0) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="registros"
+        label="Registros de gasto"
+        value={totalMoneyRows.toLocaleString("es-ES")}
+        description="Contratos, subvenciones y fondos europeos normalizados para consulta transversal."
+        href="/dinero-publico"
+        linkLabel="Ver trazabilidad →"
+      />
+    )
+  }
+
+  if (topContract?.amount != null) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="contrato"
+        label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
+        value={formatAmount(topContract.amount)}
+        description={
+          <>
+            <span className="line-clamp-2 font-medium">
+              {topContract.title}
+            </span>
+            {topContract.awarding_body ? (
+              <span className="mt-1 block text-xs line-clamp-1">
+                {topContract.awarding_body}
+              </span>
+            ) : null}
+          </>
+        }
+        href={`/contratos/${topContract.id}`}
+        linkLabel="Ver contrato →"
+      />
+    )
+  }
+
+  if (euSummary) {
+    anchors.push(
+      <ThreadAnchorCard
+        key="ue"
+        label="Fondos europeos"
+        value={formatAmount(Number(euSummary.total_eu_budget))}
+        description={`${Number(euSummary.beneficiary_count).toLocaleString("es-ES")} beneficiarios españoles en Kohesio.`}
+        source="Fuente: Comisión Europea · Kohesio."
+        href="/fondos-ue"
+        linkLabel="Ver fondos UE →"
+      />
+    )
+  }
 
   return (
     <ThreadLanding
       thread={thread}
       sectionIndex={sectionIndex}
-      anchors={
-        <>
-          {totalMoneyRows > 0 ? (
-            <ThreadAnchorCard
-              label="Registros de gasto"
-              value={totalMoneyRows.toLocaleString("es-ES")}
-              description="Contratos, subvenciones y fondos europeos normalizados para consulta transversal."
-              href="/dinero-publico"
-              linkLabel="Ver trazabilidad →"
-            />
-          ) : null}
-          {topContract?.amount != null ? (
-            <ThreadAnchorCard
-              label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
-              value={formatAmount(topContract.amount)}
-              description={
-                <>
-                  <span className="line-clamp-2 font-medium">
-                    {topContract.title}
-                  </span>
-                  {topContract.awarding_body ? (
-                    <span className="mt-1 block text-xs line-clamp-1">
-                      {topContract.awarding_body}
-                    </span>
-                  ) : null}
-                </>
-              }
-              href={`/contratos/${topContract.id}`}
-              linkLabel="Ver contrato →"
-            />
-          ) : null}
-          {euSummary ? (
-            <ThreadAnchorCard
-              label="Fondos europeos"
-              value={formatAmount(Number(euSummary.total_eu_budget))}
-              description={`${Number(euSummary.beneficiary_count).toLocaleString("es-ES")} beneficiarios españoles en Kohesio.`}
-              source="Fuente: Comisión Europea · Kohesio."
-              href="/fondos-ue"
-              linkLabel="Ver fondos UE →"
-            />
-          ) : null}
-        </>
-      }
+      anchors={anchors}
     />
   )
 }
