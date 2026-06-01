@@ -131,7 +131,8 @@ python -m src.public_bodies.boe_nombramientos --days 7  # BOE public appointment
 
 ```bash
 # Clean any partial search data from failed runs:
-psql "$DATABASE_URL" -c "TRUNCATE search_documents; TRUNCATE vote_divergences_cache; SELECT refresh_vote_divergences_cache();"
+psql "$DATABASE_URL" -f supabase/migrations/20260704000000_fix_vote_divergence_search_unique.sql
+psql "$DATABASE_URL" -c "SELECT refresh_vote_divergences_cache(); SELECT refresh_search_documents('vote_divergence');"
 
 # Build the search index:
 python -m src.common.search_refresh        # 148K search documents
@@ -175,7 +176,7 @@ The migration chain has been patched for clean bootstrap from an empty database:
 | `etl/src/bdns/subvenciones.py` | Fixed pagination parameter: `pageNumber` → `page` (BDNS API bug) |
 | `etl/src/common/search_refresh.py` | Fixed empty string UUID comparison |
 | `refresh_vote_divergences_cache()` | Added DISTINCT ON to prevent duplicate cache entries |
-| `refresh_search_documents(text)` | Added DISTINCT ON to vote_divergence CTE to prevent duplicate entity_ids |
+| `refresh_search_documents(text)` | Added DISTINCT ON to vote_divergence CTE (`20260704000000`) to prevent duplicate entity_ids |
 | `refresh_search_person_aliases()` | Truncated alias values to 500 chars to avoid btree index size limit |
 | `.github/workflows/ci.yml` | Added `schedule` triggers so ETL daily/weekly jobs actually run |
 | `.github/workflows/ci.yml` | Added `congreso.power_relationships` to weekly ETL job |
