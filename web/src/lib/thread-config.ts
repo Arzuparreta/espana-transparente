@@ -60,8 +60,6 @@ export const THREADS: ThreadConfig[] = [
         label: "Partidos",
         description: "Partidos y grupos parlamentarios con representación.",
         section: "Cargos",
-        countKey: "partidos",
-        countUnit: "registrados",
       },
       {
         href: "/instituciones",
@@ -128,7 +126,6 @@ export const THREADS: ThreadConfig[] = [
         label: "Trazabilidad del gasto",
         description: "Cascada desde presupuesto hasta contratos y subvenciones por ministerio.",
         section: "Visión general",
-        countKey: "dinero-publico",
       },
       {
         href: "/presupuestos",
