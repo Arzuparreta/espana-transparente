@@ -1,8 +1,18 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR } from "./shared"
 
+const INDICATOR_PAGE_SIZE = 1000
+
 const REVOLVING_DOOR_PUBLIC_COLS =
   "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
+
+type IndicatorRow = {
+  indicator_code: string
+  indicator_name: string
+  unit: string | null
+  period: string
+  value: number
+}
 
 export const getRevolvingDoorCases = unstable_cache(
   async () => {
@@ -31,14 +41,49 @@ export const getRevolvingDoorCaseById = unstable_cache(
 
 export const getIndicators = unstable_cache(
   async () => {
-    const { data } = await supabase
-      .from("economic_indicators")
-      .select("indicator_code, indicator_name, unit, period, value")
-      .order("indicator_code")
-      .order("period", { ascending: false })
-    return data ?? []
+    const rows: IndicatorRow[] = []
+    let from = 0
+
+    while (true) {
+      const { data } = await supabase
+        .from("economic_indicators")
+        .select("indicator_code, indicator_name, unit, period, value")
+        .order("indicator_code")
+        .order("period", { ascending: false })
+        .range(from, from + INDICATOR_PAGE_SIZE - 1)
+
+      const page = data ?? []
+      rows.push(...(page as IndicatorRow[]))
+      if (page.length < INDICATOR_PAGE_SIZE) break
+      from += INDICATOR_PAGE_SIZE
+    }
+
+    return rows
   },
   ["indicators"],
+  { revalidate: HOUR }
+)
+
+export const getIndicatorSectionFacts = unstable_cache(
+  async () => {
+    const rows = await getIndicators()
+
+    const codes = new Set<string>()
+    for (const row of rows) {
+      const code = row.indicator_code as string | null
+      const value = Number(row.value)
+      if (code && Number.isFinite(value)) {
+        codes.add(code)
+      }
+    }
+
+    return {
+      section_key: "indicadores",
+      record_count: codes.size,
+      latest_date: null,
+    }
+  },
+  ["indicator-section-facts"],
   { revalidate: HOUR }
 )
 

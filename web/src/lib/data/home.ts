@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type TopDivergenceSessionAncla, type InflationAnchor } from "./shared"
+import { getIndicatorSectionFacts } from "./conexiones"
 
 export type { TopContractAncla, TopDivergenceSessionAncla, InflationAnchor }
 
@@ -44,11 +45,21 @@ export type EtlFreshness = {
   pipelineCount: number
 }
 
+function applySectionOverrides(rows: SectionIndexRow[], overrides: SectionIndexRow[]): SectionIndexRow[] {
+  const byKey = new Map(rows.map((row) => [row.section_key, row]))
+  for (const override of overrides) {
+    byKey.set(override.section_key, override)
+  }
+  return Array.from(byKey.values())
+}
+
 // Reads from section_index_cache table (populated by ETL, refreshed daily).
 // Falls back to get_section_index() RPC if cache is empty (first deploy).
-// Cached for 4 hours since counts change at most daily.
+// Indicator previews use the same live table as /indicadores to avoid stale
+// section_index_cache values disagreeing with the visible series dashboard.
 export const getSectionIndex = unstable_cache(
   async (): Promise<SectionIndexRow[]> => {
+    const indicatorFacts = await getIndicatorSectionFacts()
     const { data, error } = await supabase
       .from("section_index_cache")
       .select("section_key, record_count, latest_date")
@@ -62,20 +73,21 @@ export const getSectionIndex = unstable_cache(
       // seeded before any data existed. Fall back to live RPC counts.
       const hasAnyCount = rows.some((r) => (r.record_count ?? 0) > 0)
       if (hasAnyCount) {
-        return rows
+        return applySectionOverrides(rows, [indicatorFacts])
       }
     }
     // Fallback to RPC (will be slower but correct)
     const { data: rpcData, error: rpcError } = await supabase.rpc("get_section_index")
     if (rpcError || !rpcData) return []
-    return (rpcData as SectionIndexRow[]).map((row) => ({
+    const rows = (rpcData as SectionIndexRow[]).map((row) => ({
       section_key: row.section_key,
       record_count: row.record_count != null ? Number(row.record_count) : null,
       latest_date: row.latest_date ?? null,
     }))
+    return applySectionOverrides(rows, [indicatorFacts])
   },
   ["section-index"],
-  { revalidate: 4 * HOUR }
+  { revalidate: HOUR }
 )
 
 export const getHomeData = unstable_cache(
