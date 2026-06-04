@@ -22,7 +22,7 @@ import subprocess
 import unicodedata
 from datetime import date, timedelta
 
-from common.db import get_pg_conn
+from common.db import DB_URL, get_pg_conn
 
 BOE_API = "https://www.boe.es/datosabiertos/api/boe/sumario"
 UA = "EspanaTransparente/1.0 (public transparency ETL; contact: rubenpenarubio02@gmail.com)"
@@ -230,6 +230,8 @@ def match_organization(cur, dept: str, titulo: str) -> tuple[str | None, str | N
 
     Returns (organization_id, institution_label).
     """
+    if cur is None:
+        return None, None
     # Normalize department name for matching
     norm_dept = _normalize(dept)
     if not norm_dept:
@@ -263,7 +265,7 @@ def match_organization(cur, dept: str, titulo: str) -> tuple[str | None, str | N
 
 def match_politician(cur, person_name: str) -> str | None:
     """Fuzzy-match person name to politicians table using pg_trgm. Returns politician_id or None."""
-    if not person_name or len(person_name) < 5:
+    if cur is None or not person_name or len(person_name) < 5:
         return None
     cur.execute("""
         SELECT id, similarity(full_name, %s) AS sim
@@ -336,75 +338,85 @@ def run(days: int = 30, dry_run: bool = False, resume: bool = False,
     """
     import time
 
-    conn = get_pg_conn()
+    # In dry-run without a configured DB (e.g. CI smoke check) we still exercise
+    # fetch + parse, but skip DB matching instead of crashing on a missing
+    # DATABASE_URL. With a DB available, dry-run does full matching as usual.
+    conn = None
+    if not (dry_run and not DB_URL):
+        conn = get_pg_conn()
+    elif resume:
+        print("[dry-run] no DATABASE_URL configured — disabling --resume (no DB to check)")
+        resume = False
+
     days_scanned = 0
     total_found = 0
     total_upserted = 0
 
     try:
-        with conn.cursor() as cur:
-            if end_date is None:
-                end_date = date.today() - timedelta(days=1)  # yesterday (today may not be indexed)
-            if start_date is None:
-                start_date = end_date - timedelta(days=days - 1)
+        cur = conn.cursor() if conn else None
+        if end_date is None:
+            end_date = date.today() - timedelta(days=1)  # yesterday (today may not be indexed)
+        if start_date is None:
+            start_date = end_date - timedelta(days=days - 1)
 
-            current = start_date
-            while current <= end_date:
-                print(f"[{current}] fetching BOE index...", end=" ", flush=True)
-                items = get_boe_items(current)
-                days_scanned += 1
+        current = start_date
+        while current <= end_date:
+            print(f"[{current}] fetching BOE index...", end=" ", flush=True)
+            items = get_boe_items(current)
+            days_scanned += 1
 
-                if not items:
-                    print("(no items)")
-                    current += timedelta(days=1)
-                    time.sleep(REQUEST_DELAY_S)
-                    continue
-
-                print(f"{len(items)} appointment items found")
-                total_found += len(items)
-
-                for item in items:
-                    boe_id = item["boe_id"]
-
-                    if resume and _already_seen(cur, boe_id):
-                        continue
-
-                    person_name = _parse_person(item["titulo"])
-                    if not person_name:
-                        # No parseable person name — skip (could be collective appointment)
-                        continue
-
-                    role = _parse_role(item["titulo"])
-
-                    # Try to match org: first by title-extracted name, fallback to dept
-                    title_org = _parse_org_from_title(item["titulo"])
-                    org_id, org_name = match_organization(
-                        cur,
-                        title_org or item["dept"],
-                        item["titulo"],
-                    )
-                    # institution label: prefer title org > matched org > dept > fallback
-                    institution = org_name or title_org or _normalize(item["dept"]) or "ORGANISMO PÚBLICO"
-                    politician_id = match_politician(cur, person_name)
-
-                    upsert_appointment(cur, item, person_name, role, org_id,
-                                       institution, politician_id, dry_run)
-                    total_upserted += 1
-
-                    if dry_run:
-                        continue
-
-                    if politician_id:
-                        print(f"  ✓ {person_name[:35]} → politician match")
-
-                if not dry_run:
-                    conn.commit()
-
+            if not items:
+                print("(no items)")
                 current += timedelta(days=1)
                 time.sleep(REQUEST_DELAY_S)
+                continue
+
+            print(f"{len(items)} appointment items found")
+            total_found += len(items)
+
+            for item in items:
+                boe_id = item["boe_id"]
+
+                if resume and _already_seen(cur, boe_id):
+                    continue
+
+                person_name = _parse_person(item["titulo"])
+                if not person_name:
+                    # No parseable person name — skip (could be collective appointment)
+                    continue
+
+                role = _parse_role(item["titulo"])
+
+                # Try to match org: first by title-extracted name, fallback to dept
+                title_org = _parse_org_from_title(item["titulo"])
+                org_id, org_name = match_organization(
+                    cur,
+                    title_org or item["dept"],
+                    item["titulo"],
+                )
+                # institution label: prefer title org > matched org > dept > fallback
+                institution = org_name or title_org or _normalize(item["dept"]) or "ORGANISMO PÚBLICO"
+                politician_id = match_politician(cur, person_name)
+
+                upsert_appointment(cur, item, person_name, role, org_id,
+                                   institution, politician_id, dry_run)
+                total_upserted += 1
+
+                if dry_run:
+                    continue
+
+                if politician_id:
+                    print(f"  ✓ {person_name[:35]} → politician match")
+
+            if not dry_run:
+                conn.commit()
+
+            current += timedelta(days=1)
+            time.sleep(REQUEST_DELAY_S)
 
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
     print(f"\nDone. {days_scanned} days scanned, {total_found} items found, {total_upserted} upserted.")
     return days_scanned, total_found, total_upserted
