@@ -268,13 +268,13 @@ def discover_session_vote_urls(
         except ET.ParseError:
             urls = []
 
-    if not urls:
-        urls = discover_static_session_xml_urls(
-            legis=legis,
-            from_session=from_session,
-            max_session=max_session,
-            limit=limit,
-        )
+    static_urls = discover_static_session_xml_urls(
+        legis=legis,
+        from_session=from_session,
+        max_session=max_session,
+        limit=limit,
+    )
+    urls = list(dict.fromkeys(urls + static_urls))
 
     unique: dict[int, str] = {}
     for url in urls:

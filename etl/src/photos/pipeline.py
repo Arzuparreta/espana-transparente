@@ -248,6 +248,14 @@ def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) ->
                     """,
                     (candidate_id,),
                 )
+                safe_wikidata_qid = match.wikidata_qid
+                if safe_wikidata_qid:
+                    cur.execute(
+                        "SELECT 1 FROM politicians WHERE wikidata_qid = %s AND id <> %s LIMIT 1",
+                        (safe_wikidata_qid, politician.id),
+                    )
+                    if cur.fetchone():
+                        safe_wikidata_qid = None
                 cur.execute(
                     """
                     UPDATE politicians
@@ -266,7 +274,7 @@ def _persist(politician: PoliticianRow, match: SourceMatch, *, dry_run: bool) ->
                         json.dumps(variant_urls),
                         candidate_id,
                         match.source,
-                        match.wikidata_qid,
+                        safe_wikidata_qid,
                         politician.id,
                     ),
                 )
