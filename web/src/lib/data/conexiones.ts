@@ -111,6 +111,20 @@ export type InitiativeListRow = {
   source_url: string | null
 }
 
+export type InitiativeProposerRow = {
+  id: string
+  proposer_label: string
+  proposer_role: string
+  politician_id: string | null
+  politician_name: string | null
+  party_id: string | null
+  party_name: string | null
+  party_acronym: string | null
+  organization_id: string | null
+  organization_name: string | null
+  match_method: string | null
+}
+
 export const getInitiativesPage = unstable_cache(
   async (page: number) => {
     const pageSize = 50
@@ -138,15 +152,27 @@ export const getInitiativeDetail = unstable_cache(
       .eq("id", id)
       .single()
 
-    if (!initiative) return { initiative: null, sessions: [] }
+    if (!initiative) return { initiative: null, sessions: [], proposers: [] }
 
-    const { data: sessions } = await supabase
-      .from("v_voting_session_summary")
-      .select("id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count")
-      .eq("initiative_number", initiative.number)
-      .order("date", { ascending: false })
+    const [sessions, proposers] = await Promise.all([
+      supabase
+        .from("v_voting_session_summary")
+        .select("id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count")
+        .eq("initiative_number", initiative.number)
+        .order("date", { ascending: false }),
+      supabase
+        .from("v_initiative_proposers_public")
+        .select("id, proposer_label, proposer_role, politician_id, politician_name, party_id, party_name, party_acronym, organization_id, organization_name, match_method")
+        .eq("initiative_id", id)
+        .order("proposer_role")
+        .order("proposer_label"),
+    ])
 
-    return { initiative, sessions: sessions ?? [] }
+    return {
+      initiative,
+      sessions: sessions.data ?? [],
+      proposers: (proposers.data ?? []) as InitiativeProposerRow[],
+    }
   },
   ["initiative-detail"],
   { revalidate: HOUR }

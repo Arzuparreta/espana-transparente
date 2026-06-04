@@ -52,7 +52,7 @@ export const getJudicialCaseDetail = unstable_cache(
         .order("actor_label"),
       supabase
         .from("v_corruption_contract_links_public")
-        .select("id, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url, reviewed_at")
+        .select("id, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url, reviewed_at, contract_title, contract_amount, contract_contractor")
         .eq("case_id", id)
         .order("reviewed_at", { ascending: false, nullsFirst: false }),
     ])
@@ -73,7 +73,7 @@ export const getJudicialLinksForOrganizations = unstable_cache(
     const uniqueIds = Array.from(new Set(organizationIds))
     const { data } = await supabase
       .from("v_corruption_contract_links_public")
-      .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url")
+      .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url, contract_title, contract_amount, contract_contractor")
       .in("organization_id", uniqueIds)
       .order("last_verified_at", { ascending: false, nullsFirst: false })
       .limit(10)
@@ -87,7 +87,7 @@ export const getJudicialLinksForContract = unstable_cache(
   async (contractId: string, organizationIds: string[]) => {
     const direct = await supabase
       .from("v_corruption_contract_links_public")
-      .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url")
+      .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url, contract_title, contract_amount, contract_contractor")
       .eq("contract_id", contractId)
       .order("last_verified_at", { ascending: false, nullsFirst: false })
       .limit(10)

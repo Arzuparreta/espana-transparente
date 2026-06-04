@@ -3,6 +3,7 @@ from congreso.iniciativas import (
     discover_sources,
     parse_record,
     parse_spanish_date,
+    split_author_entries,
     status_slug,
 )
 
@@ -50,6 +51,14 @@ def test_parse_record_maps_official_fields_to_initiative_row():
     assert parsed["number"] == "121/000001/0000"
     assert parsed["title"] == "Proyecto de Ley Orgánica de eficiencia del servicio público."
     assert parsed["proposer_group"] == "Gobierno"
+    assert parsed["proposers"] == [
+        {
+            "label": "Gobierno",
+            "role": "organismo_proponente",
+            "kind": "organization",
+            "group_code": None,
+        }
+    ]
     assert parsed["status"] == "aprobada"
     assert "_iniciativas_id=121/000001" in parsed["source_url"]
     assert parsed["raw_data"]["presentation_date"] == "2023-11-22"
@@ -82,3 +91,58 @@ def test_parse_spanish_date_accepts_official_format():
     assert parse_spanish_date("1/2/2026") == "2026-02-01"
     assert parse_spanish_date("2026-02-01") == "2026-02-01"
     assert parse_spanish_date("") is None
+
+
+def test_split_author_entries_extracts_person_signers():
+    author = """Álvaro Vidal, Francesc-Marc (GR)
+Vallugera Balañà, Pilar (GR)"""
+
+    assert split_author_entries(author) == [
+        {
+            "label": "Álvaro Vidal, Francesc-Marc",
+            "role": "firmante",
+            "kind": "person",
+            "group_code": "GR",
+        },
+        {
+            "label": "Vallugera Balañà, Pilar",
+            "role": "firmante",
+            "kind": "person",
+            "group_code": "GR",
+        },
+    ]
+
+
+def test_parse_record_preserves_multiline_person_signers():
+    parsed = parse_record(
+        {
+            "LEGISLATURA": "Leg.15",
+            "TIPO": "Proposición de ley",
+            "OBJETO": "Proposición de Ley de prueba.",
+            "NUMEXPEDIENTE": "122/000221/0000",
+            "AUTOR": "Álvaro Vidal, Francesc-Marc (GR)\nVallugera Balañà, Pilar (GR)",
+            "RESULTADOTRAMITACION": "",
+            "SITUACIONACTUAL": "En tramitación",
+        },
+        dataset="ProposicionesDeLey",
+        dataset_url="https://example.test/proposiciones.json",
+    )
+
+    assert parsed is not None
+    assert [proposer["label"] for proposer in parsed["proposers"]] == [
+        "Álvaro Vidal, Francesc-Marc",
+        "Vallugera Balañà, Pilar",
+    ]
+
+
+def test_split_author_entries_keeps_multiple_groups_separate():
+    author = """Grupo Parlamentario Socialista
+Grupo Parlamentario Plurinacional SUMAR
+Grupo Parlamentario Mixto"""
+
+    assert [entry["label"] for entry in split_author_entries(author)] == [
+        "Grupo Parlamentario Socialista",
+        "Grupo Parlamentario Plurinacional SUMAR",
+        "Grupo Parlamentario Mixto",
+    ]
+    assert all(entry["role"] == "grupo_proponente" for entry in split_author_entries(author))

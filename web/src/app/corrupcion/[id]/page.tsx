@@ -24,6 +24,15 @@ function formatDate(value: string | null): string {
   })
 }
 
+function formatAmount(value: number | null): string | null {
+  if (value == null) return null
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1 border-t border-border/50 py-3 text-sm first:border-0 sm:grid-cols-[10rem_1fr] sm:gap-3">
@@ -164,7 +173,7 @@ export default async function CorrupcionDetailPage({ params }: PageProps) {
                   <div className="font-medium">
                     {link.contract_id ? (
                       <ResponsiveLink href={`/contratos/${link.contract_id}`} className="underline-offset-2 hover:underline">
-                        Contrato vinculado
+                        {link.contract_title ?? "Contrato vinculado"}
                       </ResponsiveLink>
                     ) : link.subsidy_id ? (
                       <ResponsiveLink href={`/subvenciones/${link.subsidy_id}`} className="underline-offset-2 hover:underline">
@@ -178,6 +187,11 @@ export default async function CorrupcionDetailPage({ params }: PageProps) {
                       "Vínculo revisado"
                     )}
                   </div>
+                  {(link.contract_amount != null || link.contract_contractor) && (
+                    <div className="text-xs text-muted-foreground">
+                      {[formatAmount(link.contract_amount), link.contract_contractor].filter(Boolean).join(" · ")}
+                    </div>
+                  )}
                   <div className="text-xs text-muted-foreground">{link.link_reason}</div>
                 </div>
               ))

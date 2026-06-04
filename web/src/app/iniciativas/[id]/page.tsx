@@ -47,9 +47,48 @@ function VoteBar({ yes, no, abs, absent }: { yes: number; no: number; abs: numbe
   )
 }
 
+function ProposerLink({
+  proposer,
+}: {
+  proposer: {
+    proposer_label: string
+    politician_id: string | null
+    politician_name: string | null
+    party_id: string | null
+    party_acronym: string | null
+    organization_id: string | null
+    organization_name: string | null
+  }
+}) {
+  const label = proposer.politician_name ?? proposer.party_acronym ?? proposer.organization_name ?? proposer.proposer_label
+
+  if (proposer.politician_id) {
+    return (
+      <EntityLink kind="politician" id={proposer.politician_id} className="underline-offset-2 hover:underline">
+        {label}
+      </EntityLink>
+    )
+  }
+  if (proposer.party_id) {
+    return (
+      <EntityLink kind="party" id={proposer.party_id} className="underline-offset-2 hover:underline">
+        {label}
+      </EntityLink>
+    )
+  }
+  if (proposer.organization_id) {
+    return (
+      <EntityLink kind="organization" id={proposer.organization_id} className="underline-offset-2 hover:underline">
+        {label}
+      </EntityLink>
+    )
+  }
+  return <span>{label}</span>
+}
+
 export default async function IniciativaPage({ params }: PageProps) {
   const { id } = await params
-  const { initiative, sessions } = await getInitiativeDetail(id)
+  const { initiative, sessions, proposers } = await getInitiativeDetail(id)
   if (!initiative) notFound()
 
   const typeLabel = TYPE_LABELS[initiative.type] ?? initiative.type
@@ -94,6 +133,21 @@ export default async function IniciativaPage({ params }: PageProps) {
             <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
               <dt className="text-muted-foreground">Grupo proponente</dt>
               <dd className="font-medium">{initiative.proposer_group}</dd>
+            </div>
+          )}
+          {proposers.length > 0 && (
+            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
+              <dt className="text-muted-foreground">Proponentes</dt>
+              <dd className="flex flex-wrap gap-2">
+                {proposers.map((proposer) => (
+                  <span
+                    key={proposer.id}
+                    className="rounded-[2px] border border-border bg-background px-2 py-1 text-xs font-medium"
+                  >
+                    <ProposerLink proposer={proposer} />
+                  </span>
+                ))}
+              </dd>
             </div>
           )}
           {statusLabel && (

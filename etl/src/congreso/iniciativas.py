@@ -24,6 +24,7 @@ import psycopg2.extras
 
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
+from common.utils import normalize_name, search_display_name
 
 CONGRESO_BASE = "https://www.congreso.es"
 OPENDATA_PAGE = f"{CONGRESO_BASE}/es/opendata/iniciativas"
@@ -40,6 +41,24 @@ DATASET_LINK_RE = re.compile(
     r"(?P<path>/webpublica/opendata/iniciativas/"
     r"(?P<dataset>[A-Za-z0-9_]+)__\d+\.json)"
 )
+
+GROUP_PARTY_ACRONYMS = {
+    "grupo parlamentario popular en el congreso": "PP",
+    "grupo parlamentario socialista": "PSOE",
+    "grupo parlamentario vox": "VOX",
+    "grupo parlamentario plurinacional sumar": "SUMAR",
+    "grupo parlamentario republicano": "ERC",
+    "grupo parlamentario vasco eaj pnv": "EAJ-PNV",
+    "grupo parlamentario junts per catalunya": "JUNTS",
+    "grupo parlamentario euskal herria bildu": "EH Bildu",
+}
+
+PERSON_GROUP_ACRONYMS = {
+    "GR": "ERC",
+    "GSUMAR": "SUMAR",
+    "GEH Bildu": "EH Bildu",
+    "GV (EAJ-PNV)": "EAJ-PNV",
+}
 
 
 def curl_text(url: str) -> str:
@@ -75,6 +94,91 @@ def slugify(value: str | None) -> str | None:
     text = strip_accents(text).lower()
     text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
     return text or None
+
+
+def normalize_author_key(value: str | None) -> str:
+    text = collapse_ws(value) or ""
+    text = strip_accents(text).lower()
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def clean_group_code(value: str | None) -> str | None:
+    text = collapse_ws(value)
+    if not text:
+        return None
+    return text.strip()
+
+
+def is_person_author(label: str) -> bool:
+    if "," not in label:
+        return False
+    lowered = normalize_author_key(label)
+    if lowered.startswith(("grupo parlamentario", "comunidad autonoma", "comision ")):
+        return False
+    return bool(re.match(r"^[^,]{2,80},\s*[^,]{2,80}", label))
+
+
+def parse_person_author(label: str) -> tuple[str, str | None] | None:
+    group_code = None
+    name_part = label.strip()
+    match = re.match(r"^(?P<name>.+?)\s+\((?P<group>.+)\)$", name_part)
+    if match:
+        name_part = match.group("name").strip()
+        group_code = clean_group_code(match.group("group"))
+
+    if not is_person_author(name_part):
+        return None
+
+    surnames, first = name_part.split(",", 1)
+    official_name = f"{surnames.strip()}, {first.strip()}"
+    return official_name, group_code
+
+
+def split_author_entries(author: str | None) -> list[dict[str, Any]]:
+    """Split Congreso's AUTOR field into factual proposer entries.
+
+    Current Congreso Open Data mostly publishes groups or institutions, but a
+    few initiatives publish individual signers as one person per line.
+    """
+    text = collapse_ws(author.replace("\r", "\n")) if author else None
+    if not text:
+        return []
+
+    raw_parts = [
+        collapse_ws(part)
+        for part in re.split(r"\n+| {2,}", author.replace("\r", "\n"))
+    ]
+    parts = [part for part in raw_parts if part]
+
+    if len(parts) <= 1:
+        parts = [text]
+
+    proposers: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for part in parts:
+        parsed_person = parse_person_author(part)
+        if parsed_person:
+            label, group_code = parsed_person
+            role = "firmante"
+            kind = "person"
+        else:
+            label = part.strip()
+            group_code = None
+            kind = "group" if normalize_author_key(label).startswith("grupo parlamentario") else "organization"
+            role = "grupo_proponente" if kind == "group" else "organismo_proponente"
+
+        key = (label.casefold(), role)
+        if key in seen:
+            continue
+        seen.add(key)
+        proposers.append({
+            "label": label,
+            "role": role,
+            "kind": kind,
+            "group_code": group_code,
+        })
+    return proposers
 
 
 def parse_legislature_number(value: str | None) -> int | None:
@@ -193,13 +297,15 @@ def parse_record(record: dict[str, Any], *, dataset: str, dataset_url: str) -> d
     fetched_at = datetime.now(timezone.utc).isoformat()
     presentation_date = parse_spanish_date(collapse_ws(record.get("FECHAPRESENTACION")))
     qualification_date = parse_spanish_date(collapse_ws(record.get("FECHACALIFICACION")))
+    author_text = record.get("AUTOR")
 
     return {
         "legislature_number": legislature_number or 15,
         "type": initiative_type_slug(collapse_ws(record.get("TIPO")), dataset),
         "number": number,
         "title": title,
-        "proposer_group": collapse_ws(record.get("AUTOR")),
+        "proposer_group": collapse_ws(author_text),
+        "proposers": split_author_entries(author_text),
         "status": status_slug(record.get("SITUACIONACTUAL"), record.get("RESULTADOTRAMITACION")),
         "source_url": detail_url(number, legislature_number),
         "raw_data": {
@@ -219,7 +325,55 @@ def load_legislatures(cur) -> dict[int, str]:
     return {int(number): leg_id for number, leg_id in cur.fetchall()}
 
 
-def upsert_initiative(cur, row: dict[str, Any], legislature_id: str) -> str:
+def load_politician_index(cur) -> dict[str, str]:
+    cur.execute("SELECT id, full_name FROM politicians")
+    index: dict[str, str] = {}
+    for politician_id, full_name in cur.fetchall():
+        for candidate in (full_name, search_display_name(full_name)):
+            key = normalize_name(candidate)
+            if key:
+                index[key] = politician_id
+    return index
+
+
+def match_party(cur, label: str, group_code: str | None = None) -> tuple[str | None, float | None, str | None]:
+    acronym = PERSON_GROUP_ACRONYMS.get(group_code or "")
+    normalized = normalize_author_key(label)
+    if not acronym:
+        acronym = GROUP_PARTY_ACRONYMS.get(normalized)
+
+    if acronym:
+        cur.execute(
+            """
+            SELECT id
+            FROM parties
+            WHERE lower(acronym) = lower(%s)
+            LIMIT 1
+            """,
+            (acronym,),
+        )
+        row = cur.fetchone()
+        if row:
+            return row[0], 1.0, "official_group_acronym"
+
+    cur.execute(
+        """
+        SELECT id
+        FROM parties
+        WHERE lower(name) = lower(%s)
+           OR lower(acronym) = lower(%s)
+        LIMIT 1
+        """,
+        (label, label),
+    )
+    row = cur.fetchone()
+    if row:
+        return row[0], 1.0, "official_party_label"
+
+    return None, None, None
+
+
+def upsert_initiative(cur, row: dict[str, Any], legislature_id: str) -> tuple[str, str]:
     cur.execute(
         """
         SELECT id
@@ -253,13 +407,14 @@ def upsert_initiative(cur, row: dict[str, Any], legislature_id: str) -> str:
             """,
             (*payload, existing[0]),
         )
-        return "updated"
+        return existing[0], "updated"
 
     cur.execute(
         """
         INSERT INTO initiatives
             (legislature_id, type, number, title, proposer_group, status, raw_data, source_url)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
         """,
         (
             legislature_id,
@@ -272,7 +427,72 @@ def upsert_initiative(cur, row: dict[str, Any], legislature_id: str) -> str:
             row["source_url"],
         ),
     )
-    return "inserted"
+    return cur.fetchone()[0], "inserted"
+
+
+def upsert_initiative_proposers(
+    cur,
+    *,
+    initiative_id: str,
+    proposers: list[dict[str, Any]],
+    source_url: str | None,
+    politician_index: dict[str, str],
+) -> int:
+    count = 0
+    for proposer in proposers:
+        label = proposer["label"]
+        group_code = proposer.get("group_code")
+        politician_id = None
+        party_id = None
+        match_confidence = None
+        match_method = None
+
+        if proposer["kind"] == "person":
+            politician_id = politician_index.get(normalize_name(label))
+            if politician_id:
+                match_confidence = 1.0
+                match_method = "official_name_exact"
+            party_id, party_confidence, party_method = match_party(cur, label, group_code)
+            if party_id and not match_method:
+                match_confidence = party_confidence
+                match_method = party_method
+        elif proposer["kind"] == "group":
+            party_id, match_confidence, match_method = match_party(cur, label, group_code)
+
+        cur.execute(
+            """
+            INSERT INTO initiative_proposers (
+              initiative_id, proposer_label, proposer_role,
+              politician_id, party_id, source_url,
+              match_confidence, match_method, raw_data
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (initiative_id, proposer_label, proposer_role) DO UPDATE SET
+              politician_id = COALESCE(EXCLUDED.politician_id, initiative_proposers.politician_id),
+              party_id = COALESCE(EXCLUDED.party_id, initiative_proposers.party_id),
+              source_url = COALESCE(EXCLUDED.source_url, initiative_proposers.source_url),
+              match_confidence = COALESCE(EXCLUDED.match_confidence, initiative_proposers.match_confidence),
+              match_method = COALESCE(EXCLUDED.match_method, initiative_proposers.match_method),
+              raw_data = EXCLUDED.raw_data,
+              updated_at = now()
+            """,
+            (
+                initiative_id,
+                label,
+                proposer["role"],
+                politician_id,
+                party_id,
+                source_url,
+                match_confidence,
+                match_method,
+                psycopg2.extras.Json({
+                    "kind": proposer["kind"],
+                    "group_code": group_code,
+                }),
+            ),
+        )
+        count += 1
+    return count
 
 
 def run(dry_run: bool = False, source_url: str | None = None) -> None:
@@ -282,6 +502,7 @@ def run(dry_run: bool = False, source_url: str | None = None) -> None:
     rows_read = 0
     rows_inserted = 0
     rows_updated = 0
+    proposer_rows = 0
     skipped = 0
 
     try:
@@ -294,6 +515,7 @@ def run(dry_run: bool = False, source_url: str | None = None) -> None:
             else discover_current_sources()
         )
         legislatures = load_legislatures(cur)
+        politician_index = load_politician_index(cur) if not dry_run else {}
         if 15 not in legislatures:
             raise RuntimeError("Legislature XV not found. Run diputados first.")
 
@@ -322,14 +544,22 @@ def run(dry_run: bool = False, source_url: str | None = None) -> None:
                     print(
                         f"  {parsed['number']} {parsed['type']} "
                         f"{parsed['status']} - {parsed['title'][:80]}"
+                        f" ({len(parsed['proposers'])} proponentes)"
                     )
                     continue
 
-                outcome = upsert_initiative(cur, parsed, leg_id)
+                initiative_id, outcome = upsert_initiative(cur, parsed, leg_id)
                 if outcome == "inserted":
                     rows_inserted += 1
                 else:
                     rows_updated += 1
+                proposer_rows += upsert_initiative_proposers(
+                    cur,
+                    initiative_id=initiative_id,
+                    proposers=parsed["proposers"],
+                    source_url=parsed["source_url"],
+                    politician_index=politician_index,
+                )
 
             time.sleep(REQUEST_DELAY)
 
@@ -364,7 +594,7 @@ def run(dry_run: bool = False, source_url: str | None = None) -> None:
 
     print(
         f"Done! {rows_read} read, {rows_inserted} inserted, "
-        f"{rows_updated} updated, {skipped} skipped."
+        f"{rows_updated} updated, {proposer_rows} proposer rows, {skipped} skipped."
     )
 
 
