@@ -362,7 +362,17 @@ IPC general-index series ("IPC", 20y history via `nult=240`), so it passes the s
 - `ThreadLanding` gained an optional `feature` slot (above the source index); calculator surfaces on `/economia` and embedded on `/indicadores/IPC`.
 - All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
 
-**Next candidates to deepen Economía further:** IPC por subgrupos COICOP ("tu cesta": alimentos/vivienda/transporte — needs new ETL series); deuda per cápita contextualization; "tu salario vs IPC" variant.
+### ✅ DONE: Economía depth — calculadora "tu salario vs IPC" (2026-06-05)
+
+Second step in deepening the **audience-#1** thread. Pure IA/UI, no new ETL — reuses the
+existing IPC general-index series + SALARIO_MEDIO data. Passes the scoping rule.
+
+- `web/src/lib/salary-vs-ipc.ts` — salary-vs-inflation logic with optional current-salary gap calculation + `web/src/lib/salary-vs-ipc.test.ts` (11 vitest cases).
+- `web/src/components/indicators/SalaryVsIpcCalculator.tsx` — client tool: "Tu salario vs la inflación". Inputs: reference salary + frequency + year + optional current salary. Outputs: equivalent today, inflation accumulated, annualized inflation, gap in € and %, real value of current salary. 100% client-side.
+- Surfaces on `/economia` (alongside `PurchasingPowerCalculator`) and embedded on `/indicadores/SALARIO_MEDIO`.
+- All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
+
+**Next candidates to deepen Economía further:** IPC por subgrupos COICOP ("tu cesta": alimentos/vivienda/transporte — needs new ETL series); deuda per cápita contextualization.
 
 ### 1. Continue BORME bulk ingestion (rate-limited)
 

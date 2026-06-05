@@ -10,6 +10,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getIndicatorPoints, getIpcIndexSeries } from "@/lib/data"
 import { getIndicatorExplanation } from "@/lib/indicator-explanations"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
+import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
 
 export const revalidate = 3600
 
@@ -76,7 +77,10 @@ export default async function IndicadorPage({ params }: PageProps) {
 
   const explanation = getIndicatorExplanation(code)
   const detailUrl = `/indicadores/${code}`
-  const ipcSeries = code === "IPC" ? await getIpcIndexSeries() : null
+  const ipcSeries =
+    code === "IPC" || code === "SALARIO_MEDIO"
+      ? await getIpcIndexSeries()
+      : null
 
   return (
     <div className="ui-page">
@@ -181,7 +185,14 @@ export default async function IndicadorPage({ params }: PageProps) {
         )}
 
         {ipcSeries && ipcSeries.length > 1 && (
-          <PurchasingPowerCalculator series={ipcSeries} />
+          <>
+            {code === "SALARIO_MEDIO" && (
+              <SalaryVsIpcCalculator series={ipcSeries} />
+            )}
+            {code === "IPC" && (
+              <PurchasingPowerCalculator series={ipcSeries} />
+            )}
+          </>
         )}
 
         <details className="text-sm">

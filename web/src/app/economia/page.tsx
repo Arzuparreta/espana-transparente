@@ -1,5 +1,6 @@
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
+import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
 import { getIndicators, getIpcIndexSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
 import { getThread } from "@/lib/thread-config"
 import type { ReactNode } from "react"
@@ -117,7 +118,10 @@ export default async function EconomiaThreadPage() {
       anchors={anchors}
       feature={
         ipcSeries.length > 1 ? (
-          <PurchasingPowerCalculator series={ipcSeries} />
+          <div className="space-y-6">
+            <SalaryVsIpcCalculator series={ipcSeries} />
+            <PurchasingPowerCalculator series={ipcSeries} />
+          </div>
         ) : null
       }
     />
