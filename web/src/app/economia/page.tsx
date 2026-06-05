@@ -2,6 +2,7 @@ import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLandi
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
 import { getIndicators, getIpcIndexSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
+import { getPopulationForYear } from "@/lib/debt-per-capita"
 import { getThread } from "@/lib/thread-config"
 import type { ReactNode } from "react"
 
@@ -95,6 +96,28 @@ export default async function EconomiaThreadPage() {
         linkLabel="Ver serie →"
       />
     )
+
+    const debtYear = Number(debt.period.slice(0, 4))
+    const populationMillions = getPopulationForYear(debtYear)
+    if (populationMillions > 0) {
+      const perCapita = (debt.value * 1_000_000) / (populationMillions * 1_000_000)
+      const formatted = new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0,
+      }).format(perCapita)
+      anchors.push(
+        <ThreadAnchorCard
+          key="deuda-per-capita"
+          label={`Deuda per cápita · ${debt.period.slice(0, 4)}`}
+          value={formatted}
+          description="Si la deuda se repartiera por igual entre todos los habitantes de España."
+          source="Fuente: Eurostat + estimación INE."
+          href="/indicadores/DEUDA_PUBLICA"
+          linkLabel="Ver contexto →"
+        />
+      )
+    }
   }
 
   if (unemployment) {

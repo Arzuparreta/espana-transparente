@@ -11,6 +11,8 @@ import { getIndicatorPoints, getIpcIndexSeries } from "@/lib/data"
 import { getIndicatorExplanation } from "@/lib/indicator-explanations"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
+import { DebtPerCapitaContext } from "@/components/indicators/DebtPerCapitaContext"
+import { computeDebtPerCapita, getDebtContext } from "@/lib/debt-per-capita"
 
 export const revalidate = 3600
 
@@ -81,6 +83,28 @@ export default async function IndicadorPage({ params }: PageProps) {
     code === "IPC" || code === "SALARIO_MEDIO"
       ? await getIpcIndexSeries()
       : null
+
+  const [debtPerCapitaData, salaryPoints] =
+    code === "DEUDA_PUBLICA"
+      ? await Promise.all([
+          (async () => {
+            const perCapitaSeries = computeDebtPerCapita(
+              pts.map((p) => ({ period: p.period, value: p.value, unit: p.unit }))
+            )
+            const context = getDebtContext(perCapitaSeries)
+            return { perCapitaSeries, context }
+          })(),
+          getIndicatorPoints("SALARIO_MEDIO"),
+        ])
+      : [null, null]
+
+  const latestSalary = salaryPoints?.length
+    ? Number(
+        [...salaryPoints].sort(
+          (a, b) => a.period.localeCompare(b.period)
+        )[salaryPoints.length - 1].value
+      )
+    : null
 
   return (
     <div className="ui-page">
@@ -182,6 +206,14 @@ export default async function IndicadorPage({ params }: PageProps) {
               </details>
             )}
           </section>
+        )}
+
+        {debtPerCapitaData?.context && (
+          <DebtPerCapitaContext
+            context={debtPerCapitaData.context}
+            series={debtPerCapitaData.perCapitaSeries}
+            annualSalary={latestSalary}
+          />
         )}
 
         {ipcSeries && ipcSeries.length > 1 && (
