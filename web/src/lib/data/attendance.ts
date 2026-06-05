@@ -84,6 +84,6 @@ export const getAttendanceRanking = unstable_cache(
 
     return { rows, total: count ?? 0, parties }
   },
-  ["attendance-ranking"],
+  ["attendance-ranking-v2"],
   { revalidate: HOUR }
 )
