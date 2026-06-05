@@ -181,6 +181,12 @@ export {
   getLobbyingCategories,
 } from "./lobbying"
 
+// ── Attendance ───────────────────────────────────────────────────────────────
+export {
+  getAttendanceRanking,
+} from "./attendance"
+export type { AttendanceRankingRow } from "./attendance"
+
 // ── ETL status ───────────────────────────────────────────────────────────────
 export {
   getEtlPipelineStatus,

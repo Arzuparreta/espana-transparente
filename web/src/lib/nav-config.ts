@@ -49,6 +49,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "economia", href: "/economia", label: "Economía" },
   { key: "territorio", href: "/territorio", label: "Mapa del gasto", shortLabel: "Mapa", groupLabel: "Dinero" },
   { key: "diputados", href: "/diputados", label: "Diputados", groupLabel: "Personas" },
+  { key: "asistencia", href: "/asistencia", label: "Asistencia", groupLabel: "Personas" },
   { key: "senado", href: "/senado", label: "Senado", groupLabel: "Personas" },
   { key: "gobierno", href: "/gobierno", label: "Gobierno", groupLabel: "Personas" },
   { key: "partidos", href: "/partidos", label: "Partidos", groupLabel: "Personas" },

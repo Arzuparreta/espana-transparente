@@ -16,6 +16,7 @@ export const PAGE_SIZE = {
   declarations: 50,
   judicialCases: 50,
   lobbyingGroups: 50,
+  attendance: 50,
 }
 
 export function parsePage(value: string | string[] | undefined) {

@@ -1,0 +1,99 @@
+import { supabase } from "@/lib/supabase/client"
+import { unstable_cache, HOUR, PAGE_SIZE } from "./shared"
+
+export interface AttendanceRankingRow {
+  politician_id: string
+  full_name: string
+  photo_url: string | null
+  photo_variants: Record<string, string> | null
+  party_acronym: string | null
+  party_color: string | null
+  total_sessions: number
+  sessions_present: number
+  attendance_pct: number
+}
+
+export const getAttendanceRanking = unstable_cache(
+  async (page: number, partyAcronym?: string | null) => {
+    const from = (page - 1) * PAGE_SIZE.attendance
+    const to = from + PAGE_SIZE.attendance - 1
+
+    let query = supabase
+      .from("v_attendance_summary")
+      .select(
+        "politician_id, total_sessions, sessions_present, attendance_pct, politicians!inner(id, full_name, photo_url, photo_variants, politician_memberships!inner(party:parties(acronym, color)))",
+        { count: "exact" }
+      )
+      .order("attendance_pct", { ascending: false })
+      .order("sessions_present", { ascending: false })
+
+    if (partyAcronym) {
+      query = query.eq("politician_memberships.party.acronym", partyAcronym)
+    }
+
+    const { data, count, error } = await query.range(from, to)
+
+    if (error) {
+      console.error("getAttendanceRanking error:", error)
+      return { rows: [], total: 0, parties: [] }
+    }
+
+    // Get party list for filter pills
+    const { data: partyData } = await supabase
+      .from("politicians")
+      .select("politician_memberships!inner(party:parties(acronym, color))")
+      .eq("politician_memberships.is_active", true)
+      .eq("politician_memberships.chamber", "congress")
+
+    const partySet = new Map<string, string | null>()
+    for (const row of (partyData ?? []) as unknown as Array<{
+      politician_memberships: Array<{
+        party: { acronym: string | null; color: string | null } | null
+      }>
+    }>) {
+      const pm = row.politician_memberships?.[0]
+      const acronym = pm?.party?.acronym
+      if (acronym) {
+        partySet.set(acronym, pm.party?.color ?? null)
+      }
+    }
+    const parties = Array.from(partySet.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([acronym, color]) => ({ acronym, color }))
+
+    const rows: AttendanceRankingRow[] = []
+    for (const raw of (data ?? []) as unknown as Array<{
+      politician_id: string
+      total_sessions: number
+      sessions_present: number
+      attendance_pct: number
+      politicians: {
+        id: string
+        full_name: string
+        photo_url: string | null
+        photo_variants: Record<string, string> | null
+        politician_memberships: Array<{
+          party: { acronym: string | null; color: string | null } | null
+        }>
+      }
+    }>) {
+      const pol = raw.politicians
+      const pm = pol.politician_memberships?.[0]
+      rows.push({
+        politician_id: raw.politician_id,
+        full_name: pol.full_name,
+        photo_url: pol.photo_url,
+        photo_variants: pol.photo_variants,
+        party_acronym: pm?.party?.acronym ?? null,
+        party_color: pm?.party?.color ?? null,
+        total_sessions: raw.total_sessions,
+        sessions_present: raw.sessions_present,
+        attendance_pct: raw.attendance_pct,
+      })
+    }
+
+    return { rows, total: count ?? 0, parties }
+  },
+  ["attendance-ranking"],
+  { revalidate: HOUR }
+)

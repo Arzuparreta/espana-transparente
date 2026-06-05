@@ -40,6 +40,12 @@ export const THREADS: ThreadConfig[] = [
         countUnit: "activos",
       },
       {
+        href: "/asistencia",
+        label: "Asistencia",
+        description: "Ranking de asistencia a plenos por diputado.",
+        section: "Cargos",
+      },
+      {
         href: "/senado",
         label: "Senado",
         description: "Senadores activos y composición de la cámara alta.",
