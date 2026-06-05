@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
+import { BudgetProvenanceBadge } from "@/components/presupuestos/BudgetProvenanceBadge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BUDGET_YEARS, getBudgetSourceNote, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
@@ -123,14 +124,22 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
             .sort(([a], [b]) => Number(a) - Number(b))
           const sourceNote = getBudgetSourceNote(p)
 
+          const isProrroga = p.source_kind === "carried_forward" || p.source_kind === "published_prorroga"
+
           return (
-            <Card key={p.program_code}>
+            <Card key={p.program_code} className={isProrroga ? "border-amber-300/60 dark:border-amber-800/60" : undefined}>
               <CardContent className="px-4 py-4">
                 <div className="flex items-start gap-4">
                   <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex flex-wrap items-baseline gap-2">
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">{p.program_code}</span>
                       <span className="text-sm font-medium leading-snug">{p.program_name ?? "—"}</span>
+                      <BudgetProvenanceBadge
+                        sourceKind={p.source_kind}
+                        sourceYear={p.source_year}
+                        inForceYear={p.in_force_year}
+                        className="text-[10px]"
+                      />
                     </div>
                     {chapters.length > 0 ? (
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1">

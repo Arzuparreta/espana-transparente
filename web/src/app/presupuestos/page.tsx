@@ -42,6 +42,9 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   const totalInitial = rows.reduce((sum, r) => sum + (r.total_credit_initial ?? 0), 0)
   const sectionCount = rows.length
   const programCount = rows.reduce((sum, r) => sum + (r.program_count ?? 0), 0)
+  const prorrogaCount = rows.filter(
+    (r) => r.source_kind === "carried_forward" || r.source_kind === "published_prorroga"
+  ).length
 
   function formatAmount(eur: number): string {
     if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
@@ -100,6 +103,16 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
             { label: `Crédito inicial ${year}`, value: formatAmount(totalInitial) },
             { label: "Secciones", value: sectionCount.toLocaleString("es-ES") },
             { label: "Programas", value: programCount.toLocaleString("es-ES") },
+            ...(prorrogaCount > 0
+              ? [
+                  {
+                    label: "En prórroga",
+                    value: `${prorrogaCount} sección${prorrogaCount !== 1 ? "es" : ""}`,
+                    hint: "Sin nuevo presupuesto aprobado: créditos del año anterior prorrogados automáticamente.",
+                    valueClassName: "text-amber-600 dark:text-amber-400",
+                  },
+                ]
+              : []),
           ]}
         />
       ) : null}

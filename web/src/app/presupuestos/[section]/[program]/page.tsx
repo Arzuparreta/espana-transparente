@@ -3,6 +3,7 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { BudgetProvenanceBadge, BudgetProvenanceNote } from "@/components/presupuestos/BudgetProvenanceBadge"
 import { getBudgetProgram, getBudgetSourceNote, getBudgetYearMeta } from "@/lib/data"
 
 export const revalidate = 3600
@@ -120,21 +121,30 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
             const meta = getBudgetYearMeta(row.year as number)
             const sourceNote = getBudgetSourceNote(row)
 
+            const isProrroga = row.source_kind === "carried_forward" || row.source_kind === "published_prorroga"
+
             return (
               <div
                 key={row.year}
-                className="rounded-[2px] border border-border bg-card px-4 py-3"
+                className={"rounded-[2px] border bg-card px-4 py-3 " + (isProrroga ? "border-amber-300/60 dark:border-amber-800/60" : "border-border")}
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="font-mono text-sm font-semibold">
-                      {row.year}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-mono text-sm font-semibold">
+                        {row.year}
+                      </p>
                       {meta ? (
-                        <span className="ml-2 font-normal text-xs text-muted-foreground">
+                        <span className="font-normal text-xs text-muted-foreground">
                           · {meta.label}
                         </span>
                       ) : null}
-                    </p>
+                      <BudgetProvenanceBadge
+                        sourceKind={row.source_kind}
+                        sourceYear={row.source_year}
+                        inForceYear={row.in_force_year}
+                      />
+                    </div>
                     {chapters.length > 0 ? (
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                         {chapters.map(([ch, v]) => (
@@ -147,6 +157,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
                     {sourceNote ? (
                       <p className="mt-1 text-xs text-muted-foreground">{sourceNote}</p>
                     ) : null}
+                    <BudgetProvenanceNote sourceKind={row.source_kind} className="mt-1.5" />
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="font-mono text-base font-semibold">
