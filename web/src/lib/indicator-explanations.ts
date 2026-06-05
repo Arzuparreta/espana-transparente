@@ -158,6 +158,126 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
       "El BCE tiene como objetivo una inflación del 2 % a medio plazo en la zona euro; sus decisiones de tipos pueden afectar a hipotecas variables, préstamos y ahorro.",
     ],
   },
+
+  IPC_ALIMENTOS: {
+    short: "Índice de precios de alimentos y bebidas no alcohólicas: pan, carne, pescado, leche, fruta, verdura, aceites y bebidas no alcohólicas.",
+    long: "Subgrupo COICOP que incluye los productos de alimentación y bebidas sin alcohol que consume un hogar medio. Es uno de los grupos con mayor peso en la cesta del IPC y suele ser volátil por factores estacionales, climáticos y de costes agrícolas.",
+    implications: [
+      "Los precios de alimentos frescos (frutas, verduras, pescado) varían mucho según la temporada y el clima.",
+      "Es uno de los gastos más difíciles de sustituir: si suben, afecta directamente al presupuesto familiar.",
+      "La cadena de distribución y el transporte influyen en el precio final de los alimentos.",
+    ],
+  },
+
+  IPC_BEBIDAS_TABACO: {
+    short: "Índice de precios de bebidas alcohólicas y tabaco: vino, cerveza, destilados y productos de tabaco.",
+    long: "Subgrupo COICOP que mide la evolución de precios de bebidas con alcohol y productos de tabaco. Estos productos están sujetos a impuestos especiales (IEPS) que pueden cambiar con los presupuestos.",
+    implications: [
+      "Los impuestos especiales sobre alcohol y tabaco pueden subir sin aviso en los Presupuestos Generales del Estado.",
+      "Es un gasto discrecional, pero para quienes lo consumen regularmente representa un peso constante en el presupuesto.",
+    ],
+  },
+
+  IPC_VESTIDO: {
+    short: "Índice de precios de vestido y calzado: prendas de vestir, calzado y accesorios.",
+    long: "Subgrupo COICOP que cubre ropa, zapatos y complementos. Es muy sensible a campañas de rebajas y temporadas, por lo que la variación mensual puede oscilar fuertemente.",
+    implications: [
+      "Las rebajas de enero y julio hacen que este subgrupo tenga variaciones mensuales muy marcadas.",
+      "Es un gasto posponible: muchos hogares pueden retrasar la compra de ropa si presupuestan ajustado.",
+    ],
+  },
+
+  IPC_VIVIENDA: {
+    short: "Índice de precios de vivienda, agua, electricidad, gas y otros combustibles: alquileres, suministros y combustibles para el hogar.",
+    long: "Subgrupo COICOP que incluye alquileres reales (no hipotecas), gastos de comunidad, suministros (electricidad, gas, agua), combustibles para calefacción y otros servicios relacionados con la vivienda. Es uno de los grupos con mayor peso en la cesta.",
+    implications: [
+      "Los precios de electricidad y gas dependen del mercado mayorista y de las políticas regulatorias.",
+      "Los alquileres varían según la ciudad y la zona, pero el IPC los mide a nivel nacional.",
+      "Este grupo suele tener un impacto desproporcionado en el gasto de hogares con menos recursos.",
+    ],
+  },
+
+  IPC_HOGAR: {
+    short: "Índice de precios de muebles, artículos del hogar y mantenimiento corriente: mobiliario, electrodomésticos, utensilios y reparaciones.",
+    long: "Subgrupo COICOP que cubre mobiliario, electrodomésticos, cristalería, utensilios de cocina, productos de limpieza y servicios de reparación para el hogar.",
+    implications: [
+      "Muchos de estos productos son de consumo duradero, por lo que las compras se pueden aplazar.",
+      "La competencia entre grandes cadenas de distribución mantiene los precios relativamente estables.",
+    ],
+  },
+
+  IPC_SANIDAD: {
+    short: "Índice de precios de sanidad: medicamentos, productos farmacéuticos, servicios médicos y dentales.",
+    long: "Subgrupo COICOP que incluye productos farmacéuticos, aparatos médicos, servicios médicos y dentales no cubiertos por la sanidad pública. Los medicamentos con receta están parcialmente subvencionados.",
+    implications: [
+      "El copago farmacéutico afecta directamente al bolsillo de quienes consumen medicamentos crónicos.",
+      "Los servicios médicos privados (consultas, pruebas, dentistas) pueden subir más rápido que la inflación general.",
+    ],
+  },
+
+  IPC_TRANSPORTE: {
+    short: "Índice de precios de transporte: compra de vehículos, combustibles, transporte público, piezas y reparaciones.",
+    long: "Subgrupo COICOP que mide la evolución de precios relacionados con el transporte: compra de coches y motos, carburantes, transporte público (autobús, tren, avión), seguros de vehículos y reparaciones.",
+    implications: [
+      "Los carburantes son muy volátiles y dependen del precio del petróleo y de los tipos de cambio.",
+      "El transporte público puede congelarse o subir según decisiones de las administraciones.",
+      "Para hogares que dependen del coche, este grupo tiene un impacto directo y difícil de sustituir.",
+    ],
+  },
+
+  IPC_COMUNICACIONES: {
+    short: "Índice de precios de información y comunicaciones: equipos telefónicos, servicios de internet, telefonía y correos.",
+    long: "Subgrupo COICOP que incluye teléfonos móviles, ordenadores, servicios de telefonía fija y móvil, internet, televisiones de pago y servicios postales.",
+    implications: [
+      "La competencia entre operadoras de telecomunicaciones ha mantenido los precios estables o a la baja en los últimos años.",
+      "Los contratos con permanencia pueden ocultar subidas en la cuota mensual.",
+    ],
+  },
+
+  IPC_OCIO: {
+    short: "Índice de precios de actividades recreativas, deporte y cultura: aparatos audiovisuales, eventos, periódicos, libros, viajes organizados.",
+    long: "Subgrupo COICOP que cubre equipos de audio, foto, vídeo y ordenadores; eventos culturales y deportivos; suscripciones a periódicos y revistas; libros; viajes organizados; y mascotas.",
+    implications: [
+      "Es un gasto discrecional que suele ser el primero que se recorta cuando aprieta el presupuesto.",
+      "Los precios de los viajes varían fuertemente según la temporada.",
+    ],
+  },
+
+  IPC_ENSENANZA: {
+    short: "Índice de precios de enseñanza: matrículas, material escolar, cursos y servicios educativos.",
+    long: "Subgrupo COICOP que incluye matrículas de enseñanza reglada (guardería, primaria, secundaria, universidad), cursos no reglados, material escolar y otros servicios educativos.",
+    implications: [
+      "Las matrículas universitarias y los precios de guarderías varían según la comunidad autónoma.",
+      "Es un gasto difícil de sustituir para familias con hijos en edad escolar.",
+    ],
+  },
+
+  IPC_RESTAURANTES: {
+    short: "Índice de precios de restaurantes y servicios de alojamiento: comidas fuera de casa, cafeterías, hoteles y albergues.",
+    long: "Subgrupo COICOP que mide la evolución de precios de restaurantes, bares, cafeterías, comedores, caterings, hoteles, albergues y alquileres vacacionales.",
+    implications: [
+      "Los menús del día y las comidas fuera de casa son un gasto frecuente que puede acumularse rápidamente.",
+      "El turismo influye fuertemente en los precios de hostelería en ciertas zonas y temporadas.",
+    ],
+  },
+
+  IPC_SEGUROS: {
+    short: "Índice de precios de seguros y servicios financieros: seguros de vida, hogar, vehículo y servicios bancarios.",
+    long: "Subgrupo COICOP que incluye primas de seguros de vida, accidentes, salud, hogar, vehículo y viaje, así como ciertos servicios financieros.",
+    implications: [
+      "Las primas de seguros de hogar y vehículo suelen revisarse anualmente y pueden subir sin aviso previo.",
+      "La competencia entre aseguradoras permite comparar y cambiar de compañía.",
+    ],
+  },
+
+  IPC_DIVERSOS: {
+    short: "Índice de precios de cuidado personal, protección social y bienes y servicios diversos: peluquería, joyería, funerarios y organizaciones.",
+    long: "Subgrupo COICOP que agrupa servicios personales (peluquería, spas, gimnasios), joyería, relojería, productos de funeraria, y cuotas de sindicatos y organizaciones.",
+    implications: [
+      "Incluye gastos poco frecuentes pero que pueden ser significativos cuando ocurren (funerarias, joyería).",
+      "Los gimnasios y spas son gastos discrecionales fácilmente posponibles.",
+    ],
+  },
 }
 
 /**

@@ -7,10 +7,11 @@ import { IndicatorChart } from "@/components/indicators/IndicatorChart"
 import { CopyLinkButton } from "@/components/indicators/CopyLinkButton"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getIndicatorPoints, getIpcIndexSeries } from "@/lib/data"
+import { getIndicatorPoints, getIpcIndexSeries, getIpcSubgroupSeries } from "@/lib/data"
 import { getIndicatorExplanation } from "@/lib/indicator-explanations"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
+import { IpcBasketCalculator } from "@/components/indicators/IpcBasketCalculator"
 import { DebtPerCapitaContext } from "@/components/indicators/DebtPerCapitaContext"
 import { computeDebtPerCapita, getDebtContext } from "@/lib/debt-per-capita"
 
@@ -82,6 +83,11 @@ export default async function IndicadorPage({ params }: PageProps) {
   const ipcSeries =
     code === "IPC" || code === "SALARIO_MEDIO"
       ? await getIpcIndexSeries()
+      : null
+
+  const ipcSubgroups =
+    code === "IPC"
+      ? await getIpcSubgroupSeries()
       : null
 
   const [debtPerCapitaData, salaryPoints] =
@@ -214,6 +220,10 @@ export default async function IndicadorPage({ params }: PageProps) {
             series={debtPerCapitaData.perCapitaSeries}
             annualSalary={latestSalary}
           />
+        )}
+
+        {ipcSubgroups && ipcSubgroups.length > 1 && code === "IPC" && (
+          <IpcBasketCalculator series={ipcSubgroups} />
         )}
 
         {ipcSeries && ipcSeries.length > 1 && (

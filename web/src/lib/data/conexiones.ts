@@ -199,3 +199,69 @@ export const getInitiativeDetail = unstable_cache(
   ["initiative-detail"],
   { revalidate: HOUR }
 )
+
+export interface SubgroupPoint {
+  period: string
+  value: number
+}
+
+export interface SubgroupSeries {
+  code: string
+  name: string
+  points: SubgroupPoint[]
+}
+
+/**
+ * Fetch all IPC subgroup index series for the basket calculator.
+ * Returns 13 series (general + 12 COICOP subgroups) with monthly points.
+ */
+export const getIpcSubgroupSeries = unstable_cache(
+  async () => {
+    const subgroupCodes = [
+      "IPC",
+      "IPC_ALIMENTOS",
+      "IPC_BEBIDAS_TABACO",
+      "IPC_VESTIDO",
+      "IPC_VIVIENDA",
+      "IPC_HOGAR",
+      "IPC_SANIDAD",
+      "IPC_TRANSPORTE",
+      "IPC_COMUNICACIONES",
+      "IPC_OCIO",
+      "IPC_ENSENANZA",
+      "IPC_RESTAURANTES",
+      "IPC_SEGUROS",
+      "IPC_DIVERSOS",
+    ]
+
+    const { data } = await supabase
+      .from("economic_indicators")
+      .select("indicator_code, indicator_name, period, value")
+      .in("indicator_code", subgroupCodes)
+      .order("period", { ascending: true })
+      .limit(4000)
+
+    const byCode = new Map<string, SubgroupSeries>()
+    for (const row of (data ?? []) as Array<{
+      indicator_code: string
+      indicator_name: string
+      period: string
+      value: number
+    }>) {
+      const existing = byCode.get(row.indicator_code)
+      if (existing) {
+        existing.points.push({ period: row.period, value: Number(row.value) })
+      } else {
+        byCode.set(row.indicator_code, {
+          code: row.indicator_code,
+          name: row.indicator_name,
+          points: [{ period: row.period, value: Number(row.value) }],
+        })
+      }
+    }
+
+    return Array.from(byCode.values())
+  },
+  ["ipc-subgroup-series"],
+  { revalidate: HOUR }
+)

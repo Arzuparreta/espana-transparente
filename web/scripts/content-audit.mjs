@@ -16,6 +16,7 @@ function extractEtlIndicatorCodes() {
     join(projectRoot, "..", "etl", "src", "ine", "indicadores.py"),
     join(projectRoot, "..", "etl", "src", "ine", "indicadores_ampliados.py"),
     join(projectRoot, "..", "etl", "src", "ine", "bde.py"),
+    join(projectRoot, "..", "etl", "src", "ine", "ipc_subgrupos.py"),
   ]
   const codes = []
   for (const etlPath of files) {

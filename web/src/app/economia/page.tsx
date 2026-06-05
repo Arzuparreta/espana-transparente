@@ -1,7 +1,8 @@
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
+import { IpcBasketCalculator } from "@/components/indicators/IpcBasketCalculator"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
-import { getIndicators, getIpcIndexSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
+import { getIndicators, getIpcIndexSeries, getIpcSubgroupSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
 import { getPopulationForYear } from "@/lib/debt-per-capita"
 import { getThread } from "@/lib/thread-config"
 import type { ReactNode } from "react"
@@ -42,11 +43,12 @@ function formatLatest(value: number, unit: string | null): string {
 
 export default async function EconomiaThreadPage() {
   const thread = getThread("economia")
-  const [sectionIndex, inflation, rows, ipcSeries] = await Promise.all([
+  const [sectionIndex, inflation, rows, ipcSeries, ipcSubgroups] = await Promise.all([
     getSectionIndex(),
     getLatestInflationAnchor(),
     getIndicators(),
     getIpcIndexSeries(),
+    getIpcSubgroupSeries(),
   ])
 
   const latestByCode = new Map<string, { name: string; value: number; unit: string | null; period: string }>()
@@ -142,6 +144,7 @@ export default async function EconomiaThreadPage() {
       feature={
         ipcSeries.length > 1 ? (
           <div className="space-y-6">
+            <IpcBasketCalculator series={ipcSubgroups} />
             <SalaryVsIpcCalculator series={ipcSeries} />
             <PurchasingPowerCalculator series={ipcSeries} />
           </div>

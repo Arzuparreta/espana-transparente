@@ -137,6 +137,7 @@ export {
   getIndicators,
   getIndicatorPoints,
   getIpcIndexSeries,
+  getIpcSubgroupSeries,
   getInitiativeDetail,
   getInitiativesPage,
   type InitiativeListRow,

@@ -66,6 +66,7 @@ jobs:
       - run: PYTHONPATH=src python -m pytest tests/
       - run: PYTHONPATH=src python -m src.congreso.gobierno --dry-run
       - run: PYTHONPATH=src python -m src.public_bodies.boe_nombramientos --dry-run --days 1
+      - run: PYTHONPATH=src python -m src.ine.ipc_subgrupos --dry-run
 
   etl-daily:
     name: ETL daily pipelines
@@ -193,6 +194,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m src.ine.indicadores_ampliados
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: PYTHONPATH=src python -m src.ine.ipc_subgrupos
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - run: PYTHONPATH=src python -m common.search_refresh
