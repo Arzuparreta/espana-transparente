@@ -115,6 +115,14 @@ export const THREADS: ThreadConfig[] = [
         countKey: "corrupcion",
         countUnit: "casos",
       },
+      {
+        href: "/grupos-de-interes",
+        label: "Grupos de interés",
+        description: "Organizaciones inscritas en el Registro de Grupos de Interés de la CNMC.",
+        section: "Conducta",
+        countKey: "grupos-de-interes",
+        countUnit: "registros",
+      },
     ],
   },
   {

@@ -68,6 +68,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "divergencias", href: "/divergencias", label: "Divergencias", groupLabel: "Personas" },
   { key: "ministerios", href: "/ministerios", label: "Ministerios", groupLabel: "Personas" },
   { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones", groupLabel: "Personas" },
+  { key: "grupos-de-interes", href: "/grupos-de-interes", label: "Grupos de interés", groupLabel: "Personas" },
   { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad", groupLabel: "Dinero" },
   { key: "ccaa", href: "/ccaa", label: "Gasto autonómico", shortLabel: "CCAA", groupLabel: "Dinero" },
   { key: "municipios", href: "/municipios", label: "Gasto municipal", shortLabel: "Municipios", groupLabel: "Dinero" },

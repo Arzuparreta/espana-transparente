@@ -174,6 +174,13 @@ export {
   getSenateNominalVoteStats,
 } from "./senado"
 
+// ── Lobbying (CNMC RGI) ──────────────────────────────────────────────────────
+export {
+  getLobbyingGroupsPage,
+  getLobbyingGroupById,
+  getLobbyingCategories,
+} from "./lobbying"
+
 // ── ETL status ───────────────────────────────────────────────────────────────
 export {
   getEtlPipelineStatus,
