@@ -139,8 +139,9 @@ export function PurchasingPowerCalculator({
       {result ? (
         <div className="mt-5 space-y-4">
           <p className="text-pretty text-base leading-7 sm:text-lg">
+            Lo que en {fromYear} costaba{" "}
             <span className="font-mono">{euroFormatter.format(result.amount)}</span>{" "}
-            de {fromYear} equivalen hoy a{" "}
+            hoy cuesta{" "}
             <span
               className="font-mono text-2xl font-medium sm:text-3xl"
               style={{ color: "hsl(var(--brand-signal))" }}
