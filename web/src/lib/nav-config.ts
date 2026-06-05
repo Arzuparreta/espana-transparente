@@ -65,6 +65,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "buscar", href: "/buscar", label: "Resultados", shortLabel: "resultados" },
   { key: "estado-datos", href: "/estado-datos", label: "Estado de los datos" },
   { key: "iniciativas", href: "/iniciativas", label: "Iniciativas", groupLabel: "Personas" },
+  { key: "divergencias", href: "/divergencias", label: "Divergencias", groupLabel: "Personas" },
   { key: "ministerios", href: "/ministerios", label: "Ministerios", groupLabel: "Personas" },
   { key: "declaraciones", href: "/declaraciones", label: "Declaraciones económicas", shortLabel: "Declaraciones", groupLabel: "Personas" },
   { key: "dinero-publico", href: "/dinero-publico", label: "Trazabilidad del gasto", shortLabel: "Trazabilidad", groupLabel: "Dinero" },

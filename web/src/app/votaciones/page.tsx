@@ -51,10 +51,10 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
         description="Sesiones con voto nominal: resultado, voto individual y divergencias dentro de cada grupo."
         actions={
           <ResponsiveLink
-            href="/distorsion"
+            href="/divergencias"
             className="inline-flex min-h-11 shrink-0 items-center text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            Ver divergencias de voto →
+            Ranking de divergencias de voto →
           </ResponsiveLink>
         }
       />

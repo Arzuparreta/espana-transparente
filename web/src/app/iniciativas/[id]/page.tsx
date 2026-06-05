@@ -35,6 +35,20 @@ const STATUS_LABELS: Record<string, string> = {
   caducada: "Caducada",
 }
 
+const ORIGIN_LABELS: Record<string, string> = {
+  gobierno: "Proyecto del Gobierno",
+  parlamento: "Proposición parlamentaria",
+  iniciativa_popular: "Iniciativa legislativa popular",
+  transposicion_ue: "Transposición de directiva UE",
+  comision_europea: "Iniciativa de la Comisión Europea",
+  senado: "Proyecto del Senado",
+}
+
+function originLabel(value: string | null | undefined): string | null {
+  if (!value) return null
+  return ORIGIN_LABELS[value] ?? value.charAt(0).toUpperCase() + value.slice(1)
+}
+
 function VoteBar({ yes, no, abs, absent }: { yes: number; no: number; abs: number; absent: number }) {
   const total = yes + no + abs + absent
   if (total === 0) return null
@@ -169,6 +183,24 @@ export default async function IniciativaPage({ params }: PageProps) {
                   Ver en Congreso.es →
                 </a>
               </dd>
+            </div>
+          )}
+          {initiative.origin_type && (
+            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
+              <dt className="text-muted-foreground">Origen</dt>
+              <dd className="font-medium">{originLabel(initiative.origin_type)}</dd>
+            </div>
+          )}
+          {initiative.eu_directive_ref && (
+            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
+              <dt className="text-muted-foreground">Directiva UE</dt>
+              <dd className="font-medium">{initiative.eu_directive_ref}</dd>
+            </div>
+          )}
+          {initiative.budget_veto_used && (
+            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
+              <dt className="text-muted-foreground">Presupuestos</dt>
+              <dd className="font-medium">Veto presupuestario utilizado</dd>
             </div>
           )}
         </dl>

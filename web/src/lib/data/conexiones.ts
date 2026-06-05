@@ -170,7 +170,7 @@ export const getInitiativeDetail = unstable_cache(
   async (id: string) => {
     const { data: initiative } = await supabase
       .from("initiatives")
-      .select("id, type, number, title, proposer_group, status, source_url, legislature_id")
+      .select("id, type, number, title, proposer_group, status, source_url, legislature_id, origin_type, eu_directive_ref, budget_veto_used")
       .eq("id", id)
       .single()
 

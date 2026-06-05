@@ -78,6 +78,12 @@ export const THREADS: ThreadConfig[] = [
         countUnit: "sesiones",
       },
       {
+        href: "/divergencias",
+        label: "Divergencias",
+        description: "Diputados que han votado distinto a la posición oficial de su grupo parlamentario.",
+        section: "Decisiones",
+      },
+      {
         href: "/iniciativas",
         label: "Iniciativas",
         description: "Proyectos de ley, proposiciones y mociones en tramitación.",
