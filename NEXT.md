@@ -308,7 +308,7 @@ The project has advanced faster than the original phased plan. Here's where ever
 | SEPI subsidiary boards | ✅ Complete | Done | 12 subsidiaries with board data |
 | BORME company directors | 🚧 In progress | Now | Ingesting 200/week; EntityTrail surfaces org→people connections |
 | Corruption proceedings + contract links | ✅ Complete | Done | 160 cases + 96 reviewed actors (63 party-matched); EntityTrail connected; person extraction live |
-| Lobbying register (CNMC RGI) | 🚧 In progress | Now | 15 reviewed org links live; review CLI + EntityTrail external URLs shipped |
+| Lobbying register (CNMC RGI) | 🚧 In progress | Now | 28 reviewed org links live; review CLI + EntityTrail external URLs shipped |
 | Economic indicators (salario, paro, PIB) | ✅ Complete | Done | `indicadores_ampliados.py`: PIB, PIB_VAR_ANUAL, TASA_PARO, PARADOS, SALARIO_MEDIO (379 rows); explanations in place |
 | Deuda pública | ✅ Complete | Done | `bde.py` via Eurostat: 31 years of data; explanation added |
 | Ministerial meeting agendas | Not started | Later | Partially on SAGE portal |
@@ -373,6 +373,15 @@ existing IPC general-index series + SALARIO_MEDIO data. Passes the scoping rule.
 - All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
 
 **Next candidates to deepen Economía further:** IPC por subgrupos COICOP ("tu cesta": alimentos/vivienda/transporte — needs new ETL series); deuda per cápita contextualization.
+
+### ✅ DONE: Accountability surfacing — divergencias, trazabilidad, fix de link (2026-06-05)
+
+Pure IA/UI slice. No new ETL — reuses queries existentes que no tenían consumidor UI.
+
+- **Nueva página `/divergencias`** — ranking top 50 de diputados por votos divergentes a su grupo parlamentario. Reutiliza `getDivergenceRanking()` + `v_divergence_ranking`. Foto, partido, count. Señal color en números. Descripción factual neutra (AGENTS.md §2: excepción como dato analítico, nunca como titular de portada). Incluida en nav bajo Personas › Decisiones.
+- **Fix de link en `/votaciones`** — el link "Ver divergencias de voto →" apuntaba incorrectamente a `/distorsion` (distorsión electoral D'Hondt). Ahora apunta a `/divergencias` con texto "Ranking de divergencias de voto →".
+- **Trazabilidad en `/iniciativas/[id]`** — se amplió `getInitiativeDetail` para traer `origin_type`, `eu_directive_ref`, `budget_veto_used`. Se añadieron filas condicionales al detalle: origen (ej. "Proyecto del Gobierno", "Transposición de directiva UE"), referencia de directiva UE, y "Veto presupuestario utilizado". Todo factual, sin editorializar.
+- Nota: `/corrupcion/[id]` **ya** renderiza los vínculos revisados con contratos/subsidios/organizaciones (`v_corruption_contract_links_public`) en la sección "Vínculos revisados". No requirió cambios.
 
 ### 1. Continue BORME bulk ingestion (rate-limited)
 

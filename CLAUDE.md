@@ -76,7 +76,7 @@ The Congress portal (`congreso.es`) rate-limits aggressively and returns 403 aft
 
 ### Web
 
-- `web/src/app/` — App Router pages: `/`, `/diputados/[id]`, `/votaciones[/id]`, `/distorsion`, `/partidos/[id]`, `/puertas-giratorias`, `/contratos`, `/subvenciones`, `/indicadores`, `/organizaciones`, `/estado-datos`.
+- `web/src/app/` — App Router pages: `/`, `/diputados[/id]`, `/votaciones[/id]`, `/divergencias`, `/distorsion`, `/partidos[/id]`, `/puertas-giratorias`, `/contratos`, `/subvenciones`, `/indicadores`, `/organizaciones`, `/estado-datos`, `/corrupcion[/id]`, `/iniciativas[/id]`.
 - `web/src/lib/data/` — shared boundary for Supabase reads. Page-level fetches should use the existing cached helpers or add new ones here instead of calling Supabase directly from page components.
 - `web/src/lib/photos.ts` — helper for responsive `src`/`srcSet` selection from `photo_variants`.
 - `web/src/lib/supabase/client.ts` — singleton Supabase client (publishable key only — read-only).
