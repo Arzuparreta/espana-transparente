@@ -349,6 +349,21 @@ Fast-forward merge to `main` pushed; Vercel production deploy triggered. Supabas
 - CI updated: `indicadores_ampliados` weekly, `wikipedia --extract-people` weekly
 - `db.py` fixed: Supabase pooler read-write session override
 
+### ✅ DONE: Economía depth — calculadora de poder adquisitivo (2026-06-05)
+
+First step in deepening the **audience-#1** thread (citizen "¿qué me afecta?"), which had
+lagged behind the researcher-tier data work. Pure IA/UI, no new ETL — reuses the existing
+IPC general-index series ("IPC", 20y history via `nult=240`), so it passes the scoping rule
+("deepens an existing thread").
+
+- `web/src/lib/purchasing-power.ts` — pure CPI-ratio adjustment helper + `web/src/lib/purchasing-power.test.ts` (6 vitest cases).
+- `web/src/components/indicators/PurchasingPowerCalculator.tsx` — client tool: "¿Cuánto vale hoy el dinero de antes?" Importe + año → equivalente hoy, inflación acumulada, inflación media anual, poder de compra perdido. 100% client-side (Vercel Hobby-safe). Geist Mono on all numbers, signal color on the hero figure, factual labels only.
+- `getIpcIndexSeries()` in `lib/data/conexiones.ts` — full IPC index series (the 120-pt `getIndicatorPoints` cap is too short for multi-decade spans).
+- `ThreadLanding` gained an optional `feature` slot (above the source index); calculator surfaces on `/economia` and embedded on `/indicadores/IPC`.
+- All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
+
+**Next candidates to deepen Economía further:** IPC por subgrupos COICOP ("tu cesta": alimentos/vivienda/transporte — needs new ETL series); deuda per cápita contextualization; "tu salario vs IPC" variant.
+
 ### 1. Continue BORME bulk ingestion (rate-limited)
 
 Bulk run 2026-05-25 increased BORME from 9 to 209 officers (17 orgs).

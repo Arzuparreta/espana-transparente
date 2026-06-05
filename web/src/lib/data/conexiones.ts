@@ -101,6 +101,28 @@ export const getIndicatorPoints = unstable_cache(
   { revalidate: HOUR }
 )
 
+/**
+ * Full IPC general-index series (code "IPC", base 2025 = 100), ascending by
+ * period. Powers the purchasing-power calculator, which needs the long history
+ * (the 120-point cap on getIndicatorPoints is too short for multi-decade spans).
+ */
+export const getIpcIndexSeries = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("economic_indicators")
+      .select("period, value")
+      .eq("indicator_code", "IPC")
+      .order("period", { ascending: true })
+      .limit(600)
+    return (data ?? []).map((row) => ({
+      period: row.period as string,
+      value: Number(row.value),
+    }))
+  },
+  ["ipc-index-series"],
+  { revalidate: HOUR }
+)
+
 export type InitiativeListRow = {
   id: string
   type: string | null

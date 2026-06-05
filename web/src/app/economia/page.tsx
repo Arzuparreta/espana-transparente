@@ -1,5 +1,6 @@
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
-import { getIndicators, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
+import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
+import { getIndicators, getIpcIndexSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
 import { getThread } from "@/lib/thread-config"
 import type { ReactNode } from "react"
 
@@ -39,10 +40,11 @@ function formatLatest(value: number, unit: string | null): string {
 
 export default async function EconomiaThreadPage() {
   const thread = getThread("economia")
-  const [sectionIndex, inflation, rows] = await Promise.all([
+  const [sectionIndex, inflation, rows, ipcSeries] = await Promise.all([
     getSectionIndex(),
     getLatestInflationAnchor(),
     getIndicators(),
+    getIpcIndexSeries(),
   ])
 
   const latestByCode = new Map<string, { name: string; value: number; unit: string | null; period: string }>()
@@ -113,6 +115,11 @@ export default async function EconomiaThreadPage() {
       thread={thread}
       sectionIndex={sectionIndex}
       anchors={anchors}
+      feature={
+        ipcSeries.length > 1 ? (
+          <PurchasingPowerCalculator series={ipcSeries} />
+        ) : null
+      }
     />
   )
 }

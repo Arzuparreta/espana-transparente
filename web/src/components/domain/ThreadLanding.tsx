@@ -12,6 +12,8 @@ interface ThreadLandingProps {
   sectionIndex: SectionIndexRow[]
   /** Live-data anchor cards; empty entries are omitted from the grid. */
   anchors?: ReactNode[]
+  /** Optional featured module (e.g. an interactive tool) shown above the source index. */
+  feature?: ReactNode
   children?: ReactNode
 }
 
@@ -21,7 +23,7 @@ function anchorGridClass(count: number): string {
   return "sm:grid-cols-2 lg:grid-cols-3"
 }
 
-export function ThreadLanding({ thread, sectionIndex, anchors, children }: ThreadLandingProps) {
+export function ThreadLanding({ thread, sectionIndex, anchors, feature, children }: ThreadLandingProps) {
   const visibleAnchors = (anchors ?? []).filter(Boolean)
   const hasAnchors = visibleAnchors.length > 0
   const sectionFacts = new Map(
@@ -68,6 +70,8 @@ export function ThreadLanding({ thread, sectionIndex, anchors, children }: Threa
           </section>
         </RevealSection>
       ) : null}
+
+      {feature ? <RevealSection>{feature}</RevealSection> : null}
 
       <RevealSection>
         <nav

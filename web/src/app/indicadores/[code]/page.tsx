@@ -7,8 +7,9 @@ import { IndicatorChart } from "@/components/indicators/IndicatorChart"
 import { CopyLinkButton } from "@/components/indicators/CopyLinkButton"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getIndicatorPoints } from "@/lib/data"
+import { getIndicatorPoints, getIpcIndexSeries } from "@/lib/data"
 import { getIndicatorExplanation } from "@/lib/indicator-explanations"
+import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 
 export const revalidate = 3600
 
@@ -75,6 +76,7 @@ export default async function IndicadorPage({ params }: PageProps) {
 
   const explanation = getIndicatorExplanation(code)
   const detailUrl = `/indicadores/${code}`
+  const ipcSeries = code === "IPC" ? await getIpcIndexSeries() : null
 
   return (
     <div className="ui-page">
@@ -176,6 +178,10 @@ export default async function IndicadorPage({ params }: PageProps) {
               </details>
             )}
           </section>
+        )}
+
+        {ipcSeries && ipcSeries.length > 1 && (
+          <PurchasingPowerCalculator series={ipcSeries} />
         )}
 
         <details className="text-sm">

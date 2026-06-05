@@ -136,6 +136,7 @@ export {
   getRevolvingDoorCaseById,
   getIndicators,
   getIndicatorPoints,
+  getIpcIndexSeries,
   getInitiativeDetail,
   getInitiativesPage,
   type InitiativeListRow,
