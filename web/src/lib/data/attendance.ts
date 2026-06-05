@@ -19,16 +19,16 @@ export const getAttendanceRanking = unstable_cache(
     const to = from + PAGE_SIZE.attendance - 1
 
     let query = supabase
-      .from("v_attendance_summary")
+      .from("v_attendance_ranking")
       .select(
-        "politician_id, total_sessions, sessions_present, attendance_pct, politicians!inner(id, full_name, photo_url, photo_variants, politician_memberships!inner(party:parties(acronym, color)))",
+        "politician_id, full_name, photo_url, photo_variants, party_acronym, party_color, total_sessions, sessions_present, attendance_pct",
         { count: "exact" }
       )
       .order("attendance_pct", { ascending: false })
       .order("sessions_present", { ascending: false })
 
     if (partyAcronym) {
-      query = query.eq("politician_memberships.party.acronym", partyAcronym)
+      query = query.eq("party_acronym", partyAcronym)
     }
 
     const { data, count, error } = await query.range(from, to)
@@ -40,21 +40,17 @@ export const getAttendanceRanking = unstable_cache(
 
     // Get party list for filter pills
     const { data: partyData } = await supabase
-      .from("politicians")
-      .select("politician_memberships!inner(party:parties(acronym, color))")
-      .eq("politician_memberships.is_active", true)
-      .eq("politician_memberships.chamber", "congress")
+      .from("v_attendance_ranking")
+      .select("party_acronym, party_color")
 
     const partySet = new Map<string, string | null>()
     for (const row of (partyData ?? []) as unknown as Array<{
-      politician_memberships: Array<{
-        party: { acronym: string | null; color: string | null } | null
-      }>
+      party_acronym: string | null
+      party_color: string | null
     }>) {
-      const pm = row.politician_memberships?.[0]
-      const acronym = pm?.party?.acronym
+      const acronym = row.party_acronym
       if (acronym) {
-        partySet.set(acronym, pm.party?.color ?? null)
+        partySet.set(acronym, row.party_color ?? null)
       }
     }
     const parties = Array.from(partySet.entries())
@@ -67,25 +63,19 @@ export const getAttendanceRanking = unstable_cache(
       total_sessions: number
       sessions_present: number
       attendance_pct: number
-      politicians: {
-        id: string
-        full_name: string
-        photo_url: string | null
-        photo_variants: Record<string, string> | null
-        politician_memberships: Array<{
-          party: { acronym: string | null; color: string | null } | null
-        }>
-      }
+      full_name: string
+      photo_url: string | null
+      photo_variants: Record<string, string> | null
+      party_acronym: string | null
+      party_color: string | null
     }>) {
-      const pol = raw.politicians
-      const pm = pol.politician_memberships?.[0]
       rows.push({
         politician_id: raw.politician_id,
-        full_name: pol.full_name,
-        photo_url: pol.photo_url,
-        photo_variants: pol.photo_variants,
-        party_acronym: pm?.party?.acronym ?? null,
-        party_color: pm?.party?.color ?? null,
+        full_name: raw.full_name,
+        photo_url: raw.photo_url,
+        photo_variants: raw.photo_variants,
+        party_acronym: raw.party_acronym,
+        party_color: raw.party_color,
         total_sessions: raw.total_sessions,
         sessions_present: raw.sessions_present,
         attendance_pct: raw.attendance_pct,

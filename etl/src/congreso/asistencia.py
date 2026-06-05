@@ -3,8 +3,10 @@
 Discovers all voting dates from the Congress portlet, downloads the ZIP for
 each session, and upserts votes into the existing voting_sessions/votes tables.
 Attendance is then queryable via the v_attendance_summary DB view.
-The voting list summary is exposed via v_voting_session_summary and updates
-automatically from the same voting_sessions/votes tables.
+The public ranking page reads the cached v_attendance_ranking materialized view,
+which is refreshed at the end of this pipeline. The voting list summary is
+exposed via v_voting_session_summary and updates automatically from the same
+voting_sessions/votes tables.
 
 Usage:
     PYTHONPATH=src python -m src.congreso.asistencia
@@ -192,6 +194,17 @@ def ingest_session(cur, leg_id, session_num, date_str, votaciones, pol_idx) -> i
     return vote_count
 
 
+def refresh_attendance_cache(cur) -> None:
+    """Refresh the public attendance ranking cache when the migration exists."""
+    try:
+        cur.execute("SELECT refresh_attendance_ranking()")
+        refreshed = cur.fetchone()[0]
+        print(f"attendance ranking cache refreshed: {refreshed} rows")
+    except psycopg2.errors.UndefinedFunction:
+        cur.connection.rollback()
+        print("attendance ranking cache not installed; skipping refresh")
+
+
 def run(dry_run: bool = False, from_date: int | None = None, resume: bool = False) -> None:
     conn = get_pg_conn()
     run_id = None
@@ -290,6 +303,7 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
 
         if run_id:
             cur = conn.cursor()
+            refresh_attendance_cache(cur)
             finish_run(cur, run_id=run_id, status="succeeded",
                        rows_read=len(all_dates), rows_inserted=total_votes)
             conn.commit()
