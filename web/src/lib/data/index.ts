@@ -188,6 +188,14 @@ export {
 } from "./attendance"
 export type { AttendanceRankingRow } from "./attendance"
 
+// ── Elections ─────────────────────────────────────────────────────────────────
+export {
+  getElectionDates,
+  getElectionResults,
+  getElectionProvinces,
+} from "./elections"
+export type { ElectionResult, ElectionProvince } from "./elections"
+
 // ── ETL status ───────────────────────────────────────────────────────────────
 export {
   getEtlPipelineStatus,
