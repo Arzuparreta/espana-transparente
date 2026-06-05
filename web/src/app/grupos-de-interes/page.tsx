@@ -65,8 +65,8 @@ export default async function GruposDeInteresPage({ searchParams }: PageProps) {
 
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            <ResponsiveLink
-              href="/grupos-de-interes"
+             <ResponsiveLink
+              href={`/grupos-de-interes${query ? `?q=${encodeURIComponent(query)}` : ""}`}
               className={`rounded px-2.5 py-1 font-mono text-xs transition-colors ${
                 !activeCategory
                   ? "bg-primary text-primary-foreground"
@@ -91,6 +91,22 @@ export default async function GruposDeInteresPage({ searchParams }: PageProps) {
           </div>
         )}
       </div>
+
+      {(activeCategory || query) && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            {total.toLocaleString("es-ES")} {total === 1 ? "registro" : "registros"}
+            {activeCategory ? ` en «${activeCategory}»` : ""}
+            {query ? ` para «${query}»` : ""}
+          </span>
+          <ResponsiveLink
+            href="/grupos-de-interes"
+            className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Limpiar filtros
+          </ResponsiveLink>
+        </div>
+      )}
 
       {groups.length === 0 ? (
         <EmptyState
