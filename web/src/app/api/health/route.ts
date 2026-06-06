@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase/client"
-import { dataErrorMessage, dataQuerySignal } from "@/lib/data/shared"
+import { checkDatabaseHealth } from "@/lib/data/database-health"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const { error } = await supabase
-    .from("v_etl_pipeline_status")
-    .select("pipeline")
-    .limit(1)
-    .abortSignal(dataQuerySignal())
-
-  if (error) {
-    console.error("health database check failed:", dataErrorMessage(error))
+  try {
+    await checkDatabaseHealth()
+  } catch (error) {
+    console.error(
+      "health database check failed:",
+      error instanceof Error ? error.message : String(error)
+    )
     return NextResponse.json(
       { status: "degraded", database: "unavailable" },
       { status: 503, headers: { "Cache-Control": "no-store" } }
