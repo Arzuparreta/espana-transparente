@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
+import type { AttendanceSortDirection, AttendanceSortField } from "@/lib/attendance-sort"
 import { unstable_cache, HOUR, PAGE_SIZE } from "./shared"
 
 export interface AttendanceRankingRow {
@@ -14,9 +15,15 @@ export interface AttendanceRankingRow {
 }
 
 export const getAttendanceRanking = unstable_cache(
-  async (page: number, partyAcronym?: string | null) => {
+  async (
+    page: number,
+    partyAcronym?: string | null,
+    sort: AttendanceSortField = "attendance_pct",
+    direction: AttendanceSortDirection = "desc"
+  ) => {
     const from = (page - 1) * PAGE_SIZE.attendance
     const to = from + PAGE_SIZE.attendance - 1
+    const ascending = direction === "asc"
 
     let query = supabase
       .from("v_attendance_ranking")
@@ -24,8 +31,17 @@ export const getAttendanceRanking = unstable_cache(
         "politician_id, full_name, photo_url, photo_variants, party_acronym, party_color, total_sessions, sessions_present, attendance_pct",
         { count: "exact" }
       )
-      .order("attendance_pct", { ascending: false })
-      .order("sessions_present", { ascending: false })
+      .order(sort, { ascending, nullsFirst: false })
+
+    if (sort !== "attendance_pct") {
+      query = query.order("attendance_pct", { ascending: false, nullsFirst: false })
+    }
+    if (sort !== "sessions_present") {
+      query = query.order("sessions_present", { ascending: false, nullsFirst: false })
+    }
+    if (sort !== "full_name") {
+      query = query.order("full_name", { ascending: true })
+    }
 
     if (partyAcronym) {
       query = query.eq("party_acronym", partyAcronym)

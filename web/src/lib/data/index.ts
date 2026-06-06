@@ -183,10 +183,13 @@ export {
 } from "./lobbying"
 
 // ── Attendance ───────────────────────────────────────────────────────────────
-export {
-  getAttendanceRanking,
-} from "./attendance"
+export { getAttendanceRanking } from "./attendance"
 export type { AttendanceRankingRow } from "./attendance"
+export { ATTENDANCE_SORT_FIELDS, parseAttendanceSort } from "../attendance-sort"
+export type {
+  AttendanceSortDirection,
+  AttendanceSortField,
+} from "../attendance-sort"
 
 // ── Elections ─────────────────────────────────────────────────────────────────
 export {
