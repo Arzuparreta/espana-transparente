@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
+import { checkDatabaseHealth } from "@/lib/data/database-health"
 import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
 import { Fragment } from "react"
 
@@ -40,14 +41,20 @@ function datasetLabel(value: string) {
 }
 
 export default async function EstadoDatosPage() {
-  const [moneyOverview, pipelineResult] = await Promise.all([
+  const [moneyOverview, pipelineResult, databaseAvailable] = await Promise.all([
     getMoneyDataOverview(),
     getEtlPipelineStatus(),
+    checkDatabaseHealth().then(
+      () => true,
+      () => false
+    ),
   ])
   const { coverage, examples } = moneyOverview
   const pipelines = pipelineResult.pipelines
   const dataUnavailable =
-    moneyOverview.status === "unavailable" || pipelineResult.status === "unavailable"
+    !databaseAvailable ||
+    moneyOverview.status === "unavailable" ||
+    pipelineResult.status === "unavailable"
   const coverageByDataset = coverage.reduce<Record<string, typeof coverage>>((acc, row) => {
     acc[row.dataset] = [...(acc[row.dataset] ?? []), row]
     return acc

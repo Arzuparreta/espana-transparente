@@ -14,13 +14,14 @@ describe("checkDatabaseHealth", () => {
   it("performs an uncached REST read", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co"
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key"
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response('[{"pipeline":"attendance"}]', { status: 200 })
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response('[{"pipeline":"attendance"}]', { status: 200 }))
     )
     vi.stubGlobal("fetch", fetchMock)
 
     await expect(checkDatabaseHealth()).resolves.toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
       "https://example.supabase.co/rest/v1/v_etl_pipeline_status?select=pipeline&limit=1",
       expect.objectContaining({
         cache: "no-store",
@@ -30,18 +31,25 @@ describe("checkDatabaseHealth", () => {
         },
       })
     )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://example.supabase.co/rest/v1/v_attendance_ranking?select=politician_id&limit=1",
+      expect.objectContaining({ cache: "no-store" })
+    )
   })
 
-  it("fails when Supabase returns a gateway error", async () => {
+  it("fails when any critical data path returns a gateway error", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co"
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key"
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(new Response("gateway timeout", { status: 522 }))
+      vi.fn()
+        .mockResolvedValueOnce(new Response("[]", { status: 200 }))
+        .mockResolvedValueOnce(new Response("gateway timeout", { status: 522 }))
     )
 
     await expect(checkDatabaseHealth()).rejects.toThrow(
-      "Supabase REST returned 522"
+      "v_attendance_ranking?select=politician_id&limit=1 returned 522"
     )
   })
 })
