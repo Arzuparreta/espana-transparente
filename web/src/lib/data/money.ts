@@ -1,20 +1,34 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, type MoneyCoverageRow, type UnresolvedMoneyExampleRow } from "./shared"
+import {
+  dataErrorMessage,
+  dataQuerySignal,
+  unstable_cache,
+  HOUR,
+  type MoneyCoverageRow,
+  type UnresolvedMoneyExampleRow,
+} from "./shared"
 
-export const getMoneyDataOverview = unstable_cache(
+const getMoneyDataOverviewCached = unstable_cache(
   async () => {
     const [coverage, examples] = await Promise.all([
       supabase
         .from("v_money_data_public")
         .select("dataset, administration_level, freshness_window, total_rows, resolved_rows, unresolved_rows, conflict_rows, coverage_start_date, latest_record_date")
         .order("dataset")
-        .order("administration_level"),
+        .order("administration_level")
+        .abortSignal(dataQuerySignal()),
       supabase
         .from("v_unresolved_money_examples")
         .select("dataset, record_id, record_date, body_name, body_normalized, administration_level, display_title, source_url, issue_type")
         .order("record_date", { ascending: false })
-        .limit(18),
+        .limit(18)
+        .abortSignal(dataQuerySignal()),
     ])
+
+    if (coverage.error || examples.error) {
+      console.error("getMoneyDataOverview error:", dataErrorMessage(coverage.error ?? examples.error))
+      throw new Error("Money data overview source unavailable")
+    }
 
     return {
       coverage: (coverage.data ?? []) as MoneyCoverageRow[],
@@ -24,6 +38,20 @@ export const getMoneyDataOverview = unstable_cache(
   ["money-data-overview"],
   { revalidate: HOUR }
 )
+
+export async function getMoneyDataOverview() {
+  try {
+    const result = await getMoneyDataOverviewCached()
+    return { status: "ok" as const, ...result }
+  } catch (error) {
+    console.error("getMoneyDataOverview unavailable:", dataErrorMessage(error))
+    return {
+      status: "unavailable" as const,
+      coverage: [] as MoneyCoverageRow[],
+      examples: [] as UnresolvedMoneyExampleRow[],
+    }
+  }
+}
 
 export const getMoneyDatasetSummary = unstable_cache(
   async (dataset: "contracts" | "subsidies") => {

@@ -240,21 +240,29 @@ def parse_entry(entry: ET.Element) -> dict | None:
 
 
 def download_feed_page(url: str) -> bytes:
-    """Download a single ATOM feed page with curl."""
+    """Download a single ATOM feed page, retrying transient source failures."""
     print(f"  Fetching {url} ...")
     with tempfile.NamedTemporaryFile(suffix=".atom", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
         result = subprocess.run(
-            ["curl", "-sL", "--max-time", "120",
+            ["curl", "-sS", "-L", "--fail-with-body",
+             "--connect-timeout", "20", "--max-time", "120",
+             "--retry", "4", "--retry-delay", "5", "--retry-all-errors",
              "-H", "User-Agent: Mozilla/5.0 (compatible; AccionHumana/1.0)",
-             url, "-o", tmp.name],
-            capture_output=True, timeout=130,
+             url, "-o", tmp_path],
+            capture_output=True, timeout=650,
         )
         if result.returncode != 0:
-            raise RuntimeError(f"curl failed: {result.stderr.decode()}")
-        with open(tmp.name, "rb") as f:
+            detail = result.stderr.decode(errors="replace").strip()
+            raise RuntimeError(f"curl failed with exit {result.returncode}: {detail}")
+        with open(tmp_path, "rb") as f:
             data = f.read()
-    os.unlink(tmp.name)
-    return data
+        if not data:
+            raise RuntimeError("curl returned an empty feed page")
+        return data
+    finally:
+        os.unlink(tmp_path)
 
 
 def parse_atom(xml_bytes: bytes) -> tuple[list[dict], str | None]:

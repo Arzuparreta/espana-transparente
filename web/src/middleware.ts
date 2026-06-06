@@ -4,6 +4,13 @@ import { SUPABASE_AUTH_OPTIONS, SUPABASE_COOKIE_OPTIONS } from "@/lib/supabase/s
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
+  const hasAuthSession = request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"))
+
+  // Anonymous public traffic does not need an Auth round-trip. This keeps the
+  // data portal available when Supabase Auth is degraded and reduces load.
+  if (!hasAuthSession) return response
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

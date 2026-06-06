@@ -16,13 +16,24 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      etl_batch:
+        description: ETL batch to run in addition to checks
+        required: true
+        type: choice
+        default: checks-only
+        options:
+          - checks-only
+          - daily
+          - weekly
+          - all
   schedule:
     - cron: '0 4 * * *'   # etl-daily
     - cron: '0 5 * * 1'   # etl-weekly
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'schedule' && github.event.schedule || github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
 
 jobs:
   web:
@@ -46,8 +57,24 @@ jobs:
       - run: npm run lint
       - run: npm run ui:audit
       - run: npm run content:audit
-      - run: npm run search:routes
       - run: npm run build
+
+  data-health:
+    name: Data health (live Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/search-check.mjs --routes-only
 
   etl-check:
     name: ETL (install + tests)
@@ -71,12 +98,20 @@ jobs:
 
   etl-daily:
     name: ETL daily pipelines
-    if: github.event_name == 'schedule' && github.event.schedule == '0 4 * * *' || github.event_name == 'workflow_dispatch'
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 4 * * *') ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.etl_batch == 'daily' || inputs.etl_batch == 'all'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     defaults:
       run:
         working-directory: etl
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -84,44 +119,24 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: PYTHONPATH=src python -m src.congreso.diputados
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.asistencia --from-date 20250101
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.ine.indicadores
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.contratacion.contratos
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.bdns.subvenciones --from-date $(date -d 'yesterday' +%Y-%m-%d) --to-date $(date +%Y-%m-%d) --importe-min 0 --max-pages 100
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.photos.run --refresh-missing
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      - run: PYTHONPATH=src python -m src.borme.officers --limit 100 --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 25 --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m common.search_refresh
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: bash scripts/run_scheduled_etls.sh daily
 
   etl-weekly:
     name: ETL weekly pipelines
-    if: github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1' || github.event_name == 'workflow_dispatch'
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1') ||
+      (github.event_name == 'workflow_dispatch' &&
+       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     defaults:
       run:
         working-directory: etl
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -129,80 +144,4 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: PYTHONPATH=src python -m src.congreso.cods --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.declaraciones
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.iniciativas
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.gobierno
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.responsables
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.power_relationships
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.photos.run --no-refresh-missing --max-age-days 30
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      - run: PYTHONPATH=src python -m src.presupuestos.presupuestos --year $(date +%Y) --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.puertas_giratorias.ingest --watchlist data/personas_vigiladas.yml
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.instituciones.instituciones
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.public_bodies.boe_nombramientos --days 7 --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.kohesio.fondos_ue
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.senado.senadores
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.senado.votaciones
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.declaraciones_ocr --limit 150 --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.borme.officers --limit 200 --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.lobbying.rgi --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.congreso.opendata_intereses
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.judicial.wikipedia --resume --extract-people
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.judicial.cgpj --resume
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.judicial.contract_links
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.ine.indicadores_ampliados
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.ine.ipc_subgrupos
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m src.elections.ingest
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - run: PYTHONPATH=src python -m common.search_refresh
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - run: bash scripts/run_scheduled_etls.sh weekly

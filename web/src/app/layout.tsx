@@ -14,6 +14,10 @@ import {
 } from "@/lib/brand"
 import "./globals.css"
 
+// Data pages use their own bounded caches. Rendering at request time keeps
+// deployments independent from the availability of the production database.
+export const dynamic = "force-dynamic"
+
 export const viewport = {
   width: "device-width",
   initialScale: 1,

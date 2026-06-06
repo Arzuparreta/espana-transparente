@@ -4,6 +4,20 @@ export { unstable_cache }
 
 export const HOUR = 3600
 export const PHOTOS_CACHE_VERSION = "photos-v3"
+export const DATA_QUERY_TIMEOUT_MS = 5_000
+
+export function dataQuerySignal() {
+  return AbortSignal.timeout(DATA_QUERY_TIMEOUT_MS)
+}
+
+export function dataErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = String(error.message).replace(/\s+/g, " ").trim()
+    if (message.startsWith("<!DOCTYPE html>")) return "upstream gateway unavailable"
+    return message.slice(0, 240)
+  }
+  return String(error).slice(0, 240)
+}
 
 export const PAGE_SIZE = {
   votingSessions: 30,

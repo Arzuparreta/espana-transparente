@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { parseAttendanceSort } from "../attendance-sort"
+import { dataErrorMessage } from "./shared"
 
 describe("parseAttendanceSort", () => {
   it("uses attendance descending by default", () => {
@@ -22,5 +23,17 @@ describe("parseAttendanceSort", () => {
       sort: "attendance_pct",
       direction: "desc",
     })
+  })
+})
+
+describe("dataErrorMessage", () => {
+  it("collapses upstream HTML errors into a stable message", () => {
+    expect(dataErrorMessage({ message: "<!DOCTYPE html><title>522</title>" })).toBe(
+      "upstream gateway unavailable"
+    )
+  })
+
+  it("keeps normal errors concise", () => {
+    expect(dataErrorMessage(new Error("connection timed out"))).toBe("connection timed out")
   })
 })

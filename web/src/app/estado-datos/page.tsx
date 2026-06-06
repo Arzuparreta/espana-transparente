@@ -4,6 +4,7 @@ import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
 import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
+import { Fragment } from "react"
 
 export const revalidate = 3600
 
@@ -39,10 +40,14 @@ function datasetLabel(value: string) {
 }
 
 export default async function EstadoDatosPage() {
-  const [{ coverage, examples }, pipelines] = await Promise.all([
+  const [moneyOverview, pipelineResult] = await Promise.all([
     getMoneyDataOverview(),
     getEtlPipelineStatus(),
   ])
+  const { coverage, examples } = moneyOverview
+  const pipelines = pipelineResult.pipelines
+  const dataUnavailable =
+    moneyOverview.status === "unavailable" || pipelineResult.status === "unavailable"
   const coverageByDataset = coverage.reduce<Record<string, typeof coverage>>((acc, row) => {
     acc[row.dataset] = [...(acc[row.dataset] ?? []), row]
     return acc
@@ -68,14 +73,21 @@ export default async function EstadoDatosPage() {
       />
 
       <SourceFootnote
-        sourceLabel={`${pipelines.length} pipelines registrados`}
+        sourceLabel={dataUnavailable ? "Consulta no disponible" : `${pipelines.length} pipelines registrados`}
         lastChecked={lastChecked}
-        coverageLabel="Frescura por dataset"
+        coverageLabel={dataUnavailable ? "Base de datos no disponible" : "Frescura por dataset"}
         statusHref={null}
       />
 
+      {dataUnavailable && (
+        <EmptyState
+          title="Estado temporalmente no disponible"
+          description="No se ha podido consultar la base de datos. Esta pantalla no interpreta un fallo de conexión como ausencia de datos."
+        />
+      )}
+
       {/* ETL pipeline freshness */}
-      {pipelines.length > 0 && (
+      {!dataUnavailable && pipelines.length > 0 && (
         <section className="space-y-4 rounded-[2px] border border-border bg-card p-4 sm:p-5">
           <h2 className="text-xl font-semibold">Pipelines ETL</h2>
           <div className="overflow-x-auto">
@@ -84,7 +96,7 @@ export default async function EstadoDatosPage() {
                 <tr>
                   <th className="pb-2 pr-4">Pipeline</th>
                   <th className="pb-2 pr-4">Estado</th>
-                  <th className="pb-2 pr-4">Último éxito</th>
+                  <th className="pb-2 pr-4">Última ejecución</th>
                   <th className="pb-2 pr-4">Filas insertadas</th>
                   <th className="pb-2">Filas actualizadas</th>
                 </tr>
@@ -105,15 +117,24 @@ export default async function EstadoDatosPage() {
                         : "text-muted-foreground"
 
                   return (
-                    <tr key={String(p.pipeline)} className="border-t border-border/60">
-                      <td className="py-3 pr-4 font-medium">{label}</td>
-                      <td className={`py-3 pr-4 ${statusClass}`}>
-                        {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
-                      </td>
-                      <td className="py-3 pr-4">{dateStr}</td>
-                      <td className="py-3 pr-4 font-mono">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
-                      <td className="py-3 font-mono">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
-                    </tr>
+                    <Fragment key={String(p.pipeline)}>
+                      <tr className="border-t border-border/60">
+                        <td className="py-3 pr-4 font-medium">{label}</td>
+                        <td className={`py-3 pr-4 ${statusClass}`}>
+                          {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
+                        </td>
+                        <td className="py-3 pr-4">{dateStr}</td>
+                        <td className="py-3 pr-4 font-mono">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                        <td className="py-3 font-mono">{(p.last_rows_updated as number)?.toLocaleString("es-ES") ?? "—"}</td>
+                      </tr>
+                      {status === "failed" && p.last_error_summary ? (
+                        <tr className="border-t border-border/30">
+                          <td colSpan={5} className="pb-3 pt-1 text-xs text-red-600 dark:text-red-400">
+                            {String(p.last_error_summary)}
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   )
                 })}
               </tbody>
@@ -125,7 +146,7 @@ export default async function EstadoDatosPage() {
         </section>
       )}
 
-      {(["contracts", "subsidies"] as const).map((dataset) => {
+      {!dataUnavailable && (["contracts", "subsidies"] as const).map((dataset) => {
         const rows = coverageByDataset[dataset] ?? []
         const examplesRows = examplesByDataset[dataset] ?? []
 

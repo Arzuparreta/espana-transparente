@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import type { AttendanceSortDirection, AttendanceSortField } from "@/lib/attendance-sort"
-import { unstable_cache, HOUR, PAGE_SIZE } from "./shared"
+import { dataErrorMessage, dataQuerySignal, unstable_cache, HOUR, PAGE_SIZE } from "./shared"
 
 export interface AttendanceRankingRow {
   politician_id: string
@@ -14,7 +14,14 @@ export interface AttendanceRankingRow {
   attendance_pct: number
 }
 
-export const getAttendanceRanking = unstable_cache(
+export type AttendanceRankingResult = {
+  status: "ok" | "unavailable"
+  rows: AttendanceRankingRow[]
+  total: number
+  parties: Array<{ acronym: string; color: string | null }>
+}
+
+const getAttendanceRankingCached = unstable_cache(
   async (
     page: number,
     partyAcronym?: string | null,
@@ -47,17 +54,23 @@ export const getAttendanceRanking = unstable_cache(
       query = query.eq("party_acronym", partyAcronym)
     }
 
-    const { data, count, error } = await query.range(from, to)
+    const { data, count, error } = await query.range(from, to).abortSignal(dataQuerySignal())
 
     if (error) {
-      console.error("getAttendanceRanking error:", error)
-      return { rows: [], total: 0, parties: [] }
+      console.error("getAttendanceRanking error:", dataErrorMessage(error))
+      throw new Error("Attendance data source unavailable")
     }
 
     // Get party list for filter pills
-    const { data: partyData } = await supabase
+    const { data: partyData, error: partyError } = await supabase
       .from("v_attendance_ranking")
       .select("party_acronym, party_color")
+      .abortSignal(dataQuerySignal())
+
+    if (partyError) {
+      console.error("getAttendanceRanking parties error:", dataErrorMessage(partyError))
+      throw new Error("Attendance party data source unavailable")
+    }
 
     const partySet = new Map<string, string | null>()
     for (const row of (partyData ?? []) as unknown as Array<{
@@ -98,8 +111,32 @@ export const getAttendanceRanking = unstable_cache(
       })
     }
 
-    return { rows, total: count ?? 0, parties }
+    return {
+      status: "ok",
+      rows,
+      total: count ?? 0,
+      parties,
+    } satisfies AttendanceRankingResult
   },
   ["attendance-ranking-v2"],
   { revalidate: HOUR }
 )
+
+export async function getAttendanceRanking(
+  page: number,
+  partyAcronym?: string | null,
+  sort: AttendanceSortField = "attendance_pct",
+  direction: AttendanceSortDirection = "desc"
+): Promise<AttendanceRankingResult> {
+  try {
+    return await getAttendanceRankingCached(page, partyAcronym, sort, direction)
+  } catch (error) {
+    console.error("getAttendanceRanking unavailable:", dataErrorMessage(error))
+    return {
+      status: "unavailable",
+      rows: [],
+      total: 0,
+      parties: [],
+    }
+  }
+}

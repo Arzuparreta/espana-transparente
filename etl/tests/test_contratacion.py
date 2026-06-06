@@ -2,8 +2,16 @@
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from types import SimpleNamespace
 
-from contratacion.contratos import NS, CONTRACT_TYPES, parse_entry, _text, _decimal
+from contratacion.contratos import (
+    CONTRACT_TYPES,
+    NS,
+    _decimal,
+    _text,
+    download_feed_page,
+    parse_entry,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -104,3 +112,19 @@ def test_contract_types_map_coverage():
     assert "1" in CONTRACT_TYPES
     assert "2" in CONTRACT_TYPES
     assert CONTRACT_TYPES["1"] == "Obras"
+
+
+def test_download_feed_page_retries_transient_failures(monkeypatch):
+    output = b"<feed />"
+
+    def fake_run(command, **kwargs):
+        output_path = Path(command[command.index("-o") + 1])
+        output_path.write_bytes(output)
+        assert command[command.index("--retry") + 1] == "4"
+        assert "--retry-all-errors" in command
+        assert "--fail-with-body" in command
+        return SimpleNamespace(returncode=0, stderr=b"")
+
+    monkeypatch.setattr("contratacion.contratos.subprocess.run", fake_run)
+
+    assert download_feed_page("https://example.test/feed.atom") == output

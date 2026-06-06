@@ -1,0 +1,26 @@
+name: Deployment health
+
+on:
+  deployment_status:
+
+concurrency:
+  group: deployment-health-${{ github.event.deployment.sha }}
+  cancel-in-progress: true
+
+jobs:
+  production:
+    name: Production app and database
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify deployed revision health
+        env:
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+        run: |
+          test -n "${DEPLOYMENT_URL}"
+          curl --fail --show-error --silent \
+            --retry 12 --retry-delay 10 --retry-all-errors \
+            "${DEPLOYMENT_URL%/}/api/health"

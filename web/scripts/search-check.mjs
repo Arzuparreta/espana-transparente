@@ -85,11 +85,13 @@ async function rpc(name, args) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(args),
+    signal: AbortSignal.timeout(15_000),
   })
   const ms = performance.now() - started
   if (!response.ok) {
     const body = await response.text()
-    throw new Error(`${name}: HTTP ${response.status} ${body}`)
+    const detail = body.replace(/\s+/g, " ").slice(0, 240)
+    throw new Error(`${name}: HTTP ${response.status} ${detail}`)
   }
   return { rows: await response.json(), ms }
 }
@@ -183,12 +185,16 @@ async function auditRoutesRpc() {
         limit_count: 5,
       })
       rows = result.rows
-    } catch {
-      check(`route sample: ${label}`, true, "skipped (RPC error)")
+    } catch (error) {
+      check(
+        `route sample: ${label}`,
+        false,
+        `RPC unavailable: ${error instanceof Error ? error.message : String(error)}`
+      )
       continue
     }
     if (rows.length === 0) {
-      check(`route sample: ${label}`, true, "skipped (0 results — corpus may be empty)")
+      check(`route sample: ${label}`, false, "0 results")
       continue
     }
     const bad = rows.filter((r) => {

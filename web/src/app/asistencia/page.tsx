@@ -76,7 +76,7 @@ export default async function AsistenciaPage({ searchParams }: PageProps) {
     return `/asistencia${value ? `?${value}` : ""}`
   }
 
-  const [{ rows, total, parties }, lastChecked] = await Promise.all([
+  const [{ status, rows, total, parties }, lastChecked] = await Promise.all([
     getAttendanceRanking(page, activeParty, sort, direction),
     getEtlLastFinished(["congreso.asistencia"]),
   ])
@@ -87,13 +87,13 @@ export default async function AsistenciaPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="Asistencia a plenos"
-        description={`Porcentaje de sesiones plenarias con voto nominal en las que cada diputado ha estado presente. Un diputado se considera presente si ha emitido al menos un voto en la sesión. ${total.toLocaleString("es-ES")} diputados con registro.`}
+        description={`Porcentaje de sesiones plenarias con voto nominal en las que cada diputado ha estado presente. Un diputado se considera presente si ha emitido al menos un voto en la sesión.${status === "ok" ? ` ${total.toLocaleString("es-ES")} diputados con registro.` : ""}`}
       />
 
       <SourceFootnote
         sourceLabel="Congreso de los Diputados"
         lastChecked={lastChecked}
-        coverageLabel={`${total.toLocaleString("es-ES")} diputados`}
+        coverageLabel={status === "ok" ? `${total.toLocaleString("es-ES")} diputados` : "Consulta no disponible"}
       />
 
       {/* Party filter pills */}
@@ -125,7 +125,12 @@ export default async function AsistenciaPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      {rows.length === 0 ? (
+      {status === "unavailable" ? (
+        <EmptyState
+          title="Datos temporalmente no disponibles"
+          description="No se ha podido consultar la fuente de datos. Los registros no se han eliminado; vuelve a intentarlo más tarde."
+        />
+      ) : rows.length === 0 ? (
         <EmptyState
           title="Sin registros"
           description={
