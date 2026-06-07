@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, throwDataError } from "./shared"
+import { unstable_cache, HOUR, dataQuerySignal, throwDataError } from "./shared"
 
 const INDICATOR_PAGE_SIZE = 1000
 
@@ -14,30 +14,26 @@ type IndicatorRow = {
   value: number
 }
 
-export const getRevolvingDoorCases = unstable_cache(
-  async () => {
-    const { data } = await supabase
-      .from("v_revolving_door_public")
-      .select(REVOLVING_DOOR_PUBLIC_COLS)
-      .order("person_name")
-    return data ?? []
-  },
-  ["revolving-door-cases"],
-  { revalidate: HOUR }
-)
+export async function getRevolvingDoorCases() {
+  const { data, error } = await supabase
+    .from("v_revolving_door_public")
+    .select(REVOLVING_DOOR_PUBLIC_COLS)
+    .order("person_name")
+    .abortSignal(dataQuerySignal())
+  throwDataError(error, "revolving door cases")
+  return data ?? []
+}
 
-export const getRevolvingDoorCaseById = unstable_cache(
-  async (id: string) => {
-    const { data } = await supabase
-      .from("v_revolving_door_public")
-      .select(REVOLVING_DOOR_PUBLIC_COLS)
-      .eq("id", id)
-      .maybeSingle()
-    return data ?? null
-  },
-  ["revolving-door-case-by-id"],
-  { revalidate: HOUR }
-)
+export async function getRevolvingDoorCaseById(id: string) {
+  const { data, error } = await supabase
+    .from("v_revolving_door_public")
+    .select(REVOLVING_DOOR_PUBLIC_COLS)
+    .eq("id", id)
+    .abortSignal(dataQuerySignal())
+    .maybeSingle()
+  throwDataError(error, "revolving door case")
+  return data ?? null
+}
 
 export const getIndicators = unstable_cache(
   async () => {
