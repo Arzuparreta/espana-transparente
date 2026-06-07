@@ -19,8 +19,8 @@ export default function GlobalError({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Algo ha fallado"
-        description="No hemos podido cargar esta página. Es probable que sea un problema temporal de la base de datos pública o de una fuente externa."
+        title="Datos temporalmente no disponibles"
+        description="No se ha podido consultar la fuente de datos. Los registros no se han eliminado; vuelve a intentarlo más tarde."
       />
       <div className="rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-wrap items-center gap-3">
