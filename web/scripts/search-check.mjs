@@ -75,25 +75,36 @@ function personPmRank(rows, limit) {
   return idx === -1 ? null : idx + 1
 }
 
-async function rpc(name, args) {
-  const started = performance.now()
-  const response = await fetch(`${url}/rest/v1/rpc/${name}`, {
-    method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(args),
-    signal: AbortSignal.timeout(15_000),
-  })
-  const ms = performance.now() - started
-  if (!response.ok) {
-    const body = await response.text()
-    const detail = body.replace(/\s+/g, " ").slice(0, 240)
-    throw new Error(`${name}: HTTP ${response.status} ${detail}`)
+async function rpc(name, args, { attempts = 2 } = {}) {
+  let lastError
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const started = performance.now()
+    try {
+      const response = await fetch(`${url}/rest/v1/rpc/${name}`, {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(args),
+        // A cold Supabase (free tier) can take ~20s to answer the first query;
+        // 30s tolerates that cold start without masking a genuine outage.
+        signal: AbortSignal.timeout(30_000),
+      })
+      const ms = performance.now() - started
+      if (!response.ok) {
+        const body = await response.text()
+        const detail = body.replace(/\s+/g, " ").slice(0, 240)
+        throw new Error(`${name}: HTTP ${response.status} ${detail}`)
+      }
+      return { rows: await response.json(), ms }
+    } catch (error) {
+      lastError = error
+      if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 5_000))
+    }
   }
-  return { rows: await response.json(), ms }
+  throw lastError
 }
 
 const checks = []
