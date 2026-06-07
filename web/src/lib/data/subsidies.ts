@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PAGE_SIZE, type SubsidyResponsibilityRow } from "./shared"
+import { unstable_cache, HOUR, PAGE_SIZE, throwDataError, type SubsidyResponsibilityRow } from "./shared"
 
 export const getSubvencionPage = unstable_cache(
   async (page: number, nivel1: string) => {
@@ -16,7 +16,8 @@ export const getSubvencionPage = unstable_cache(
 
     if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
 
-    const { data, count } = await query.range(from, to)
+    const { data, count, error } = await query.range(from, to)
+    throwDataError(error, "subsidies page")
     const subsidyIds = (data ?? []).map((row) => row.id)
     const responsibilities =
       subsidyIds.length > 0
@@ -25,6 +26,7 @@ export const getSubvencionPage = unstable_cache(
             .select("subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("subsidy_id", subsidyIds)
         : { data: [] }
+    throwDataError("error" in responsibilities ? responsibilities.error : null, "subsidy responsibilities")
 
     const responsibleBySubsidy = new Map(
       ((responsibilities.data ?? []) as SubsidyResponsibilityRow[]).map((row) => [
@@ -46,6 +48,7 @@ export const getSubvencionPage = unstable_cache(
       .from("subsidies")
       .select("id, nivel1, importe")
       .limit(2000)
+    throwDataError(stats.error, "subsidy stats")
 
     return {
       subsidies: (data ?? []).map((row) => ({ ...row, responsible: responsibleBySubsidy.get(row.id) ?? null })),
@@ -72,7 +75,8 @@ export const getSubvencionPageFiltered = unstable_cache(
     if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
     if (ministry) query = query.eq("ministry_normalized", ministry)
 
-    const { data, count } = await query.range(from, to)
+    const { data, count, error } = await query.range(from, to)
+    throwDataError(error, "filtered subsidies page")
     const subsidyIds = (data ?? []).map((row) => row.id)
     const responsibilities =
       subsidyIds.length > 0
@@ -81,6 +85,7 @@ export const getSubvencionPageFiltered = unstable_cache(
             .select("subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("subsidy_id", subsidyIds)
         : { data: [] }
+    throwDataError("error" in responsibilities ? responsibilities.error : null, "subsidy responsibilities")
 
     const responsibleBySubsidy = new Map(
       ((responsibilities.data ?? []) as SubsidyResponsibilityRow[]).map((row) => [
@@ -133,6 +138,10 @@ export const getSubsidyDetail = unstable_cache(
         .eq("id", id)
         .maybeSingle(),
     ])
+    throwDataError(subsidy.error, "subsidy detail")
+    throwDataError(responsibility.error, "subsidy responsibility")
+    throwDataError(beneficiary.error, "subsidy beneficiary")
+    throwDataError(grantingBody.error, "subsidy granting body")
     const benRaw = beneficiary.data?.organizations as unknown
     const grantRaw = grantingBody.data?.organizations as unknown
     const pickOrg = (raw: unknown): { id: string; name: string } | null => {

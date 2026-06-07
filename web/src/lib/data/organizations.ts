@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PAGE_SIZE, type EntitySummaryRow, type OrganizationPublicRow } from "./shared"
+import { unstable_cache, HOUR, PAGE_SIZE, throwDataError, type EntitySummaryRow, type OrganizationPublicRow } from "./shared"
 
 const SEPI_SUBSIDIARY_NAMES = [
   "SEPI-NAVANTIA",
@@ -19,11 +19,12 @@ const SEPI_SUBSIDIARY_NAMES = [
 export const getOrganizationsList = unstable_cache(
   async (page: number) => {
     const offset = (page - 1) * PAGE_SIZE.organizations
-    const { data, count } = await supabase
+    const { data, count, error } = await supabase
       .from("v_organization_public")
       .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count, judicial_case_count", { count: "exact" })
       .order("contract_count", { ascending: false, nullsFirst: false })
       .range(offset, offset + 49)
+    throwDataError(error, "organization list")
     return { organizations: data ?? [], total: count ?? 0 }
   },
   ["organizations-list"],

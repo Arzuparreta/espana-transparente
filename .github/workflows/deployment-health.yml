@@ -20,11 +20,9 @@ jobs:
         env:
           PRODUCTION_URL: https://xn--espaatransparente-ixb.site
         run: |
-          # A cold Supabase free-tier project can take 1-3 min to wake on the
-          # first request after a deploy. 24×15s ≈ 6 min of retries tolerates
-          # that cold start; a longer outage still fails (and that is correct).
-          # --max-time caps each attempt so a hung 522 can't eat the budget.
+          # Retry a cold start without repeatedly hammering an unavailable
+          # database and tripping the pooler's authentication circuit breaker.
           curl --fail --show-error --silent \
-            --retry 24 --retry-delay 15 --retry-all-errors \
+            --retry 5 --retry-delay 20 --retry-all-errors \
             --connect-timeout 10 --max-time 30 \
             "${PRODUCTION_URL}/api/health"

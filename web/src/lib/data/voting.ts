@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR } from "./shared"
+import { unstable_cache, HOUR, throwDataError } from "./shared"
 import { PAGE_SIZE } from "./shared"
 
 export const getVotingSessionPage = unstable_cache(
@@ -24,6 +24,7 @@ export const getVotingSessionPage = unstable_cache(
       .select("id, title, session_number, chamber, date, initiative_number, votes(count)", { count: "exact" })
       .order("date", { ascending: false })
       .range(from, to)
+    throwDataError(fallback.error, "voting sessions")
 
     return { sessions: fallback.data ?? [], total: fallback.count ?? 0 }
   },
@@ -42,6 +43,8 @@ export const getVotingDetailData = unstable_cache(
         )
         .eq("voting_session_id", id),
     ])
+    throwDataError(session.error, "voting session detail")
+    throwDataError(votes.error, "voting session votes")
 
     let initiative: { id: string; title: string | null; type: string | null } | null = null
     const initiativeNumber = session.data?.initiative_number as string | null | undefined
@@ -62,11 +65,12 @@ export const getVotingDetailData = unstable_cache(
 
 export const getDivergenceRanking = unstable_cache(
   async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_divergence_ranking")
       .select("politician_id, full_name, party_acronym, party_color, photo_url, photo_variants, divergence_count")
       .order("divergence_count", { ascending: false })
       .limit(50)
+    throwDataError(error, "divergence ranking")
     return data ?? []
   },
   ["divergence-ranking"],

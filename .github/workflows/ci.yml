@@ -38,6 +38,7 @@ concurrency:
 jobs:
   web:
     name: Web (Next.js)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -61,6 +62,7 @@ jobs:
 
   data-health:
     name: Data health (live Supabase)
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -78,6 +80,7 @@ jobs:
 
   etl-check:
     name: ETL (install + tests)
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

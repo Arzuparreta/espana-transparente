@@ -119,11 +119,7 @@ export async function getDeclarationsPage(
   sort: DeclarationSortField = "declared_income",
   direction: SortDirection = "desc"
 ): Promise<DeclarationPageResult> {
-  try {
-    return await getDeclarationsPageCached(page, type, party, search, sort, direction)
-  } catch {
-    return { rows: [], total: 0, parties: [] }
-  }
+  return getDeclarationsPageCached(page, type, party, search, sort, direction)
 }
 
 export function parseDeclarationSort(

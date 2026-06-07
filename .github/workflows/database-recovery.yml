@@ -1,0 +1,56 @@
+name: Database recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type RECOVER after increasing Supabase database capacity
+        required: true
+
+concurrency:
+  group: database-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    name: Reclaim derived storage and rebuild caches
+    if: inputs.confirmation == 'RECOVER'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: etl
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: pip install -r requirements.txt
+      - run: npm ci
+        working-directory: web
+      - name: Verify database is writable
+        run: python -m common.pipeline_monitor preflight --attempts 6 --delay-seconds 10
+      - name: Reclaim oversized derived search storage
+        run: python apply_migration.py ../supabase/migrations/20260708000000_reduce_search_storage_pressure.sql
+      - name: Rebuild bounded search corpus
+        run: python -m common.search_refresh --corpus-only
+      - name: Rebuild aliases and public caches
+        run: |
+          python -m common.search_refresh --aliases-only
+          python -m common.search_refresh --sections-only
+          python -m common.search_refresh --money-only
+      - name: Verify production datasets
+        working-directory: web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+        run: node scripts/search-check.mjs --routes-only

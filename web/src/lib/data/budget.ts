@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, type BudgetSourceKind, type BudgetType } from "./shared"
+import { unstable_cache, HOUR, throwDataError, type BudgetSourceKind, type BudgetType } from "./shared"
 
 export type { BudgetType }
 export type { BudgetSourceKind }
@@ -60,11 +60,12 @@ export function getBudgetSourceNote(row: {
 
 export const getBudgetSummary = unstable_cache(
   async (year: number) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_budget_summary")
       .select("year, budget_type, source_kind, source_year, in_force_year, section_code, section_name, ministry_normalized, program_count, total_credit_initial, total_credit_final")
       .eq("year", year)
       .order("total_credit_initial", { ascending: false, nullsFirst: false })
+    throwDataError(error, "budget summary")
     return data ?? []
   },
   ["budget-summary"],
@@ -73,12 +74,13 @@ export const getBudgetSummary = unstable_cache(
 
 export const getBudgetSection = unstable_cache(
   async (year: number, sectionCode: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_budget_by_program")
       .select("year, budget_type, source_kind, source_year, in_force_year, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
       .eq("year", year)
       .eq("section_code", sectionCode)
       .order("total_credit_initial", { ascending: false, nullsFirst: false })
+    throwDataError(error, "budget section")
     return data ?? []
   },
   ["budget-section"],
@@ -87,12 +89,13 @@ export const getBudgetSection = unstable_cache(
 
 export const getBudgetProgram = unstable_cache(
   async (sectionCode: string, programCode: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_budget_by_program")
       .select("year, budget_type, source_kind, source_year, in_force_year, section_code, section_name, program_code, program_name, ministry_normalized, total_credit_initial, total_credit_final, by_chapter")
       .eq("section_code", sectionCode)
       .eq("program_code", programCode)
       .order("year", { ascending: false })
+    throwDataError(error, "budget program")
     return data ?? []
   },
   ["budget-program"],

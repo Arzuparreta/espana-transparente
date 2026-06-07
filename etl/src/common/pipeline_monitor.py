@@ -4,10 +4,35 @@ from __future__ import annotations
 
 import argparse
 import os
+import time
 from datetime import date
 
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, start_run
+
+
+def preflight(attempts: int = 3, delay_seconds: float = 5.0) -> None:
+    """Fail once, before the scheduler fans out into many DB connections."""
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            conn = get_pg_conn()
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT 1")
+                cur.fetchone()
+                cur.execute("SHOW transaction_read_only")
+                if cur.fetchone()[0] != "off":
+                    raise RuntimeError("database is read-only")
+                cur.close()
+                return
+            finally:
+                conn.close()
+        except Exception as exc:
+            last_error = exc
+            if attempt < attempts:
+                time.sleep(delay_seconds)
+    raise RuntimeError(f"database preflight failed after {attempts} attempts: {last_error}")
 
 
 def start(pipeline: str) -> str:
@@ -56,7 +81,6 @@ def cleanup_stale_runs() -> int:
                 finished_at = now()
             WHERE status = 'running'
               AND started_at < now() - interval '2 hours'
-              AND chunk_key ~ '^[0-9]+$'
             """
         )
         updated = cur.rowcount
@@ -80,14 +104,19 @@ def main() -> None:
     finish_parser.add_argument("--error-summary")
 
     subparsers.add_parser("cleanup")
+    preflight_parser = subparsers.add_parser("preflight")
+    preflight_parser.add_argument("--attempts", type=int, default=3)
+    preflight_parser.add_argument("--delay-seconds", type=float, default=5.0)
 
     args = parser.parse_args()
     if args.command == "start":
         print(start(args.pipeline))
     elif args.command == "finish":
         finish(args.run_id, args.status, args.error_summary)
-    else:
+    elif args.command == "cleanup":
         print(cleanup_stale_runs())
+    else:
+        preflight(args.attempts, args.delay_seconds)
 
 
 if __name__ == "__main__":

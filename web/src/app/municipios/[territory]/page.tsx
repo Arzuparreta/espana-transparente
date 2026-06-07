@@ -8,10 +8,9 @@ import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getMunicipalTerritoryDetail,
-  getMunicipalTerritoryKeys,
 } from "@/lib/data/multilevel"
 
-export const revalidate = 3600
+export const dynamic = "force-dynamic"
 
 interface PageProps {
   params: Promise<{ territory: string }>
@@ -31,11 +30,6 @@ function formatDate(value: string | null | undefined) {
     month: "short",
     year: "numeric",
   })
-}
-
-export async function generateStaticParams() {
-  const territories = await getMunicipalTerritoryKeys()
-  return territories.map((territory) => ({ territory: territory.territoryKey }))
 }
 
 export async function generateMetadata({ params }: PageProps) {

@@ -20,6 +20,9 @@ import {
 } from "@/lib/data/sitemap"
 
 export const revalidate = 86400
+// Building the sitemap fan-outs across many datasets. Keep that work out of
+// Vercel/CI builds so a deploy never depends on production DB availability.
+export const dynamic = "force-dynamic"
 
 const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]; priority: number }[] = [
   { path: "/",                   changeFrequency: "daily",   priority: 1.0 },

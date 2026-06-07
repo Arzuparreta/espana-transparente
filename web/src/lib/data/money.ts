@@ -55,11 +55,14 @@ export async function getMoneyDataOverview() {
 
 export const getMoneyDatasetSummary = unstable_cache(
   async (dataset: "contracts" | "subsidies") => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_money_data_public")
       .select("dataset, administration_level, freshness_window, total_rows, resolved_rows, unresolved_rows, conflict_rows, coverage_start_date, latest_record_date")
       .eq("dataset", dataset)
       .order("administration_level")
+    if (error) {
+      throw new Error(`Money dataset summary unavailable: ${dataErrorMessage(error)}`)
+    }
 
     const rows = (data ?? []) as MoneyCoverageRow[]
     const total = rows.reduce(

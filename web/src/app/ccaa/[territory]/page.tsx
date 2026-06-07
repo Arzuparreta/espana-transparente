@@ -9,10 +9,9 @@ import { TerritoryFlag } from "@/components/domain/TerritoryFlag"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getAutonomicTerritoryDetail,
-  getAutonomicTerritoryKeys,
 } from "@/lib/data/multilevel"
 
-export const revalidate = 3600
+export const dynamic = "force-dynamic"
 
 interface PageProps {
   params: Promise<{ territory: string }>
@@ -32,11 +31,6 @@ function formatDate(value: string | null | undefined) {
     month: "short",
     year: "numeric",
   })
-}
-
-export async function generateStaticParams() {
-  const territories = await getAutonomicTerritoryKeys()
-  return territories.map((territory) => ({ territory: territory.territoryKey }))
 }
 
 export async function generateMetadata({ params }: PageProps) {

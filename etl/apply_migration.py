@@ -10,6 +10,8 @@ Usage:
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
+
 from dotenv import load_dotenv
 import psycopg2
 
@@ -35,7 +37,12 @@ if not sql_file.exists():
 sql = sql_file.read_text()
 print(f"Applying {sql_file.name} ...")
 
-url = DATABASE_URL.replace(":5432", ":6543")
+parsed = urlsplit(DATABASE_URL)
+if parsed.port == 5432:
+    host = parsed.netloc.rsplit(":", 1)[0]
+    url = urlunsplit(parsed._replace(netloc=f"{host}:6543"))
+else:
+    url = DATABASE_URL
 conn = psycopg2.connect(url)
 conn.autocommit = True
 with conn.cursor() as cur:

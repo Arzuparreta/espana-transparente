@@ -19,6 +19,12 @@ export function dataErrorMessage(error: unknown) {
   return String(error).slice(0, 240)
 }
 
+export function throwDataError(error: unknown, context: string): asserts error is null | undefined {
+  if (error) {
+    throw new Error(`${context}: ${dataErrorMessage(error)}`)
+  }
+}
+
 export const PAGE_SIZE = {
   votingSessions: 30,
   contracts: 50,

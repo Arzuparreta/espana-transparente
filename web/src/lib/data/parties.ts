@@ -1,13 +1,14 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, unwrapParty, normalizePartyName, isParliamentaryGroupName } from "./shared"
+import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, throwDataError, unwrapParty, normalizePartyName, isParliamentaryGroupName } from "./shared"
 
 export const getParties = unstable_cache(
   async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("politician_memberships")
       .select("party:parties(id, acronym, color, name, logo_url)")
       .eq("is_active", true)
       .eq("chamber", "congress")
+    throwDataError(error, "party list")
 
     const grouped = new Map<
       string,

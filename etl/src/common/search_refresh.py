@@ -21,9 +21,28 @@ CORPUS_ENTITY_TYPES = [
 # These tables are large enough that a single-shot tsvector INSERT can OOM the
 # free-tier DB (512 MB).  They are processed in row-ID-ordered batches instead.
 LARGE_ENTITY_TYPES = {"organization", "contract", "subsidy"}
+LARGE_ENTITY_LIMITS = {
+    "organization": 10_000,
+    "contract": 10_000,
+    "subsidy": 10_000,
+}
 
 _BATCH_SQL: dict[str, str] = {
     "organization": """
+        WITH candidates AS (
+          SELECT o.*
+          FROM organizations o
+          LEFT JOIN organization_counts oc ON oc.id = o.id
+          ORDER BY (
+            coalesce(oc.contract_count, 0) +
+            coalesce(oc.subsidy_beneficiary_count, 0) +
+            coalesce(oc.subsidy_granting_count, 0) +
+            coalesce(oc.revolving_door_count, 0) +
+            coalesce(oc.eu_fund_count, 0) +
+            coalesce(oc.judicial_case_count, 0)
+          ) DESC, o.id
+          LIMIT %(limit)s
+        )
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -39,7 +58,7 @@ _BATCH_SQL: dict[str, str] = {
             nullif(concat_ws(' · ', o.organization_type, o.sector), ''),
             concat_ws(' ', o.name, o.organization_type, o.sector, o.country)),
           'v3', now()
-        FROM organizations o
+        FROM candidates o
         WHERE o.name IS NOT NULL AND trim(o.name) <> ''
           AND o.id > %(last_id)s
         ORDER BY o.id
@@ -52,6 +71,12 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
     """,
     "contract": """
+        WITH candidates AS (
+          SELECT c.*
+          FROM contracts c
+          ORDER BY c.date DESC NULLS LAST, c.amount DESC NULLS LAST, c.id
+          LIMIT %(limit)s
+        )
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -77,7 +102,7 @@ _BATCH_SQL: dict[str, str] = {
               c.awarding_body_normalized, c.contractor, c.contract_type, c.cpv_code, c.region)
           ),
           'v3', now()
-        FROM contracts c
+        FROM candidates c
         WHERE c.id > %(last_id)s
         ORDER BY c.id
         LIMIT %(batch)s
@@ -90,6 +115,12 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
     """,
     "subsidy": """
+        WITH candidates AS (
+          SELECT s.*
+          FROM subsidies s
+          ORDER BY s.fecha_concesion DESC NULLS LAST, s.importe DESC NULLS LAST, s.id
+          LIMIT %(limit)s
+        )
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -114,7 +145,7 @@ _BATCH_SQL: dict[str, str] = {
               s.instrumento, s.nivel1, s.nivel2, s.nivel3)
           ),
           'v3', now()
-        FROM subsidies s
+        FROM candidates s
         WHERE s.id > %(last_id)s
         ORDER BY s.id
         LIMIT %(batch)s
@@ -138,17 +169,25 @@ def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 3000) -
     conn.commit()
 
     total = 0
+    limit = LARGE_ENTITY_LIMITS[entity_type]
     last_id = "00000000-0000-0000-0000-000000000000"  # UUID that sorts before all real UUIDs
     batch_num = 0
     while True:
         with conn.cursor() as cur:
             cur.execute("SET statement_timeout = '10min'")
-            cur.execute(sql, {"last_id": last_id, "batch": batch_size})
+            cur.execute(
+                sql,
+                {
+                    "last_id": last_id,
+                    "batch": min(batch_size, limit - total),
+                    "limit": limit,
+                },
+            )
             n = cur.rowcount
         conn.commit()
         total += n
         batch_num += 1
-        if n < batch_size:
+        if n < batch_size or total >= limit:
             break
         # Fetch the highest entity_id we just inserted to use as the cursor.
         with conn.cursor() as cur:

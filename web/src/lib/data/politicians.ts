@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type EntitySummaryRow } from "./shared"
+import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, throwDataError, type EntitySummaryRow } from "./shared"
 
 export const getDeputyCards = unstable_cache(
   async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("politicians")
       .select(
         "id, first_name, last_name, full_name, photo_url, photo_variants, politician_memberships!inner(id, constituency, group_parliamentary, is_active, chamber, party:parties(id, acronym, color, name, logo_url))"
@@ -11,6 +11,7 @@ export const getDeputyCards = unstable_cache(
       .eq("politician_memberships.is_active", true)
       .eq("politician_memberships.chamber", "congress")
       .order("full_name")
+    throwDataError(error, "deputy list")
     return data ?? []
   },
   ["deputy-cards", PHOTOS_CACHE_VERSION],
