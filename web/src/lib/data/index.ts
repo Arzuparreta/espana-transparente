@@ -146,9 +146,12 @@ export {
 // ── Declarations ─────────────────────────────────────────────────────────────
 export {
   getDeclarationsPage,
-  getDeclarationsRegister,
-  type DeclarationListRow,
-  type DeclarationRegisterRow,
+  getDeclarationById,
+  parseDeclarationSort,
+  type DeclarationPageRow,
+  type DeclarationDetailRow,
+  type DeclarationSortField,
+  type SortDirection,
   type DeclarationType,
 } from "./declarations"
 

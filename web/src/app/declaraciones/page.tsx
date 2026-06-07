@@ -4,7 +4,18 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { Pagination } from "@/components/domain/Pagination"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { getDeclarationsPage, getDeclarationsRegister, PAGE_SIZE, parsePage } from "@/lib/data"
+import {
+  getDeclarationsPage,
+  parseDeclarationSort,
+  parsePage,
+  PAGE_SIZE,
+  type DeclarationSortField,
+  type SortDirection,
+} from "@/lib/data"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
+import { ArrowDown, ArrowUp, Search } from "lucide-react"
 
 export const revalidate = 3600
 
@@ -44,48 +55,88 @@ function sourceHost(url: string | null): string | null {
   }
 }
 
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 interface PageProps {
-  searchParams?: Promise<{ tipo?: string; page?: string }>
+  searchParams?: Promise<{ tipo?: string; page?: string; party?: string; search?: string; sort?: string; direction?: string }>
 }
 
 export default async function DeclaracionesPage({ searchParams }: PageProps) {
   const params = await searchParams
   const tipo = params?.tipo ?? "bienes"
   const page = parsePage(params?.page)
+  const activeParty = params?.party?.trim() || null
+  const searchQuery = params?.search?.trim() || null
+  const { sort, direction } = parseDeclarationSort(params?.sort, params?.direction)
 
-  // Always fetch counts for all tabs (cached — one DB round-trip per tab type per hour).
-  // Fetch full data only for the active tab.
-  const [register, actividadesPage, interesesPage, bienesCountResult] = await Promise.all([
-    tipo === "bienes" ? getDeclarationsRegister() : Promise.resolve([]),
-    getDeclarationsPage(tipo === "actividades" ? page : 1, "actividades"),
-    getDeclarationsPage(tipo === "intereses" ? page : 1, "intereses_economicos"),
-    getDeclarationsPage(1, "bienes_rentas"),
+  const typeMap: Record<string, string> = {
+    bienes: "bienes_rentas",
+    actividades: "actividades",
+    intereses: "intereses_economicos",
+  }
+  const dbType = typeMap[tipo] ?? "bienes_rentas"
+
+  const [{ rows, total, parties }, latestDateResult] = await Promise.all([
+    getDeclarationsPage(page, dbType as "bienes_rentas" | "actividades" | "intereses_economicos" | null, activeParty, searchQuery, sort, direction),
+    getDeclarationsPage(1, dbType as "bienes_rentas" | "actividades" | "intereses_economicos" | null, null, null, "declaration_date", "desc"),
   ])
 
-  const actividades = tipo === "actividades" ? actividadesPage : { declarations: [], total: actividadesPage.total }
-  const intereses = tipo === "intereses" ? interesesPage : { declarations: [], total: interesesPage.total }
+  const latestDate = latestDateResult.rows[0]?.declaration_date ?? null
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.declarations))
 
-  const bienesTotal = tipo === "bienes" ? register.length : bienesCountResult.total
-  const actividadesTotal = actividadesPage.total
-  const interesesTotal = interesesPage.total
+  const hrefForSort = (field: DeclarationSortField) => {
+    const qs = new URLSearchParams()
+    const nextDirection: SortDirection =
+      sort === field
+        ? direction === "desc"
+          ? "asc"
+          : "desc"
+        : field === "politician_name"
+        ? "asc"
+        : "desc"
+    if (activeParty) qs.set("party", activeParty)
+    if (searchQuery) qs.set("search", searchQuery)
+    qs.set("sort", field)
+    qs.set("direction", nextDirection)
+    return `/declaraciones?tipo=${tipo}&${qs.toString()}`
+  }
+
+  const hrefForParty = (party: string | null) => {
+    const qs = new URLSearchParams()
+    if (party) qs.set("party", party)
+    if (searchQuery) qs.set("search", searchQuery)
+    if (sort !== "declared_income" || direction !== "desc") {
+      qs.set("sort", sort)
+      qs.set("direction", direction)
+    }
+    const value = qs.toString()
+    return `/declaraciones?tipo=${tipo}${value ? `&${value}` : ""}`
+  }
+
+  const baseSearchUrl = (() => {
+    const qs = new URLSearchParams()
+    qs.set("tipo", tipo)
+    if (activeParty) qs.set("party", activeParty)
+    if (sort !== "declared_income" || direction !== "desc") {
+      qs.set("sort", sort)
+      qs.set("direction", direction)
+    }
+    return `/declaraciones?${qs.toString()}`
+  })()
 
   const tabs = [
-    { href: "/declaraciones?tipo=bienes", label: TIPO_LABELS.bienes, active: tipo === "bienes", badge: String(bienesTotal) },
-    { href: "/declaraciones?tipo=actividades", label: TIPO_LABELS.actividades, active: tipo === "actividades", badge: String(actividadesTotal) },
-    { href: "/declaraciones?tipo=intereses", label: TIPO_LABELS.intereses, active: tipo === "intereses", badge: String(interesesTotal) },
+    { href: `/declaraciones?tipo=bienes`, label: TIPO_LABELS.bienes, active: tipo === "bienes" },
+    { href: `/declaraciones?tipo=actividades`, label: TIPO_LABELS.actividades, active: tipo === "actividades" },
+    { href: `/declaraciones?tipo=intereses`, label: TIPO_LABELS.intereses, active: tipo === "intereses" },
   ]
-
-  const totalPages = tipo === "actividades"
-    ? Math.max(1, Math.ceil(actividades.total / PAGE_SIZE.declarations))
-    : tipo === "intereses"
-    ? Math.max(1, Math.ceil(intereses.total / PAGE_SIZE.declarations))
-    : 1
-
-  const latestDate = tipo === "bienes"
-    ? register.map(r => r.declaration_date).filter(Boolean).sort().at(-1) ?? null
-    : tipo === "actividades"
-    ? actividades.declarations.map(r => r.declaration_date).filter(Boolean).sort().at(-1) ?? null
-    : intereses.declarations.map(r => r.declaration_date).filter(Boolean).sort().at(-1) ?? null
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -96,210 +147,245 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
 
       <SourceFootnote
         sourceLabel="Congreso de los Diputados"
-        sourceHref="https://www.congreso.es"
         latestRecordDate={latestDate}
-        coverageLabel={
-          tipo === "bienes"
-            ? `${bienesTotal} declaraciones de bienes y rentas · ${register.filter(r => r.declared_income != null && r.declared_income > 0).length} con ingresos extraídos por OCR`
-            : tipo === "actividades"
-            ? `${actividadesTotal} declaraciones de actividades`
-            : `${interesesTotal} declaraciones de intereses económicos`
-        }
+        coverageLabel={`${total.toLocaleString("es-ES")} declaraciones`}
       />
 
       <LinkTabs tabs={tabs} ariaLabel="Tipo de declaración" scroll={false} />
 
-      {/* ── Bienes y rentas ── */}
-      {tipo === "bienes" && (
-        register.length === 0 ? (
-          <EmptyState title="Sin datos" description="No hay declaraciones de bienes y rentas en la base de datos." />
-        ) : (
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">
-              Ingresos extraídos por OCR del PDF oficial. Pueden contener errores de reconocimiento.
-              Consulta el documento original para verificar los datos.
-            </p>
-            <div className="overflow-hidden rounded-[2px] border border-border bg-card">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/50 text-xs text-muted-foreground">
-                    <th className="px-4 py-2 text-left font-medium">Diputado/a</th>
-                    <th className="hidden px-4 py-2 text-left font-medium sm:table-cell">Fecha</th>
-                    <th className="px-4 py-2 text-right font-medium">Ingresos declarados</th>
-                    <th className="hidden px-4 py-2 text-right font-medium md:table-cell">Activos mencionados</th>
-                    <th className="px-4 py-2 text-right font-medium">PDF</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/30">
-                  {register.map((row) => {
-                    const assetParts: string[] = []
-                    if (row.inmuebles_mentioned && row.inmuebles_mentioned > 0)
-                      assetParts.push(`${row.inmuebles_mentioned} inm.`)
-                    if (row.vehiculos_mentioned && row.vehiculos_mentioned > 0)
-                      assetParts.push(`${row.vehiculos_mentioned} veh.`)
-                    if (row.financial_assets_mentioned && row.financial_assets_mentioned > 0)
-                      assetParts.push(`${row.financial_assets_mentioned} fin.`)
+      {/* ── Filters ── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Search */}
+        <form action={baseSearchUrl} method="GET" className="relative w-full">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input
+            name="search"
+            type="search"
+            placeholder="Buscar por nombre…"
+            defaultValue={searchQuery ?? ""}
+            className="pl-9"
+          />
+        </form>
 
+        {/* Party pills */}
+        {parties.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            <ResponsiveLink
+              href={hrefForParty(null)}
+              className={cn(
+                "rounded px-2.5 py-1 font-mono text-xs transition-colors",
+                !activeParty
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Todos
+            </ResponsiveLink>
+            {parties.map((p) => (
+              <ResponsiveLink
+                key={p.acronym}
+                href={hrefForParty(p.acronym)}
+                className={cn(
+                  "rounded px-2.5 py-1 font-mono text-xs transition-colors",
+                  activeParty === p.acronym
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {p.acronym}
+              </ResponsiveLink>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Sort controls (mobile) ── */}
+      <div className="flex flex-wrap items-center gap-1.5 sm:hidden" aria-label="Ordenar">
+        <span className="mr-1 text-xs text-muted-foreground">Ordenar por</span>
+        {(
+          [
+            ["declared_income", tipo === "bienes" ? "Ingresos" : "Fecha"],
+            ["declaration_date", "Fecha"],
+            ["politician_name", "Diputado"],
+          ] as const
+        ).map(([field, label]) => {
+          const active = sort === field
+          const Icon = direction === "asc" ? ArrowUp : ArrowDown
+          return (
+            <ResponsiveLink
+              key={field}
+              href={hrefForSort(field)}
+              className={cn(
+                "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors",
+                active
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              )}
+              aria-label={`Ordenar por ${label}${active ? `, actualmente ${direction === "asc" ? "ascendente" : "descendente"}` : ""}`}
+            >
+              {label}
+              {active && <Icon className="size-3" aria-hidden="true" />}
+            </ResponsiveLink>
+          )
+        })}
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Sin resultados"
+          description={searchQuery || activeParty ? "No hay declaraciones que coincidan con los filtros aplicados." : "No hay declaraciones de este tipo en la base de datos."}
+        />
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="space-y-2 sm:hidden">
+            {rows.map((row) => {
+              const host = sourceHost(row.source_url)
+              return (
+                <article key={row.id} className="rounded-[2px] border border-border bg-card p-4">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <ResponsiveLink
+                        href={`/diputados/${row.politician_id}`}
+                        className="block truncate font-medium underline-offset-2 hover:underline"
+                      >
+                        {row.politician_name ?? "—"}
+                      </ResponsiveLink>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {row.party_acronym && (
+                          <span
+                            className="inline-block size-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: row.party_color ?? "#888" }}
+                          />
+                        )}
+                        {row.party_acronym ?? "Sin grupo"}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {row.declared_income != null && row.declared_income > 0 ? (
+                        <div className="font-mono text-sm font-medium">{fmtEuro(row.declared_income)}</div>
+                      ) : (
+                        <span className="font-mono text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border-t border-border/40 pt-2 text-xs text-muted-foreground">
+                    <span>{formatDate(row.declaration_date)}</span>
+                    {row.source_url && <a href={row.source_url} target="_blank" rel="noopener noreferrer" className="hover:text-foreground hover:underline">{host ?? "Ver PDF"} →</a>}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden overflow-hidden rounded-[2px] border border-border bg-card sm:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/50 text-xs text-muted-foreground">
+                  {(
+                    [
+                      ["politician_name", "Diputado", "text-left"],
+                      ["declared_income", tipo === "bienes" ? "Ingresos" : "Fecha", tipo === "bienes" ? "text-right" : "text-left"],
+                      ["declaration_date", "Fecha", "text-left"],
+                    ] as const
+                  ).map(([field, label, align]) => {
+                    const active = sort === field
+                    const Icon = direction === "asc" ? ArrowUp : ArrowDown
                     return (
-                      <tr key={row.id} className="text-sm hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-2.5">
-                          {row.politician_name ? (
-                            <ResponsiveLink
-                              href={`/diputados/${row.politician_id}`}
-                              className="font-medium underline-offset-2 hover:underline"
-                            >
-                              {row.politician_name}
-                            </ResponsiveLink>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
+                      <th key={field} className={cn("px-4 py-3 font-medium", align)} aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}>
+                        <ResponsiveLink
+                          href={hrefForSort(field)}
+                          className={cn(
+                            "inline-flex items-center gap-1 underline-offset-4 hover:text-foreground hover:underline",
+                            align === "text-right" && "justify-end"
                           )}
-                        </td>
-                        <td className="hidden px-4 py-2.5 text-muted-foreground sm:table-cell">
-                          {formatDate(row.declaration_date)}
-                        </td>
-                        <td className="px-4 py-2.5 text-right">
-                          {row.ocr_status === "ok" ? (
-                            <span className="font-mono font-medium tabular-nums">
-                              {fmtEuro(row.declared_income)}
-                            </span>
-                          ) : (
-                            <span className="font-mono text-xs text-muted-foreground/60">
-                              OCR pendiente
-                            </span>
-                          )}
-                        </td>
-                        <td className="hidden px-4 py-2.5 text-right font-mono text-xs text-muted-foreground md:table-cell">
-                          {assetParts.length > 0 ? assetParts.join(" · ") : "—"}
-                        </td>
-                        <td className="px-4 py-2.5 text-right">
-                          {row.source_url ? (
-                            <a
-                              href={row.source_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                            >
-                              Ver →
-                            </a>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/40">—</span>
-                          )}
-                        </td>
-                      </tr>
+                        >
+                          {label}
+                          {active && <Icon className="size-3.5" aria-hidden="true" />}
+                        </ResponsiveLink>
+                      </th>
                     )
                   })}
-                </tbody>
-              </table>
-            </div>
+                  <th className="px-4 py-3 text-right font-medium">Partido</th>
+                  <th className="px-4 py-3 text-right font-medium">PDF</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {rows.map((row) => {
+                  const host = sourceHost(row.source_url)
+                  return (
+                    <tr key={row.id} className="transition-colors hover:bg-muted/30">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="size-8 shrink-0">
+                            <AvatarFallback className="text-[10px]">{row.politician_name ? initials(row.politician_name) : "?"}</AvatarFallback>
+                          </Avatar>
+                          <ResponsiveLink
+                            href={`/declaraciones/${row.id}`}
+                            className="min-w-0 font-medium underline-offset-2 hover:underline"
+                          >
+                            {row.politician_name ?? "—"}
+                          </ResponsiveLink>
+                        </div>
+                      </td>
+                      <td className={cn("px-4 py-3", tipo === "bienes" ? "text-right font-mono font-medium" : "text-left text-muted-foreground")}>
+                        {row.declared_income != null && row.declared_income > 0 ? (
+                          fmtEuro(row.declared_income)
+                        ) : (
+                          <span className="text-muted-foreground/60">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(row.declaration_date)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="flex items-center justify-end gap-1.5">
+                          {row.party_acronym && (
+                            <span className="inline-block size-2 rounded-full" style={{ backgroundColor: row.party_color ?? "#888" }} />
+                          )}
+                          <span className="font-mono text-xs text-muted-foreground">{row.party_acronym ?? "—"}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {row.source_url ? (
+                          <a
+                            href={row.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                          >
+                            {host ?? "Ver"} →
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/40">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        )
+        </>
       )}
 
-      {/* ── Actividades ── */}
-      {tipo === "actividades" && (
-        actividades.declarations.length === 0 ? (
-          <EmptyState title="Sin datos" description="No hay declaraciones de actividades en la base de datos." />
-        ) : (
-          <>
-            <ul className="space-y-2">
-              {actividades.declarations.map((item) => {
-                const activityCount = (item.raw_data?.activity_count as number | undefined) ?? null
-                const host = sourceHost(item.source_url)
-                return (
-                  <li key={item.id}>
-                    <div className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border border-border bg-card px-4 py-3">
-                      <div className="min-w-0 space-y-0.5">
-                        {item.politician_name ? (
-                          <ResponsiveLink
-                            href={`/diputados/${item.politician_id}`}
-                            className="block min-w-0 truncate text-sm font-medium underline-offset-2 hover:underline"
-                          >
-                            {item.politician_name}
-                          </ResponsiveLink>
-                        ) : (
-                          <p className="truncate text-sm text-muted-foreground">—</p>
-                        )}
-                        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                          Documento vigente
-                          {activityCount != null ? ` · ${activityCount} actividades` : ""}
-                          {host ? ` · ${host}` : ""}
-                        </p>
-                      </div>
-                      {item.source_url ? (
-                        <a
-                          href={item.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                        >
-                          Ver PDF →
-                        </a>
-                      ) : null}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              hrefForPage={(p) => `/declaraciones?tipo=actividades&page=${p}`}
-            />
-          </>
-        )
-      )}
-
-      {/* ── Intereses económicos ── */}
-      {tipo === "intereses" && (
-        intereses.declarations.length === 0 ? (
-          <EmptyState title="Sin datos" description="No hay declaraciones de intereses económicos en la base de datos." />
-        ) : (
-          <>
-            <ul className="space-y-2">
-              {intereses.declarations.map((item) => {
-                const host = sourceHost(item.source_url)
-                return (
-                  <li key={item.id}>
-                    <div className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border border-border bg-card px-4 py-3">
-                      <div className="min-w-0 space-y-0.5">
-                        {item.politician_name ? (
-                          <ResponsiveLink
-                            href={`/diputados/${item.politician_id}`}
-                            className="block min-w-0 truncate text-sm font-medium underline-offset-2 hover:underline"
-                          >
-                            {item.politician_name}
-                          </ResponsiveLink>
-                        ) : (
-                          <p className="truncate text-sm text-muted-foreground">—</p>
-                        )}
-                        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                          {formatDate(item.declaration_date)}
-                          {host ? ` · ${host}` : ""}
-                        </p>
-                      </div>
-                      {item.source_url ? (
-                        <a
-                          href={item.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shrink-0 font-mono text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                        >
-                          Ver PDF →
-                        </a>
-                      ) : null}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              hrefForPage={(p) => `/declaraciones?tipo=intereses&page=${p}`}
-            />
-          </>
-        )
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        hrefForPage={(p) => {
+          const qs = new URLSearchParams()
+          qs.set("tipo", tipo)
+          if (p > 1) qs.set("page", String(p))
+          if (activeParty) qs.set("party", activeParty)
+          if (searchQuery) qs.set("search", searchQuery)
+          if (sort !== "declared_income" || direction !== "desc") {
+            qs.set("sort", sort)
+            qs.set("direction", direction)
+          }
+          return `/declaraciones?${qs.toString()}`
+        }}
+      />
     </div>
   )
 }
