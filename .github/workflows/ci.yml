@@ -113,6 +113,16 @@ jobs:
           node-version: 22
       - name: Apply pending migrations
         run: NPM_CONFIG_CACHE=${RUNNER_TEMP}/npm-cache npx supabase migration up --db-url "$DATABASE_URL" --include-all
+      - name: Close abandoned ETL runs
+        run: |
+          psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --command="
+            UPDATE etl_runs
+            SET status = 'failed',
+                error_summary = 'Execution ended without reporting completion',
+                finished_at = now()
+            WHERE status = 'running'
+              AND started_at < now() - interval '2 hours';
+          "
 
   etl-daily:
     name: ETL daily pipelines
