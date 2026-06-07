@@ -4,10 +4,10 @@ name: CI
 # DATABASE_URL              → Postgres direct URI (write access) — KEEP SECRET
 # SUPABASE_SERVICE_ROLE_KEY → Supabase service_role (admin writes) — KEEP SECRET
 #
-# The values below (URL + anon key) are public by design:
+# SUPABASE_URL and SUPABASE_ANON_KEY are repository variables. They are public
+# by design, but keeping them in one place prevents deploys from drifting.
 #   - SUPABASE_URL is visible in every browser request
 #   - NEXT_PUBLIC_SUPABASE_ANON_KEY is the publishable anon key (read-only)
-# They are inlined for simplicity; no security risk.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -45,8 +45,8 @@ jobs:
       run:
         working-directory: web
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,8 +69,8 @@ jobs:
       run:
         working-directory: web
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,6 +99,21 @@ jobs:
       - run: PYTHONPATH=src python -m src.ine.ipc_subgrupos --dry-run
       - run: PYTHONPATH=src python -m src.elections.ingest --dry-run
 
+  database-migrate:
+    name: Apply self-hosted database migrations
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, linux, x64, espana-transparente]
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply pending migrations
+        run: NPM_CONFIG_CACHE=${RUNNER_TEMP}/npm-cache npx supabase migration up --db-url "$DATABASE_URL" --include-all
+
   etl-daily:
     name: ETL daily pipelines
     if: >-
@@ -112,7 +127,9 @@ jobs:
         working-directory: etl
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
     steps:
@@ -130,14 +147,16 @@ jobs:
       (github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1') ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
     defaults:
       run:
         working-directory: etl
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
+      SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
     steps:

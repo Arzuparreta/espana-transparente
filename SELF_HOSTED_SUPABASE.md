@@ -1,7 +1,56 @@
-# Self-hosted Supabase recovery
+# Self-hosted Supabase production
 
-This repo can run against a local Supabase stack when the hosted Free project is
-unavailable or exhausted.
+Production uses the Supabase stack on `desktop-ruben`. Vercel reaches its HTTP
+API through Tailscale Funnel; ETL and migration jobs run on the same machine
+through the `desktop-ruben` GitHub Actions runner and connect to PostgreSQL on
+`127.0.0.1:54322`.
+
+The old `zktpodkvlgciluhbulwr.supabase.co` project is not part of the production
+data path. Do not add it back as a fallback: a reachable but obsolete project
+looks like an empty database and hides configuration drift.
+
+## Production topology
+
+```text
+Browser / Vercel
+  -> https://desktop-ruben.taileed0d5.ts.net
+  -> Tailscale Funnel
+  -> Supabase Kong on 127.0.0.1:54321
+
+GitHub Actions ETL / migrations
+  -> self-hosted runner: desktop-ruben
+  -> PostgreSQL on 127.0.0.1:54322
+```
+
+Repository variables:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+AUTH_EXPECTED_SUPABASE_HOST
+```
+
+Repository secrets:
+
+```text
+DATABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+AUTH_BACKUP_ENCRYPTION_PASSPHRASE
+```
+
+Vercel production variables:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+The runner is installed as the user service
+`espana-transparente-runner.service`, with lingering enabled so it starts after
+a reboot. Every push to `main` applies pending migrations before the next ETL
+cycle. Scheduled ETLs never run on GitHub-hosted runners because PostgreSQL is
+not exposed publicly.
 
 ## Start local Supabase
 
@@ -170,6 +219,10 @@ The migration chain has been patched for clean bootstrap from an empty database:
 | `20260701000000_fix_permissions_money_cache.sql` | Added DROP VIEW for dependent views; commented out VACUUM (not allowed in migration pipeline) |
 | `20260526000000_*.sql` → `20260526000001_*.sql` | Renamed duplicate timestamp |
 | `20260630000000_*.sql` → `20260630000001_*.sql` | Renamed duplicate timestamp |
+| `20260701000000_lobbying_*.sql` → `20260701000001_lobbying_*.sql` | Renamed duplicate timestamp |
+| `20260705000000_initiative_*.sql` → `20260705000001_initiative_*.sql` | Renamed duplicate timestamp |
+| `20260708010000_fix_declarations_page_rpc.sql` | Removed ambiguous output-column references and made numeric parsing tolerant |
+| `20260708020000_restore_reviewed_revolving_doors.sql` | Restores the reviewed 20-case dataset and public sources on migration-only databases |
 | `etl/src/common/db.py` | Fixed port normalization (was corrupting local port 54322) |
 | `etl/src/congreso/asistencia.py` | Added `chamber` column to voting_sessions ON CONFLICT |
 | `etl/src/contratacion/contratos.py` | Skip empty organization names instead of crashing |
@@ -187,5 +240,7 @@ The migration chain has been patched for clean bootstrap from an empty database:
 
 - The migration chain must stay reproducible from an empty database.
 - Avoid migrations that depend on rows produced by historical ETL runs.
-- If the hosted Supabase project comes back, dump and compare before discarding.
-- The local stack is a recovery/dev stack, not a hardened production deployment.
+- Keep Tailscale Funnel and the GitHub runner online; `/api/health` verifies the
+  public path after every production deployment.
+- Never point Vercel or Actions at a hosted Supabase project as an availability
+  fallback. Recovery must restore this instance or promote an explicit backup.

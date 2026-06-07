@@ -4,7 +4,7 @@ set -euo pipefail
 : "${DATABASE_URL:?DATABASE_URL is required}"
 : "${AUTH_BACKUP_ENCRYPTION_PASSPHRASE:?AUTH_BACKUP_ENCRYPTION_PASSPHRASE is required}"
 
-expected_ref="${AUTH_EXPECTED_SUPABASE_REF:-zktpodkvlgciluhbulwr}"
+instance_name="${AUTH_INSTANCE_NAME:-espana-transparente-self-hosted}"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 output_dir="${BACKUP_OUTPUT_DIR:-./backups}"
 tmp_dir="$(mktemp -d)"
@@ -55,7 +55,7 @@ SELECT jsonb_pretty(jsonb_build_object(
 cat > "$manifest_file" <<EOF
 {
   "created_at": "${timestamp}",
-  "expected_supabase_ref": "${expected_ref}",
+  "supabase_instance": "${instance_name}",
   "format": "pg_dump custom archive inside encrypted tar.gz",
   "tables": [
     "auth.users",

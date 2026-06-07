@@ -11,7 +11,7 @@ BUCKET = "politician-photos"
 
 SUPABASE_URL = (os.getenv("SUPABASE_URL")
                 or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-                or "https://zktpodkvlgciluhbulwr.supabase.co").rstrip("/")
+                or "").rstrip("/")
 SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 
@@ -20,6 +20,8 @@ class StorageError(Exception):
 
 
 def _require_service_key() -> str:
+    if not SUPABASE_URL:
+        raise StorageError("SUPABASE_URL is required for photo uploads")
     if not SERVICE_ROLE_KEY:
         raise StorageError(
             "SUPABASE_SERVICE_ROLE_KEY is required for photo uploads "

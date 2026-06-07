@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type RECOVER after increasing Supabase database capacity
+        description: Type RECOVER to rebuild self-hosted derived data
         required: true
 
 concurrency:
@@ -15,7 +15,7 @@ jobs:
   recover:
     name: Reclaim derived storage and rebuild caches
     if: inputs.confirmation == 'RECOVER'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
     defaults:
       run:
@@ -51,6 +51,6 @@ jobs:
       - name: Verify production datasets
         working-directory: web
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: node scripts/search-check.mjs --routes-only

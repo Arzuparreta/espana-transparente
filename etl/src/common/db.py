@@ -10,8 +10,8 @@ from urllib.parse import urlsplit, urlunsplit
 load_dotenv()
 
 DB_URL = os.getenv("DATABASE_URL")
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "https://zktpodkvlgciluhbulwr.supabase.co")
-PUBLISHABLE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O")
+SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL") or os.getenv("SUPABASE_URL")
+PUBLISHABLE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 
 
 def _normalize_database_url(url: str) -> str:
@@ -29,6 +29,10 @@ def _normalize_database_url(url: str) -> str:
 
 def get_client() -> Client:
     """Get Supabase client using publishable key (for reads only)."""
+    if not SUPABASE_URL or not PUBLISHABLE_KEY:
+        raise RuntimeError(
+            "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required"
+        )
     return create_client(SUPABASE_URL, PUBLISHABLE_KEY)
 
 

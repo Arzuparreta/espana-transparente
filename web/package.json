@@ -9,7 +9,6 @@
     "lint": "next lint",
     "ui:audit": "node scripts/ui-audit.mjs",
     "content:audit": "node scripts/content-audit.mjs",
-    "auth:configure": "node scripts/auth-config.mjs",
     "auth:health": "node scripts/auth-health.mjs",
     "auth:smoke": "node scripts/auth-smoke.mjs",
     "search:check": "node scripts/search-check.mjs",

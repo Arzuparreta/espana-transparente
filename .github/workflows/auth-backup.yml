@@ -10,12 +10,12 @@ concurrency:
 jobs:
   backup:
     name: Encrypted logical export
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}
-      AUTH_EXPECTED_SUPABASE_REF: ${{ vars.AUTH_EXPECTED_SUPABASE_REF || 'zktpodkvlgciluhbulwr' }}
+      AUTH_INSTANCE_NAME: espana-transparente-self-hosted
       BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
     steps:
       - uses: actions/checkout@v4

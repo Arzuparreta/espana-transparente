@@ -2,7 +2,7 @@
 
 import { spawnSync } from "node:child_process"
 
-const EXPECTED_REF = process.env.AUTH_EXPECTED_SUPABASE_REF ?? "zktpodkvlgciluhbulwr"
+const EXPECTED_HOST = process.env.AUTH_EXPECTED_SUPABASE_HOST ?? ""
 const MIN_USERS = Number.parseInt(process.env.AUTH_MIN_USERS ?? "1", 10)
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
@@ -113,12 +113,10 @@ if (result.status !== 0) {
 const health = JSON.parse(result.stdout.trim())
 const failures = []
 const authSettings = await getAuthSettings()
-const projectRefFromUrl = getProjectRef(SUPABASE_URL)
+const instanceHost = getInstanceHost(SUPABASE_URL)
 
-if (projectRefFromUrl && projectRefFromUrl !== EXPECTED_REF) {
-  failures.push(`NEXT_PUBLIC_SUPABASE_URL points to ${projectRefFromUrl}, expected ${EXPECTED_REF}`)
-} else if (!projectRefFromUrl && !DATABASE_URL.includes(EXPECTED_REF)) {
-  failures.push(`Could not confirm expected Supabase ref ${EXPECTED_REF} from env`)
+if (EXPECTED_HOST && instanceHost !== EXPECTED_HOST) {
+  failures.push(`NEXT_PUBLIC_SUPABASE_URL points to ${instanceHost || "an invalid URL"}, expected ${EXPECTED_HOST}`)
 }
 
 for (const [table, present] of Object.entries(health.tables)) {
@@ -155,7 +153,7 @@ if (authSettings) {
 }
 
 console.log("Auth health")
-console.log(`project_ref=${projectRefFromUrl || "unknown"} expected=${EXPECTED_REF}`)
+console.log(`instance_host=${instanceHost || "unknown"} expected=${EXPECTED_HOST || "not-set"}`)
 console.log(`auth.users=${health.counts.auth_users}`)
 console.log(`auth.identities=${health.counts.auth_identities}`)
 console.log(`user_profiles=${health.counts.user_profiles}`)
@@ -176,12 +174,10 @@ if (failures.length > 0) {
 
 console.log("\nOK")
 
-function getProjectRef(value) {
+function getInstanceHost(value) {
   if (!value) return null
   try {
-    const host = new URL(value).hostname
-    const [ref] = host.split(".")
-    return ref || null
+    return new URL(value).hostname
   } catch {
     return null
   }

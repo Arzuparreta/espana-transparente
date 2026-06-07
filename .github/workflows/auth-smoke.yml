@@ -26,8 +26,8 @@ jobs:
       run:
         working-directory: web
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://zktpodkvlgciluhbulwr.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_PP5UVS47MgYZfVhzFA5vHg_30G6Cc9O
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       AUTH_SMOKE_APP_URL: ${{ inputs.app_url }}
     steps:
