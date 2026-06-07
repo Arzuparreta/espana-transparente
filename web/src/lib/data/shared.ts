@@ -1,6 +1,16 @@
-import { unstable_cache } from "next/cache"
+import { unstable_cache as nextUnstableCache } from "next/cache"
 
-export { unstable_cache }
+export const PUBLIC_DATA_CACHE_VERSION = "public-data-v3"
+
+export const unstable_cache = ((
+  callback,
+  keyParts = [],
+  options
+) => nextUnstableCache(
+  callback,
+  [PUBLIC_DATA_CACHE_VERSION, ...keyParts],
+  options
+)) as typeof nextUnstableCache
 
 export const HOUR = 3600
 export const PHOTOS_CACHE_VERSION = "photos-v3"
