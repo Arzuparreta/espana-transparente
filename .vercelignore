@@ -1,0 +1,9 @@
+.actions-runner/
+.git/
+.next/
+web/.next/
+node_modules/
+web/node_modules/
+etl/.venv/
+__pycache__/
+*.pyc
