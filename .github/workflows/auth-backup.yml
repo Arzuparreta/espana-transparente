@@ -10,9 +10,6 @@ jobs:
     name: Encrypted critical export
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 30
-    concurrency:
-      group: production-database-writer
-      cancel-in-progress: false
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}

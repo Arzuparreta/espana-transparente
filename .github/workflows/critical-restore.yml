@@ -28,9 +28,6 @@ jobs:
     if: inputs.mode == 'dry-run' || inputs.confirmation == 'RESTORE_CRITICAL'
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 30
-    concurrency:
-      group: production-database-writer
-      cancel-in-progress: false
     defaults:
       run:
         working-directory: etl

@@ -65,9 +65,9 @@ Scheduled operations:
 06:00 UTC Monday  weekly ETL batch
 ```
 
-Migrations, ETLs, database recovery, critical restore, and backups share the
-`production-database-writer` concurrency group so only one writer runs at a
-time.
+Migrations, ETLs, database recovery, critical restore, and backups all use the
+single runner labeled `espana-transparente`. Its runner queue serializes writers
+without GitHub's job-concurrency behavior cancelling older pending jobs.
 
 ## Critical backups
 

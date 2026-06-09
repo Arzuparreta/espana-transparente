@@ -13,9 +13,6 @@ jobs:
     if: inputs.confirmation == 'RECOVER'
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
-    concurrency:
-      group: production-database-writer
-      cancel-in-progress: false
     defaults:
       run:
         working-directory: etl
