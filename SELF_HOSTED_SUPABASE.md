@@ -62,12 +62,15 @@ Scheduled operations:
 02:30 UTC daily   encrypted critical backup
 03:15 UTC daily   read-only Auth health
 04:00 UTC daily   daily ETL batch
-06:00 UTC Monday  weekly ETL batch
+06:00 UTC Monday  weekly ETL core, documents, and links/indexes
 ```
 
 Migrations, ETLs, database recovery, critical restore, and backups all use the
 single runner labeled `espana-transparente`. Its runner queue serializes writers
 without GitHub's job-concurrency behavior cancelling older pending jobs.
+The weekly work is split into three jobs so OCR/BORME have an independent
+timeout and cannot prevent judicial, lobbying, indicator, and search refreshes
+from running.
 
 ## Critical backups
 

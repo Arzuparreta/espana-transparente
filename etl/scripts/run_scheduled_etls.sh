@@ -77,7 +77,7 @@ run_daily() {
   run_self_tracked_pipeline "common.search_refresh" python -m common.search_refresh
 }
 
-run_weekly() {
+run_weekly_core() {
   run_pipeline "congreso.cods" python -m src.congreso.cods --resume
   run_pipeline "congreso.declaraciones" python -m src.congreso.declaraciones
   run_self_tracked_pipeline "congreso.iniciativas" python -m src.congreso.iniciativas
@@ -93,8 +93,14 @@ run_weekly() {
   run_self_tracked_pipeline "kohesio.fondos_ue" python -m src.kohesio.fondos_ue
   run_pipeline "senado.senadores" python -m src.senado.senadores
   run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones
+}
+
+run_weekly_documents() {
   run_pipeline "congreso.declaraciones_ocr" python -m src.congreso.declaraciones_ocr --limit 150 --resume
   run_pipeline "borme.officers" python -m src.borme.officers --limit 200 --resume
+}
+
+run_weekly_links() {
   run_pipeline "lobbying.rgi" python -m src.lobbying.rgi --resume
   run_pipeline "congreso.opendata_intereses" python -m src.congreso.opendata_intereses
   run_self_tracked_pipeline "judicial.wikipedia" python -m src.judicial.wikipedia --resume --extract-people
@@ -110,11 +116,22 @@ case "${batch}" in
   daily)
     run_daily
     ;;
+  weekly-core)
+    run_weekly_core
+    ;;
+  weekly-documents)
+    run_weekly_documents
+    ;;
+  weekly-links)
+    run_weekly_links
+    ;;
   weekly)
-    run_weekly
+    run_weekly_core
+    run_weekly_documents
+    run_weekly_links
     ;;
   *)
-    echo "Usage: $0 daily|weekly" >&2
+    echo "Usage: $0 daily|weekly|weekly-core|weekly-documents|weekly-links" >&2
     exit 2
     ;;
 esac

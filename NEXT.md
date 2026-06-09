@@ -257,7 +257,7 @@ The project has advanced faster than the original phased plan. Here's where ever
 - 12 SEPI subsidiaries with board data surfaced on `/organizaciones/[id]`
 - OCR pipeline (`declaraciones_ocr.py`) handles `bienes_rentas` and `intereses_economicos` PDFs
 - OpenData pipeline (`opendata_intereses.py`) ingests machine-readable docacteco JSON
-- 192 ETL tests pass
+- 197 ETL tests pass
 - CI workflow runs OCR (25 PDFs/day + 150/week) + OpenData + search refresh
 - **Remaining OCR**: continues in CI — daily 25 + weekly 150 PDFs (`--resume`)
 
