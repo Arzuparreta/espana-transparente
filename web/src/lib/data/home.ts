@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type TopDivergenceSessionAncla, type InflationAnchor } from "./shared"
 import { getIndicatorSectionFacts } from "./conexiones"
+import { getCriticalPipelineStatuses, type EtlPipelineRow } from "@/lib/etl-pipelines"
 
 export type { TopContractAncla, TopDivergenceSessionAncla, InflationAnchor }
 
@@ -41,8 +42,10 @@ export type HomeHeroAnchor =
     }
 
 export type EtlFreshness = {
+  status: "fresh" | "delayed" | "unavailable"
   latestFinishedAt: string | null
   pipelineCount: number
+  delayedPipelines: string[]
 }
 
 function applySectionOverrides(rows: SectionIndexRow[], overrides: SectionIndexRow[]): SectionIndexRow[] {
@@ -270,20 +273,36 @@ export async function getHomeHeroAnchor(
 // header strip on the home: "DATOS ACTUALIZADOS · 21 MAY 2026 · 14 FUENTES".
 export const getEtlFreshnessSummary = unstable_cache(
   async (): Promise<EtlFreshness> => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_etl_pipeline_status")
       .select("pipeline, last_finished_at, last_status")
-    const rows = (data ?? []) as { pipeline: string; last_finished_at: string | null; last_status: string | null }[]
+    if (error) {
+      return {
+        status: "unavailable",
+        latestFinishedAt: null,
+        pipelineCount: 0,
+        delayedPipelines: [],
+      }
+    }
+
+    const rows = (data ?? []) as EtlPipelineRow[]
     const finished = rows
-      .filter((r) => r.last_finished_at != null)
+      .filter((r) => r.last_status === "succeeded" && r.last_finished_at != null)
       .map((r) => r.last_finished_at as string)
       .sort()
+    const criticalStatuses = getCriticalPipelineStatuses(rows)
+    const delayedPipelines = criticalStatuses
+      .filter((row) => row.status !== "fresh")
+      .map((row) => row.label)
+
     return {
+      status: delayedPipelines.length > 0 ? "delayed" : "fresh",
       latestFinishedAt: finished.at(-1) ?? null,
       pipelineCount: rows.length,
+      delayedPipelines,
     }
   },
-  ["etl-freshness-summary"],
+  ["etl-freshness-summary-v2"],
   { revalidate: HOUR }
 )
 

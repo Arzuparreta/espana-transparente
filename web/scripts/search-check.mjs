@@ -34,7 +34,7 @@ function loadEnvFile(path, overwrite = false) {
 }
 
 loadEnvFile(envPath)
-loadEnvFile(etlEnvPath, true)
+loadEnvFile(etlEnvPath)
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const key =

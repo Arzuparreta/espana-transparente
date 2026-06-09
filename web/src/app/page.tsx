@@ -11,6 +11,7 @@ import {
   getTopContractOfMonth,
 } from "@/lib/data"
 import { THREADS } from "@/lib/thread-config"
+import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
 
@@ -49,10 +50,16 @@ export default async function HomePage() {
     <div className="space-y-8 sm:space-y-10">
       <RevealSection>
         <LogoHero parties={parties ?? []} />
-        {freshness.latestFinishedAt ? (
+        {freshness.status === "fresh" && freshness.latestFinishedAt ? (
           <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
             Datos actualizados · {formatShortDate(freshness.latestFinishedAt)} ·{" "}
             {formatCount(freshness.pipelineCount)} fuentes públicas
+          </p>
+        ) : freshness.status === "delayed" ? (
+          <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-amber-700 dark:text-amber-400">
+            <Link href="/estado-datos" className="underline-offset-2 hover:underline">
+              Actualización retrasada · {formatCount(freshness.delayedPipelines.length)} fuentes pendientes
+            </Link>
           </p>
         ) : null}
       </RevealSection>

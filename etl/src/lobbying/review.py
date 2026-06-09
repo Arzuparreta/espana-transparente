@@ -35,6 +35,7 @@ def list_links(reviewed: bool | None, limit: int) -> None:
                   lol.confidence,
                   lol.match_method,
                   lol.reviewed,
+                  lol.review_status,
                   lg.source_url
                 FROM lobbying_organization_links lol
                 JOIN lobbying_groups lg ON lg.id = lol.lobbying_group_id
@@ -52,7 +53,7 @@ def list_links(reviewed: bool | None, limit: int) -> None:
         return
 
     for row in rows:
-        status = "reviewed" if row["reviewed"] else "pending"
+        status = row["review_status"]
         print(
             f"{row['id']} | {status} | conf={row['confidence']} | "
             f"{row['group_name'][:50]} → {row['org_name'][:50]}"
@@ -65,10 +66,13 @@ def approve_link(link_id: str, reviewed_by: str | None) -> None:
             cur.execute(
                 """
                 UPDATE lobbying_organization_links
-                SET reviewed = true
+                SET reviewed = true,
+                    review_status = 'reviewed',
+                    reviewed_at = now(),
+                    reviewed_by = %s
                 WHERE id = %s
                 """,
-                (link_id,),
+                (reviewed_by, link_id),
             )
             if cur.rowcount == 0:
                 raise SystemExit(f"Link not found: {link_id}")
@@ -77,17 +81,25 @@ def approve_link(link_id: str, reviewed_by: str | None) -> None:
     print(f"approved{who}: link {link_id}")
 
 
-def reject_link(link_id: str) -> None:
+def reject_link(link_id: str, reviewed_by: str | None) -> None:
     with get_pg_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "DELETE FROM lobbying_organization_links WHERE id = %s",
-                (link_id,),
+                """
+                UPDATE lobbying_organization_links
+                SET reviewed = false,
+                    review_status = 'rejected',
+                    reviewed_at = now(),
+                    reviewed_by = %s
+                WHERE id = %s
+                """,
+                (reviewed_by, link_id),
             )
             if cur.rowcount == 0:
                 raise SystemExit(f"Link not found: {link_id}")
             conn.commit()
-    print(f"rejected (deleted): link {link_id}")
+    who = f" by {reviewed_by}" if reviewed_by else ""
+    print(f"rejected{who}: link {link_id}")
 
 
 def approve_high_confidence(min_confidence: float, reviewed_by: str | None) -> None:
@@ -96,12 +108,16 @@ def approve_high_confidence(min_confidence: float, reviewed_by: str | None) -> N
             cur.execute(
                 """
                 UPDATE lobbying_organization_links
-                SET reviewed = true
+                SET reviewed = true,
+                    review_status = 'reviewed',
+                    reviewed_at = now(),
+                    reviewed_by = %s
                 WHERE reviewed = false
+                  AND review_status <> 'rejected'
                   AND confidence >= %s
                 RETURNING id
                 """,
-                (min_confidence,),
+                (reviewed_by, min_confidence),
             )
             ids = [row[0] for row in cur.fetchall()]
             conn.commit()
@@ -129,6 +145,7 @@ def main() -> None:
 
     reject_cmd = sub.add_parser("reject-link")
     reject_cmd.add_argument("link_id")
+    reject_cmd.add_argument("--reviewed-by")
 
     bulk_cmd = sub.add_parser("approve-high-confidence")
     bulk_cmd.add_argument("--min-confidence", type=float, default=0.85)
@@ -142,7 +159,7 @@ def main() -> None:
     elif args.command == "approve-link":
         approve_link(args.link_id, args.reviewed_by)
     elif args.command == "reject-link":
-        reject_link(args.link_id)
+        reject_link(args.link_id, args.reviewed_by)
     elif args.command == "approve-high-confidence":
         approve_high_confidence(args.min_confidence, args.reviewed_by)
 

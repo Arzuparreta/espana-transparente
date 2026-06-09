@@ -1,0 +1,27 @@
+name: Set up ETL Python
+description: Prepare the persistent Python 3.12 ETL environment on the self-hosted runner.
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare Python 3.12 environment
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        command -v uv >/dev/null
+
+        export UV_CACHE_DIR="${RUNNER_TOOL_CACHE}/uv-cache"
+        export UV_PYTHON_INSTALL_DIR="${RUNNER_TOOL_CACHE}/uv-python"
+        venv="${RUNNER_TOOL_CACHE}/espana-transparente/etl-py312"
+
+        uv python install 3.12
+        if [[ ! -x "${venv}/bin/python" ]] || \
+           [[ "$("${venv}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || true)" != "3.12" ]]; then
+          rm -rf "${venv}"
+          uv venv --python 3.12 "${venv}"
+        fi
+
+        uv pip sync --python "${venv}/bin/python" "${GITHUB_WORKSPACE}/etl/requirements.txt"
+        echo "${venv}/bin" >> "${GITHUB_PATH}"
+        "${venv}/bin/python" --version

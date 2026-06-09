@@ -2,31 +2,38 @@ name: Auth backup
 
 on:
   workflow_dispatch:
-
-concurrency:
-  group: auth-backup
-  cancel-in-progress: false
+  schedule:
+    - cron: '30 2 * * *'
 
 jobs:
   backup:
-    name: Encrypted logical export
+    name: Encrypted critical export
     runs-on: [self-hosted, linux, x64, espana-transparente]
-    timeout-minutes: 15
+    timeout-minutes: 30
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}
       AUTH_INSTANCE_NAME: espana-transparente-self-hosted
       BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
     steps:
-      - uses: actions/checkout@v4
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
+      - name: Verify backup tools
+        run: |
+          command -v pg_dump
+          command -v pg_restore
+          command -v psql
+          command -v docker
+          command -v openssl
       - name: Create encrypted backup
         run: bash etl/scripts/backup_auth_data.sh
       - name: Upload encrypted artifact
         uses: actions/upload-artifact@v4
         with:
-          name: auth-backup-${{ github.run_id }}
+          name: critical-backup-${{ github.run_id }}
           path: ${{ runner.temp }}/auth-backups/*.tar.gz.enc
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30

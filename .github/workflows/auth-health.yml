@@ -2,6 +2,8 @@ name: Auth health
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '15 3 * * *'
 
 concurrency:
   group: auth-health-${{ github.ref }}
@@ -20,11 +22,11 @@ jobs:
       AUTH_EXPECTED_SUPABASE_HOST: ${{ vars.AUTH_EXPECTED_SUPABASE_HOST }}
       AUTH_MIN_USERS: ${{ vars.AUTH_MIN_USERS || '1' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Verify PostgreSQL client
+        run: command -v psql
       - name: Run auth health
         run: node web/scripts/auth-health.mjs

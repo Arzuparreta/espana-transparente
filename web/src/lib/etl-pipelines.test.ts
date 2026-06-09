@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { ETL_PIPELINE_LABELS, getEtlPipelineLabel } from "./etl-pipelines"
+import {
+  ETL_PIPELINE_LABELS,
+  getCriticalPipelineStatuses,
+  getEtlPipelineLabel,
+  getPipelineDisplayStatus,
+} from "./etl-pipelines"
 
 describe("getEtlPipelineLabel", () => {
   it("covers the priority ETL pipelines exposed in status views", () => {
@@ -12,5 +17,37 @@ describe("getEtlPipelineLabel", () => {
 
   it("falls back to the raw pipeline name for unknown entries", () => {
     expect(getEtlPipelineLabel("custom.pipeline")).toBe("custom.pipeline")
+  })
+
+  it("marks missing and stale critical pipelines as delayed work", () => {
+    const now = new Date("2026-06-09T12:00:00Z")
+    const statuses = getCriticalPipelineStatuses(
+      [
+        {
+          pipeline: "contracts_daily",
+          last_status: "succeeded",
+          last_finished_at: "2026-06-09T04:00:00Z",
+        },
+        {
+          pipeline: "congreso.iniciativas",
+          last_status: "succeeded",
+          last_finished_at: "2026-05-20T04:00:00Z",
+        },
+      ],
+      now
+    )
+
+    expect(statuses.find((row) => row.key === "contracts")?.status).toBe("fresh")
+    expect(statuses.find((row) => row.key === "initiatives")?.status).toBe("delayed")
+    expect(statuses.find((row) => row.key === "deputies")?.status).toBe("missing")
+  })
+
+  it("does not report a recent failed run as fresh", () => {
+    const row = {
+      pipeline: "common.search_refresh",
+      last_status: "failed",
+      last_finished_at: "2026-06-09T11:55:00Z",
+    }
+    expect(getPipelineDisplayStatus(row, new Date("2026-06-09T12:00:00Z"))).toBe("failed")
   })
 })

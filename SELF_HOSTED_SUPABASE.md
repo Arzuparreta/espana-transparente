@@ -49,8 +49,58 @@ SUPABASE_SERVICE_ROLE_KEY
 The runner is installed as the user service
 `espana-transparente-runner.service`, with lingering enabled so it starts after
 a reboot. Every push to `main` applies pending migrations before the next ETL
-cycle. Scheduled ETLs never run on GitHub-hosted runners because PostgreSQL is
-not exposed publicly.
+cycle. Daily and weekly ETLs run on this self-hosted runner because PostgreSQL
+is not exposed publicly.
+
+The runner uses `uv` to maintain a persistent Python 3.12 environment under
+`RUNNER_TOOL_CACHE`. Do not use `actions/setup-python` on this CachyOS host:
+the action does not provide CachyOS toolcache builds.
+
+Scheduled operations:
+
+```text
+02:30 UTC daily   encrypted critical backup
+03:15 UTC daily   read-only Auth health
+04:00 UTC daily   daily ETL batch
+06:00 UTC Monday  weekly ETL batch
+```
+
+Migrations, ETLs, database recovery, critical restore, and backups share the
+`production-database-writer` concurrency group so only one writer runs at a
+time.
+
+## Critical backups
+
+The `Auth backup` workflow creates a daily encrypted artifact retained for 30
+days. It contains:
+
+- Auth schema data, profiles, settings, annotations, and Storage metadata.
+- The private `user-avatars` Storage files.
+- Human review decisions for judicial links, CNMC lobbying, BORME matches,
+  revolving-door candidates, and rejected photo candidates.
+
+Mass public datasets are intentionally excluded. They are rebuilt from
+migrations and ETLs.
+
+The encryption key lives in the `AUTH_BACKUP_ENCRYPTION_PASSPHRASE` repository
+secret and must also be stored outside GitHub in the owner's password manager.
+Losing both copies makes the encrypted artifacts unrecoverable.
+
+Every backup is decrypted into a temporary directory immediately after
+creation, checked against `SHA256SUMS`, and inspected with `pg_restore --list`
+before upload.
+
+### Validate or restore
+
+Run the `Critical restore` workflow with the producing backup run ID:
+
+- `dry-run` downloads, decrypts, checks hashes, validates the dump, and resolves
+  every review decision by natural key without changing data.
+- `apply` additionally requires the exact confirmation `RESTORE_CRITICAL`.
+
+The apply path replaces Auth/profile/Storage metadata from the dump, restores
+the private avatar files, and reapplies review decisions. Any missing or
+ambiguous natural-key reference aborts before mutation.
 
 ## Start local Supabase
 
@@ -231,7 +281,9 @@ The migration chain has been patched for clean bootstrap from an empty database:
 | `refresh_vote_divergences_cache()` | Added DISTINCT ON to prevent duplicate cache entries |
 | `refresh_search_documents(text)` | Added DISTINCT ON to vote_divergence CTE (`20260704000000`) to prevent duplicate entity_ids |
 | `refresh_search_person_aliases()` | Truncated alias values to 500 chars to avoid btree index size limit |
-| `.github/workflows/ci.yml` | Added `schedule` triggers so ETL daily/weekly jobs actually run |
+| `.github/workflows/ci.yml` | Runs daily/weekly ETLs on `desktop-ruben` with a persistent `uv` Python 3.12 environment |
+| `.github/workflows/auth-backup.yml` | Daily encrypted critical backup with 30-day retention and restore validation |
+| `.github/workflows/critical-restore.yml` | Dry-run/apply recovery workflow with natural-key review restoration |
 | `.github/workflows/ci.yml` | Added `congreso.power_relationships` to weekly ETL job |
 | `SELF_HOSTED_SUPABASE.md` | Documented all missing ETL scripts (senado.bajas, declaraciones_ocr, opendata_intereses, borme.officers, lobbying.rgi, judicial.cgpj, public_bodies.boe_nombramientos) |
 | `web/src/lib/etl-pipelines.ts` | Added missing pipeline labels for /estado-datos page |
@@ -242,5 +294,8 @@ The migration chain has been patched for clean bootstrap from an empty database:
 - Avoid migrations that depend on rows produced by historical ETL runs.
 - Keep Tailscale Funnel and the GitHub runner online; `/api/health` verifies the
   public path after every production deployment.
+- `/api/health` checks availability only. Data freshness is reported separately
+  on the home page and `/estado-datos`: 36 hours for daily critical sources and
+  9 days for weekly critical sources.
 - Never point Vercel or Actions at a hosted Supabase project as an availability
   fallback. Recovery must restore this instance or promote an explicit backup.

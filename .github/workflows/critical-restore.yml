@@ -1,0 +1,63 @@
+name: Critical restore
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_run_id:
+        description: GitHub Actions run ID that produced the critical backup
+        required: true
+      mode:
+        description: Validate only or apply the restore
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+      confirmation:
+        description: Type RESTORE_CRITICAL when mode is apply
+        required: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  restore:
+    name: Validate or restore critical data
+    if: inputs.mode == 'dry-run' || inputs.confirmation == 'RESTORE_CRITICAL'
+    runs-on: [self-hosted, linux, x64, espana-transparente]
+    timeout-minutes: 30
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: etl
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}
+      GH_TOKEN: ${{ github.token }}
+      RESTORE_CRITICAL_CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
+      - name: Download encrypted backup
+        working-directory: .
+        run: |
+          mkdir -p "${RUNNER_TEMP}/critical-restore"
+          gh run download "${{ inputs.backup_run_id }}" \
+            --name "critical-backup-${{ inputs.backup_run_id }}" \
+            --dir "${RUNNER_TEMP}/critical-restore"
+      - name: Validate backup
+        if: inputs.mode == 'dry-run'
+        run: |
+          backup_file="$(find "${RUNNER_TEMP}/critical-restore" -name '*.tar.gz.enc' -type f -print -quit)"
+          test -n "$backup_file"
+          bash scripts/restore_critical_backup.sh "$backup_file" --dry-run
+      - name: Restore backup
+        if: inputs.mode == 'apply'
+        run: |
+          backup_file="$(find "${RUNNER_TEMP}/critical-restore" -name '*.tar.gz.enc' -type f -print -quit)"
+          test -n "$backup_file"
+          bash scripts/restore_critical_backup.sh "$backup_file" --apply

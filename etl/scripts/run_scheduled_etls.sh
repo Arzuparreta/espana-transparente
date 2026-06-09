@@ -5,7 +5,7 @@ set -uo pipefail
 batch="${1:-}"
 failures=()
 
-if ! python -m common.pipeline_monitor preflight; then
+if ! python -m common.pipeline_monitor preflight --attempts 12 --delay-seconds 10; then
   echo "::error title=Database unavailable::ETL batch stopped before opening more connections"
   exit 75
 fi

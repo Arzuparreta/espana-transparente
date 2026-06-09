@@ -29,7 +29,7 @@ on:
           - all
   schedule:
     - cron: '0 4 * * *'   # etl-daily
-    - cron: '0 5 * * 1'   # etl-weekly
+    - cron: '0 6 * * 1'   # etl-weekly
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'schedule' && github.event.schedule || github.event_name }}
@@ -48,8 +48,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -72,8 +72,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - run: node scripts/search-check.mjs --routes-only
@@ -87,8 +87,8 @@ jobs:
       run:
         working-directory: etl
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -104,11 +104,14 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 15
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - name: Apply pending migrations
@@ -130,8 +133,11 @@ jobs:
       (github.event_name == 'schedule' && github.event.schedule == '0 4 * * *') ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.etl_batch == 'daily' || inputs.etl_batch == 'all'))
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: etl
@@ -143,22 +149,21 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
       - run: bash scripts/run_scheduled_etls.sh daily
 
   etl-weekly:
     name: ETL weekly pipelines
     if: >-
-      (github.event_name == 'schedule' && github.event.schedule == '0 5 * * 1') ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1') ||
       (github.event_name == 'workflow_dispatch' &&
        (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: etl
@@ -170,10 +175,6 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
       - run: bash scripts/run_scheduled_etls.sh weekly

@@ -7,16 +7,15 @@ on:
         description: Type RECOVER to rebuild self-hosted derived data
         required: true
 
-concurrency:
-  group: database-recovery
-  cancel-in-progress: false
-
 jobs:
   recover:
     name: Reclaim derived storage and rebuild caches
     if: inputs.confirmation == 'RECOVER'
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 90
+    concurrency:
+      group: production-database-writer
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: etl
@@ -24,21 +23,17 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       PYTHONPATH: src
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - run: pip install -r requirements.txt
       - run: npm ci
         working-directory: web
       - name: Verify database is writable
-        run: python -m common.pipeline_monitor preflight --attempts 6 --delay-seconds 10
+        run: python -m common.pipeline_monitor preflight --attempts 12 --delay-seconds 10
       - name: Reclaim oversized derived search storage
         run: python apply_migration.py ../supabase/migrations/20260708000000_reduce_search_storage_pressure.sql
       - name: Rebuild bounded search corpus

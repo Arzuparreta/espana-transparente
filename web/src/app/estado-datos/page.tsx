@@ -4,7 +4,12 @@ import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
 import { checkDatabaseHealth } from "@/lib/data/database-health"
-import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
+import {
+  getCriticalPipelineStatuses,
+  getEtlPipelineLabel,
+  getPipelineDisplayStatus,
+  type EtlPipelineRow,
+} from "@/lib/etl-pipelines"
 import { Fragment } from "react"
 
 export const revalidate = 3600
@@ -71,6 +76,9 @@ export default async function EstadoDatosPage() {
       .filter((d): d is string => Boolean(d))
       .sort()
       .at(-1) ?? null
+  const now = new Date()
+  const criticalStatuses = getCriticalPipelineStatuses(pipelines as EtlPipelineRow[], now)
+  const delayedCritical = criticalStatuses.filter((row) => row.status !== "fresh")
 
   return (
     <div className="ui-page">
@@ -91,6 +99,38 @@ export default async function EstadoDatosPage() {
           title="Estado temporalmente no disponible"
           description="No se ha podido consultar la base de datos. Esta pantalla no interpreta un fallo de conexión como ausencia de datos."
         />
+      )}
+
+      {!dataUnavailable && (
+        <section className="space-y-4 rounded-[2px] border border-border bg-card p-4 sm:p-5">
+          <div>
+            <h2 className="text-xl font-semibold">Fuentes críticas</h2>
+            <p className="text-sm text-muted-foreground">
+              Las fuentes diarias se consideran retrasadas tras 36 horas; las semanales, tras 9 días.
+            </p>
+          </div>
+          {delayedCritical.length === 0 ? (
+            <p className="text-sm text-green-600 dark:text-green-400">
+              Todas las fuentes críticas están dentro de su ventana de actualización.
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {delayedCritical.map((pipeline) => (
+                <div key={pipeline.key} className="border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-sm">
+                  <span className="font-medium">{pipeline.label}</span>
+                  <span className="text-muted-foreground">
+                    {" · "}
+                    {pipeline.status === "missing"
+                      ? "Sin ejecución"
+                      : pipeline.status === "failed"
+                        ? "Error"
+                        : "Retrasado"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       )}
 
       {/* ETL pipeline freshness */}
@@ -116,11 +156,17 @@ export default async function EstadoDatosPage() {
                   const dateStr = finishedAt
                     ? new Date(finishedAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
                     : "—"
+                  const displayStatus = getPipelineDisplayStatus(
+                    p as EtlPipelineRow,
+                    now
+                  )
                   const statusClass =
-                    status === "succeeded"
+                    displayStatus === "ok"
                       ? "text-green-600 dark:text-green-400"
-                      : status === "failed"
+                      : displayStatus === "failed"
                         ? "text-red-600 dark:text-red-400"
+                        : displayStatus === "delayed"
+                          ? "text-amber-700 dark:text-amber-400"
                         : "text-muted-foreground"
 
                   return (
@@ -128,7 +174,13 @@ export default async function EstadoDatosPage() {
                       <tr className="border-t border-border/60">
                         <td className="py-3 pr-4 font-medium">{label}</td>
                         <td className={`py-3 pr-4 ${statusClass}`}>
-                          {status === "succeeded" ? "OK" : status === "failed" ? "Error" : status ?? "—"}
+                          {displayStatus === "ok"
+                            ? "OK"
+                            : displayStatus === "failed"
+                              ? "Error"
+                              : displayStatus === "delayed"
+                                ? "Retrasado"
+                                : status ?? "—"}
                         </td>
                         <td className="py-3 pr-4">{dateStr}</td>
                         <td className="py-3 pr-4 font-mono">{(p.last_rows_inserted as number)?.toLocaleString("es-ES") ?? "—"}</td>
