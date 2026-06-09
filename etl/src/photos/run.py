@@ -11,7 +11,12 @@ Usage:
 import argparse
 import sys
 
-from .pipeline import RunOptions, run
+from .pipeline import RunOptions, RunStats, run
+
+
+def _exit_code(stats: RunStats) -> int:
+    has_technical_failure = stats.failed > 0 or stats.source_errors > 0
+    return 1 if has_technical_failure and stats.updated == 0 else 0
 
 
 def _parse_args(argv: list[str]) -> RunOptions:
@@ -41,7 +46,7 @@ def _parse_args(argv: list[str]) -> RunOptions:
 def main(argv: list[str] | None = None) -> int:
     opts = _parse_args(sys.argv[1:] if argv is None else argv)
     stats = run(opts)
-    return 0 if stats.failed == 0 or stats.updated > 0 else 1
+    return _exit_code(stats)
 
 
 if __name__ == "__main__":

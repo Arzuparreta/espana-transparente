@@ -131,7 +131,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' &&
        (inputs.etl_batch == 'daily' || inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
-    timeout-minutes: 90
+    timeout-minutes: 180
     defaults:
       run:
         working-directory: etl
@@ -154,7 +154,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' &&
        (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
-    timeout-minutes: 90
+    timeout-minutes: 240
     defaults:
       run:
         working-directory: etl

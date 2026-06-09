@@ -29,7 +29,9 @@ class RunStats:
     candidates: int = 0
     updated: int = 0
     skipped: int = 0
+    unmatched: int = 0
     failed: int = 0
+    source_errors: int = 0
     by_source: dict[str, int] = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
@@ -340,13 +342,14 @@ def run(opts: RunOptions) -> RunStats:
             try:
                 match = source.find(pol)
             except Exception as exc:  # noqa: BLE001 — never let one bad row kill the run
+                stats.source_errors += 1
                 print(f"  ! [{source.name}] {pol.full_name}: source raised {exc!r}")
                 continue
             if match is not None:
                 break
 
         if match is None:
-            stats.failed += 1
+            stats.unmatched += 1
             print(f"  - no source matched {pol.full_name} ({pol.congress_id})")
             _bump_attempts(pol.id, dry_run=opts.dry_run)
             continue
@@ -362,7 +365,8 @@ def run(opts: RunOptions) -> RunStats:
 
     print(
         f"\nDone. candidates={stats.candidates} "
-        f"updated={stats.updated} skipped={stats.skipped} failed={stats.failed} "
+        f"updated={stats.updated} skipped={stats.skipped} unmatched={stats.unmatched} "
+        f"failed={stats.failed} source_errors={stats.source_errors} "
         f"by_source={stats.by_source}"
     )
     return stats

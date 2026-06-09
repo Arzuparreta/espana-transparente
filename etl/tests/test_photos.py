@@ -266,3 +266,18 @@ def test_source_match_carries_wikidata_qid():
     m = SourceMatch(photo_bytes=b"x", source="wikidata", wikidata_qid="Q1")
     assert m.wikidata_qid == "Q1"
     assert m.source == "wikidata"
+
+
+def test_unmatched_photos_are_not_a_technical_failure():
+    from photos.pipeline import RunStats
+    from photos.run import _exit_code
+
+    assert _exit_code(RunStats(candidates=145, unmatched=145)) == 0
+
+
+def test_photo_source_errors_fail_when_nothing_was_updated():
+    from photos.pipeline import RunStats
+    from photos.run import _exit_code
+
+    assert _exit_code(RunStats(candidates=1, source_errors=1)) == 1
+    assert _exit_code(RunStats(candidates=2, updated=1, source_errors=1)) == 0

@@ -12,7 +12,7 @@ jobs:
     name: Reclaim derived storage and rebuild caches
     if: inputs.confirmation == 'RECOVER'
     runs-on: [self-hosted, linux, x64, espana-transparente]
-    timeout-minutes: 90
+    timeout-minutes: 180
     defaults:
       run:
         working-directory: etl
