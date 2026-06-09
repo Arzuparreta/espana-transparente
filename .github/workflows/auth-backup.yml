@@ -17,7 +17,6 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       AUTH_BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.AUTH_BACKUP_ENCRYPTION_PASSPHRASE }}
       AUTH_INSTANCE_NAME: espana-transparente-self-hosted
-      BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-etl
@@ -29,6 +28,8 @@ jobs:
           command -v docker
           command -v openssl
       - name: Create encrypted backup
+        env:
+          BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
         run: bash etl/scripts/backup_auth_data.sh
       - name: Upload encrypted artifact
         uses: actions/upload-artifact@v4
