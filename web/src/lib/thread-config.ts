@@ -1,3 +1,5 @@
+import type { SectionIconName } from "@/components/brand/SectionIcon"
+
 export type ThreadKey = "personas" | "dinero" | "economia"
 
 export interface ThreadSource {
@@ -8,6 +10,8 @@ export interface ThreadSource {
   section?: string
   countKey?: string
   countUnit?: string
+  /** Explicit icon override for sources without a countKey (icon otherwise derives from countKey). */
+  icon?: SectionIconName
 }
 
 export interface ThreadConfig {
@@ -60,6 +64,7 @@ export const THREADS: ThreadConfig[] = [
         label: "Partidos",
         description: "Partidos y grupos parlamentarios con representación.",
         section: "Cargos",
+        icon: "partidos",
       },
       {
         href: "/instituciones",
@@ -134,6 +139,7 @@ export const THREADS: ThreadConfig[] = [
         label: "Trazabilidad del gasto",
         description: "Cascada desde presupuesto hasta contratos y subvenciones por ministerio.",
         section: "Visión general",
+        icon: "dinero-publico-trazabilidad",
       },
       {
         href: "/presupuestos",
@@ -180,6 +186,7 @@ export const THREADS: ThreadConfig[] = [
         label: "Gasto por territorio",
         description: "Mapa, comunidades autónomas y municipios en una sola exploración.",
         section: "Por territorio",
+        icon: "gasto-territorios",
       },
     ],
   },
@@ -204,6 +211,7 @@ export const THREADS: ThreadConfig[] = [
         href: "/economia?view=calculadoras",
         label: "Calculadoras",
         description: "Comparativas de inflación, salarios y poder adquisitivo.",
+        icon: "calculadoras",
       },
     ],
   },

@@ -23,6 +23,10 @@ export type SectionIconName =
   | "declaraciones"
   | "indicadores"
   | "puertas-giratorias"
+  | "procesos-judiciales"
+  | "grupos-interes"
+  | "gasto-territorios"
+  | "calculadoras"
   | "estado-datos"
   | "buscar"
   | "dinero-publico-trazabilidad"
@@ -252,6 +256,49 @@ export function SectionIcon({ name, size = 24, className, strokeWidth = 1.6 }: S
           <polyline points="6 20 6 15.5 10.5 15.5" stroke={ACCENT} />
         </svg>
       )
+    case "procesos-judiciales":
+      return (
+        <svg {...common}>
+          <line x1="12" y1="4.5" x2="12" y2="18" />
+          <circle cx="12" cy="4.5" r="1" fill="currentColor" stroke="none" />
+          <line x1="6" y1="7.5" x2="18" y2="7.5" />
+          <path d="M4 7.5 L6 11.5 L8 7.5" />
+          <path d="M16 7.5 L18 11.5 L20 7.5" stroke={ACCENT} />
+          <line x1="8" y1="18.5" x2="16" y2="18.5" />
+        </svg>
+      )
+    case "grupos-interes":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="13" r="3.2" />
+          <circle cx="4.8" cy="6" r="1.8" />
+          <circle cx="19.2" cy="6" r="1.8" />
+          <path d="M6.2 7.2 L9.4 10.6" />
+          <path d="M17.8 7.2 L14.6 10.6" stroke={ACCENT} />
+        </svg>
+      )
+    case "gasto-territorios":
+      return (
+        <svg {...common}>
+          <path d="M12 21 C12 21 18.5 14.5 18.5 9 A6.5 6.5 0 0 0 5.5 9 C5.5 14.5 12 21 12 21 Z" />
+          <circle cx="12" cy="9" r="3" stroke={ACCENT} />
+          <line x1="10.4" y1="8.2" x2="13.3" y2="8.2" stroke={ACCENT} />
+          <line x1="10.4" y1="9.8" x2="13.3" y2="9.8" stroke={ACCENT} />
+        </svg>
+      )
+    case "calculadoras":
+      return (
+        <svg {...common}>
+          <rect x="5" y="3" width="14" height="18" rx="1.5" />
+          <rect x="7.5" y="5.5" width="9" height="3.5" rx="0.5" />
+          <circle cx="8.5" cy="12.5" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12.5" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="15.5" cy="12.5" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="8.5" cy="16" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none" />
+          <circle cx="15.5" cy="16" r="1.1" fill={ACCENT} stroke="none" />
+        </svg>
+      )
     case "estado-datos":
       return (
         <svg {...common}>
@@ -300,6 +347,10 @@ const COUNT_KEY_TO_NAME: Record<string, SectionIconName> = {
   iniciativas: "iniciativas",
   distorsion: "distorsion",
   "puertas-giratorias": "puertas-giratorias",
+  corrupcion: "procesos-judiciales",
+  "grupos-de-interes": "grupos-interes",
+  territorio: "gasto-territorios",
+  calculadoras: "calculadoras",
   declaraciones: "declaraciones",
   indicadores: "indicadores",
   "estado-datos": "estado-datos",

@@ -107,7 +107,7 @@ export function ThreadLanding({
                           count={facts?.count ?? null}
                           countUnit={source.countUnit}
                           latestDate={facts?.latestDate ?? null}
-                          icon={source.countKey ? sectionIconForKey(source.countKey) : null}
+                          icon={source.icon ?? (source.countKey ? sectionIconForKey(source.countKey) : null)}
                         />
                       )
                     })}
