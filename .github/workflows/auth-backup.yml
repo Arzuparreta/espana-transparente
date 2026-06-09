@@ -29,7 +29,7 @@ jobs:
           BACKUP_OUTPUT_DIR: ${{ runner.temp }}/auth-backups
         run: bash etl/scripts/backup_auth_data.sh
       - name: Upload encrypted artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: critical-backup-${{ github.run_id }}
           path: ${{ runner.temp }}/auth-backups/*.tar.gz.enc
