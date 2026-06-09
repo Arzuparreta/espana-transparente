@@ -9,19 +9,25 @@ runs:
       run: |
         set -euo pipefail
 
-        command -v uv >/dev/null
+        export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
+        uv_bin="$(command -v uv || true)"
+        if [[ -z "$uv_bin" ]]; then
+          echo "::error::uv is not installed on the self-hosted runner"
+          exit 1
+        fi
 
         export UV_CACHE_DIR="${RUNNER_TOOL_CACHE}/uv-cache"
         export UV_PYTHON_INSTALL_DIR="${RUNNER_TOOL_CACHE}/uv-python"
         venv="${RUNNER_TOOL_CACHE}/espana-transparente/etl-py312"
 
-        uv python install 3.12
+        "$uv_bin" python install 3.12
         if [[ ! -x "${venv}/bin/python" ]] || \
            [[ "$("${venv}/bin/python" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || true)" != "3.12" ]]; then
           rm -rf "${venv}"
-          uv venv --python 3.12 "${venv}"
+          "$uv_bin" venv --python 3.12 "${venv}"
         fi
 
-        uv pip sync --python "${venv}/bin/python" "${GITHUB_WORKSPACE}/etl/requirements.txt"
+        "$uv_bin" pip sync --python "${venv}/bin/python" "${GITHUB_WORKSPACE}/etl/requirements.txt"
+        echo "$(dirname "$uv_bin")" >> "${GITHUB_PATH}"
         echo "${venv}/bin" >> "${GITHUB_PATH}"
         "${venv}/bin/python" --version
