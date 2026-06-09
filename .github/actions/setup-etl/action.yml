@@ -27,7 +27,8 @@ runs:
           "$uv_bin" venv --python 3.12 "${venv}"
         fi
 
-        "$uv_bin" pip sync --python "${venv}/bin/python" "${GITHUB_WORKSPACE}/etl/requirements.txt"
+        "$uv_bin" pip install --python "${venv}/bin/python" \
+          -r "${GITHUB_WORKSPACE}/etl/requirements.txt"
         echo "$(dirname "$uv_bin")" >> "${GITHUB_PATH}"
         echo "${venv}/bin" >> "${GITHUB_PATH}"
         "${venv}/bin/python" --version
