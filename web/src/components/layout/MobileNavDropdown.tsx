@@ -1,15 +1,13 @@
 "use client"
 
-import { Fragment, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchForm } from "@/components/search/SearchForm"
 import { useAuth } from "@/lib/auth/AuthContext"
-import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
+import { getSectionForPath, PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
-
-const navGroups = [...PRIMARY_NAV, SECONDARY_NAV]
 
 export function MobileNavDropdown() {
   const [isOpen, setIsOpen] = useState(false)
@@ -68,44 +66,49 @@ export function MobileNavDropdown() {
               <SearchForm size="header" live className="w-full" />
             </div>
             <nav className="flex flex-col px-5 pb-8 pt-2">
-              {navGroups.map((group) => (
-                <div key={group.label} className="border-b border-border/40 py-4 last:border-b-0">
-                  <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                    {group.label}
-                  </div>
-                  <div className="flex flex-col">
-                    {group.items.map((item, idx) => {
-                      const isActive =
-                        pathname === item.href ||
-                        (item.href !== "/" && !item.href.startsWith("http") && pathname?.startsWith(item.href))
-                      const showSection =
-                        item.section && item.section !== group.items[idx - 1]?.section
-
-                      return (
-                        <Fragment key={item.href}>
-                          {showSection ? (
-                            <div className="select-none pb-1 pt-3 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
-                              {item.section}
-                            </div>
-                          ) : null}
-                          <ResponsiveLink
-                            href={item.href}
-                            onClick={() => setIsOpen(false)}
-                            className={cn(
-                              "flex min-h-11 items-center text-[17px] font-semibold tracking-tight select-none transition-colors",
-                              isActive
-                                ? "text-foreground"
-                                : "text-muted-foreground active:text-foreground"
-                            )}
-                          >
-                            {item.longLabel ?? item.label}
-                          </ResponsiveLink>
-                        </Fragment>
-                      )
-                    })}
-                  </div>
+              <div className="border-b border-border/40 py-4">
+                <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                  Explorar
                 </div>
-              ))}
+                <div className="flex flex-col">
+                  {PRIMARY_NAV.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      pathname?.startsWith(`${item.href}/`) ||
+                      getSectionForPath(pathname)?.groupLabel === item.label
+                    return (
+                      <ResponsiveLink
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          "flex min-h-12 items-center text-xl font-semibold tracking-tight transition-colors",
+                          isActive ? "text-foreground" : "text-muted-foreground active:text-foreground"
+                        )}
+                      >
+                        {item.label}
+                      </ResponsiveLink>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="py-4">
+                <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                  El portal
+                </div>
+                <div className="flex flex-col">
+                  {SECONDARY_NAV.map((item) => (
+                    <ResponsiveLink
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex min-h-11 items-center text-[16px] font-semibold text-muted-foreground transition-colors active:text-foreground"
+                    >
+                      {item.label}
+                    </ResponsiveLink>
+                  ))}
+                </div>
+              </div>
             </nav>
 
             <div className="border-t border-border/60 px-5 py-4">

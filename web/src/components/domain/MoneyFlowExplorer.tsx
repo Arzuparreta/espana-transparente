@@ -95,7 +95,7 @@ function readStoredState(year: number): StoredState | null {
 function buildHref(year: number, sectionCode: string, programCode?: string | null) {
   const params = new URLSearchParams({ year: String(year), section: sectionCode })
   if (programCode) params.set("program", programCode)
-  return `/dinero-publico?${params.toString()}#${programCode ? `program-${programCode}` : `section-${sectionCode}`}`
+  return `/dinero?view=trazabilidad&${params.toString()}#${programCode ? `program-${programCode}` : `section-${sectionCode}`}`
 }
 
 function getStickyHeaderOffset(): number {

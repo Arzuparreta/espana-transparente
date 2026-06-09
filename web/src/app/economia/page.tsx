@@ -1,17 +1,53 @@
-import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
+import type { Metadata } from "next"
+import type { ReactNode } from "react"
+import { PageHeader } from "@/components/domain/PageHeader"
+import { ThreadAnchorCard, ThreadLanding } from "@/components/domain/ThreadLanding"
 import { IpcBasketCalculator } from "@/components/indicators/IpcBasketCalculator"
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
-import { getIndicators, getIpcIndexSeries, getIpcSubgroupSeries, getLatestInflationAnchor, getSectionIndex } from "@/lib/data"
+import { SectionViewNav } from "@/components/navigation/SectionViewNav"
+import { IndicatorsView } from "@/components/views/IndicatorsView"
+import {
+  getIndicators,
+  getIpcIndexSeries,
+  getIpcSubgroupSeries,
+  getLatestInflationAnchor,
+  getSectionIndex,
+} from "@/lib/data"
 import { getPopulationForYear } from "@/lib/debt-per-capita"
+import { ECONOMY_VIEWS, parseView } from "@/lib/section-views"
 import { getThread } from "@/lib/thread-config"
-import type { ReactNode } from "react"
 
 export const revalidate = 3600
 
-export const metadata = {
-  title: "Economía",
-  description: "IPC, deuda pública, PIB, empleo y salario medio con series públicas y explicación ciudadana.",
+interface PageProps {
+  searchParams?: Promise<{ view?: string | string[] }>
+}
+
+const VIEW_META = {
+  resumen: {
+    title: "Economía",
+    description: "Precios, deuda, empleo, salarios y actividad con datos públicos.",
+  },
+  series: {
+    title: "Series económicas",
+    description: "IPC, PIB, empleo, salarios y deuda con su último dato y evolución histórica.",
+  },
+  calculadoras: {
+    title: "Calculadoras económicas",
+    description: "Herramientas basadas en las series oficiales del IPC para comparar importes y poder adquisitivo.",
+  },
+} as const
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams
+  const view = parseView(params?.view, ECONOMY_VIEWS, "resumen")
+  return {
+    ...VIEW_META[view],
+    alternates: {
+      canonical: view === "resumen" ? "/economia" : `/economia?view=${view}`,
+    },
+  }
 }
 
 function formatPercent(value: number): string {
@@ -24,8 +60,7 @@ function formatPercent(value: number): string {
 
 function formatPeriod(period: string): string {
   const [year, month] = period.split("-")
-  const date = new Date(Number(year), Number(month) - 1, 1)
-  return date.toLocaleDateString("es-ES", {
+  return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("es-ES", {
     month: "long",
     year: "numeric",
   })
@@ -34,29 +69,72 @@ function formatPeriod(period: string): string {
 function formatLatest(value: number, unit: string | null): string {
   if (unit === "%") return formatPercent(value)
   if (unit === "millones EUR") {
-    // 1,698,224 M€ → "1,7 B€" (billones)
-    const billones = value / 1_000_000
-    return `${billones.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} B€`
+    return `${(value / 1_000_000).toLocaleString("es-ES", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })} B€`
   }
   return value.toLocaleString("es-ES", { maximumFractionDigits: 1 })
 }
 
-export default async function EconomiaThreadPage() {
+export default async function EconomiaPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const view = parseView(params?.view, ECONOMY_VIEWS, "resumen")
+  const navigation = (
+    <SectionViewNav
+      label="Vistas de economía"
+      active={view}
+      items={[
+        { value: "resumen", label: "Explorar", href: "/economia" },
+        { value: "series", label: "Series", href: "/economia?view=series" },
+        { value: "calculadoras", label: "Calculadoras", href: "/economia?view=calculadoras" },
+      ]}
+    />
+  )
+
+  if (view === "series") {
+    return (
+      <div className="ui-page-wide space-y-6 sm:space-y-8">
+        <PageHeader {...VIEW_META.series} />
+        {navigation}
+        <IndicatorsView />
+      </div>
+    )
+  }
+
+  if (view === "calculadoras") {
+    const [ipcSeries, ipcSubgroups] = await Promise.all([
+      getIpcIndexSeries(),
+      getIpcSubgroupSeries(),
+    ])
+    return (
+      <div className="ui-page-wide space-y-6 sm:space-y-8">
+        <PageHeader {...VIEW_META.calculadoras} />
+        {navigation}
+        {ipcSeries.length > 1 ? (
+          <div className="space-y-6">
+            <IpcBasketCalculator series={ipcSubgroups} />
+            <SalaryVsIpcCalculator series={ipcSeries} />
+            <PurchasingPowerCalculator series={ipcSeries} />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Las series necesarias no están disponibles.</p>
+        )}
+      </div>
+    )
+  }
+
   const thread = getThread("economia")
-  const [sectionIndex, inflation, rows, ipcSeries, ipcSubgroups] = await Promise.all([
+  const [sectionIndex, inflation, rows] = await Promise.all([
     getSectionIndex(),
     getLatestInflationAnchor(),
     getIndicators(),
-    getIpcIndexSeries(),
-    getIpcSubgroupSeries(),
   ])
-
-  const latestByCode = new Map<string, { name: string; value: number; unit: string | null; period: string }>()
+  const latestByCode = new Map<string, { value: number; unit: string | null; period: string }>()
   for (const row of rows) {
     const current = latestByCode.get(row.indicator_code)
     if (!current || row.period > current.period) {
       latestByCode.set(row.indicator_code, {
-        name: row.indicator_name,
         value: Number(row.value),
         unit: row.unit ?? null,
         period: row.period,
@@ -92,28 +170,25 @@ export default async function EconomiaThreadPage() {
         key="deuda"
         label={`Deuda pública · ${debt.period.slice(0, 4)}`}
         value={formatLatest(debt.value, debt.unit)}
-        description="Deuda pública consolidada de las Administraciones Públicas, en billones de euros."
+        description="Deuda pública consolidada de las Administraciones Públicas."
         source="Fuente: Eurostat · criterio de Maastricht."
         href="/indicadores/DEUDA_PUBLICA"
         linkLabel="Ver serie →"
       />
     )
-
-    const debtYear = Number(debt.period.slice(0, 4))
-    const populationMillions = getPopulationForYear(debtYear)
+    const year = Number(debt.period.slice(0, 4))
+    const populationMillions = getPopulationForYear(year)
     if (populationMillions > 0) {
-      const perCapita = (debt.value * 1_000_000) / (populationMillions * 1_000_000)
-      const formatted = new Intl.NumberFormat("es-ES", {
-        style: "currency",
-        currency: "EUR",
-        maximumFractionDigits: 0,
-      }).format(perCapita)
       anchors.push(
         <ThreadAnchorCard
           key="deuda-per-capita"
-          label={`Deuda per cápita · ${debt.period.slice(0, 4)}`}
-          value={formatted}
-          description="Si la deuda se repartiera por igual entre todos los habitantes de España."
+          label={`Deuda per cápita · ${year}`}
+          value={new Intl.NumberFormat("es-ES", {
+            style: "currency",
+            currency: "EUR",
+            maximumFractionDigits: 0,
+          }).format(debt.value / populationMillions)}
+          description="Deuda pública total dividida entre la población."
           source="Fuente: Eurostat + estimación INE."
           href="/indicadores/DEUDA_PUBLICA"
           linkLabel="Ver contexto →"
@@ -141,15 +216,7 @@ export default async function EconomiaThreadPage() {
       thread={thread}
       sectionIndex={sectionIndex}
       anchors={anchors}
-      feature={
-        ipcSeries.length > 1 ? (
-          <div className="space-y-6">
-            <IpcBasketCalculator series={ipcSubgroups} />
-            <SalaryVsIpcCalculator series={ipcSeries} />
-            <PurchasingPowerCalculator series={ipcSeries} />
-          </div>
-        ) : null
-      }
+      navigation={navigation}
     />
   )
 }

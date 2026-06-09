@@ -43,15 +43,11 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/subvenciones",       changeFrequency: "daily",   priority: 0.8 },
   { path: "/presupuestos",       changeFrequency: "monthly", priority: 0.7 },
   { path: "/fondos-ue",          changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/indicadores",        changeFrequency: "weekly",  priority: 0.6 },
   { path: "/organizaciones",     changeFrequency: "weekly",  priority: 0.6 },
   { path: "/estado-datos",       changeFrequency: "weekly",  priority: 0.5 },
   { path: "/buscar",             changeFrequency: "monthly", priority: 0.4 },
   { path: "/iniciativas",        changeFrequency: "weekly",  priority: 0.6 },
   { path: "/declaraciones",      changeFrequency: "weekly",  priority: 0.6 },
-  { path: "/dinero-publico",     changeFrequency: "weekly",  priority: 0.9 },
-  { path: "/ccaa",               changeFrequency: "weekly",  priority: 0.6 },
-  { path: "/municipios",         changeFrequency: "weekly",  priority: 0.6 },
 ]
 
 function url(path: string) {

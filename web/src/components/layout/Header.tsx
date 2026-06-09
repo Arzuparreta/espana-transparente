@@ -5,23 +5,15 @@ import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
 import { useAuth } from "@/lib/auth/AuthContext"
-import { PRIMARY_NAV } from "@/lib/nav-config"
+import { getSectionForPath, PRIMARY_NAV, type NavItem } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
-import { Menu } from "@base-ui/react/menu"
-import { Menubar } from "@base-ui/react/menubar"
 import { usePathname } from "next/navigation"
-import { Fragment } from "react"
 
 const triggerBase =
-  "relative inline-flex h-9 shrink-0 items-center gap-1 rounded px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground data-popup-open:bg-muted data-popup-open:text-foreground"
+  "relative inline-flex h-9 shrink-0 items-center rounded px-3 text-[13px] font-semibold tracking-tight text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:bg-muted focus-visible:text-foreground"
 
 const triggerActive =
   "text-foreground after:absolute after:-bottom-[11px] after:left-3 after:right-3 after:h-[2px] after:bg-foreground"
-
-const itemBase =
-  "block cursor-pointer select-none rounded px-3 py-2 text-[13.5px] font-medium tracking-tight text-foreground/80 outline-none transition-colors data-highlighted:bg-muted data-highlighted:text-foreground"
-
-const itemActive = "text-foreground"
 
 export function Header() {
   const pathname = usePathname()
@@ -31,8 +23,9 @@ export function Header() {
     return pathname === href || (href !== "/" && pathname?.startsWith(href))
   }
 
-  function isGroupActive(items: ReadonlyArray<{ href: string }>) {
-    return items.some((item) => isItemActive(item.href))
+  function isPrimaryActive(item: NavItem) {
+    if (isItemActive(item.href)) return true
+    return getSectionForPath(pathname)?.groupLabel === item.label
   }
 
   return (
@@ -52,57 +45,19 @@ export function Header() {
           </span>
         </ResponsiveLink>
 
-        <Menubar className="hidden min-w-0 flex-1 items-center gap-1 lg:flex" modal={false}>
-          {PRIMARY_NAV.map((group) => {
-            const active = isGroupActive(group.items)
-            return (
-              <Menu.Root key={group.label}>
-                <Menu.Trigger
-                  className={cn(triggerBase, active && triggerActive)}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {group.label}
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-3 w-3 opacity-60 transition-transform duration-150 data-popup-open:rotate-180"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                    aria-hidden
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
-                  </svg>
-                </Menu.Trigger>
-                <Menu.Portal>
-                  <Menu.Positioner sideOffset={10} align="start" className="z-50">
-                    <Menu.Popup className="min-w-[200px] rounded border border-border bg-popover p-1 outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
-                      {group.items.map((item, idx) => {
-                        const showSection =
-                          item.section && item.section !== group.items[idx - 1]?.section
-                        return (
-                          <Fragment key={item.href}>
-                            {showSection ? (
-                              <div className="select-none px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/70 first:pt-1">
-                                {item.section}
-                              </div>
-                            ) : null}
-                            <Menu.LinkItem
-                              closeOnClick
-                              className={cn(itemBase, isItemActive(item.href) && itemActive)}
-                              render={<ResponsiveLink href={item.href} prefetch />}
-                            >
-                              {item.label}
-                            </Menu.LinkItem>
-                          </Fragment>
-                        )
-                      })}
-                    </Menu.Popup>
-                  </Menu.Positioner>
-                </Menu.Portal>
-              </Menu.Root>
-            )
-          })}
-        </Menubar>
+        <nav aria-label="Navegación principal" className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
+          {PRIMARY_NAV.map((item) => (
+            <ResponsiveLink
+              key={item.href}
+              href={item.href}
+              prefetch
+              aria-current={isPrimaryActive(item) ? "page" : undefined}
+              className={cn(triggerBase, isPrimaryActive(item) && triggerActive)}
+            >
+              {item.label}
+            </ResponsiveLink>
+          ))}
+        </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <ResponsiveLink

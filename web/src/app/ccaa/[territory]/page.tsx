@@ -53,11 +53,11 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
   return (
     <div className="ui-page">
       <ContextTrail
-        section={{ href: "/ccaa", label: "CCAA" }}
+        section={{ href: "/territorio?view=autonomico", label: "Gasto autonómico" }}
         current={detail.territory.territoryName}
         meta="Gasto autonómico"
-        fallbackHref="/ccaa"
-        fallbackLabel="Volver a CCAA"
+        fallbackHref="/territorio?view=autonomico"
+        fallbackLabel="Volver a Gasto autonómico"
         related={[
           detail.territory.subsidyCount > 0
             ? { href: "/subvenciones?nivel=AUTONOMICA", label: "Ver subvenciones autonómicas" }

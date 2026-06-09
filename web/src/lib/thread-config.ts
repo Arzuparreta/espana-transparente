@@ -34,16 +34,10 @@ export const THREADS: ThreadConfig[] = [
       {
         href: "/diputados",
         label: "Diputados",
-        description: "Diputados activos del Congreso con grupo y circunscripción.",
+        description: "Directorio, asistencia a plenos y divergencias de voto.",
         section: "Cargos",
         countKey: "diputados",
         countUnit: "activos",
-      },
-      {
-        href: "/asistencia",
-        label: "Asistencia",
-        description: "Ranking de asistencia a plenos por diputado.",
-        section: "Cargos",
       },
       {
         href: "/senado",
@@ -82,12 +76,6 @@ export const THREADS: ThreadConfig[] = [
         section: "Decisiones",
         countKey: "votaciones",
         countUnit: "sesiones",
-      },
-      {
-        href: "/divergencias",
-        label: "Divergencias",
-        description: "Diputados que han votado distinto a la posición oficial de su grupo parlamentario.",
-        section: "Decisiones",
       },
       {
         href: "/iniciativas",
@@ -142,7 +130,7 @@ export const THREADS: ThreadConfig[] = [
       "Ordena primero los importes trazables más recientes y conserva siempre el enlace al registro fuente.",
     sources: [
       {
-        href: "/dinero-publico",
+        href: "/dinero?view=trazabilidad",
         label: "Trazabilidad del gasto",
         description: "Cascada desde presupuesto hasta contratos y subvenciones por ministerio.",
         section: "Visión general",
@@ -189,23 +177,9 @@ export const THREADS: ThreadConfig[] = [
       },
       {
         href: "/territorio",
-        label: "Mapa del gasto",
-        description: "Vista autonómica del gasto registrado para orientarse antes del drilldown.",
+        label: "Gasto por territorio",
+        description: "Mapa, comunidades autónomas y municipios en una sola exploración.",
         section: "Por territorio",
-      },
-      {
-        href: "/ccaa",
-        label: "Gasto autonómico",
-        description: "Contratos y subvenciones agrupados por comunidad autónoma.",
-        section: "Por territorio",
-        countKey: "ccaa",
-      },
-      {
-        href: "/municipios",
-        label: "Gasto municipal",
-        description: "Contratos y subvenciones agrupados por municipio o entidad local.",
-        section: "Por territorio",
-        countKey: "municipios",
       },
     ],
   },
@@ -220,11 +194,16 @@ export const THREADS: ThreadConfig[] = [
       "Muestra el último dato disponible de cada serie con su periodo y fuente; no mezcles periodos sin etiquetarlos.",
     sources: [
       {
-        href: "/indicadores",
-        label: "Indicadores",
+        href: "/economia?view=series",
+        label: "Series económicas",
         description: "IPC, deuda pública, PIB, empleo y salario medio.",
         countKey: "indicadores",
         countUnit: "series",
+      },
+      {
+        href: "/economia?view=calculadoras",
+        label: "Calculadoras",
+        description: "Comparativas de inflación, salarios y poder adquisitivo.",
       },
     ],
   },

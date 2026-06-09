@@ -75,7 +75,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
           },
           latest?.year
             ? {
-                href: `/dinero-publico?year=${traceYear}&section=${encodeURIComponent(sectionCode)}&program=${encodeURIComponent(programCode)}#program-${encodeURIComponent(programCode)}`,
+                href: `/dinero?view=trazabilidad&year=${traceYear}&section=${encodeURIComponent(sectionCode)}&program=${encodeURIComponent(programCode)}#program-${encodeURIComponent(programCode)}`,
                 label: "Trazabilidad del gasto",
               }
             : null,

@@ -2,9 +2,9 @@ import { notFound } from "next/navigation"
 import { getDeclarationById } from "@/lib/data"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
+import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
@@ -65,15 +65,12 @@ export default async function DeclarationDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <div className="flex items-center gap-3">
-        <ResponsiveLink
-          href="/declaraciones"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Declaraciones económicas
-        </ResponsiveLink>
-      </div>
+      <ContextTrail
+        section={{ href: "/declaraciones", label: "Declaraciones" }}
+        current={decl.politician_name ? `${typeLabel} · ${decl.politician_name}` : typeLabel}
+        fallbackHref="/declaraciones"
+        fallbackLabel="Volver a Declaraciones"
+      />
 
       <PageHeader
         title={`${typeLabel}`}

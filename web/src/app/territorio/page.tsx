@@ -1,61 +1,110 @@
-import { getSpainMapData } from "@/lib/data/multilevel"
+import type { Metadata } from "next"
+import { PageHeader } from "@/components/domain/PageHeader"
 import { SpainMap } from "@/components/domain/SpainMap/SpainMap"
 import { TerritoryFallbackList } from "@/components/domain/TerritoryFallbackList"
-import { ContextBreadcrumb } from "@/components/layout/ContextBreadcrumb"
+import { SectionViewNav } from "@/components/navigation/SectionViewNav"
+import { AutonomicSpendingView } from "@/components/views/AutonomicSpendingView"
+import { MunicipalSpendingView } from "@/components/views/MunicipalSpendingView"
+import { getSpainMapData } from "@/lib/data/multilevel"
+import { parseView, TERRITORY_VIEWS } from "@/lib/section-views"
 
 export const revalidate = 3600
 
-export const metadata = {
-  title: "Mapa del gasto",
-  description: "Vista autonómica del gasto público registrado en España. Contratos y subvenciones por territorio.",
+interface PageProps {
+  searchParams?: Promise<{ view?: string | string[] }>
 }
 
-export default async function TerritorioPage() {
+const VIEW_META = {
+  mapa: {
+    title: "Mapa del gasto",
+    description: "Contratos y subvenciones registrados por comunidad autónoma.",
+  },
+  autonomico: {
+    title: "Gasto autonómico",
+    description: "Contratos y subvenciones con territorio autonómico resoluble en las fuentes.",
+  },
+  municipal: {
+    title: "Gasto municipal",
+    description: "Contratos y subvenciones con municipio o entidad local resoluble en las fuentes.",
+  },
+} as const
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams
+  const view = parseView(params?.view, TERRITORY_VIEWS, "mapa")
+  return {
+    ...VIEW_META[view],
+    alternates: {
+      canonical: view === "mapa" ? "/territorio" : `/territorio?view=${view}`,
+    },
+  }
+}
+
+export default async function TerritorioPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const view = parseView(params?.view, TERRITORY_VIEWS, "mapa")
+  const meta = VIEW_META[view]
+  const navigation = (
+    <SectionViewNav
+      label="Vistas territoriales"
+      active={view}
+      items={[
+        { value: "mapa", label: "Mapa", href: "/territorio" },
+        { value: "autonomico", label: "Autonómico", href: "/territorio?view=autonomico" },
+        { value: "municipal", label: "Municipal", href: "/territorio?view=municipal" },
+      ]}
+    />
+  )
+
+  if (view === "autonomico") {
+    return (
+      <div className="ui-page-wide space-y-6 sm:space-y-8">
+        <PageHeader {...meta} />
+        {navigation}
+        <AutonomicSpendingView />
+      </div>
+    )
+  }
+
+  if (view === "municipal") {
+    return (
+      <div className="ui-page-wide space-y-6 sm:space-y-8">
+        <PageHeader {...meta} />
+        {navigation}
+        <MunicipalSpendingView />
+      </div>
+    )
+  }
+
   const mapData = await getSpainMapData()
-  const totalAmount = mapData.reduce((sum, d) => sum + d.totalAmount, 0)
-  const totalRecords = mapData.reduce((sum, d) => sum + d.subsidyCount + d.contractCount, 0)
+  const totalAmount = mapData.reduce((sum, item) => sum + item.totalAmount, 0)
+  const totalRecords = mapData.reduce(
+    (sum, item) => sum + item.subsidyCount + item.contractCount,
+    0
+  )
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-screen-xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <ContextBreadcrumb />
-
-        {/* Header */}
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-display font-semibold text-neutral-100">Mapa del gasto</h1>
-          <p className="text-sm text-neutral-500">
-            Vista autonómica del gasto público registrado: contratos y subvenciones de fuentes oficiales.
-          </p>
+    <div className="ui-page-wide space-y-6 sm:space-y-8">
+      <PageHeader {...meta} />
+      {navigation}
+      <div className="flex flex-wrap items-baseline gap-6">
+        <div>
+          <span className="block font-mono text-xs text-muted-foreground">Registros</span>
+          <span className="font-mono text-lg">{totalRecords.toLocaleString("es-ES")}</span>
         </div>
-
-        {/* Summary strip */}
-        <div className="flex items-baseline gap-6 flex-wrap">
-          <div>
-            <span className="text-xs text-neutral-600 font-mono block">registros</span>
-            <span className="text-lg font-mono text-neutral-300">{totalRecords.toLocaleString("es-ES")}</span>
-          </div>
-          <div>
-            <span className="text-xs text-neutral-600 font-mono block">gasto total</span>
-            <span className="text-lg font-mono text-[#C8FF00]">
-              {totalAmount >= 1_000_000_000
-                ? `${(totalAmount / 1_000_000_000).toFixed(1)} mil M€`
-                : `${(totalAmount / 1_000_000).toFixed(0)} M€`}
-            </span>
-          </div>
-          <a href="/municipios" className="text-xs font-mono text-neutral-600 hover:text-neutral-400 transition-colors ml-auto">
-            Ver municipios →
-          </a>
+        <div>
+          <span className="block font-mono text-xs text-muted-foreground">Gasto registrado</span>
+          <span className="font-mono text-lg text-accent">
+            {totalAmount >= 1_000_000_000
+              ? `${(totalAmount / 1_000_000_000).toFixed(1)} mil M€`
+              : `${(totalAmount / 1_000_000).toFixed(0)} M€`}
+          </span>
         </div>
-
-        {/* Interactive map (client) */}
-        <SpainMap data={mapData} />
-
-        {/* No-JS fallback */}
-        <noscript>
-          <TerritoryFallbackList data={mapData} />
-        </noscript>
-
       </div>
-    </main>
+      <SpainMap data={mapData} />
+      <noscript>
+        <TerritoryFallbackList data={mapData} />
+      </noscript>
+    </div>
   )
 }

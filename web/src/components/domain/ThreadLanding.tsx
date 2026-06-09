@@ -12,8 +12,10 @@ interface ThreadLandingProps {
   sectionIndex: SectionIndexRow[]
   /** Live-data anchor cards; empty entries are omitted from the grid. */
   anchors?: ReactNode[]
-  /** Optional featured module (e.g. an interactive tool) shown above the source index. */
+  /** Optional featured module (e.g. an interactive tool) shown after navigation content. */
   feature?: ReactNode
+  /** Local navigation between consolidated views inside the thread. */
+  navigation?: ReactNode
   children?: ReactNode
 }
 
@@ -23,7 +25,14 @@ function anchorGridClass(count: number): string {
   return "sm:grid-cols-2 lg:grid-cols-3"
 }
 
-export function ThreadLanding({ thread, sectionIndex, anchors, feature, children }: ThreadLandingProps) {
+export function ThreadLanding({
+  thread,
+  sectionIndex,
+  anchors,
+  feature,
+  navigation,
+  children,
+}: ThreadLandingProps) {
   const visibleAnchors = (anchors ?? []).filter(Boolean)
   const hasAnchors = visibleAnchors.length > 0
   const sectionFacts = new Map(
@@ -58,25 +67,12 @@ export function ThreadLanding({ thread, sectionIndex, anchors, feature, children
         description={thread.description}
       />
 
-      {hasAnchors ? (
-        <RevealSection>
-          <section aria-label="En cifras">
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              En cifras
-            </p>
-            <div className={`grid gap-3 ${anchorGridClass(visibleAnchors.length)}`.trim()}>
-              {visibleAnchors}
-            </div>
-          </section>
-        </RevealSection>
-      ) : null}
-
-      {feature ? <RevealSection>{feature}</RevealSection> : null}
+      {navigation ? <RevealSection>{navigation}</RevealSection> : null}
 
       <RevealSection>
         <nav
           aria-label="Datos disponibles"
-          className={hasAnchors ? "space-y-3 border-t border-border pt-8" : "space-y-3"}
+          className="space-y-3"
         >
           <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Datos disponibles
@@ -122,6 +118,21 @@ export function ThreadLanding({ thread, sectionIndex, anchors, feature, children
           </div>
         </nav>
       </RevealSection>
+
+      {hasAnchors ? (
+        <RevealSection>
+          <section aria-label="En cifras" className="space-y-3 border-t border-border pt-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              En cifras
+            </p>
+            <div className={`grid gap-3 ${anchorGridClass(visibleAnchors.length)}`.trim()}>
+              {visibleAnchors}
+            </div>
+          </section>
+        </RevealSection>
+      ) : null}
+
+      {feature ? <RevealSection>{feature}</RevealSection> : null}
 
       {children}
     </div>

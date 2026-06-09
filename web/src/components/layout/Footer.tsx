@@ -6,6 +6,8 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
     heading: "Personas",
     items: [
       { label: "Diputados", href: "/diputados" },
+      { label: "Asistencia", href: "/diputados?view=asistencia" },
+      { label: "Divergencias", href: "/diputados?view=divergencias" },
       { label: "Senado", href: "/senado" },
       { label: "Gobierno", href: "/gobierno" },
       { label: "Partidos", href: "/partidos" },
@@ -16,21 +18,22 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
   {
     heading: "Dinero",
     items: [
-      { label: "Trazabilidad del gasto", href: "/dinero-publico" },
+      { label: "Trazabilidad del gasto", href: "/dinero?view=trazabilidad" },
       { label: "Presupuestos", href: "/presupuestos" },
       { label: "Contratos", href: "/contratos" },
       { label: "Subvenciones", href: "/subvenciones" },
       { label: "Fondos UE", href: "/fondos-ue" },
       { label: "Mapa del gasto", href: "/territorio" },
-      { label: "CCAA", href: "/ccaa" },
-      { label: "Municipios", href: "/municipios" },
+      { label: "CCAA", href: "/territorio?view=autonomico" },
+      { label: "Municipios", href: "/territorio?view=municipal" },
       { label: "Organizaciones", href: "/organizaciones" },
     ],
   },
   {
     heading: "Economía",
     items: [
-      { label: "Indicadores", href: "/indicadores" },
+      { label: "Series", href: "/economia?view=series" },
+      { label: "Calculadoras", href: "/economia?view=calculadoras" },
     ],
   },
   {

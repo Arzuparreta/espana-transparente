@@ -52,11 +52,11 @@ export default async function MunicipioTerritoryPage({ params }: PageProps) {
   return (
     <div className="ui-page">
       <ContextTrail
-        section={{ href: "/municipios", label: "Municipios" }}
+        section={{ href: "/territorio?view=municipal", label: "Gasto municipal" }}
         current={detail.territory.territoryName}
         meta="Gasto municipal"
-        fallbackHref="/municipios"
-        fallbackLabel="Volver a Municipios"
+        fallbackHref="/territorio?view=municipal"
+        fallbackLabel="Volver a Gasto municipal"
         related={[
           detail.territory.subsidyCount > 0
             ? { href: "/subvenciones?nivel=LOCAL", label: "Ver subvenciones locales" }
