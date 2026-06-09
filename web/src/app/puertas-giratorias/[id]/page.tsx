@@ -79,7 +79,7 @@ export default async function RevolvingDoorDetailPage({ params }: PageProps) {
         description={`${item.public_role} → ${item.private_role} · ${item.private_organization}`}
         eyebrow={
           item.political_party ? (
-            <PartyBadge acronym={item.political_party} partyId={partyId} />
+            <PartyBadge acronym={item.political_party} color={item.party_color ?? undefined} partyId={partyId} />
           ) : undefined
         }
       />

@@ -4,7 +4,7 @@ import { unstable_cache, HOUR, dataQuerySignal, throwDataError } from "./shared"
 const INDICATOR_PAGE_SIZE = 1000
 
 const REVOLVING_DOOR_PUBLIC_COLS =
-  "id, person_name, political_party, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
+  "id, person_name, political_party, party_color, public_role, public_organization, public_exit_date, private_role, private_organization, private_start_date, authorization_date, cooling_off_months, sector, person_id, organization_id, primary_source_url, source_url, sources"
 
 type IndicatorRow = {
   indicator_code: string

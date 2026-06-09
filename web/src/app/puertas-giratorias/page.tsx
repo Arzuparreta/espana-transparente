@@ -13,6 +13,7 @@ export interface RDCase {
   id: string
   person_name: string
   political_party: string
+  party_color: string | null
   public_role: string
   public_organization: string
   public_exit_date: string | null

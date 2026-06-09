@@ -96,6 +96,7 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
                               {entry.political_party ? (
                                 <PartyBadge
                                   acronym={entry.political_party}
+                                  color={entry.party_color ?? undefined}
                                   partyId={partyMap[entry.political_party.toLowerCase()] ?? null}
                                   className="text-xs"
                                 />
