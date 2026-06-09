@@ -1,7 +1,8 @@
 "use client"
 
-import { ArrowDownUp, Building2, CircleDollarSign, Landmark, Search, Users } from "lucide-react"
+import { ArrowDownUp, Building2, ChevronDown, CircleDollarSign, Landmark, Search, Users, X } from "lucide-react"
 import { Fragment, useEffect, useMemo, useRef, useState } from "react"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -117,6 +118,23 @@ function scrollToElementStart(target: HTMLElement, behavior: ScrollBehavior = "a
   window.scrollTo({ top: Math.max(0, top), behavior })
 }
 
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false
+    return !window.matchMedia("(min-width: 1024px)").matches
+  })
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)")
+    const update = () => setIsMobile(!mql.matches)
+    update()
+    mql.addEventListener("change", update)
+    return () => mql.removeEventListener("change", update)
+  }, [])
+
+  return isMobile
+}
+
 function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: string }) {
   if (items.length === 0) return null
   return (
@@ -182,12 +200,14 @@ function SectionDetail({
   section,
   activeProgramCode,
   onProgramSelect,
+  onClose,
   anchorPrefix = "",
 }: {
   year: number
   section: MoneyFlowSection
   activeProgramCode: string | null
   onProgramSelect: (programCode: string) => void
+  onClose?: () => void
   anchorPrefix?: string
 }) {
   const ministryFilter = section.ministry_normalized
@@ -213,8 +233,20 @@ function SectionDetail({
               <span>{section.minister_name ?? "Responsable sin resolver"}</span>
             </div>
           </div>
-          <div className="shrink-0 font-mono text-xl font-semibold tabular-nums">
-            {formatAmount(section.total_credit_initial)}
+          <div className="flex shrink-0 items-start gap-3">
+            <div className="font-mono text-xl font-semibold tabular-nums">
+              {formatAmount(section.total_credit_initial)}
+            </div>
+            {onClose ? (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={`Cerrar detalle de ${section.section_name}`}
+                className="-mr-1 -mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-[2px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -362,8 +394,11 @@ export function MoneyFlowExplorer({
   initialProgramCode,
 }: MoneyFlowExplorerProps) {
   const firstSectionCode = sections[0]?.section_code ?? ""
+  const isMobile = useIsMobile()
   const [activeSectionCode, setActiveSectionCode] = useState(initialSectionCode ?? firstSectionCode)
   const [activeProgramCode, setActiveProgramCode] = useState(initialProgramCode ?? null)
+  const [mobileClosed, setMobileClosed] = useState(false)
+  const [desktopClosed, setDesktopClosed] = useState(false)
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState<FlowFilter>("all")
   const [sort, setSort] = useState<FlowSort>("credit")
@@ -439,14 +474,19 @@ export function MoneyFlowExplorer({
     ) {
       setActiveSectionCode(filteredSections[0].section_code)
       setActiveProgramCode(null)
+      setMobileClosed(false)
+      setDesktopClosed(false)
     }
   }, [activeSectionCode, filteredSections])
 
   useEffect(() => {
     if (!activeSection) return
-    const href = buildHref(year, activeSection.section_code, activeProgramCode)
+    const isClosed = mobileClosed || desktopClosed
+    const href = isClosed
+      ? `/dinero?view=trazabilidad&year=${year}${activeProgramCode ? `&program=${activeProgramCode}` : ""}`
+      : buildHref(year, activeSection.section_code, activeProgramCode)
     window.history.replaceState(window.history.state, "", href)
-  }, [activeProgramCode, activeSection, year])
+  }, [activeProgramCode, activeSection, desktopClosed, mobileClosed, year])
 
   useEffect(() => {
     if (!activeSection) return
@@ -477,15 +517,33 @@ export function MoneyFlowExplorer({
   }, [activeProgramCode, activeSection, filter, query, sort, year])
 
   function selectSection(sectionCode: string) {
+    const isCurrentlyActive = sectionCode === activeSectionCode
+    if (isMobile && isCurrentlyActive) {
+      setMobileClosed(true)
+      setActiveProgramCode(null)
+      return
+    }
     setActiveSectionCode(sectionCode)
     setActiveProgramCode(null)
+    setMobileClosed(false)
+    setDesktopClosed(false)
     if (restoredRef.current) {
       requestAnimationFrame(() => {
-        const anchorPrefix = window.matchMedia("(min-width: 1024px)").matches ? "" : "mobile-"
+        const anchorPrefix = isMobile ? "mobile-" : ""
         const target = document.getElementById(`${anchorPrefix}section-${sectionCode}`)
         if (target) scrollToElementStart(target, "smooth")
       })
     }
+  }
+
+  function closeSection() {
+    if (isMobile) {
+      setMobileClosed(true)
+      setActiveProgramCode(null)
+      return
+    }
+    setDesktopClosed(true)
+    setActiveProgramCode(null)
   }
 
   function selectProgram(programCode: string) {
@@ -556,6 +614,8 @@ export function MoneyFlowExplorer({
             ) : (
               filteredSections.map((section) => {
                 const selected = section.section_code === activeSection.section_code
+                const mobileExpanded = isMobile && selected && !mobileClosed
+                const mobilePanelId = `mobile-section-${section.section_code}`
                 return (
                   <Fragment key={section.section_code}>
                     <button
@@ -568,6 +628,8 @@ export function MoneyFlowExplorer({
                           : "border-border/70 bg-card/55 hover:border-foreground/25"
                       )}
                       aria-current={selected ? "true" : undefined}
+                      aria-expanded={isMobile ? mobileExpanded : undefined}
+                      aria-controls={isMobile ? mobilePanelId : undefined}
                     >
                       <span className="flex min-w-0 items-baseline justify-between gap-3">
                         <span className="flex min-w-0 items-baseline gap-2">
@@ -578,8 +640,17 @@ export function MoneyFlowExplorer({
                             {section.section_name}
                           </span>
                         </span>
-                        <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-                          {formatAmount(section.total_credit_initial)}
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                            {formatAmount(section.total_credit_initial)}
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "size-4 text-muted-foreground transition-transform duration-200 lg:hidden",
+                              mobileExpanded ? "rotate-180" : null
+                            )}
+                            aria-hidden
+                          />
                         </span>
                       </span>
                       <span className="mt-2 flex min-w-0 flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
@@ -588,13 +659,14 @@ export function MoneyFlowExplorer({
                         <span>{section.subsidy_count} subvenciones</span>
                       </span>
                     </button>
-                    {selected ? (
-                      <div className="lg:hidden">
+                    {mobileExpanded ? (
+                      <div id={mobilePanelId} className="lg:hidden">
                         <SectionDetail
                           year={year}
                           section={activeSection}
                           activeProgramCode={activeProgramCode}
                           onProgramSelect={selectProgram}
+                          onClose={closeSection}
                           anchorPrefix="mobile-"
                         />
                       </div>
@@ -607,12 +679,20 @@ export function MoneyFlowExplorer({
         </aside>
 
         <div className="hidden min-w-0 lg:block">
-          <SectionDetail
-            year={year}
-            section={activeSection}
-            activeProgramCode={activeProgramCode}
-            onProgramSelect={selectProgram}
-          />
+          {desktopClosed ? (
+            <EmptyState
+              title="Selecciona una sección"
+              description="Elige una sección del listado para ver su trazabilidad: programas, contratos, subvenciones y fondos UE vinculados."
+            />
+          ) : (
+            <SectionDetail
+              year={year}
+              section={activeSection}
+              activeProgramCode={activeProgramCode}
+              onProgramSelect={selectProgram}
+              onClose={closeSection}
+            />
+          )}
         </div>
       </div>
     </section>
