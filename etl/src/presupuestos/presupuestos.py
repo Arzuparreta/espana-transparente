@@ -543,9 +543,30 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
         window_start=window_start,
         window_end=window_end,
     ):
-        print(f"Skipping {year}: already succeeded")
+        # Record the skip as a succeeded run with zero rows so that
+        # v_etl_pipeline_status reflects the fact that the ETL ran
+        # and decided the chunk was up to date. Without this, the
+        # freshness view keeps showing the previous run's date and
+        # the portal marks the pipeline as "delayed" forever.
+        run_id = start_run(
+            cur,
+            pipeline=pipeline,
+            chunk_key=chunk_key,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        conn.commit()
+        finish_run(
+            cur,
+            run_id=run_id,
+            status="succeeded",
+            rows_read=0,
+            rows_inserted=0,
+        )
+        conn.commit()
         cur.close()
         conn.close()
+        print(f"Skipping {year}: already succeeded (recorded as succeeded with 0 rows)")
         return 0, 0
 
     run_id = None

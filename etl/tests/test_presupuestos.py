@@ -267,3 +267,143 @@ def test_build_carried_forward_records_clones_missing_prorroga_section():
     assert carried[0]["in_force_year"] == 2023
     assert carried[0]["section_code"] == "60"
     assert carried[0]["credit_initial"] == pytest.approx(159688815850.0)
+
+
+# ─── --resume skip path (records the skip so freshness view updates) ─────────
+
+def test_run_year_resume_skip_records_succeeded_run(monkeypatch):
+    """When --resume detects the chunk is already succeeded, run_year must
+    still INSERT a row in etl_runs with status='succeeded' and finished_at=now()
+    so that v_etl_pipeline_status picks it up. Otherwise the freshness view
+    keeps pointing at the previous run's finished_at and the portal marks
+    the pipeline as 'delayed' forever."""
+
+    from common import etl_runs as er
+    from presupuestos import presupuestos as p
+
+    # Track what was written so we can assert on it
+    started: list[dict] = []
+    finished: list[dict] = []
+    committed = {"n": 0}
+
+    class FakeCursor:
+        def execute(self, *_args, **_kwargs):
+            pass
+
+        def close(self):
+            pass
+
+    class FakeConn:
+        def cursor(self):
+            return FakeCursor()
+
+        def commit(self):
+            committed["n"] += 1
+
+        def close(self):
+            pass
+
+    fake_conn = FakeConn()
+
+    monkeypatch.setattr(p, "get_pg_conn", lambda: fake_conn)
+
+    def fake_start(cur, *, pipeline, chunk_key, window_start, window_end):
+        run_id = f"rid-{len(started)}"
+        started.append(
+            {
+                "id": run_id,
+                "pipeline": pipeline,
+                "chunk_key": chunk_key,
+                "window_start": window_start,
+                "window_end": window_end,
+            }
+        )
+        return run_id
+
+    def fake_finish(cur, *, run_id, status, rows_read=0, rows_inserted=0,
+                    rows_updated=0, error_summary=None):
+        finished.append(
+            {
+                "run_id": run_id,
+                "status": status,
+                "rows_read": rows_read,
+                "rows_inserted": rows_inserted,
+            }
+        )
+
+    def fake_is_succeeded(cur, *, pipeline, chunk_key, window_start, window_end):
+        return True  # the chunk is already done
+
+    monkeypatch.setattr(p, "start_run", fake_start)
+    monkeypatch.setattr(p, "finish_run", fake_finish)
+    monkeypatch.setattr(p, "is_chunk_succeeded", fake_is_succeeded)
+
+    read, upserted = p.run_year(year=2026, resume=True, dry_run=False)
+
+    assert (read, upserted) == (0, 0)
+    # start_run + finish_run were called even though the chunk was skipped
+    assert len(started) == 1
+    assert started[0]["pipeline"] == "presupuestos"
+    assert started[0]["chunk_key"] == "2026"
+    assert len(finished) == 1
+    assert finished[0]["status"] == "succeeded"
+    assert finished[0]["rows_inserted"] == 0
+    # The skip path must commit the start + finish (2 commits) before close
+    assert committed["n"] == 2
+
+
+def test_run_year_resume_no_skip_still_works(monkeypatch):
+    """Sanity check: when is_chunk_succeeded returns False, the skip path
+    is NOT taken and start_run is NOT called with a fake is_succeeded.
+    This guards against accidentally taking the skip path when the chunk
+    has never been processed."""
+
+    from presupuestos import presupuestos as p
+
+    class FakeCursor:
+        def execute(self, *_args, **_kwargs):
+            pass
+
+        def close(self):
+            pass
+
+    class FakeConn:
+        def cursor(self):
+            return FakeCursor()
+
+        def commit(self):
+            pass
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(p, "get_pg_conn", lambda: FakeConn())
+
+    started: list[str] = []
+
+    def fake_start(cur, **_kw):
+        rid = f"rid-{len(started)}"
+        started.append(rid)
+        return rid
+
+    def fake_finish(*_args, **_kwargs):
+        pass
+
+    def fake_is_succeeded(cur, **_kw):
+        return False  # chunk not done → must NOT skip
+
+    # Make download_gastos raise so we exit early without touching the DB
+    def fake_download(year):
+        raise RuntimeError("network down (test)")
+
+    monkeypatch.setattr(p, "start_run", fake_start)
+    monkeypatch.setattr(p, "finish_run", fake_finish)
+    monkeypatch.setattr(p, "is_chunk_succeeded", fake_is_succeeded)
+    monkeypatch.setattr(p, "download_gastos", fake_download)
+
+    with pytest.raises(RuntimeError, match="network down"):
+        p.run_year(year=2026, resume=True, dry_run=False)
+
+    # start_run WAS called (because skip was not taken), but the run failed
+    # before finish_run — so no finished row exists for this id.
+    assert len(started) == 1
