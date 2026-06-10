@@ -111,11 +111,14 @@ These are reviewed as PRs and re-ingested by their respective pipelines. Operati
 
 ### Editorial — enforced by `npm run content:audit`
 
-The web is a **data portal**, not a manifesto. The following are forbidden anywhere under `web/src/` (in source code, comments, JSX, strings):
+**Policy changed 2026-06-10 (decision D5, see `docs/designs/2026-06-10-la-cadena.md`).** The site has an explicit thesis and may state it openly with a hard tone. The old ideological-word blocklist (`austriac*`, `libertari*`, Mises, etc.) is **removed**. What replaces it:
 
-`austriac*`, `libertari*`, `anarcocap*`, `coerción`, `expolio/expoliar`, `Huerta de Soto`, `Mises`, `Hayek`, `Rothbard`, `fatal arrogancia`, `robo del estado`, `robar al`.
+1. **Espina narrativa**: data is presented as argument, not inventory. Every dataset/chart should answer a question in the chain *gasto → déficit → deuda → quién paga*. New data earns its place by deepening the chain or a thread, not by existing.
+2. **Nada desmontable**: every claim in the chain carries an official source (INE, Eurostat, PGE/SEPG, AIReF where applicable). Hard tone is allowed; unsourced or technically attackable claims are not.
+3. **Eurozone defensibility**: do NOT state "Spanish debt causes Spanish inflation" as direct causality (monetary policy is the ECB's). The defensible chain: *chronic deficit → debt → interest paid via taxes* + *inflation → the State collects more (non-indexed IRPF brackets, VAT) and owes less in real terms*.
+4. **Legal-risk terms still audited**: `corrupto/a`, `culpable`, `delincuente` remain forbidden for *persons* without a firm conviction — this is defamation protection, not thesis censorship.
 
-Also forbidden in UI: methodology phrases ("Unidad de lectura: la persona", "Señal prioritaria: la excepción", "descomponemos el Estado"), value judgments, irony. Use factual labels only ("Diputados", "Votaciones", "Divergencias detectadas"). The product lens in `AGENTS.md` is internal only, never user-facing copy.
+Data pages stay factual steel: the thesis orders and frames the data; charts and figures speak with sources attached.
 
 ### UI — enforced by `npm run ui:audit`
 

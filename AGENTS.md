@@ -2,31 +2,33 @@
 
 Nombre histórico del repo: `accion-humana`. Nombre público actual del producto: **España Transparente**.
 
-## REGLA DE ORO: Separación metodología / contenido
+## REGLA DE ORO: Tesis explícita, datos indesmontables
 
-**La web es un portal de DATOS, no un manifiesto.** Los principios de abajo
-son el LENTE INTERNO con el que diseñas el producto. Determinan QUÉ datos
-recogemos, CÓMO los estructuramos y QUÉ resaltamos. Pero el ciudadano que
-entra en la web ve datos crudos, no nuestra metodología.
+**Política cambiada el 2026-06-10 (decisión D5, design doc en
+`docs/designs/2026-06-10-la-cadena.md`).**
+La web tiene tesis y la declara abiertamente. La antigua separación
+metodología/contenido (lista de palabras prohibidas, prohibición de
+editorializar) queda derogada. La sustituyen cuatro reglas:
 
-**NUNCA** pongas en la interfaz de usuario:
+1. **Espina narrativa.** Los datos se presentan como argumento, no como
+   inventario. Cada dato responde a una pregunta de la cadena
+   *gasto → déficit → deuda → quién paga*. Un dato nuevo se gana su sitio
+   profundizando la cadena o un hilo, no por existir.
+2. **Nada desmontable.** El tono puede ser duro y la tesis explícita, pero
+   cada afirmación de la cadena lleva fuente oficial (INE, Eurostat,
+   PGE/SEPG, AIReF donde aplique). Atacar la web debe exigir atacar al INE.
+3. **Defendibilidad zona euro.** Nunca "la deuda española causa la inflación
+   española" como causalidad directa (la política monetaria es del BCE). La
+   cadena defendible: *déficit crónico → deuda → intereses pagados vía
+   impuestos* + *inflación → el Estado recauda más (IRPF sin deflactar, IVA)
+   y debe menos en términos reales*.
+4. **Riesgo legal intacto.** "Corrupto", "culpable", "delincuente" siguen
+   prohibidos aplicados a personas sin condena firme — es protección frente
+   a calumnia/difamación, no censura de tesis.
 
-- Frases como "Unidad de lectura: la persona", "Señal prioritaria: la excepción"
-- Citas de Mises, Hayek, Rothbard o cualquier referencia a la Escuela Austríaca
-- Explicaciones de la metodología del proyecto ("descomponemos el Estado", etc.)
-- Juicios de valor, ironía o editorialización de ningún tipo
-- La palabra "anarcocapitalista" ni derivados
-
-**SIEMPRE**:
-
-- Muestra datos. Solo datos. El usuario saca sus propias conclusiones.
-- Usa etiquetas factuales: "Diputados", "Votaciones", "Partidos", "Divergencias detectadas"
-- Describe qué datos hay disponibles, no por qué los recogemos así
-- Deja que los números y las relaciones hablen solos
-
-**Lógica:** Un portal de transparencia pierde toda credibilidad si editorializa.
-La utilidad del producto depende de dejar que los datos expongan las estructuras de poder
-por sí mismos, no de decirle al usuario qué conclusión sacar.
+**Lógica:** la fuerza del portal es que nadie puede tocar los números. La
+tesis ordena y encuadra; las páginas de datos siguen siendo acero factual
+con la fuente pegada a cada cifra.
 
 ---
 
@@ -75,11 +77,11 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 ## Lo que NO hacer
 
 - Tratar partidos, gobiernos o instituciones como agentes con voluntad propia
-- Editorializar o decir "esto está mal" — los datos hablan solos
+- Afirmar sin fuente — la tesis es bienvenida, la afirmación desmontable no
+  (ver REGLA DE ORO: cada eslabón citable a INE/Eurostat/PGE-SEPG/AIReF)
 - Mostrar datos sin contexto de poder (quién controla a quién)
-- **Poner la metodología del proyecto en la interfaz de usuario** — los principios
-  "personas, no abstracciones", "la excepción es la información" y "trazabilidad
-  sobre estadística" guían el DISEÑO del producto, NUNCA aparecen como texto en la web
+- Mostrar datos sin dirección — cada chart responde a una pregunta de la
+  cadena o de un hilo; el inventario sin argumento es el anti-patrón
 
 ## Referencias conceptuales
 

@@ -45,19 +45,11 @@ function extractExplainedCodes() {
   return [...matches].map((m) => m[1])
 }
 
+// Política D5 (2026-06-10, docs/designs/2026-06-10-la-cadena.md): la lista
+// ideológica fue retirada — la tesis puede ser explícita. Estos términos
+// permanecen por RIESGO LEGAL: aplicados a personas sin condena firme son
+// calumnia/difamación.
 const FORBIDDEN = [
-  { name: "austriac*",          pattern: /austriac/i },
-  { name: "libertari*",         pattern: /libertari/i },
-  { name: "anarcocap*",         pattern: /anarcocap/i },
-  { name: "coerción",           pattern: /coerci(?:ó|o)n/i },
-  { name: "expolio/expoliar",   pattern: /expoli/i },
-  { name: "Huerta de Soto",     pattern: /huerta\s+de\s+soto/i },
-  { name: "Mises",              pattern: /\bmises\b/i },
-  { name: "Hayek",              pattern: /\bhayek\b/i },
-  { name: "Rothbard",           pattern: /\brothbard\b/i },
-  { name: "fatal arrogancia",   pattern: /fatal\s+arrogancia/i },
-  { name: "robo del estado",    pattern: /robo\s+del\s+estado/i },
-  { name: "robar al",           pattern: /robar\s+al\b/i },
   { name: "corrupto/corrupta",   pattern: /\bcorrupt[oa]s?\b/i },
   { name: "culpable",            pattern: /\bculpables?\b/i },
   { name: "delincuente",         pattern: /\bdelincuentes?\b/i },
@@ -113,7 +105,7 @@ if (violations.length > 0) {
     console.error(`- ${violation}`)
   }
   console.error(
-    `\n${violations.length} violación(es). El marco interno del proyecto no debe filtrarse a la UI.`,
+    `\n${violations.length} violación(es). Términos de riesgo legal: no aplicables a personas sin condena firme.`,
   )
   process.exit(1)
 }

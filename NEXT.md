@@ -322,6 +322,9 @@ the daily and weekly self-hosted batches accumulate reviewed coverage.
 | Lobbying register (CNMC RGI) | 🚧 Rebuilding coverage | Now | Pipeline and UI complete; self-hosted coverage/reviews must be repopulated from source and manual review. |
 | Economic indicators (salario, paro, PIB) | ✅ Complete | Done | `indicadores_ampliados.py`: PIB, PIB_VAR_ANUAL, TASA_PARO, PARADOS, SALARIO_MEDIO (379 rows); explanations in place |
 | Deuda pública | ✅ Complete | Done | `bde.py` via Eurostat: 31 years of data; explanation added |
+| Ingresos públicos / recaudación (AEAT o IGAE) | Not started | **Now** (Phase E hito 2.5) | Sin esta serie La Cadena no puede mostrar el déficit como hueco gasto-ingresos; AEAT publica informes mensuales de recaudación, IGAE ingresos no financieros |
+| Beneficiarios de prestaciones por desempleo (SEPE) | Not started | Next | Para el "cruce laboral" (beneficiarios ↑ con parados ↓); SEPE publica estadísticas mensuales |
+| Afiliación Seguridad Social | Not started | Next | Tercera serie del cruce laboral; Seg. Social publica medias mensuales |
 | Ministerial meeting agendas | Not started | Later | Partially on SAGE portal |
 | Historical budget execution | Not started | Later | Intervención General publishes monthly reports |
 | Lobbying meetings (SAGE) | Not started | Later | Ministerial agenda disclosures |
@@ -476,7 +479,60 @@ Replaced hardcoded 2023 data with dynamic DB-backed elections.
   - `ElectionCompare` component: compare two elections side-by-side with seat change and vote % change per party.
 - All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
 
-### NEXT: Continue BORME / CNMC expansion (background)
+### NEXT (ACTIVE): Phase E — La Cadena (designed 2026-06-10)
+
+Design approved in office-hours session 2026-06-10 (full doc in-repo:
+`docs/designs/2026-06-10-la-cadena.md`;
+wireframe in-repo: `docs/sketches/cadena-wireframe.html`). Diagnosis: the
+problem is **coherence, not data** — series are ingested but presented as
+inventory, without direction. The thesis is a lens that orders what exists,
+NOT a site redesign.
+
+Editorial policy D5 executed (2026-06-10): ideological word-blocklist removed
+from AGENTS.md / CLAUDE.md / content-audit; replaced by espina narrativa +
+sourced, eurozone-defensible claims; legal-risk terms (corrupto/culpable/
+delincuente) kept. Ships as its own PR, separate from feature milestones.
+
+Milestones:
+1. **Quick wins `/indicadores`**: IPC general anual (variación de medias
+   anuales; ~20 años en BD, `nult` ampliable) como primer chart; subgrupos
+   e intermensual plegados; salario medio real (EAES deflactado por IPC
+   medio anual); componente reusable `AnnualSeriesChart` con `SourceFootnote`
+   obligatorio. Aceptación: el argumento real de pensiones/inflación se puede
+   mandar como chart capturable.
+2. **Evolución del gasto**: normalización de ministerios elevada a clave de
+   serie temporal continua por *política de gasto* (ministerio = anotación);
+   crédito presupuestado por año (etiquetado como tal — la ejecución IGAE NO
+   está ingerida, sigue en Data Gaps) + deuda viva (stock) en paralelo.
+2.5. **Ingesta de ingresos públicos** (añadido tras el assignment del
+   2026-06-10): `etl/src/igae/ingresos.py` o AEAT recaudación — desbloquea
+   el cruce central (gasto vs ingresos, hueco = déficit → deuda). Hallazgo
+   del assignment: la unidad compartible es el **cruce anotado** (2-3 series
+   + nota que disuelve la paradoja aparente); La Cadena es el cruce insignia.
+   Casos reales recogidos: "264.000 beneficiarios de prestaciones más con
+   134.000 parados menos" (necesita SEPE + afiliación, en Data Gaps) y
+   "el gobierno gasta X pero recibe X−n" (necesita ingresos, este hito).
+3. **La Cadena en home (encima del Atlas) + recibo generativo**: 3 bandas en
+   eje de años compartido (rango canónico 2016+); fuente quemada en píxeles —
+   **deuda = Eurostat (Maastricht), no BdE** pese al nombre `bde.py`;
+   `/api/og` con whitelist `serie={ipc|deuda|gasto|salario_real|cadena}
+   &desde&hasta`, 400 en otro caso, caché immutable 24h. Restricción: Satori
+   no renderiza recharts → el ChainChart necesita SVG generable en servidor
+   (el spike de Observable Plot debe renderizar dentro de `/api/og`).
+   v1 sale con las bandas actuales (gasto, deuda, IPC) sin bloquearse en 2.5;
+   v2 convierte la banda 1 en gasto+ingresos superpuestos con el déficit
+   sombreado cuando los ingresos estén ingeridos.
+4. **Audit invertido (4b)**: content:audit *exige* `SourceFootnote` en
+   componentes de la cadena (`web/src/components/chain/` + importadores de
+   `AnnualSeriesChart`).
+5. **Pasada anti-sloppy** de /indicadores, /presupuestos y home según
+   DESIGN.md (candidata a /design-review). Separada a propósito.
+
+Antes de codificar (assignment): escribir el mensaje exacto que habría
+ganado la discusión de pensiones/inflación — enlace + chart descritos. Ese
+mensaje es el test de aceptación del hito 1.
+
+### Continue BORME / CNMC expansion (background)
 
 BORME company directors and CNMC lobbying links continue to accumulate in weekly CI. No active dev work needed — data grows organically. Surface is already built (`/organizaciones/[id]` shows both when linked).
 
