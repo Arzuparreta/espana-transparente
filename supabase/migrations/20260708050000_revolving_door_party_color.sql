@@ -10,18 +10,19 @@
 -- 20260526000000_public_body_appointments.sql: try by acronym first,
 -- then by full party name, both case-insensitive.
 --
--- CREATE OR REPLACE VIEW cannot change column NAMES at the same
--- position (PostgreSQL raises 42P16), so we DROP first and recreate.
+-- Implementation note: CREATE OR REPLACE VIEW preserves the original
+-- column NAMES at each position. We must keep the existing column
+-- order (party_color is appended at the end), otherwise PostgreSQL
+-- raises 42P16 (cannot change name of view column "public_role" to
+-- "party_color"). The TypeScript query uses explicit column lists
+-- and is unaffected by the trailing position.
 
-DROP VIEW IF EXISTS v_revolving_door_public;
-
-CREATE VIEW v_revolving_door_public AS
+CREATE OR REPLACE VIEW v_revolving_door_public AS
 SELECT
   rd.id,
   rd.person_id,
   coalesce(rd.person_name, p.full_name) AS person_name,
   rd.political_party,
-  COALESCE(pr_abbr.color, pr_name.color) AS party_color,
   rd.public_role,
   rd.public_organization,
   rd.public_exit_date,
@@ -54,7 +55,8 @@ SELECT
         rds.published_at DESC NULLS LAST
     ) FILTER (WHERE rds.id IS NOT NULL),
     '[]'::jsonb
-  ) AS sources
+  ) AS sources,
+  COALESCE(pr_abbr.color, pr_name.color) AS party_color
 FROM revolving_door rd
 LEFT JOIN politicians p ON p.id = rd.person_id
 LEFT JOIN organizations o ON o.id = rd.organization_id
