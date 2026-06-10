@@ -18,10 +18,8 @@ describe("legacy index redirects", () => {
       destination: "/dinero?view=trazabilidad",
       permanent: true,
     })
-    expect(bySource.get("/indicadores")).toMatchObject({
-      destination: "/economia?view=series",
-      permanent: true,
-    })
+    // /indicadores is a real page now (Hito 1, La Cadena) — not a redirect.
+    expect(bySource.has("/indicadores")).toBe(false)
     expect(bySource.get("/ccaa")).toMatchObject({
       destination: "/territorio?view=autonomico",
       permanent: true,

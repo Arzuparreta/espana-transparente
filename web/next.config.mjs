@@ -7,7 +7,6 @@ const nextConfig = {
       { source: "/asistencia", destination: "/diputados?view=asistencia", permanent: true },
       { source: "/divergencias", destination: "/diputados?view=divergencias", permanent: true },
       { source: "/dinero-publico", destination: "/dinero?view=trazabilidad", permanent: true },
-      { source: "/indicadores", destination: "/economia?view=series", permanent: true },
       { source: "/ccaa", destination: "/territorio?view=autonomico", permanent: true },
       { source: "/municipios", destination: "/territorio?view=municipal", permanent: true },
     ];
