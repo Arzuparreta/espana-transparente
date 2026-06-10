@@ -9,8 +9,13 @@
 -- 20260515230000_institutional_appointments.sql and
 -- 20260526000000_public_body_appointments.sql: try by acronym first,
 -- then by full party name, both case-insensitive.
+--
+-- CREATE OR REPLACE VIEW cannot change column NAMES at the same
+-- position (PostgreSQL raises 42P16), so we DROP first and recreate.
 
-CREATE OR REPLACE VIEW v_revolving_door_public AS
+DROP VIEW IF EXISTS v_revolving_door_public;
+
+CREATE VIEW v_revolving_door_public AS
 SELECT
   rd.id,
   rd.person_id,
