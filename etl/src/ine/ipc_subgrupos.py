@@ -80,6 +80,9 @@ def run(dry_run: bool = False) -> int:
             conn.commit()
 
         for series_key, meta in SUBGROUPS.items():
+            if dry_run:
+                print(f"[DRY-RUN] Would fetch {meta['name']} ({series_key})")
+                continue
             print(f"Fetching {meta['name']}...")
             url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_key}?nult=240&tip=A"
             series = fetch_json(url)
