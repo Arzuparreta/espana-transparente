@@ -215,7 +215,7 @@ export async function getHomeHeroAnchor(
       resolver:
         "Por cada persona en España, esto es lo que debe el Estado: deuda pública total dividida entre la población.",
       source: "Fuente: Eurostat (criterio de Maastricht).",
-      href: "/economia?view=series",
+      href: "/indicadores",
       hrefLabel: "Ver indicadores →",
     }
   }

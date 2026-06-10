@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from ine.bde import EUROSTAT_URL, parse_deuda_records
+from ine.bde import EUROSTAT_URL, build_raw_data, parse_deuda_records
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -52,6 +52,15 @@ def test_fixture_earliest_year():
     records = parse_deuda_records(data)
     earliest_period, _ = records[0]
     assert earliest_period == "2021"
+
+
+def test_raw_data_source_is_eurostat():
+    # Attribution rule from docs/designs/2026-06-10-la-cadena.md: debt rows
+    # cite Eurostat (Maastricht criterion), never "BdE".
+    raw = build_raw_data("2024", 1_698_224.6)
+    assert raw["source"] == "Eurostat"
+    assert raw["period"] == "2024"
+    assert raw["value"] == 1_698_224.6
 
 
 def test_parse_ignores_null_values():

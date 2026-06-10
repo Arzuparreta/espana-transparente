@@ -16,6 +16,7 @@ import subprocess
 from typing import Any
 
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 # INE Tempus3 series codes for COICOP subgroups (table 76125, base 2025).
 # Discovered via SERIES_TABLA endpoint on 2026-06-05.
@@ -70,52 +71,73 @@ def run(dry_run: bool = False) -> int:
     conn = get_pg_conn() if not dry_run else None
     cur = conn.cursor() if conn else None
     total_inserted = 0
+    total_read = 0
+    run_id = None
 
-    for series_key, meta in SUBGROUPS.items():
-        print(f"Fetching {meta['name']}...")
-        url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_key}?nult=240&tip=A"
-        series = fetch_json(url)
-
-        inserted = 0
-        for d in series.get("Data", []):
-            period_str = parse_period(d)
-            value = d.get("Valor")
-            if period_str is None or value is None:
-                continue
-
-            if dry_run:
-                inserted += 1
-                continue
-
-            if cur is None:
-                continue
-
-            cur.execute("""
-                INSERT INTO economic_indicators (indicator_code, indicator_name, period, value, unit, raw_data)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (indicator_code, period) DO UPDATE SET
-                    value = EXCLUDED.value,
-                    unit = EXCLUDED.unit,
-                    raw_data = EXCLUDED.raw_data
-            """, (
-                meta["code"],
-                meta["name"],
-                period_str,
-                value,
-                "índice (base 2025=100)",
-                json.dumps({"source_series": series_key, "point": d}),
-            ))
-            inserted += 1
-
-        if conn:
+    try:
+        if conn and cur:
+            run_id = start_run(cur, pipeline="ine.ipc_subgrupos")
             conn.commit()
-        print(f"  {inserted} data points")
-        total_inserted += inserted
 
-    if cur:
-        cur.close()
-    if conn:
-        conn.close()
+        for series_key, meta in SUBGROUPS.items():
+            print(f"Fetching {meta['name']}...")
+            url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_key}?nult=240&tip=A"
+            series = fetch_json(url)
+
+            inserted = 0
+            data_points = series.get("Data", [])
+            total_read += len(data_points)
+            for d in data_points:
+                period_str = parse_period(d)
+                value = d.get("Valor")
+                if period_str is None or value is None:
+                    continue
+
+                if dry_run:
+                    inserted += 1
+                    continue
+
+                if cur is None:
+                    continue
+
+                cur.execute("""
+                    INSERT INTO economic_indicators (indicator_code, indicator_name, period, value, unit, raw_data)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (indicator_code, period) DO UPDATE SET
+                        value = EXCLUDED.value,
+                        unit = EXCLUDED.unit,
+                        raw_data = EXCLUDED.raw_data
+                """, (
+                    meta["code"],
+                    meta["name"],
+                    period_str,
+                    value,
+                    "índice (base 2025=100)",
+                    json.dumps({"source_series": series_key, "point": d}),
+                ))
+                inserted += 1
+
+            if conn:
+                conn.commit()
+            print(f"  {inserted} data points")
+            total_inserted += inserted
+
+        if conn and cur and run_id:
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=total_read, rows_inserted=total_inserted)
+            conn.commit()
+    except Exception as exc:
+        if conn and run_id:
+            conn.rollback()
+            with conn.cursor() as fail_cur:
+                finish_run(fail_cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                conn.commit()
+        raise
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     print(f"Done! Upserted {total_inserted} data points across {len(SUBGROUPS)} series.")
     return total_inserted

@@ -115,10 +115,10 @@ export default async function IndicadorPage({ params }: PageProps) {
   return (
     <div className="ui-page">
         <ContextTrail
-          section={{ href: "/economia?view=series", label: "Series económicas" }}
+          section={{ href: "/indicadores", label: "Series económicas" }}
           current={name}
           meta={code}
-          fallbackHref="/economia?view=series"
+          fallbackHref="/indicadores"
           fallbackLabel="Volver a Series"
           related={[
             { href: "/estado-datos", label: "Estado de los datos" },
@@ -130,7 +130,7 @@ export default async function IndicadorPage({ params }: PageProps) {
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <ResponsiveLink
-                    href="/economia?view=series"
+                    href="/indicadores"
                     className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />

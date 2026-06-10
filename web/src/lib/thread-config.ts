@@ -201,7 +201,7 @@ export const THREADS: ThreadConfig[] = [
       "Muestra el último dato disponible de cada serie con su periodo y fuente; no mezcles periodos sin etiquetarlos.",
     sources: [
       {
-        href: "/economia?view=series",
+        href: "/indicadores",
         label: "Series económicas",
         description: "IPC, deuda pública, PIB, empleo y salario medio.",
         countKey: "indicadores",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { permanentRedirect } from "next/navigation"
 import type { ReactNode } from "react"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { ThreadAnchorCard, ThreadLanding } from "@/components/domain/ThreadLanding"
@@ -6,7 +7,6 @@ import { IpcBasketCalculator } from "@/components/indicators/IpcBasketCalculator
 import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
 import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
-import { IndicatorsView } from "@/components/views/IndicatorsView"
 import {
   getIndicators,
   getIpcIndexSeries,
@@ -29,6 +29,8 @@ const VIEW_META = {
     title: "Economía",
     description: "Precios, deuda, empleo, salarios y actividad con datos públicos.",
   },
+  // "series" now lives at /indicadores; kept here so old /economia?view=series
+  // links parse and redirect instead of falling back to "resumen".
   series: {
     title: "Series económicas",
     description: "IPC, PIB, empleo, salarios y deuda con su último dato y evolución histórica.",
@@ -80,27 +82,22 @@ function formatLatest(value: number, unit: string | null): string {
 export default async function EconomiaPage({ searchParams }: PageProps) {
   const params = await searchParams
   const view = parseView(params?.view, ECONOMY_VIEWS, "resumen")
+
+  if (view === "series") {
+    permanentRedirect("/indicadores")
+  }
+
   const navigation = (
     <SectionViewNav
       label="Vistas de economía"
       active={view}
       items={[
         { value: "resumen", label: "Explorar", href: "/economia" },
-        { value: "series", label: "Series", href: "/economia?view=series" },
+        { value: "series", label: "Series", href: "/indicadores" },
         { value: "calculadoras", label: "Calculadoras", href: "/economia?view=calculadoras" },
       ]}
     />
   )
-
-  if (view === "series") {
-    return (
-      <div className="ui-page-wide space-y-6 sm:space-y-8">
-        <PageHeader {...VIEW_META.series} />
-        {navigation}
-        <IndicatorsView />
-      </div>
-    )
-  }
 
   if (view === "calculadoras") {
     const [ipcSeries, ipcSubgroups] = await Promise.all([

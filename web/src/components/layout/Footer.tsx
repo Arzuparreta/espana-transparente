@@ -32,7 +32,7 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
   {
     heading: "Economía",
     items: [
-      { label: "Series", href: "/economia?view=series" },
+      { label: "Series", href: "/indicadores" },
       { label: "Calculadoras", href: "/economia?view=calculadoras" },
     ],
   },

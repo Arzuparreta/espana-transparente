@@ -51,7 +51,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "organizaciones", href: "/organizaciones", label: "Organizaciones", groupLabel: "Dinero" },
   {
     key: "indicadores",
-    href: "/economia?view=series",
+    href: "/indicadores",
     matchHref: "/indicadores",
     label: "Series",
     groupLabel: "Economía",

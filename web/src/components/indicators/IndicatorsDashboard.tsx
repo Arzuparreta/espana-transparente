@@ -1,15 +1,11 @@
 "use client"
 
-import { ArrowUpRight, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useMemo, useState } from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { IndicatorSparkline } from "@/components/indicators/IndicatorSparkline"
-import { CopyLinkButton } from "@/components/indicators/CopyLinkButton"
-import { getIndicatorExplanation } from "@/lib/indicator-explanations"
-import { cn } from "@/lib/utils"
+import { IndicatorCard } from "@/components/indicators/IndicatorCard"
+import { groupIndicators } from "@/lib/indicator-groups"
 
 export interface IndicatorPoint {
   period: string
@@ -33,19 +29,14 @@ interface IndicatorsDashboardProps {
   totalObservations: number
 }
 
-const numberFormatter = new Intl.NumberFormat("es-ES", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 2,
-})
-
-function formatValue(value: number) {
-  return numberFormatter.format(value)
-}
-
-function formatDelta(deltaPct: number | null) {
-  if (deltaPct === null || !Number.isFinite(deltaPct)) return "Sin comparación"
-  const sign = deltaPct > 0 ? "+" : ""
-  return `${sign}${deltaPct.toFixed(2)}%`
+function CardGrid({ items }: { items: IndicatorSummary[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {items.map((indicator) => (
+        <IndicatorCard key={indicator.code} indicator={indicator} />
+      ))}
+    </div>
+  )
 }
 
 export function IndicatorsDashboard({ indicators, totalObservations }: IndicatorsDashboardProps) {
@@ -57,6 +48,8 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
     .sort()
   const latestPeriod = sortedPeriods[sortedPeriods.length - 1]
 
+  const groups = useMemo(() => groupIndicators(indicators), [indicators])
+
   const filtered = useMemo(() => {
     if (!normalizedQuery) return indicators
 
@@ -65,6 +58,8 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
       return haystack.includes(normalizedQuery)
     })
   }, [indicators, normalizedQuery])
+
+  const foldedCount = groups.ipcSubgrupos.length + groups.ipcAvanzado.length
 
   return (
     <div className="space-y-5">
@@ -83,8 +78,8 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
             <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">{latestPeriod ?? "N/D"}</div>
           </div>
           <div className="rounded-[2px] border border-border bg-background/60 px-3 py-3">
-            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Fuente</div>
-            <div data-value className="mt-1 font-mono text-3xl font-medium tracking-tight">INE</div>
+            <div className="font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">Fuentes</div>
+            <div data-value className="mt-1 font-mono text-2xl font-medium leading-9 tracking-tight">INE · Eurostat</div>
           </div>
         </div>
       </section>
@@ -93,7 +88,9 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
         <div className="min-w-0">
           <div className="text-sm font-semibold">Panel de indicadores</div>
           <div className="text-xs leading-5 text-muted-foreground">
-            {filtered.length} de {indicators.length} series visibles
+            {normalizedQuery
+              ? `${filtered.length} de ${indicators.length} series visibles`
+              : `${groups.principal.length} series visibles · ${foldedCount} plegadas`}
           </div>
         </div>
         <label className="relative block w-full sm:max-w-xs">
@@ -108,79 +105,40 @@ export function IndicatorsDashboard({ indicators, totalObservations }: Indicator
         </label>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="rounded border border-dashed border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
-          No hay indicadores que coincidan con la búsqueda.
-        </div>
+      {normalizedQuery ? (
+        filtered.length === 0 ? (
+          <div className="rounded border border-dashed border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+            No hay indicadores que coincidan con la búsqueda.
+          </div>
+        ) : (
+          <CardGrid items={filtered} />
+        )
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((indicator) => {
-            const trendClass =
-              indicator.deltaPct === null
-                ? "text-muted-foreground"
-                : indicator.deltaPct >= 0
-                  ? "text-accent"
-                  : "text-muted-foreground"
+        <>
+          <CardGrid items={groups.principal} />
 
-            const explanation = getIndicatorExplanation(indicator.code)
+          {groups.ipcSubgrupos.length > 0 ? (
+            <details className="rounded-[2px] border border-border bg-card px-4 py-3">
+              <summary className="cursor-pointer text-sm font-semibold text-muted-foreground hover:text-foreground">
+                Subgrupos del IPC ({groups.ipcSubgrupos.length} series)
+              </summary>
+              <div className="mt-4">
+                <CardGrid items={groups.ipcSubgrupos} />
+              </div>
+            </details>
+          ) : null}
 
-            return (
-              <article
-                key={indicator.code}
-                data-slot="card"
-                className="group flex h-full min-h-[260px] flex-col justify-between rounded-[2px] border border-border bg-card p-4 transition-colors duration-150 hover:border-foreground/30"
-              >
-                <ResponsiveLink
-                  href={`/indicadores/${indicator.code}`}
-                  className="block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="line-clamp-2 text-base font-semibold leading-6 text-balance">{indicator.name}</h2>
-                        <div className="mt-1 text-xs text-muted-foreground">Último dato: {indicator.latestPeriod}</div>
-                      </div>
-                      <Badge variant="outline" className="shrink-0 text-xs">{indicator.code}</Badge>
-                    </div>
-
-                    <div>
-                      <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-                        <span data-value className="font-mono text-4xl font-medium tracking-tight">
-                          {formatValue(indicator.latestValue)}
-                        </span>
-                        <span className="pb-1 text-xs text-muted-foreground">{indicator.unit}</span>
-                      </div>
-                      <div className={cn("mt-1 font-mono text-xs font-semibold", trendClass)}>
-                        {formatDelta(indicator.deltaPct)}
-                      </div>
-                    </div>
-
-                    {explanation.short && (
-                      <p className="text-xs leading-5 text-muted-foreground text-pretty">
-                        {explanation.short}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="mt-5 space-y-3">
-                    <IndicatorSparkline points={indicator.points} className="text-foreground/85" />
-                    <div className="flex items-center justify-between border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
-                      <span>Ver serie</span>
-                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                    </div>
-                  </div>
-                </ResponsiveLink>
-
-                <div className="mt-2 border-t border-border/40 pt-2">
-                  <CopyLinkButton
-                    url={`/indicadores/${indicator.code}`}
-                    label="Copiar enlace"
-                  />
-                </div>
-              </article>
-            )
-          })}
-        </div>
+          {groups.ipcAvanzado.length > 0 ? (
+            <details className="rounded-[2px] border border-border bg-card px-4 py-3">
+              <summary className="cursor-pointer text-sm font-semibold text-muted-foreground hover:text-foreground">
+                Series avanzadas del IPC: índice mensual y variaciones ({groups.ipcAvanzado.length})
+              </summary>
+              <div className="mt-4">
+                <CardGrid items={groups.ipcAvanzado} />
+              </div>
+            </details>
+          ) : null}
+        </>
       )}
     </div>
   )

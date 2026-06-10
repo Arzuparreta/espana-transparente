@@ -20,6 +20,7 @@ import subprocess
 from typing import Any
 
 from common.db import get_pg_conn
+from common.etl_runs import finish_run, start_run
 
 # INE Tempus3 series codes discovered via the API's OPERACIONES_DISPONIBLES
 # and TABLAS_OPERACION/SERIES_TABLA endpoints (2026-05-24).
@@ -105,73 +106,94 @@ def run(dry_run: bool = False) -> dict[str, int]:
     conn = get_pg_conn()
     cur = conn.cursor()
     results: dict[str, int] = {}
+    run_id = None
+    total_read = 0
+    try:
+        if not dry_run:
+            run_id = start_run(cur, pipeline="ine.indicadores_ampliados")
+            conn.commit()
 
-    for series_id, meta in INDICATORS.items():
-        url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_id}?nult=500&tip=A"
-        metadata_url = f"https://servicios.ine.es/wstempus/js/ES/SERIE/{series_id}?det=2&tip=A"
+        for series_id, meta in INDICATORS.items():
+            url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_id}?nult=500&tip=A"
+            metadata_url = f"https://servicios.ine.es/wstempus/js/ES/SERIE/{series_id}?det=2&tip=A"
 
-        if dry_run:
-            print(f"[DRY-RUN] Would fetch {meta['name']} ({series_id})")
-            results[meta["code"]] = 0
-            continue
-
-        print(f"Fetching {meta['name']} ({series_id})...")
-        try:
-            series_data = fetch_json(url)
-            metadata = fetch_json(metadata_url)
-        except Exception as exc:
-            print(f"  ERROR fetching {series_id}: {exc}")
-            results[meta["code"]] = 0
-            continue
-
-        inserted = 0
-        for point in series_data.get("Data", []):
-            period_str = parse_period(point)
-            value = point.get("Valor")
-            if period_str is None or value is None:
+            if dry_run:
+                print(f"[DRY-RUN] Would fetch {meta['name']} ({series_id})")
+                results[meta["code"]] = 0
                 continue
 
-            # Convert PIB from euros to millions of euros for readability
-            if meta["code"] == "PIB" and isinstance(value, (int, float)):
-                value = round(value, 1)
+            print(f"Fetching {meta['name']} ({series_id})...")
+            try:
+                series_data = fetch_json(url)
+                metadata = fetch_json(metadata_url)
+            except Exception as exc:
+                print(f"  ERROR fetching {series_id}: {exc}")
+                results[meta["code"]] = 0
+                continue
 
-            # PARADOS comes in thousands already, keep as-is
-            if meta["code"] == "PARADOS" and isinstance(value, (int, float)):
-                value = round(value, 1)
+            data_points = series_data.get("Data", [])
+            total_read += len(data_points)
+            inserted = 0
+            for point in data_points:
+                period_str = parse_period(point)
+                value = point.get("Valor")
+                if period_str is None or value is None:
+                    continue
 
-            cur.execute(
-                """
-                INSERT INTO economic_indicators (indicator_code, indicator_name, period, value, unit, raw_data)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (indicator_code, period) DO UPDATE SET
-                    value = EXCLUDED.value,
-                    unit = EXCLUDED.unit,
-                    raw_data = EXCLUDED.raw_data
-                """,
-                (
-                    meta["code"],
-                    meta["name"],
-                    period_str,
-                    value,
-                    meta["unit"],
-                    json.dumps(
-                        {
-                            "source_series": series_id,
-                            "source_name": series_data.get("Nombre"),
-                            "point": {k: str(v) for k, v in point.items()},
-                        },
-                        ensure_ascii=False,
+                # Convert PIB from euros to millions of euros for readability
+                if meta["code"] == "PIB" and isinstance(value, (int, float)):
+                    value = round(value, 1)
+
+                # PARADOS comes in thousands already, keep as-is
+                if meta["code"] == "PARADOS" and isinstance(value, (int, float)):
+                    value = round(value, 1)
+
+                cur.execute(
+                    """
+                    INSERT INTO economic_indicators (indicator_code, indicator_name, period, value, unit, raw_data)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (indicator_code, period) DO UPDATE SET
+                        value = EXCLUDED.value,
+                        unit = EXCLUDED.unit,
+                        raw_data = EXCLUDED.raw_data
+                    """,
+                    (
+                        meta["code"],
+                        meta["name"],
+                        period_str,
+                        value,
+                        meta["unit"],
+                        json.dumps(
+                            {
+                                "source_series": series_id,
+                                "source_name": series_data.get("Nombre"),
+                                "point": {k: str(v) for k, v in point.items()},
+                            },
+                            ensure_ascii=False,
+                        ),
                     ),
-                ),
-            )
-            inserted += 1
+                )
+                inserted += 1
 
-        conn.commit()
-        results[meta["code"]] = inserted
-        print(f"  {inserted} data points ingested")
+            conn.commit()
+            results[meta["code"]] = inserted
+            print(f"  {inserted} data points ingested")
 
-    cur.close()
-    conn.close()
+        if run_id:
+            finish_run(cur, run_id=run_id, status="succeeded",
+                       rows_read=total_read, rows_inserted=sum(results.values()))
+            conn.commit()
+    except Exception as exc:
+        if run_id:
+            conn.rollback()
+            with conn.cursor() as fail_cur:
+                finish_run(fail_cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
+                conn.commit()
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
     return results
 
 
