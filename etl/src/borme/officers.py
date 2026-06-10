@@ -384,6 +384,18 @@ def cross_reference_politicians(cur) -> int:
     return cur.rowcount
 
 
+def _api_health_check(client: httpx.Client) -> bool:
+    """Quick preflight: test that the OpenMercantil API is reachable."""
+    try:
+        resp = client.get(f"{API_BASE}/search", params={"q": "test"}, timeout=15.0)
+        resp.raise_for_status()
+        data = resp.json()
+        return "items" in data
+    except Exception as exc:
+        print(f"OpenMercantil API unreachable: {exc}")
+        return False
+
+
 def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -> tuple[int, int]:
     """Main ETL: fetch BORME officers and cross-reference with politicians."""
     conn = get_pg_conn()
@@ -408,8 +420,13 @@ def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -
 
             with httpx.Client(
                 headers={"User-Agent": "EspanaTransparente/1.0 (non-commercial open data)"},
-                timeout=30.0
+                timeout=httpx.Timeout(connect=10.0, read=20.0, write=10.0, pool=5.0),
+                transport=httpx.HTTPTransport(local_address="0.0.0.0"),
             ) as client:
+                if not _api_health_check(client):
+                    print("ERROR: OpenMercantil API is not reachable. Aborting.")
+                    return processed, total_officers
+
                 for i, org in enumerate(orgs):
                     name_short = org['name'][:60]
                     print(f"[{i+1}/{len(orgs)}] {name_short}...", end=' ', flush=True)

@@ -354,7 +354,13 @@ def run(opts: RunOptions) -> RunStats:
             _bump_attempts(pol.id, dry_run=opts.dry_run)
             continue
 
-        url, promoted = _persist(pol, match, dry_run=opts.dry_run)
+        try:
+            url, promoted = _persist(pol, match, dry_run=opts.dry_run)
+        except Exception as exc:  # StorageError, DB error, etc.
+            stats.failed += 1
+            print(f"  ✗ {pol.full_name}: persist failed [{match.source}] {exc!r}")
+            _bump_attempts(pol.id, dry_run=opts.dry_run)
+            continue
         if promoted:
             stats.updated += 1
         else:

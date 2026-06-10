@@ -81,7 +81,7 @@ def test_batch_stops_when_database_preflight_fails(tmp_path):
     [
         ("weekly-core", 14, "src.congreso.declaraciones"),
         ("weekly-documents", 2, "src.borme.officers"),
-        ("weekly-links", 9, "common.search_refresh"),
+        ("weekly-links", 10, "common.search_refresh"),
     ],
 )
 def test_weekly_batches_are_partitioned(

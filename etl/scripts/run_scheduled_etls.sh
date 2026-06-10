@@ -108,6 +108,7 @@ run_weekly_links() {
   run_self_tracked_pipeline "judicial.contract_links" python -m src.judicial.contract_links
   run_pipeline "ine.indicadores_ampliados" python -m src.ine.indicadores_ampliados
   run_pipeline "ine.ipc_subgrupos" python -m src.ine.ipc_subgrupos
+  run_pipeline "ine.bde" python -m src.ine.bde
   run_pipeline "elections.ingest" python -m src.elections.ingest
   run_self_tracked_pipeline "common.search_refresh" python -m common.search_refresh
 }
