@@ -19,10 +19,31 @@ interface ThreadLandingProps {
   children?: ReactNode
 }
 
-function anchorGridClass(count: number): string {
-  if (count <= 1) return ""
-  if (count === 2) return "sm:grid-cols-2"
-  return "sm:grid-cols-2 lg:grid-cols-3"
+interface GridClasses {
+  gridCols: string
+  loneLastCardClass: string
+}
+
+/**
+ * Grid column classes for a row of `count` cards. A 3-column layout leaves an
+ * unbalanced, non-full-width orphan or gap unless count is a multiple of 3,
+ * so other counts fall back to 2 columns, with an odd last card spanning
+ * both columns to fill the final row.
+ */
+function anchorGridClass(count: number): GridClasses {
+  if (count <= 1) return { gridCols: "", loneLastCardClass: "" }
+  if (count === 2) return { gridCols: "sm:grid-cols-2", loneLastCardClass: "" }
+  if (count % 3 === 0) return { gridCols: "sm:grid-cols-2 lg:grid-cols-3", loneLastCardClass: "" }
+  if (count % 2 === 1) return { gridCols: "sm:grid-cols-2", loneLastCardClass: "sm:[&>*:last-child]:col-span-2" }
+  return { gridCols: "sm:grid-cols-2", loneLastCardClass: "" }
+}
+
+function sourceGridClass(count: number): GridClasses {
+  if (count <= 1) return { gridCols: "", loneLastCardClass: "" }
+  if (count === 2) return { gridCols: "md:grid-cols-2", loneLastCardClass: "" }
+  if (count % 3 === 0) return { gridCols: "md:grid-cols-2 xl:grid-cols-3", loneLastCardClass: "" }
+  if (count % 2 === 1) return { gridCols: "md:grid-cols-2", loneLastCardClass: "md:[&>*:last-child]:col-span-2" }
+  return { gridCols: "md:grid-cols-2", loneLastCardClass: "" }
 }
 
 export function ThreadLanding({
@@ -80,10 +101,7 @@ export function ThreadLanding({
           <div className="space-y-6">
             {sourceGroups.map(([sectionLabel, sources], groupIndex) => {
               const sourceCount = sources.length
-              const sourceGridCols =
-                sourceCount === 1 ? "" : sourceCount === 2 ? "md:grid-cols-2" : "md:grid-cols-2 xl:grid-cols-3"
-              const loneLastCardClass =
-                sourceCount > 3 && sourceCount % 3 === 1 ? "xl:[&>*:last-child]:col-span-2" : ""
+              const { gridCols: sourceGridCols, loneLastCardClass } = sourceGridClass(sourceCount)
 
               return (
                 <section
@@ -125,9 +143,14 @@ export function ThreadLanding({
             <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
               En cifras
             </p>
-            <div className={`grid gap-3 ${anchorGridClass(visibleAnchors.length)}`.trim()}>
-              {visibleAnchors}
-            </div>
+            {(() => {
+              const { gridCols, loneLastCardClass } = anchorGridClass(visibleAnchors.length)
+              return (
+                <div className={`grid gap-3 ${gridCols} ${loneLastCardClass}`.trim()}>
+                  {visibleAnchors}
+                </div>
+              )
+            })()}
           </section>
         </RevealSection>
       ) : null}
