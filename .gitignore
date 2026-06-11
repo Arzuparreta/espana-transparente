@@ -30,3 +30,4 @@ Thumbs.db
 ~/
 .vercel
 .actions-runner/
+.claude/scheduled_tasks.lock
