@@ -1,6 +1,6 @@
 import { unstable_cache as nextUnstableCache } from "next/cache"
 
-export const PUBLIC_DATA_CACHE_VERSION = "public-data-v3"
+export const PUBLIC_DATA_CACHE_VERSION = "public-data-v4"
 
 export const unstable_cache = ((
   callback,
