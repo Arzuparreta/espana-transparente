@@ -47,7 +47,7 @@ def fetch_page(from_date: str, to_date: str, page: int) -> dict:
             "fechaDesde": from_api,
             "fechaHasta": to_api,
         },
-        headers={"User-Agent": "EspanaTransparente/1.0 (+https://xn--espaatransparente-ixb.site)"},
+        headers={"User-Agent": "EspanaTransparente/1.0 (+https://spaintransparencia.info)"},
         timeout=30,
     )
     resp.raise_for_status()

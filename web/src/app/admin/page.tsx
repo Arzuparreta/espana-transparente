@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
+import { BRAND_URL } from "@/lib/brand"
 import { AdminLoginForm } from "./login-form"
 
 export const dynamic = "force-dynamic"
@@ -72,7 +73,7 @@ function timeAgo(value: string) {
 }
 
 function entityLink(entityType: string, entityId: string) {
-  const base = "https://espana-transparente.vercel.app"
+  const base = BRAND_URL
   switch (entityType) {
     case "politician":
       return `${base}/diputados/${entityId}`
@@ -267,17 +268,16 @@ export default async function AdminPage() {
   // Pipeline failures
   const failedPipelines = pipelines.filter((p) => p.last_status === "failed")
 
-  // Health metric: site alive (use request host to avoid Vercel self-fetch redirects)
+  // Health metric: site alive (self-fetch via request host)
   let siteStatus: string = "unknown"
   let siteLatency = 0
   try {
     const headersList = await headers()
-    const host = headersList.get("host") || "espana-transparente.vercel.app"
+    const host = headersList.get("host") || new URL(BRAND_URL).host
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
     const t0 = Date.now()
     const res = await fetch(`${protocol}://${host}/api/health`, {
       next: { revalidate: 0 },
-      headers: { "x-vercel-skip-toolbar": "1" },
     })
     siteLatency = Date.now() - t0
     siteStatus = res.ok ? "ok" : `${res.status}`

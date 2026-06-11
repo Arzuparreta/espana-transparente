@@ -10,7 +10,7 @@
 #
 # A green edge + red REST/Auth/pooler == the database is down or paused, NOT a
 # code bug. That is exactly the state that makes CI's "Deployment health" and
-# "Data health" jobs fail while Vercel still serves the frontend.
+# "Data health" jobs fail while the VPS still serves the frontend.
 #
 # Usage:
 #   ./scripts/check-production.sh
@@ -22,7 +22,7 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PRODUCTION_URL="${PRODUCTION_URL:-https://xn--espaatransparente-ixb.site}"
+PRODUCTION_URL="${PRODUCTION_URL:-https://spaintransparencia.info}"
 
 # Load public env without clobbering anything already exported.
 load_env() {

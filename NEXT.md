@@ -38,11 +38,11 @@ pública) are published as raw tables that require economics training to interpr
 
 ## Constraints
 
-- Supabase Free (500 MB). No new heavy tables without auditing current usage first.
+- Self-hosted Postgres (`desktop-ruben`, behind Tailscale Funnel). No new heavy tables without auditing current usage first.
 - `transparencia.gob.es` is the government's own portal — Spain has a documented pattern of
   labeling accountability journalism as partisan. Editorial neutrality is non-negotiable.
 - Congress portal rate-limits at 1.5s/request. Declaration PDF parsing must be async and resumable.
-- Vercel Hobby deployment. No server-side heavy compute.
+- Self-hosted VPS (Node 20 + PM2 + nginx). Server-side compute is available but not unlimited — keep pages cacheable.
 
 ---
 

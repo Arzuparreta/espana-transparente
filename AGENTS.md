@@ -100,8 +100,8 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 | Frontend | Next.js 14 (App Router) + Tailwind + shadcn/ui |
 | Base de datos | Supabase (PostgreSQL) |
 | ETL | Python 3.12 + psycopg2 + httpx |
-| CI/CD | GitHub Actions + Vercel |
-| Despliegue | Vercel (Hobby) + Supabase (Free) |
+| CI/CD | GitHub Actions (cron diario/semanal + deploy SSH a VPS) |
+| Despliegue | VPS propio (Node 20 + PM2 + nginx) + Supabase autoalojado (Tailscale Funnel) |
 
 ## Cómo arrancar
 

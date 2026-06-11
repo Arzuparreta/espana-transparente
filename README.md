@@ -49,7 +49,7 @@ Fuentes públicas  →  etl/src/<source>/   →  Supabase (Postgres)  →  web/s
 | ETL             | Python 3.12 · psycopg2 · httpx                        | `etl/`               |
 | Base de datos   | Supabase (PostgreSQL) · 15+ tablas, vistas y RPCs     | `supabase/migrations/` |
 | Datos curados   | YAML revisado vía PR (liderazgos, responsables)       | `etl/data/`          |
-| CI/CD           | GitHub Actions · cron diario y semanal · Vercel       | `.github/workflows/` |
+| CI/CD           | GitHub Actions · cron diario y semanal · deploy SSH a VPS | `.github/workflows/` |
 
 ## Arranque rápido
 

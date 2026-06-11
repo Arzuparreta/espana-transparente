@@ -1,9 +1,9 @@
 # Self-hosted Supabase production
 
-Production uses the Supabase stack on `desktop-ruben`. Vercel reaches its HTTP
-API through Tailscale Funnel; ETL and migration jobs run on the same machine
-through the `desktop-ruben` GitHub Actions runner and connect to PostgreSQL on
-`127.0.0.1:54322`.
+Production uses the Supabase stack on `desktop-ruben`. The VPS frontend
+(`spaintransparencia.info`) reaches its HTTP API through Tailscale Funnel; ETL
+and migration jobs run on the same machine through the `desktop-ruben` GitHub
+Actions runner and connect to PostgreSQL on `127.0.0.1:54322`.
 
 The old `zktpodkvlgciluhbulwr.supabase.co` project is not part of the production
 data path. Do not add it back as a fallback: a reachable but obsolete project
@@ -12,7 +12,8 @@ looks like an empty database and hides configuration drift.
 ## Production topology
 
 ```text
-Browser / Vercel
+Browser
+  -> https://spaintransparencia.info (VPS: Next.js + PM2 + nginx)
   -> https://desktop-ruben.taileed0d5.ts.net
   -> Tailscale Funnel
   -> Supabase Kong on 127.0.0.1:54321
@@ -20,6 +21,10 @@ Browser / Vercel
 GitHub Actions ETL / migrations
   -> self-hosted runner: desktop-ruben
   -> PostgreSQL on 127.0.0.1:54322
+
+GitHub Actions deploy (push to main)
+  -> SSH to VPS (appleboy/ssh-action)
+  -> git reset --hard origin/main, npm ci, npm run build, pm2 restart
 ```
 
 Repository variables:
@@ -38,13 +43,17 @@ SUPABASE_SERVICE_ROLE_KEY
 AUTH_BACKUP_ENCRYPTION_PASSPHRASE
 ```
 
-Vercel production variables:
+VPS frontend environment (`web/.env.production` on the VPS, not committed —
+read at build time and baked into the client bundle):
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
+
+Repo secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` authenticate the deploy job
+against the VPS.
 
 The runner is installed as the user service
 `espana-transparente-runner.service`, with lingering enabled so it starts after
@@ -300,5 +309,6 @@ The migration chain has been patched for clean bootstrap from an empty database:
 - `/api/health` checks availability only. Data freshness is reported separately
   on the home page and `/estado-datos`: 36 hours for daily critical sources and
   9 days for weekly critical sources.
-- Never point Vercel or Actions at a hosted Supabase project as an availability
-  fallback. Recovery must restore this instance or promote an explicit backup.
+- Never point the VPS frontend or Actions at a hosted Supabase project as an
+  availability fallback. Recovery must restore this instance or promote an
+  explicit backup.

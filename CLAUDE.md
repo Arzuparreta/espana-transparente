@@ -48,7 +48,7 @@ python apply_migration.py ../supabase/migrations/<file>.sql   # direct apply via
 npx supabase db push                                          # via Supabase CLI
 ```
 
-Migration files are sorted by timestamped prefix. Project ref is `zktpodkvlgciluhbulwr` (also in `.mcp.json` for the Supabase MCP server).
+Migration files are sorted by timestamped prefix. Local project ref is `espana-transparente` (`supabase/config.toml`); both commands above target the self-hosted stack on `desktop-ruben`.
 
 ## Architecture
 
