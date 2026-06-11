@@ -60,6 +60,35 @@ jobs:
       - run: npm run content:audit
       - run: npm run build
 
+  deploy-web:
+    name: Deploy web to VPS
+    needs: web
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Deploy and restart
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /root/Proyectos/espana-transparente
+            git fetch origin main
+            git reset --hard origin/main
+            cd web
+            npm ci
+            npm run build
+            pm2 restart espana-transparente-web
+      - name: Verify deployment health
+        run: |
+          curl --fail --show-error --silent \
+            --retry 5 --retry-delay 10 --retry-all-errors \
+            --connect-timeout 10 --max-time 30 \
+            "https://spaintransparencia.info/api/health"
+
   data-health:
     name: Data health (live Supabase)
     if: github.event_name == 'workflow_dispatch'
