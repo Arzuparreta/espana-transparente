@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Verify deployed revision health
         env:
-          PRODUCTION_URL: https://xn--espaatransparente-ixb.site
+          PRODUCTION_URL: https://spaintransparencia.info
         run: |
           # Retry a cold start without repeatedly hammering an unavailable
           # database and tripping the pooler's authentication circuit breaker.

@@ -139,8 +139,7 @@ Data pages stay factual steel: the thesis orders and frames the data; charts and
 
 ## Operational notes
 
-- The Supabase MCP server is configured in `.mcp.json` against project ref `zktpodkvlgciluhbulwr` — use it for schema introspection when available.
-- Production hostname: `xn--espaatransparente-ixb.site` (IDN for "españatransparente.site"). Deployed on Vercel Hobby; DB on Supabase Free (500 MB).
+- Production hostname: `spaintransparencia.info`. Frontend self-hosted on a VPS (Node 20 + PM2 + nginx, see `web/ecosystem.config.js`); DB is a self-hosted Supabase stack exposed publicly via a Tailscale Funnel (`https://desktop-ruben.taileed0d5.ts.net`, `tailscale funnel --bg 54321`) — both client and server use this URL as `NEXT_PUBLIC_SUPABASE_URL`. The `zktpodkvlgciluhbulwr.supabase.co` cloud project referenced in `etl/.env`/`.mcp.json` is legacy/paused and not production.
 
 ## Skill routing
 

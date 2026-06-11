@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://xn--espaatransparente-ixb.site"><strong>españatransparente.site →</strong></a>
+  <a href="https://spaintransparencia.info"><strong>spaintransparencia.info →</strong></a>
 </p>
 
 <p align="center">

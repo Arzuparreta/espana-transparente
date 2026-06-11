@@ -104,7 +104,7 @@ export function Footer() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              españatransparente.site
+              spaintransparencia.info
             </a>
           </p>
         </div>

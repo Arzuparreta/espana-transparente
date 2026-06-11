@@ -6,7 +6,7 @@ on:
       app_url:
         description: URL to test
         required: true
-        default: https://xn--espaatransparente-ixb.site
+        default: https://spaintransparencia.info
       browser:
         description: Run browser persistence check
         required: true

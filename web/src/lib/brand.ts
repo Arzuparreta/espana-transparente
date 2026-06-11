@@ -6,6 +6,6 @@ export const BRAND_DESCRIPTION =
 export const BRAND_LONG_DESCRIPTION =
   "El portal de referencia sobre la actividad política y económica del Estado español: diputados, votaciones, contratos públicos, subvenciones, puertas giratorias y las personas que los conectan."
 
-export const BRAND_URL = "https://xn--espaatransparente-ixb.site"
+export const BRAND_URL = "https://spaintransparencia.info"
 
 export const GITHUB_URL = "https://github.com/Arzuparreta/espana-transparente"

@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js"
 const SUPABASE_URL = required("NEXT_PUBLIC_SUPABASE_URL")
 const ANON_KEY = required("NEXT_PUBLIC_SUPABASE_ANON_KEY")
 const SERVICE_ROLE_KEY = required("SUPABASE_SERVICE_ROLE_KEY")
-const APP_URL = process.env.AUTH_SMOKE_APP_URL ?? "https://xn--espaatransparente-ixb.site"
+const APP_URL = process.env.AUTH_SMOKE_APP_URL ?? "https://spaintransparencia.info"
 const EMAIL_DOMAIN = process.env.AUTH_SMOKE_EMAIL_DOMAIN ?? "gmail.com"
 const RUN_BROWSER = process.argv.includes("--browser")
 const PROJECT_REF = new URL(SUPABASE_URL).hostname.split(".")[0]
