@@ -195,9 +195,21 @@ def run(dry_run: bool = False):
             biografia = d.get("BIOGRAFIA", "").strip()
             fecha_alta = d.get("FECHAALTA", "").strip()
             directory_entry = directory.get(normalize_name(full_name))
-            if not directory_entry:
-                raise RuntimeError(f"No se encontró {full_name!r} en searchDiputados para obtener cod_parlamentario")
-            cod_parlamentario = directory_entry.cod_parlamentario
+            if directory_entry:
+                cod_parlamentario = directory_entry.cod_parlamentario
+            else:
+                # The active-deputies CSV and searchDiputados can briefly disagree
+                # (e.g. a substitution registered in one but not yet in the other).
+                # Keep whatever cod_parlamentario we already have rather than
+                # failing the whole run for one mismatched deputy.
+                cur.execute(
+                    "SELECT cod_parlamentario FROM politicians WHERE congress_id = %s",
+                    (cid,),
+                )
+                row = cur.fetchone()
+                cod_parlamentario = row[0] if row else None
+                print(f"WARNING: {full_name!r} no encontrado en searchDiputados; "
+                      f"manteniendo cod_parlamentario={cod_parlamentario!r}")
 
             # Split name
             if "," in full_name:

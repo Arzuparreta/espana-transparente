@@ -92,6 +92,7 @@ run_weekly_core() {
   run_pipeline "public_bodies.boe_nombramientos" python -m src.public_bodies.boe_nombramientos --days 7 --resume
   run_self_tracked_pipeline "kohesio.fondos_ue" python -m src.kohesio.fondos_ue
   run_pipeline "senado.senadores" python -m src.senado.senadores
+  run_self_tracked_pipeline "senado.bajas" python -m src.senado.bajas
   run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones
 }
 
