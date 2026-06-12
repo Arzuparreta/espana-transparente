@@ -11,6 +11,7 @@ export type EntityKind =
   | "grant"
   | "ministry"
   | "initiative"
+  | "official"
 
 const HREF_BY_KIND: Record<EntityKind, (id: string | number) => string> = {
   politician: (id) => `/diputados/${id}`,
@@ -21,6 +22,7 @@ const HREF_BY_KIND: Record<EntityKind, (id: string | number) => string> = {
   grant: (id) => `/subvenciones/${id}`,
   ministry: (id) => `/ministerios/${id}`,
   initiative: (id) => `/iniciativas/${id}`,
+  official: (id) => `/cargos/${id}`,
 }
 
 type EntityLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "id"> & {

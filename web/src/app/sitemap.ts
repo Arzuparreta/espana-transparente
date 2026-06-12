@@ -12,6 +12,7 @@ import {
   getSitemapInitiativeIds,
   getSitemapInstitucionIds,
   getSitemapJudicialCaseIds,
+  getSitemapOfficialIds,
   getSitemapOrganizationIds,
   getSitemapRevolvingDoorIds,
   getSitemapSenatorIds,
@@ -90,6 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     organizations,
     indicators,
     instituciones,
+    officials,
     budgetSections,
     budgetPrograms,
     initiatives,
@@ -117,6 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tryGet(() => getSitemapOrganizationIds(), [] as { id: string }[]),
     tryGet(() => getSitemapIndicatorCodes(), [] as { code: string }[]),
     tryGet(() => getSitemapInstitucionIds(), [] as { id: string }[]),
+    tryGet(() => getSitemapOfficialIds(), [] as { id: string }[]),
     tryGet(() => getSitemapBudgetSectionPaths(), [] as { year: number; section_code: string }[]),
     tryGet(() => getSitemapBudgetProgramPaths(), [] as { section_code: string; program_code: string }[]),
     tryGet(() => getSitemapInitiativeIds(), [] as { id: string }[]),
@@ -217,6 +220,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }))
 
+  const officialEntries: MetadataRoute.Sitemap = officials.map((o) => ({
+    url: url(`/cargos/${o.id}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }))
+
   const budgetSectionEntries: MetadataRoute.Sitemap = budgetSections.map((s) => ({
     url: url(`/presupuestos/${s.section_code}?year=${s.year}`),
     lastModified: now,
@@ -267,6 +277,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...organizationEntries,
     ...indicatorEntries,
     ...institucionEntries,
+    ...officialEntries,
     ...budgetSectionEntries,
     ...budgetProgramEntries,
     ...initiativeEntries,

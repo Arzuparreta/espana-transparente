@@ -240,6 +240,7 @@ export type Senator = {
 export type Responsibility = {
   person_name: string | null
   politician_id: string | null
+  official_id: string | null
   ministry: string | null
   government: string | null
   political_party: string | null

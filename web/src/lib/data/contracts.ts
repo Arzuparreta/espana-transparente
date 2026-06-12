@@ -22,7 +22,7 @@ export const getContractPage = unstable_cache(
       contractIds.length > 0
         ? await supabase
             .from("v_contract_responsibility")
-            .select("contract_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .select("contract_id, person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("contract_id", contractIds)
         : { data: [] }
     throwDataError("error" in responsibilities ? responsibilities.error : null, "contract responsibilities")
@@ -33,6 +33,7 @@ export const getContractPage = unstable_cache(
         {
           person_name: row.person_name,
           politician_id: row.politician_id,
+          official_id: row.official_id,
           ministry: row.ministry,
           government: row.government,
           political_party: row.political_party,
@@ -84,7 +85,7 @@ export const getContractPageFiltered = unstable_cache(
       contractIds.length > 0
         ? await supabase
             .from("v_contract_responsibility")
-            .select("contract_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .select("contract_id, person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("contract_id", contractIds)
         : { data: [] }
     throwDataError("error" in responsibilities ? responsibilities.error : null, "contract responsibilities")
@@ -95,6 +96,7 @@ export const getContractPageFiltered = unstable_cache(
         {
           person_name: row.person_name,
           politician_id: row.politician_id,
+          official_id: row.official_id,
           ministry: row.ministry,
           government: row.government,
           political_party: row.political_party,
@@ -126,7 +128,7 @@ export const getContractDetail = unstable_cache(
         .single(),
       supabase
         .from("v_contract_responsibility")
-        .select("person_name, politician_id, ministry, government, political_party, administration_level, territory_name")
+        .select("person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name")
         .eq("contract_id", id)
         .maybeSingle(),
     ])

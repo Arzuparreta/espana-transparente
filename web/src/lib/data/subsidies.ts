@@ -23,7 +23,7 @@ export const getSubvencionPage = unstable_cache(
       subsidyIds.length > 0
         ? await supabase
             .from("v_subsidy_responsibility")
-            .select("subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .select("subsidy_id, person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("subsidy_id", subsidyIds)
         : { data: [] }
     throwDataError("error" in responsibilities ? responsibilities.error : null, "subsidy responsibilities")
@@ -34,6 +34,7 @@ export const getSubvencionPage = unstable_cache(
         {
           person_name: row.person_name,
           politician_id: row.politician_id,
+          official_id: row.official_id,
           ministry: row.ministry,
           government: row.government,
           political_party: row.political_party,
@@ -82,7 +83,7 @@ export const getSubvencionPageFiltered = unstable_cache(
       subsidyIds.length > 0
         ? await supabase
             .from("v_subsidy_responsibility")
-            .select("subsidy_id, person_name, politician_id, ministry, government, political_party, administration_level, territory_name, match_method")
+            .select("subsidy_id, person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, match_method")
             .in("subsidy_id", subsidyIds)
         : { data: [] }
     throwDataError("error" in responsibilities ? responsibilities.error : null, "subsidy responsibilities")
@@ -93,6 +94,7 @@ export const getSubvencionPageFiltered = unstable_cache(
         {
           person_name: row.person_name,
           politician_id: row.politician_id,
+          official_id: row.official_id,
           ministry: row.ministry,
           government: row.government,
           political_party: row.political_party,
@@ -124,7 +126,7 @@ export const getSubsidyDetail = unstable_cache(
         .maybeSingle(),
       supabase
         .from("v_subsidy_responsibility")
-        .select("person_name, politician_id, ministry, government, political_party, administration_level, territory_name")
+        .select("person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name")
         .eq("subsidy_id", id)
         .maybeSingle(),
       supabase

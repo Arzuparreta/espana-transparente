@@ -83,6 +83,8 @@ run_weekly_core() {
   run_self_tracked_pipeline "congreso.iniciativas" python -m src.congreso.iniciativas
   run_pipeline "congreso.gobierno" python -m src.congreso.gobierno
   run_pipeline "congreso.responsables" python -m src.congreso.responsables
+  run_pipeline "congreso.public_officials" python -m src.congreso.public_officials
+  run_pipeline "photos.public_officials_wikidata" python -m src.photos.sources.public_officials_wikidata
   run_pipeline "congreso.power_relationships" python -m src.congreso.power_relationships
   run_pipeline "photos.run" python -m src.photos.run --no-refresh-missing --max-age-days 30
   run_self_tracked_pipeline "presupuestos" python -m src.presupuestos.presupuestos --year "$(date +%Y)" --resume

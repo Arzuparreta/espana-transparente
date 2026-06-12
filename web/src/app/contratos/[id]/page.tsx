@@ -123,7 +123,12 @@ export default async function ContractDetailPage({ params }: PageProps) {
                 href: `/diputados/${responsible.politician_id}`,
                 label: "Responsable político",
               }
-            : null,
+            : responsible?.official_id
+              ? {
+                  href: `/cargos/${responsible.official_id}`,
+                  label: "Responsable político",
+                }
+              : null,
           contract.contractor ? { href: "/organizaciones", label: "Adjudicatario" } : null,
           contract.source_url
             ? {
@@ -257,6 +262,14 @@ export default async function ContractDetailPage({ params }: PageProps) {
                     <EntityLink
                       kind="politician"
                       id={responsible.politician_id}
+                      className="font-semibold underline-offset-2 hover:underline"
+                    >
+                      {responsible.person_name}
+                    </EntityLink>
+                  ) : responsible.official_id ? (
+                    <EntityLink
+                      kind="official"
+                      id={responsible.official_id}
                       className="font-semibold underline-offset-2 hover:underline"
                     >
                       {responsible.person_name}

@@ -82,7 +82,9 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
             : null,
           responsible?.politician_id
             ? { href: `/diputados/${responsible.politician_id}`, label: responsible.person_name ?? "Responsable", meta: "Responsable" }
-            : null,
+            : responsible?.official_id
+              ? { href: `/cargos/${responsible.official_id}`, label: responsible.person_name ?? "Responsable", meta: "Responsable" }
+              : null,
           subsidy.ministry_normalized
             ? {
                 href: `/subvenciones?ministry=${encodeURIComponent(subsidy.ministry_normalized)}`,
@@ -156,9 +158,17 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
           </p>
           <div className="flex min-w-0 items-start justify-between gap-4">
             <div className="min-w-0">
-              <EntityLink kind="politician" id={responsible.politician_id} className="font-semibold underline-offset-2 hover:underline">
-                {responsible.person_name}
-              </EntityLink>
+              {responsible.politician_id ? (
+                <EntityLink kind="politician" id={responsible.politician_id} className="font-semibold underline-offset-2 hover:underline">
+                  {responsible.person_name}
+                </EntityLink>
+              ) : responsible.official_id ? (
+                <EntityLink kind="official" id={responsible.official_id} className="font-semibold underline-offset-2 hover:underline">
+                  {responsible.person_name}
+                </EntityLink>
+              ) : (
+                <p className="font-semibold">{responsible.person_name}</p>
+              )}
               {responsible.ministry && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>
               )}

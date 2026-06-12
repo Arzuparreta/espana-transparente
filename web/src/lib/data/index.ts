@@ -66,6 +66,13 @@ export {
   getInstitucionById,
 } from "./gobierno"
 
+// ── Public officials (cargos no parlamentarios) ──────────────────────────────
+export {
+  getOfficialDetail,
+  type PublicOfficial,
+  type PublicOfficialPosition,
+} from "./officials"
+
 // ── Contracts ────────────────────────────────────────────────────────────────
 export {
   getContractPage,

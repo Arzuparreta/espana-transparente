@@ -1,4 +1,4 @@
-# Última verificación: 2026-05-15
+# Última verificación: 2026-06-11
 sources:
   - administration_level: autonomic
     territory_name: Aragón
@@ -67,7 +67,7 @@ positions:
     organization_name: DEPARTAMENTO DE EDUCACION CULTURA Y DEPORTE
     organization_aliases:
       - Consejería de Educación, Cultura y Deporte
-    person_name: Repollés, Tomasa Hernández Martín
+    person_name: Hernández Martín, Tomasa
     political_party: PP
     government: Aragón XI
     start_date: 2023-08-12

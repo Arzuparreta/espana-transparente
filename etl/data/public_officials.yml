@@ -1,0 +1,457 @@
+# Altos cargos públicos sin escaño en el Congreso (ministros sin acta,
+# presidentes/consejeros autonómicos, alcaldes de grandes ciudades) que
+# aparecen como "responsable político" en responsibility_positions con
+# politician_id IS NULL.
+#
+# Datos declarativos: este YAML es la fuente de verdad para `public_officials`.
+# Cualquier cambio se hace por PR y se re-ingesta con
+# `python -m src.congreso.public_officials`.
+#
+# Convenciones:
+#  - `aliases`: person_name EXACTOS (formato "Apellidos, Nombre" del Congreso/
+#    fuentes autonómicas/municipales) tal y como aparecen en
+#    responsibility_positions.person_name. Matching exacto normalizado, sin
+#    fuzzy (el YAML está curado a mano).
+#  - `wikidata_qid`: null si no se ha confirmado una entrada de Wikidata.
+#    Sin QID no hay foto (degradación a iniciales en el frontend).
+#  - Mantener separado de `politicians` (ámbito Congreso/Senado).
+#
+# Última verificación: 2026-06-11
+# Fuente: responsibility_positions (etl/data/responsibility_positions.yml,
+# etl/data/gobierno_historico.yml), Wikidata.
+
+officials:
+  # ── ESTADO ────────────────────────────────────────────────────────────────
+  - full_name: "Sara Aagesen Muñoz"
+    aliases: ["Aagesen Muñoz, Sara"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q113274679"
+    source_url: "https://www.wikidata.org/wiki/Q113274679"
+    notes: null
+
+  - full_name: "José Luis Ábalos Meco"
+    aliases: ["Ábalos Meco, José Luis"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q3820056"
+    source_url: "https://www.wikidata.org/wiki/Q3820056"
+    notes: null
+
+  - full_name: "José Manuel Albares Bueno"
+    aliases: ["Albares Bueno, José Manuel"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q64595113"
+    source_url: "https://www.wikidata.org/wiki/Q64595113"
+    notes: null
+
+  - full_name: "María del Pilar Alegría Continente"
+    aliases: ["Alegría Continente, María del Pilar"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q20908838"
+    source_url: "https://www.wikidata.org/wiki/Q20908838"
+    notes: null
+
+  - full_name: "Fátima Báñez García"
+    aliases: ["Báñez García, Fátima"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q453730"
+    source_url: "https://www.wikidata.org/wiki/Q453730"
+    notes: null
+
+  - full_name: "Pablo Bustinduy Amador"
+    aliases: ["Bustinduy Amador, Pablo"]
+    administration_level: state
+    political_party: SUMAR
+    wikidata_qid: "Q27999127"
+    source_url: "https://www.wikidata.org/wiki/Q27999127"
+    notes: null
+
+  - full_name: "Nadia Calviño Santamaría"
+    aliases: ["Calviño Santamaría, Nadia"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q20535388"
+    source_url: "https://www.wikidata.org/wiki/Q20535388"
+    notes: null
+
+  - full_name: "Isabel Celaá Diéguez"
+    aliases: ["Celaá Diéguez, Isabel"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q9009373"
+    source_url: "https://www.wikidata.org/wiki/Q9009373"
+    notes: null
+
+  - full_name: "María Dolores de Cospedal García"
+    aliases: ["Cospedal García, María Dolores de"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q271658"
+    source_url: "https://www.wikidata.org/wiki/Q271658"
+    notes: null
+
+  - full_name: "Carlos Cuerpo Caballero"
+    aliases: ["Cuerpo Caballero, Carlos"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q124040442"
+    source_url: "https://www.wikidata.org/wiki/Q124040442"
+    notes: null
+
+  - full_name: "Carolina Darias San Sebastián"
+    aliases: ["Darias San Sebastián, Carolina"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q5753193"
+    source_url: "https://www.wikidata.org/wiki/Q5753193"
+    notes: null
+
+  - full_name: "Luis De Guindos Jurado"
+    aliases: ["De Guindos Jurado, Luis"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q225880"
+    source_url: "https://www.wikidata.org/wiki/Q225880"
+    notes: null
+
+  - full_name: "Íñigo De la Serna Hernáiz"
+    aliases: ["De la Serna Hernáiz, Íñigo"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q3592990"
+    source_url: "https://www.wikidata.org/wiki/Q3592990"
+    notes: null
+
+  - full_name: "Pedro Duque Duque"
+    aliases: ["Duque Duque, Pedro Francisco"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q448547"
+    source_url: "https://www.wikidata.org/wiki/Q448547"
+    notes: null
+
+  - full_name: "José Luis Escrivá Belmonte"
+    aliases: ["Escrivá Belmonte, José Luis"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q23939777"
+    source_url: "https://www.wikidata.org/wiki/Q23939777"
+    notes: null
+
+  - full_name: "Mónica García Gómez"
+    aliases: ["García Gómez, Mónica"]
+    administration_level: state
+    political_party: SUMAR
+    wikidata_qid: "Q62591710"
+    source_url: "https://www.wikidata.org/wiki/Q62591710"
+    notes: null
+
+  - full_name: "Isabel García Tejerina"
+    aliases: ["García Tejerina, Isabel"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q16300520"
+    source_url: "https://www.wikidata.org/wiki/Q16300520"
+    notes: null
+
+  - full_name: "Arancha González Laya"
+    aliases: ["González Laya, Arancha"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q16201039"
+    source_url: "https://www.wikidata.org/wiki/Q16201039"
+    notes: null
+
+  - full_name: "Fernando Grande-Marlaska Gómez"
+    aliases: ["Grande-Marlaska Gómez, Fernando"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q6746375"
+    source_url: "https://www.wikidata.org/wiki/Q6746375"
+    notes: null
+
+  - full_name: "Jordi Hereu Boher"
+    aliases: ["Hereu Boher, Jordi"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q953762"
+    source_url: "https://www.wikidata.org/wiki/Q953762"
+    notes: null
+
+  - full_name: "Óscar López Águeda"
+    aliases: ["López Águeda, Óscar"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q6174855"
+    source_url: "https://www.wikidata.org/wiki/Q6174855"
+    notes: null
+
+  - full_name: "María Reyes Maroto Illera"
+    aliases: ["Maroto Illera, María Reyes"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q54833955"
+    source_url: "https://www.wikidata.org/wiki/Q54833955"
+    notes: null
+
+  - full_name: "Íñigo Méndez de Vigo y Montojo"
+    aliases: ["Méndez de Vigo y Montojo, Íñigo"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q291887"
+    source_url: "https://www.wikidata.org/wiki/Q291887"
+    notes: null
+
+  - full_name: "Cristóbal Ricardo Montoro Romero"
+    aliases: ["Montoro Romero, Cristóbal Ricardo"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q780453"
+    source_url: "https://www.wikidata.org/wiki/Q780453"
+    notes: null
+
+  - full_name: "Dolors Montserrat Montserrat"
+    aliases: ["Montserrat Montserrat, Dolors"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q11917597"
+    source_url: "https://www.wikidata.org/wiki/Q11917597"
+    notes: null
+
+  - full_name: "Diana Morant Ripoll"
+    aliases: ["Morant Ripoll, Diana"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q29906177"
+    source_url: "https://www.wikidata.org/wiki/Q29906177"
+    notes: null
+
+  - full_name: "Álvaro María Nadal Belda"
+    aliases: ["Nadal Belda, Álvaro María"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q27681455"
+    source_url: "https://www.wikidata.org/wiki/Q27681455"
+    notes: null
+
+  - full_name: "Luis Planas Puchades"
+    aliases: ["Planas Puchades, Luis"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q11689876"
+    source_url: "https://www.wikidata.org/wiki/Q11689876"
+    notes: null
+
+  - full_name: "Mariano Rajoy Brey"
+    aliases: ["Rajoy Brey, Mariano"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q10819"
+    source_url: "https://www.wikidata.org/wiki/Q10819"
+    notes: null
+
+  - full_name: "Ana Redondo García"
+    aliases: ["Redondo García, Ana"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q5674051"
+    source_url: "https://www.wikidata.org/wiki/Q5674051"
+    notes: null
+
+  - full_name: "Sira Rego Polanco"
+    aliases: ["Rego Polanco, Sira"]
+    administration_level: state
+    political_party: SUMAR
+    wikidata_qid: "Q61743771"
+    source_url: "https://www.wikidata.org/wiki/Q61743771"
+    notes: null
+
+  - full_name: "Teresa Ribera Rodríguez"
+    aliases: ["Ribera Rodríguez, Teresa"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q54806936"
+    source_url: "https://www.wikidata.org/wiki/Q54806936"
+    notes: null
+
+  - full_name: "Margarita Robles Fernández"
+    aliases: ["Robles Fernández, Margarita"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q5997107"
+    source_url: "https://www.wikidata.org/wiki/Q5997107"
+    notes: null
+
+  - full_name: "Isabel Rodríguez García"
+    aliases: ["Rodríguez García, Isabel"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q5920849"
+    source_url: "https://www.wikidata.org/wiki/Q5920849"
+    notes: null
+
+  - full_name: "Elma Saiz Delgado"
+    aliases: ["Saiz Delgado, Elma"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q8775044"
+    source_url: "https://www.wikidata.org/wiki/Q8775044"
+    notes: null
+
+  - full_name: "Raquel Sánchez Jiménez"
+    aliases: ["Sánchez Jiménez, Raquel"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q16302262"
+    source_url: "https://www.wikidata.org/wiki/Q16302262"
+    notes: null
+
+  - full_name: "Ángel Víctor Torres Pérez"
+    aliases: ["Torres Pérez, Ángel Víctor"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q14100014"
+    source_url: "https://www.wikidata.org/wiki/Q14100014"
+    notes: null
+
+  - full_name: "Ernest Urtasun Domènech"
+    aliases: ["Urtasun Domènech, Ernest"]
+    administration_level: state
+    political_party: SUMAR
+    wikidata_qid: "Q15564103"
+    source_url: "https://www.wikidata.org/wiki/Q15564103"
+    notes: null
+
+  - full_name: "Magdalena Valerio Cordero"
+    aliases: ["Valerio Cordero, Magdalena"]
+    administration_level: state
+    political_party: PSOE
+    wikidata_qid: "Q5989717"
+    source_url: "https://www.wikidata.org/wiki/Q5989717"
+    notes: null
+
+  - full_name: "Juan Ignacio Zoido Álvarez"
+    aliases: ["Zoido Álvarez, Juan Ignacio"]
+    administration_level: state
+    political_party: PP
+    wikidata_qid: "Q2223607"
+    source_url: "https://www.wikidata.org/wiki/Q2223607"
+    notes: null
+
+  # ── AUTONÓMICO ────────────────────────────────────────────────────────────
+  - full_name: "Pere Aragonès Sanchís"
+    aliases: ["Aragonès Sanchís, Pere"]
+    administration_level: autonomic
+    political_party: ERC
+    wikidata_qid: "Q16169026"
+    source_url: "https://www.wikidata.org/wiki/Q16169026"
+    notes: null
+
+  - full_name: "Jorge Azcón Navarro"
+    aliases: ["Azcón Navarro, Jorge"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q64625515"
+    source_url: "https://www.wikidata.org/wiki/Q64625515"
+    notes: "Presidente de Aragón desde 2023; alcalde de Zaragoza 2019-2023 (mismo person_name vincula ambas filas de responsibility_positions)."
+
+  - full_name: "Gonzalo Capellán Amo"
+    aliases: ["Capellán Amo, Gonzalo"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q117808424"
+    source_url: "https://www.wikidata.org/wiki/Q117808424"
+    notes: null
+
+  - full_name: "María Chivite Navascués"
+    aliases: ["Chivite Navascués, María"]
+    administration_level: autonomic
+    political_party: PSN-PSOE
+    wikidata_qid: "Q12263205"
+    source_url: "https://www.wikidata.org/wiki/Q12263205"
+    notes: null
+
+  - full_name: "Isabel Díaz Ayuso"
+    aliases: ["Díaz Ayuso, Isabel"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q50634772"
+    source_url: "https://www.wikidata.org/wiki/Q50634772"
+    notes: null
+
+  - full_name: "Concha González Capdevila"
+    aliases: ["González Capdevila, Concha"]
+    administration_level: autonomic
+    political_party: PSOE
+    wikidata_qid: null
+    source_url: null
+    notes: "Sin entrada en Wikidata confirmada (presidenta de La Rioja 2019-2023); foto pendiente."
+
+  - full_name: "Tomasa Hernández Martín"
+    aliases: ["Hernández Martín, Tomasa"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q130549225"
+    source_url: "https://www.wikidata.org/wiki/Q130549225"
+    notes: null
+
+  - full_name: "Salvador Illa Roca"
+    aliases: ["Illa Roca, Salvador"]
+    administration_level: autonomic
+    political_party: PSC
+    wikidata_qid: "Q64577417"
+    source_url: "https://www.wikidata.org/wiki/Q64577417"
+    notes: null
+
+  - full_name: "Javier Lambán Montañés"
+    aliases: ["Lambán Montañés, Javier"]
+    administration_level: autonomic
+    political_party: PSOE
+    wikidata_qid: "Q5927882"
+    source_url: "https://www.wikidata.org/wiki/Q5927882"
+    notes: null
+
+  - full_name: "Carlos Mazón Guixot"
+    aliases: ["Mazón Guixot, Carlos"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q92621937"
+    source_url: "https://www.wikidata.org/wiki/Q92621937"
+    notes: null
+
+  - full_name: "Margarita Prohens García"
+    aliases: ["Prohens García, Marga"]
+    administration_level: autonomic
+    political_party: PP
+    wikidata_qid: "Q66663490"
+    source_url: "https://www.wikidata.org/wiki/Q66663490"
+    notes: null
+
+  - full_name: "Ximo Puig Ferrer"
+    aliases: ["Puig Ferrer, Ximo"]
+    administration_level: autonomic
+    political_party: PSOE
+    wikidata_qid: "Q9096682"
+    source_url: "https://www.wikidata.org/wiki/Q9096682"
+    notes: null
+
+  # ── MUNICIPAL ─────────────────────────────────────────────────────────────
+  - full_name: "José Luis Martínez-Almeida Navasqüés"
+    aliases: ["Almeida Navasqüés, José Luis Martínez-Almeida"]
+    administration_level: municipal
+    political_party: PP
+    wikidata_qid: "Q29636954"
+    source_url: "https://www.wikidata.org/wiki/Q29636954"
+    notes: null
+
+  - full_name: "Natalia Chueca Muñoz"
+    aliases: ["Chueca Muñoz, Natalia"]
+    administration_level: municipal
+    political_party: PP
+    wikidata_qid: "Q118836337"
+    source_url: "https://www.wikidata.org/wiki/Q118836337"
+    notes: null

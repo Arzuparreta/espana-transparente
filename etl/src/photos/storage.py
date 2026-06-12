@@ -103,12 +103,20 @@ def politician_variant_key(congress_id: str, content_hash: str, size: int) -> st
     return f"politicians/{_slugify(congress_id)}/{content_hash}/{size}.webp"
 
 
+def public_official_variant_key(slug: str, content_hash: str, size: int) -> str:
+    return f"public-officials/{slug}/{content_hash}/{size}.webp"
+
+
 def _slugify(value: str) -> str:
     nfkd = unicodedata.normalize("NFKD", value)
     ascii_slug = "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
     ascii_slug = re.sub(r"[^a-z0-9._-]+", "-", ascii_slug).strip("-")
     ascii_slug = re.sub(r"-{2,}", "-", ascii_slug)
     return ascii_slug
+
+
+# Public alias for reuse outside this module (e.g. public_officials_wikidata.py).
+slugify = _slugify
 
 
 def from_storage_url(url: Optional[str]) -> bool:

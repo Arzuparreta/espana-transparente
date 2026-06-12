@@ -147,6 +147,15 @@ export const getSitemapInstitucionIds = unstable_cache(
   { revalidate: DAY }
 )
 
+export const getSitemapOfficialIds = unstable_cache(
+  async () => {
+    const { data } = await supabase.from("public_officials").select("id")
+    return (data ?? []).map((r) => ({ id: r.id as string }))
+  },
+  ["sitemap-officials"],
+  { revalidate: DAY }
+)
+
 export const getSitemapBudgetSectionPaths = unstable_cache(
   async () => {
     const { data } = await supabase
