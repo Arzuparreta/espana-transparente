@@ -97,9 +97,6 @@ export default function RootLayout({
       <body
         className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
       >
-        <noscript>
-          <style>{`.reveal-section{opacity:1!important;transform:none!important}`}</style>
-        </noscript>
         <ClientProviders>
           <NavigationProgress />
           <Header />

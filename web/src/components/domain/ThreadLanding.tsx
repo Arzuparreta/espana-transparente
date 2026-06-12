@@ -1,7 +1,6 @@
 import { AnchorCard } from "@/components/domain/AnchorCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SectionIndexCard } from "@/components/domain/SectionIndexCard"
-import { RevealSection } from "@/components/layout/RevealSection"
 import { sectionIconForKey } from "@/components/brand/SectionIcon"
 import type { ReactNode } from "react"
 import type { SectionIndexRow } from "@/lib/data"
@@ -88,10 +87,9 @@ export function ThreadLanding({
         description={thread.description}
       />
 
-      {navigation ? <RevealSection>{navigation}</RevealSection> : null}
+      {navigation}
 
-      <RevealSection>
-        <nav
+      <nav
           aria-label="Datos disponibles"
           className="space-y-3"
         >
@@ -134,28 +132,25 @@ export function ThreadLanding({
               )
             })}
           </div>
-        </nav>
-      </RevealSection>
+      </nav>
 
       {hasAnchors ? (
-        <RevealSection>
-          <section aria-label="En cifras" className="space-y-3 border-t border-border pt-8">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              En cifras
-            </p>
-            {(() => {
-              const { gridCols, loneLastCardClass } = anchorGridClass(visibleAnchors.length)
-              return (
-                <div className={`grid gap-3 ${gridCols} ${loneLastCardClass}`.trim()}>
-                  {visibleAnchors}
-                </div>
-              )
-            })()}
-          </section>
-        </RevealSection>
+        <section aria-label="En cifras" className="space-y-3 border-t border-border pt-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            En cifras
+          </p>
+          {(() => {
+            const { gridCols, loneLastCardClass } = anchorGridClass(visibleAnchors.length)
+            return (
+              <div className={`grid gap-3 ${gridCols} ${loneLastCardClass}`.trim()}>
+                {visibleAnchors}
+              </div>
+            )
+          })()}
+        </section>
       ) : null}
 
-      {feature ? <RevealSection>{feature}</RevealSection> : null}
+      {feature}
 
       {children}
     </div>
