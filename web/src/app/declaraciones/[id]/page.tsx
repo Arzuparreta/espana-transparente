@@ -64,7 +64,7 @@ export default async function DeclarationDetailPage({ params }: PageProps) {
   const rawData = decl.raw_data as Record<string, unknown> ?? {}
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <ContextTrail
         section={{ href: "/declaraciones", label: "Declaraciones" }}
         current={decl.politician_name ? `${typeLabel} · ${decl.politician_name}` : typeLabel}

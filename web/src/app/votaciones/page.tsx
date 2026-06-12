@@ -45,7 +45,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
       .at(-1) ?? null
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Votaciones"
         description="Sesiones con voto nominal: resultado, voto individual y divergencias dentro de cada grupo."

@@ -102,7 +102,7 @@ export default async function VotacionPage({ params }: PageProps) {
     : ""
 
   return (
-    <div className="space-y-6">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/votaciones", label: "Votaciones" }}
         current={session.title}

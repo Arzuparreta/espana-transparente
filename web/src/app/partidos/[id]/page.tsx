@@ -80,7 +80,7 @@ export default async function PartyPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="ui-page space-y-8">
       <ContextTrail
         section={{ href: "/partidos", label: "Partidos" }}
         current={party.acronym ?? partyLabel}
