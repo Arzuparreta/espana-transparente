@@ -91,8 +91,16 @@ export default async function VotacionPage({ params }: PageProps) {
     }
   }
 
-  const order = ["PP", "PSOE", "VOX", "SUMAR", "ERC", "JUNTS", "EH Bildu", "EAJ-PNV"]
-  const sorted = Object.entries(partyGroups).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+  const sorted = Object.entries(partyGroups).sort((a, b) => b[1].total - a[1].total)
+  const maxGroupTotal = Math.max(1, ...sorted.map(([, group]) => group.total))
+
+  const VOTE_ORDER = ["Sí", "No", "Abstención", "No vota"] as const
+  const totals: Record<string, number> = {}
+  for (const vote of (votes as unknown as VoteRow[]) || []) {
+    totals[vote.vote] = (totals[vote.vote] || 0) + 1
+  }
+  const totalRecorded = ((votes as unknown as VoteRow[]) || []).length
+  const seatLabel = chamber === "senate" ? "senadores" : "diputados"
   const dateStr = session.date
     ? new Date(session.date).toLocaleDateString("es-ES", {
         day: "numeric",
@@ -157,6 +165,49 @@ export default async function VotacionPage({ params }: PageProps) {
         }
       />
 
+      {totalRecorded > 0 ? (
+        <section
+          aria-label="Resultado de la votación"
+          className="rounded-[2px] border border-border bg-card p-4 sm:p-5"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              Resultado
+            </h2>
+            <span className="font-mono text-xs text-muted-foreground tabular-nums">
+              {totalRecorded} {seatLabel}
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {VOTE_ORDER.map((vote) => (
+              <div key={vote} className="min-w-0">
+                <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                  {vote}
+                </div>
+                <div
+                  data-value
+                  className="font-mono text-2xl font-medium tracking-[-0.02em] sm:text-3xl"
+                  style={{ color: getVoteColor(vote) }}
+                >
+                  {totals[vote] ?? 0}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex h-2.5 overflow-hidden rounded-[2px] bg-muted" aria-hidden="true">
+            {VOTE_ORDER.filter((vote) => (totals[vote] ?? 0) > 0).map((vote) => (
+              <div
+                key={vote}
+                style={{
+                  width: `${((totals[vote] ?? 0) / totalRecorded) * 100}%`,
+                  backgroundColor: getVoteColor(vote),
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {initiative ? (
         <Card>
           <CardContent className="flex flex-wrap items-center gap-2 py-3 text-sm">
@@ -203,16 +254,27 @@ export default async function VotacionPage({ params }: PageProps) {
         </Card>
       ) : null}
 
-      <div id="resultado-por-grupo" className="scroll-mt-24 space-y-2">
-        {sorted.map(([acronym, group]) => (
-          <Card key={acronym}>
-            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex items-center justify-between gap-3 sm:w-24 sm:shrink-0 sm:flex-col sm:items-start">
+      <section id="resultado-por-grupo" aria-label="Resultado por grupo" className="scroll-mt-24 space-y-3">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          Resultado por grupo · barra proporcional al tamaño del grupo
+        </h2>
+        <div className="rounded-[2px] border border-border bg-card">
+          {sorted.map(([acronym, group]) => (
+            <div
+              key={acronym}
+              className="flex flex-col gap-2 border-b border-border/60 px-4 py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-4"
+            >
+              <div className="flex min-w-0 items-center justify-between gap-3 sm:w-32 sm:shrink-0">
                 <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} />
-                <span className="text-xs text-muted-foreground sm:hidden">{group.total} votos</span>
+                <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+                  {group.total}
+                </span>
               </div>
-              <div className="flex-1">
-                <div className="flex h-5 overflow-hidden rounded-[2px] bg-muted">
+              <div className="min-w-0 flex-1">
+                <div
+                  className="flex h-4 overflow-hidden rounded-[2px]"
+                  style={{ width: `${(group.total / maxGroupTotal) * 100}%`, minWidth: "4px" }}
+                >
                   {Object.entries(group.votes)
                     .sort((a, b) => b[1] - a[1])
                     .map(([vote, count]) => (
@@ -226,23 +288,23 @@ export default async function VotacionPage({ params }: PageProps) {
                     ))}
                 </div>
               </div>
-              <div className="hidden shrink-0 gap-2 text-xs sm:flex">
+              <div className="flex shrink-0 gap-3 font-mono text-xs tabular-nums">
                 {Object.entries(group.votes)
                   .sort((a, b) => b[1] - a[1])
                   .map(([vote, count]) => (
-                    <span key={vote} className="flex items-center gap-1">
+                    <span key={vote} className="flex items-center gap-1.5 text-muted-foreground">
                       <span
-                        className="h-2 w-2"
+                        className="h-2 w-2 shrink-0"
                         style={{ backgroundColor: getVoteColor(vote) }}
                       />
                       {count}
                     </span>
                   ))}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <details className="text-sm">
         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
