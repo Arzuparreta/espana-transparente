@@ -27,7 +27,7 @@ function formatCount(n: number): string {
 }
 
 export default async function HomePage() {
-  const [{ parties, deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract, budgetAnchor] =
+  const [{ deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract, budgetAnchor] =
     await Promise.all([
       getHomeData(),
       getEtlFreshnessSummary(),
@@ -48,7 +48,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-8 sm:space-y-10">
       <div>
-        <LogoHero parties={parties ?? []} />
+        <LogoHero />
         {freshness.status === "fresh" && freshness.latestFinishedAt ? (
           <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
             Datos actualizados · {formatShortDate(freshness.latestFinishedAt)} ·{" "}
