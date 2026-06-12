@@ -6,6 +6,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient"
 import { BUDGET_YEARS, getBudgetYearMeta, getBudgetSummary, getEtlLastFinished } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -45,12 +46,6 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
   const prorrogaCount = rows.filter(
     (r) => r.source_kind === "carried_forward" || r.source_kind === "published_prorroga"
   ).length
-
-  function formatAmount(eur: number): string {
-    if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-    if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
-    return `${Math.round(eur)} €`
-  }
 
   const socialSecurity = rows.find((row) => row.section_code === "60")
   const clasesPasivas = rows.find((row) => row.section_code === "07")
@@ -100,7 +95,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       {rows.length > 0 ? (
         <StatGrid
           items={[
-            { label: `Crédito inicial ${year}`, value: formatAmount(totalInitial) },
+            { label: `Crédito inicial ${year}`, value: formatEuroCompact(totalInitial) },
             { label: "Secciones", value: sectionCount.toLocaleString("es-ES") },
             { label: "Programas", value: programCount.toLocaleString("es-ES") },
             ...(prorrogaCount > 0
@@ -139,7 +134,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
               <span className="block truncate font-medium">{item.label}</span>
               <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
                 {item.detail}
-                {item.amount != null ? ` · ${formatAmount(item.amount)}` : ""}
+                {item.amount != null ? ` · ${formatEuroCompact(item.amount)}` : ""}
               </span>
             </ResponsiveLink>
           ))}

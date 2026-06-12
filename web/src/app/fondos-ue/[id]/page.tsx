@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { getEuFundBySlug } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600 * 24
 
@@ -14,13 +15,6 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const fund = await getEuFundBySlug(decodeURIComponent(params.id))
   return { title: fund?.label ?? "Fondo UE" }
-}
-
-function formatEuros(amount: number | null): string {
-  if (amount == null) return "—"
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(2).replace(".", ",")} mil M €`
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M €`
-  return `${amount.toLocaleString("es-ES")} €`
 }
 
 export default async function EuFundDetailPage({ params }: PageProps) {
@@ -51,8 +45,8 @@ export default async function EuFundDetailPage({ params }: PageProps) {
 
       <StatGrid
         items={[
-          { label: "Fondos UE asignados", value: formatEuros(fund.eu_budget) },
-          { label: "Presupuesto total", value: formatEuros(fund.total_budget) },
+          { label: "Fondos UE asignados", value: formatEuroCompact(fund.eu_budget) },
+          { label: "Presupuesto total", value: formatEuroCompact(fund.total_budget) },
           {
             label: "Proyectos",
             value:

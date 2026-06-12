@@ -7,6 +7,7 @@ import { BudgetProvenanceBadge } from "@/components/presupuestos/BudgetProvenanc
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BUDGET_YEARS, getBudgetSourceNote, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 import { notFound } from "next/navigation"
 
 export const revalidate = 3600
@@ -25,14 +26,6 @@ const CHAPTER_NAMES: Record<string, string> = {
   "7": "Transferencias de capital",
   "8": "Activos financieros",
   "9": "Pasivos financieros",
-}
-
-function formatAmount(eur: number | null): string {
-  if (eur == null) return "—"
-  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(0)}M €`
-  if (eur >= 1_000) return `${Math.round(eur / 1_000)}K €`
-  return `${Math.round(eur)} €`
 }
 
 export default async function BudgetSectionPage({ params, searchParams }: PageProps) {
@@ -104,9 +97,9 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
 
       <StatGrid
         items={[
-          { label: "Crédito inicial", value: formatAmount(totalInitial) },
+          { label: "Crédito inicial", value: formatEuroCompact(totalInitial) },
           ...(Math.abs(totalFinal - totalInitial) > 1
-            ? [{ label: "Crédito definitivo", value: formatAmount(totalFinal) }]
+            ? [{ label: "Crédito definitivo", value: formatEuroCompact(totalFinal) }]
             : []),
           { label: "Programas", value: programs.length.toLocaleString("es-ES") },
         ]}
@@ -145,7 +138,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 pt-1">
                         {chapters.map(([ch, v]) => (
                           <span key={ch} className="text-xs text-muted-foreground">
-                            {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatAmount(v.initial)}
+                            {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatEuroCompact(v.initial)}
                           </span>
                         ))}
                       </div>
@@ -156,12 +149,12 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="font-mono text-base font-semibold">
-                      {formatAmount(p.total_credit_initial)}
+                      {formatEuroCompact(p.total_credit_initial)}
                     </div>
                     {p.total_credit_final != null &&
                     Math.abs(p.total_credit_final - (p.total_credit_initial ?? 0)) > 1 ? (
                       <div className="text-xs text-muted-foreground">
-                        def: {formatAmount(p.total_credit_final)}
+                        def: {formatEuroCompact(p.total_credit_final)}
                       </div>
                     ) : null}
                   </div>

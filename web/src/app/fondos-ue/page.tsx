@@ -12,6 +12,7 @@ import {
   parsePage,
   type EuFundRow,
 } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600 * 24
 
@@ -22,13 +23,6 @@ export const metadata = {
 
 interface PageProps {
   searchParams?: { page?: string }
-}
-
-function formatEuros(amount: number | null): string {
-  if (amount == null) return "—"
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(2).replace(".", ",")} mil M €`
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M €`
-  return `${amount.toLocaleString("es-ES")} €`
 }
 
 function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
@@ -57,10 +51,10 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
 
       <div className="flex shrink-0 items-center gap-3">
         <div className="text-right">
-          <p className="font-mono text-sm font-semibold">{formatEuros(fund.eu_budget)}</p>
+          <p className="font-mono text-sm font-semibold">{formatEuroCompact(fund.eu_budget)}</p>
           {fund.total_budget && fund.eu_budget && (
             <p className="font-mono text-xs text-muted-foreground">
-              total {formatEuros(fund.total_budget)}
+              total {formatEuroCompact(fund.total_budget)}
             </p>
           )}
         </div>
@@ -116,7 +110,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
             },
             {
               label: "Fondos UE a España",
-              value: formatEuros(Number(summary.total_eu_budget)),
+              value: formatEuroCompact(Number(summary.total_eu_budget)),
             },
             {
               label: "Proyectos totales",
