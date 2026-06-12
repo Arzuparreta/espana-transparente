@@ -102,7 +102,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
               ? [
                   {
                     label: "En prórroga",
-                    value: `${prorrogaCount} sección${prorrogaCount !== 1 ? "es" : ""}`,
+                    value: `${prorrogaCount} ${prorrogaCount === 1 ? "sección" : "secciones"}`,
                     hint: "Sin nuevo presupuesto aprobado: créditos del año anterior prorrogados automáticamente.",
                     valueClassName: "text-amber-600 dark:text-amber-400",
                   },
