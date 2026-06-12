@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
-import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
@@ -83,8 +82,6 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
         latestRecordDate={summary.total.latest_record_date}
         coverageLabel={`${total.toLocaleString("es-ES")} concesiones publicadas`}
       />
-
-      <MoneyDataSummary datasetHref="/subvenciones" rows={summary.rows} total={summary.total} />
 
       <SubvencionesClient
         activeNivel={activeNivel}

@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
-import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
@@ -92,8 +91,6 @@ export default async function ContratosPage({ searchParams }: PageProps) {
         latestRecordDate={summary.total.latest_record_date}
         coverageLabel={`${total.toLocaleString("es-ES")} licitaciones publicadas`}
       />
-
-      <MoneyDataSummary datasetHref="/contratos" rows={summary.rows} total={summary.total} />
 
       <ContratosClient
         activeType={activeType}
