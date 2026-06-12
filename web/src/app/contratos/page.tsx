@@ -12,6 +12,7 @@ import {
   getMoneyDatasetSummary,
   parsePage,
 } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -56,11 +57,8 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 
-  const totalAmount = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
-  const formatted =
-    totalAmount >= 1_000_000_000
-      ? `${(totalAmount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-      : `${(totalAmount / 1_000_000).toFixed(0)}M €`
+  const topAmount = statsRows[0]?.amount ?? null
+  const topSum = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
 
   return (
     <div className="ui-page">
@@ -72,9 +70,17 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       {statsRows.length > 0 ? (
         <StatGrid
           items={[
-            { label: "Licitaciones", value: total.toLocaleString("es-ES") },
-            { label: "Importe total", value: formatted },
-            { label: "Organismos", value: new Set(statsRows.map((c) => c.awarding_body)).size.toLocaleString("es-ES") },
+            { label: "Licitaciones publicadas", value: total.toLocaleString("es-ES") },
+            {
+              label: "Mayor adjudicación",
+              value: formatEuroCompact(topAmount),
+              hint: "El contrato de mayor importe publicado en la PCSP.",
+            },
+            {
+              label: `Suma · ${statsRows.length.toLocaleString("es-ES")} mayores`,
+              value: formatEuroCompact(topSum),
+              hint: `Importe agregado de los ${statsRows.length.toLocaleString("es-ES")} contratos más grandes.`,
+            },
           ]}
         />
       ) : null}

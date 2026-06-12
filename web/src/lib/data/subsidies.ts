@@ -45,9 +45,12 @@ export const getSubvencionPage = unstable_cache(
       ])
     )
 
+    // Top subsidies by amount — a defined population ("las 2.000 mayores"),
+    // not an arbitrary sample presented as a total.
     const stats = await supabase
       .from("subsidies")
       .select("id, nivel1, importe")
+      .order("importe", { ascending: false, nullsFirst: false })
       .limit(2000)
     throwDataError(stats.error, "subsidy stats")
 
