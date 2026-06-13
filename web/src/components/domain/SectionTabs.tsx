@@ -89,7 +89,12 @@ function SectionTabsBody({
   const activeTab = fromUrl && validValues.includes(fromUrl) ? fromUrl : defaultTab
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const isFirstRender = useRef(true)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     const container = scrollRef.current
     if (!container) return
     const btn = container.querySelector<HTMLElement>('[aria-selected="true"]')
