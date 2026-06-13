@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="espana-transparente-home.png" alt="España Transparente — captura de la portada en spaintransparencia.info" />
+  <img src="docs/branding/espana-transparente-home.png" alt="España Transparente — captura de la portada en spaintransparencia.info" />
 </p>
 
 <p align="center">
