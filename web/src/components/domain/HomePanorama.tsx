@@ -149,7 +149,7 @@ export function HomePanorama({
   return (
     <section>
       <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-        En cifras
+        Destacado
       </p>
       <div className={`grid gap-3 ${gridCols}`.trim()}>
         {visibleCards}
