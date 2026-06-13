@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -92,6 +93,11 @@ export function AnnualSeriesChart({
   source,
   className,
 }: AnnualSeriesChartProps) {
+  // recharts only renders after client hydration. Show a static placeholder
+  // first so the fixed-height chart slot is never an empty void on load.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const primary = series.find((s) => s.role !== "secondary") ?? series[0]
   const secondary = series.find((s) => s !== primary && s.role === "secondary")
 
@@ -148,7 +154,7 @@ export function AnnualSeriesChart({
         />
         <ReferenceLine y={0} stroke="currentColor" strokeOpacity={0.35} />
         <Tooltip cursor={{ fill: "currentColor", fillOpacity: 0.06 }} content={renderTooltip} />
-        <Bar dataKey="value" name={primary.id} animationDuration={900}>
+        <Bar dataKey="value" name={primary.id} isAnimationActive={false}>
           {primary.points.map((point, index) => (
             <Cell
               key={point.year}
@@ -200,7 +206,7 @@ export function AnnualSeriesChart({
             strokeWidth={1.5}
             strokeDasharray="4 4"
             dot={false}
-            animationDuration={900}
+            isAnimationActive={false}
           />
         ) : null}
         <Line
@@ -210,7 +216,7 @@ export function AnnualSeriesChart({
           strokeWidth={2.5}
           dot={false}
           activeDot={{ r: 3 }}
-          animationDuration={900}
+          isAnimationActive={false}
         />
       </LineChart>
     )
@@ -263,9 +269,28 @@ export function AnnualSeriesChart({
       ) : null}
 
       <div className="mt-4 h-[250px] w-full text-foreground md:h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          {chart as React.ReactElement}
-        </ResponsiveContainer>
+        {mounted ? (
+          <ResponsiveContainer width="100%" height="100%">
+            {chart as React.ReactElement}
+          </ResponsiveContainer>
+        ) : (
+          <div
+            aria-hidden="true"
+            className="flex h-full w-full items-end gap-1.5 border-b border-border/60 px-1 pb-px"
+          >
+            {primary.points.map((point, index) => (
+              <div
+                key={point.year}
+                className="flex-1 rounded-t-[1px] bg-muted"
+                style={{
+                  height: `${20 + ((index * 37) % 70)}%`,
+                  opacity:
+                    highlightLatest && index === primary.points.length - 1 ? 0.5 : 0.3,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {detailHref ? (
