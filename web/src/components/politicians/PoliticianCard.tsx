@@ -41,8 +41,12 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
             </Avatar>
             <div className="min-w-0 flex-1 space-y-1">
               <CardTitle className="text-base text-balance sm:text-lg">{displayName}</CardTitle>
-              {displayConstituency && (
-                <CardDescription className="text-sm">{displayConstituency}</CardDescription>
+              {(displayConstituency || displayGroup) && (
+                <CardDescription className="text-sm">
+                  {displayConstituency}
+                  {displayConstituency && displayGroup ? " · " : ""}
+                  {displayGroup}
+                </CardDescription>
               )}
             </div>
             {party && (
@@ -54,11 +58,6 @@ export function PoliticianCard({ politician }: PoliticianCardProps) {
               />
             )}
           </div>
-          {displayGroup ? (
-            <div className="rounded-[2px] bg-muted/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-              Grupo parlamentario: {displayGroup}
-            </div>
-          ) : null}
         </CardHeader>
       </Card>
       <Link

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import type { PoliticianWithMemberships } from "@/types"
 
@@ -14,21 +13,20 @@ export function DiputadosFilter({ politicians }: Props) {
   const [activeParty, setActiveParty] = useState<string | null>(null)
 
   const parties = useMemo(() => {
-    const counts = new Map<string, { color: string | null; logo_url: string | null; n: number }>()
+    const counts = new Map<string, { color: string | null; n: number }>()
     for (const p of politicians) {
-      const party = p.politician_memberships?.[0]?.party as (typeof p.politician_memberships[0]["party"] & { logo_url?: string | null }) | undefined
+      const party = p.politician_memberships?.[0]?.party
       if (party?.acronym) {
         const prev = counts.get(party.acronym)
         counts.set(party.acronym, {
           color: party.color ?? null,
-          logo_url: party.logo_url ?? null,
           n: (prev?.n ?? 0) + 1,
         })
       }
     }
     return Array.from(counts.entries())
       .sort((a, b) => b[1].n - a[1].n)
-      .map(([acronym, { color, logo_url }]) => ({ acronym, color, logo_url }))
+      .map(([acronym, { color, n }]) => ({ acronym, color, n }))
   }, [politicians])
 
   const filtered = useMemo(() => {
@@ -67,7 +65,7 @@ export function DiputadosFilter({ politicians }: Props) {
         <button
           type="button"
           onClick={() => setActiveParty(null)}
-          className={`rounded px-2.5 py-1 font-mono text-xs transition-colors ${
+          className={`inline-flex min-h-9 items-center rounded px-3 font-mono text-xs transition-colors ${
             activeParty === null
               ? "bg-primary text-primary-foreground"
               : "border border-border text-muted-foreground hover:text-foreground"
@@ -75,7 +73,7 @@ export function DiputadosFilter({ politicians }: Props) {
         >
           Todos
         </button>
-        {parties.map(({ acronym, color, logo_url }) => (
+        {parties.map(({ acronym, color, n }) => (
           <button
             key={acronym}
             type="button"
@@ -85,14 +83,21 @@ export function DiputadosFilter({ politicians }: Props) {
                 ? { backgroundColor: color, color: "#0B0B0A", borderColor: color }
                 : {}
             }
-            className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 font-mono text-xs transition-colors ${
+            className={`inline-flex min-h-9 items-center gap-1.5 rounded border px-3 font-mono text-xs transition-colors ${
               activeParty === acronym
                 ? "border-transparent"
                 : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
-            <PartyLogo src={logo_url} color={color} acronym={acronym} size="sm" />
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-[1px]"
+              style={{ backgroundColor: color ?? undefined }}
+            />
             {acronym}
+            <span className={`tabular-nums ${activeParty === acronym ? "opacity-70" : "text-muted-foreground/70"}`}>
+              {n}
+            </span>
           </button>
         ))}
       </div>
