@@ -29,9 +29,15 @@ export function Header() {
   }
 
   const activeSection = getSectionForPath(pathname)
-  const activeHub = activeSection?.groupLabel
-    ? getSectionsByHub().find((g) => g.hub.label === activeSection.groupLabel)
-    : null
+  const cleanPath = pathname?.split("?")[0]?.replace(/\/$/, "") || "/"
+  const hubGroups = getSectionsByHub()
+  // Resolve the hub whose sub-nav to show: either the hub of the active section,
+  // or the hub landing page itself (/personas, /dinero, /economia), where the
+  // sub-nav appears with nothing selected.
+  const activeHub =
+    (activeSection?.groupLabel
+      ? hubGroups.find((g) => g.hub.label === activeSection.groupLabel)
+      : null) ?? hubGroups.find((g) => g.hub.href === cleanPath) ?? null
   const subNav = activeHub?.sections ?? []
 
   return (
