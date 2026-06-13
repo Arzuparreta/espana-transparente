@@ -98,6 +98,20 @@ export const SECTION_META: SectionMeta[] = [
 ]
 
 
+/**
+ * Sections grouped under each primary hub, in the order they should appear in
+ * directory-style navigation (mobile menu, hub footers). Excludes utility
+ * routes with no groupLabel (search, profile, estado-datos).
+ */
+export function getSectionsByHub(): { hub: NavItem; sections: SectionMeta[] }[] {
+  return PRIMARY_NAV.map((hub) => ({
+    hub,
+    sections: SECTION_META.filter(
+      (section) => section.groupLabel === hub.label && section.key !== hub.key
+    ),
+  }))
+}
+
 export function getSectionForPath(pathname: string): SectionMeta | null {
   const cleanPath = pathname.split("?")[0]?.replace(/\/$/, "") || "/"
   return (

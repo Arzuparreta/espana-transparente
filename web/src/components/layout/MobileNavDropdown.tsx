@@ -6,7 +6,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchForm } from "@/components/search/SearchForm"
 import { useAuth } from "@/lib/auth/AuthContext"
-import { getSectionForPath, PRIMARY_NAV, SECONDARY_NAV } from "@/lib/nav-config"
+import { getSectionForPath, getSectionsByHub, SECONDARY_NAV } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 
 export function MobileNavDropdown() {
@@ -66,32 +66,49 @@ export function MobileNavDropdown() {
               <SearchForm size="header" live className="w-full" />
             </div>
             <nav className="flex flex-col px-5 pb-8 pt-2">
-              <div className="border-b border-border/40 py-4">
-                <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                  Explorar
-                </div>
-                <div className="flex flex-col">
-                  {PRIMARY_NAV.map((item) => {
-                    const isActive =
-                      pathname === item.href ||
-                      pathname?.startsWith(`${item.href}/`) ||
-                      getSectionForPath(pathname)?.groupLabel === item.label
-                    return (
-                      <ResponsiveLink
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className={cn(
-                          "flex min-h-12 items-center text-xl font-semibold tracking-tight transition-colors",
-                          isActive ? "text-foreground" : "text-muted-foreground active:text-foreground"
-                        )}
-                      >
-                        {item.label}
-                      </ResponsiveLink>
-                    )
-                  })}
-                </div>
-              </div>
+              {getSectionsByHub().map(({ hub, sections }) => {
+                const hubActive =
+                  pathname === hub.href ||
+                  pathname?.startsWith(`${hub.href}/`) ||
+                  getSectionForPath(pathname)?.groupLabel === hub.label
+                return (
+                  <div key={hub.href} className="border-b border-border/40 py-4">
+                    <ResponsiveLink
+                      href={hub.href}
+                      onClick={() => setIsOpen(false)}
+                      className={cn(
+                        "flex min-h-11 items-center text-xl font-semibold tracking-tight transition-colors",
+                        hubActive ? "text-foreground" : "text-muted-foreground active:text-foreground"
+                      )}
+                    >
+                      {hub.label}
+                    </ResponsiveLink>
+                    {sections.length > 0 ? (
+                      <div className="mt-1 grid grid-cols-2 gap-x-4">
+                        {sections.map((section) => {
+                          const sectionActive = getSectionForPath(pathname)?.key === section.key
+                          return (
+                            <ResponsiveLink
+                              key={section.key}
+                              href={section.href}
+                              onClick={() => setIsOpen(false)}
+                              aria-current={sectionActive ? "page" : undefined}
+                              className={cn(
+                                "flex min-h-10 items-center text-[15px] transition-colors",
+                                sectionActive
+                                  ? "text-primary"
+                                  : "text-muted-foreground active:text-foreground"
+                              )}
+                            >
+                              {section.shortLabel ?? section.label}
+                            </ResponsiveLink>
+                          )
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
               <div className="py-4">
                 <div className="pb-3 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
                   El portal
