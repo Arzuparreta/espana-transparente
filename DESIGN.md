@@ -141,7 +141,7 @@ point. Use it as a data-portal mark, not as a partisan or institutional symbol.
 | Apple touch icon | `web/public/apple-touch-icon.png` | 180 x 180 px |
 | Web app icons | `web/public/icons/icon-192.png`, `icon-512.png`, `maskable-512.png` | PWA standard |
 | Open Graph | `web/public/brand/og-image.png` | 1200 x 630 px |
-| GitHub / README | `web/public/brand/github-banner.svg` | 1280 x 640 px |
+| GitHub / README | `espana-transparente-home.png` | captura de portada |
 | Isolated mark | `web/public/brand/espana-transparente-mark.svg` | SVG |
 
 Rules:
