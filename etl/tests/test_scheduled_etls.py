@@ -79,7 +79,7 @@ def test_batch_stops_when_database_preflight_fails(tmp_path):
 @pytest.mark.parametrize(
     ("batch", "expected_count", "required_module"),
     [
-        ("weekly-core", 15, "src.congreso.declaraciones"),
+        ("weekly-core", 17, "src.congreso.declaraciones"),
         ("weekly-documents", 2, "src.borme.officers"),
         ("weekly-links", 10, "common.search_refresh"),
     ],
