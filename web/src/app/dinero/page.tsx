@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
-import { PageHeader } from "@/components/domain/PageHeader"
+import { permanentRedirect } from "next/navigation"
 import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
-import { MoneyTraceabilityView } from "@/components/views/MoneyTraceabilityView"
 import { getSectionIndex, getTopContractOfMonth, getEuFundsSummary, getMoneyDataOverview } from "@/lib/data"
 import { MONEY_VIEWS, parseView } from "@/lib/section-views"
 import { getThread } from "@/lib/thread-config"
@@ -27,7 +26,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         title: "Trazabilidad del gasto",
         description:
           "Recorrido del presupuesto hasta los contratos y subvenciones publicados por ministerio.",
-        alternates: { canonical: "/dinero?view=trazabilidad" },
+        alternates: { canonical: "/dinero-publico" },
       }
     : {
         title: "Dinero",
@@ -55,6 +54,14 @@ function windowLabel(days: 30 | 60 | 90 | null): string {
 export default async function DineroThreadPage({ searchParams }: PageProps) {
   const params = await searchParams
   const view = parseView(params?.view, MONEY_VIEWS, "resumen")
+  if (view === "trazabilidad") {
+    const redirectParams = new URLSearchParams()
+    if (params?.year) redirectParams.set("year", params.year)
+    if (params?.section) redirectParams.set("section", params.section)
+    if (params?.program) redirectParams.set("program", params.program)
+    const query = redirectParams.toString()
+    permanentRedirect(`/dinero-publico${query ? `?${query}` : ""}`)
+  }
   const thread = getThread("dinero")
 
   const navigation = (
@@ -63,29 +70,10 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
       active={view}
       items={[
         { value: "resumen", label: "Explorar", href: "/dinero" },
-        { value: "trazabilidad", label: "Trazabilidad", href: "/dinero?view=trazabilidad" },
+        { value: "trazabilidad", label: "Trazabilidad", href: "/dinero-publico" },
       ]}
     />
   )
-
-  if (view === "trazabilidad") {
-    return (
-      <div className="ui-page-wide space-y-6 sm:space-y-8">
-        <PageHeader
-          title="Trazabilidad del gasto"
-          description="Recorrido del dinero público desde el presupuesto hasta los contratos y subvenciones publicados, agrupados por ministerio responsable."
-        />
-        {navigation}
-        <MoneyTraceabilityView
-          searchParams={{
-            year: params?.year,
-            section: params?.section,
-            program: params?.program,
-          }}
-        />
-      </div>
-    )
-  }
 
   const [sectionIndex, topContract, euSummary, overview] = await Promise.all([
     getSectionIndex(),
@@ -103,7 +91,7 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
         label="Registros de gasto"
         value={totalMoneyRows.toLocaleString("es-ES")}
         description="Contratos, subvenciones y fondos europeos normalizados para consulta transversal."
-        href="/dinero?view=trazabilidad"
+        href="/dinero-publico"
         linkLabel="Ver trazabilidad →"
       />
     )

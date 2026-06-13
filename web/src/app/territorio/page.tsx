@@ -1,10 +1,9 @@
 import type { Metadata } from "next"
+import { permanentRedirect } from "next/navigation"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SpainMap } from "@/components/domain/SpainMap/SpainMap"
 import { TerritoryFallbackList } from "@/components/domain/TerritoryFallbackList"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
-import { AutonomicSpendingView } from "@/components/views/AutonomicSpendingView"
-import { MunicipalSpendingView } from "@/components/views/MunicipalSpendingView"
 import { getSpainMapData } from "@/lib/data/multilevel"
 import { formatEuroCompact } from "@/lib/format"
 import { parseView, TERRITORY_VIEWS } from "@/lib/section-views"
@@ -36,7 +35,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   return {
     ...VIEW_META[view],
     alternates: {
-      canonical: view === "mapa" ? "/territorio" : `/territorio?view=${view}`,
+      canonical:
+        view === "autonomico"
+          ? "/ccaa"
+          : view === "municipal"
+            ? "/municipios"
+            : "/territorio",
     },
   }
 }
@@ -44,6 +48,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 export default async function TerritorioPage({ searchParams }: PageProps) {
   const params = await searchParams
   const view = parseView(params?.view, TERRITORY_VIEWS, "mapa")
+  if (view === "autonomico") {
+    permanentRedirect("/ccaa")
+  }
+  if (view === "municipal") {
+    permanentRedirect("/municipios")
+  }
   const meta = VIEW_META[view]
   const navigation = (
     <SectionViewNav
@@ -51,31 +61,11 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
       active={view}
       items={[
         { value: "mapa", label: "Mapa", href: "/territorio" },
-        { value: "autonomico", label: "Autonómico", href: "/territorio?view=autonomico" },
-        { value: "municipal", label: "Municipal", href: "/territorio?view=municipal" },
+        { value: "autonomico", label: "Autonómico", href: "/ccaa" },
+        { value: "municipal", label: "Municipal", href: "/municipios" },
       ]}
     />
   )
-
-  if (view === "autonomico") {
-    return (
-      <div className="ui-page-wide space-y-6 sm:space-y-8">
-        <PageHeader {...meta} />
-        {navigation}
-        <AutonomicSpendingView />
-      </div>
-    )
-  }
-
-  if (view === "municipal") {
-    return (
-      <div className="ui-page-wide space-y-6 sm:space-y-8">
-        <PageHeader {...meta} />
-        {navigation}
-        <MunicipalSpendingView />
-      </div>
-    )
-  }
 
   const mapData = await getSpainMapData()
   const totalAmount = mapData.reduce((sum, item) => sum + item.totalAmount, 0)

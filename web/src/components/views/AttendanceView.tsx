@@ -53,7 +53,7 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
     if (activeParty) qs.set("party", activeParty)
     qs.set("sort", field)
     qs.set("direction", nextDirection)
-    return `/diputados?view=asistencia&${qs.toString()}`
+    return `/asistencia?${qs.toString()}`
   }
 
   const hrefForParty = (party: string | null) => {
@@ -64,7 +64,7 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
       qs.set("direction", direction)
     }
     const value = qs.toString()
-    return `/diputados?view=asistencia${value ? `&${value}` : ""}`
+    return `/asistencia${value ? `?${value}` : ""}`
   }
 
   const [{ status, rows, total, parties }, lastChecked] = await Promise.all([
@@ -347,7 +347,7 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
             qs.set("direction", direction)
           }
           const s = qs.toString()
-          return `/diputados?view=asistencia${s ? `&${s}` : ""}`
+          return `/asistencia${s ? `?${s}` : ""}`
         }}
       />
     </div>

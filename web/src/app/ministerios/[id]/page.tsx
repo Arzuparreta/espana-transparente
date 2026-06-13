@@ -114,7 +114,7 @@ export default async function MinistrioPage({ params }: PageProps) {
             meta: String(member.contract_count),
           },
           {
-            href: "/dinero?view=trazabilidad",
+            href: "/dinero-publico",
             label: "Trazabilidad del gasto",
           },
         ]}

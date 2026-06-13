@@ -1,16 +1,10 @@
 import type { Metadata } from "next"
 import { permanentRedirect } from "next/navigation"
 import type { ReactNode } from "react"
-import { PageHeader } from "@/components/domain/PageHeader"
 import { ThreadAnchorCard, ThreadLanding } from "@/components/domain/ThreadLanding"
-import { IpcBasketCalculator } from "@/components/indicators/IpcBasketCalculator"
-import { PurchasingPowerCalculator } from "@/components/indicators/PurchasingPowerCalculator"
-import { SalaryVsIpcCalculator } from "@/components/indicators/SalaryVsIpcCalculator"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
 import {
   getIndicators,
-  getIpcIndexSeries,
-  getIpcSubgroupSeries,
   getLatestInflationAnchor,
   getSectionIndex,
 } from "@/lib/data"
@@ -47,7 +41,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
   return {
     ...VIEW_META[view],
     alternates: {
-      canonical: view === "resumen" ? "/economia" : `/economia?view=${view}`,
+      canonical:
+        view === "series"
+          ? "/indicadores"
+          : view === "calculadoras"
+            ? "/calculadoras"
+            : "/economia",
     },
   }
 }
@@ -86,6 +85,9 @@ export default async function EconomiaPage({ searchParams }: PageProps) {
   if (view === "series") {
     permanentRedirect("/indicadores")
   }
+  if (view === "calculadoras") {
+    permanentRedirect("/calculadoras")
+  }
 
   const navigation = (
     <SectionViewNav
@@ -94,32 +96,10 @@ export default async function EconomiaPage({ searchParams }: PageProps) {
       items={[
         { value: "resumen", label: "Explorar", href: "/economia" },
         { value: "series", label: "Series", href: "/indicadores" },
-        { value: "calculadoras", label: "Calculadoras", href: "/economia?view=calculadoras" },
+        { value: "calculadoras", label: "Calculadoras", href: "/calculadoras" },
       ]}
     />
   )
-
-  if (view === "calculadoras") {
-    const [ipcSeries, ipcSubgroups] = await Promise.all([
-      getIpcIndexSeries(),
-      getIpcSubgroupSeries(),
-    ])
-    return (
-      <div className="ui-page-wide space-y-6 sm:space-y-8">
-        <PageHeader {...VIEW_META.calculadoras} />
-        {navigation}
-        {ipcSeries.length > 1 ? (
-          <div className="space-y-6">
-            <IpcBasketCalculator series={ipcSubgroups} />
-            <SalaryVsIpcCalculator series={ipcSeries} />
-            <PurchasingPowerCalculator series={ipcSeries} />
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Las series necesarias no están disponibles.</p>
-        )}
-      </div>
-    )
-  }
 
   const thread = getThread("economia")
   const [sectionIndex, inflation, rows] = await Promise.all([

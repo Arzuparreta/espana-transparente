@@ -96,7 +96,7 @@ function readStoredState(year: number): StoredState | null {
 function buildHref(year: number, sectionCode: string, programCode?: string | null) {
   const params = new URLSearchParams({ year: String(year), section: sectionCode })
   if (programCode) params.set("program", programCode)
-  return `/dinero?view=trazabilidad&${params.toString()}#${programCode ? `program-${programCode}` : `section-${sectionCode}`}`
+  return `/dinero-publico?${params.toString()}#${programCode ? `program-${programCode}` : `section-${sectionCode}`}`
 }
 
 function getStickyHeaderOffset(): number {
@@ -483,7 +483,7 @@ export function MoneyFlowExplorer({
     if (!activeSection) return
     const isClosed = mobileClosed || desktopClosed
     const href = isClosed
-      ? `/dinero?view=trazabilidad&year=${year}${activeProgramCode ? `&program=${activeProgramCode}` : ""}`
+      ? `/dinero-publico?year=${year}${activeProgramCode ? `&program=${activeProgramCode}` : ""}`
       : buildHref(year, activeSection.section_code, activeProgramCode)
     window.history.replaceState(window.history.state, "", href)
   }, [activeProgramCode, activeSection, desktopClosed, mobileClosed, year])

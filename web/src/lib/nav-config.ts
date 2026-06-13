@@ -1,4 +1,4 @@
-import { GITHUB_URL } from "@/lib/brand"
+import { GITHUB_URL } from "./brand"
 export interface NavItem {
   href: string
   label: string
@@ -32,8 +32,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "diputados", href: "/diputados", label: "Diputados", groupLabel: "Personas" },
   {
     key: "asistencia",
-    href: "/diputados?view=asistencia",
-    matchHref: "/asistencia",
+    href: "/asistencia",
     label: "Asistencia",
     groupLabel: "Personas",
   },
@@ -61,8 +60,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "iniciativas", href: "/iniciativas", label: "Iniciativas", groupLabel: "Personas" },
   {
     key: "divergencias",
-    href: "/diputados?view=divergencias",
-    matchHref: "/divergencias",
+    href: "/divergencias",
     label: "Divergencias",
     groupLabel: "Personas",
   },
@@ -71,27 +69,30 @@ export const SECTION_META: SectionMeta[] = [
   { key: "grupos-de-interes", href: "/grupos-de-interes", label: "Grupos de interés", groupLabel: "Personas" },
   {
     key: "dinero-publico",
-    href: "/dinero?view=trazabilidad",
-    matchHref: "/dinero-publico",
+    href: "/dinero-publico",
     label: "Trazabilidad del gasto",
     shortLabel: "Trazabilidad",
     groupLabel: "Dinero",
   },
   {
     key: "ccaa",
-    href: "/territorio?view=autonomico",
-    matchHref: "/ccaa",
+    href: "/ccaa",
     label: "Gasto autonómico",
     shortLabel: "CCAA",
     groupLabel: "Dinero",
   },
   {
     key: "municipios",
-    href: "/territorio?view=municipal",
-    matchHref: "/municipios",
+    href: "/municipios",
     label: "Gasto municipal",
     shortLabel: "Municipios",
     groupLabel: "Dinero",
+  },
+  {
+    key: "calculadoras",
+    href: "/calculadoras",
+    label: "Calculadoras",
+    groupLabel: "Economía",
   },
   { key: "perfil", href: "/perfil", label: "Perfil" },
   { key: "usuarios", href: "/usuarios", label: "Usuarios" },

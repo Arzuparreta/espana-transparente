@@ -46,10 +46,10 @@ export default async function MunicipioTerritoryPage({ params }: PageProps) {
   return (
     <div className="ui-page">
       <ContextTrail
-        section={{ href: "/territorio?view=municipal", label: "Gasto municipal" }}
+        section={{ href: "/municipios", label: "Gasto municipal" }}
         current={detail.territory.territoryName}
         meta="Gasto municipal"
-        fallbackHref="/territorio?view=municipal"
+        fallbackHref="/municipios"
         fallbackLabel="Volver a Gasto municipal"
         related={[
           detail.territory.subsidyCount > 0

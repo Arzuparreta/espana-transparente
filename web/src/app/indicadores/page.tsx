@@ -29,7 +29,7 @@ export default function IndicadoresPage() {
         items={[
           { value: "resumen", label: "Explorar", href: "/economia" },
           { value: "series", label: "Series", href: "/indicadores" },
-          { value: "calculadoras", label: "Calculadoras", href: "/economia?view=calculadoras" },
+          { value: "calculadoras", label: "Calculadoras", href: "/calculadoras" },
         ]}
       />
       <IndicatorsView />

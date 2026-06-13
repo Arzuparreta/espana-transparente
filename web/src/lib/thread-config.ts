@@ -135,7 +135,7 @@ export const THREADS: ThreadConfig[] = [
       "Ordena primero los importes trazables más recientes y conserva siempre el enlace al registro fuente.",
     sources: [
       {
-        href: "/dinero?view=trazabilidad",
+        href: "/dinero-publico",
         label: "Trazabilidad del gasto",
         description: "Cascada desde presupuesto hasta contratos y subvenciones por ministerio.",
         section: "Visión general",
@@ -208,7 +208,7 @@ export const THREADS: ThreadConfig[] = [
         countUnit: "series",
       },
       {
-        href: "/economia?view=calculadoras",
+        href: "/calculadoras",
         label: "Calculadoras",
         description: "Comparativas de inflación, salarios y poder adquisitivo.",
         icon: "calculadoras",

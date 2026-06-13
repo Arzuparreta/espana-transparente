@@ -2,31 +2,20 @@ import { describe, expect, it } from "vitest"
 import nextConfig from "../../next.config.mjs"
 
 describe("legacy index redirects", () => {
-  it("points absorbed indexes at their canonical hub views", async () => {
+  it("does not redirect canonical section pages into hub query views", async () => {
     const redirects = await nextConfig.redirects()
     const bySource = new Map(redirects.map((redirect) => [redirect.source, redirect]))
 
-    expect(bySource.get("/asistencia")).toMatchObject({
-      destination: "/diputados?view=asistencia",
-      permanent: true,
-    })
-    expect(bySource.get("/divergencias")).toMatchObject({
-      destination: "/diputados?view=divergencias",
-      permanent: true,
-    })
-    expect(bySource.get("/dinero-publico")).toMatchObject({
-      destination: "/dinero?view=trazabilidad",
-      permanent: true,
-    })
-    // /indicadores is a real page now (Hito 1, La Cadena) — not a redirect.
-    expect(bySource.has("/indicadores")).toBe(false)
-    expect(bySource.get("/ccaa")).toMatchObject({
-      destination: "/territorio?view=autonomico",
-      permanent: true,
-    })
-    expect(bySource.get("/municipios")).toMatchObject({
-      destination: "/territorio?view=municipal",
-      permanent: true,
-    })
+    for (const path of [
+      "/asistencia",
+      "/divergencias",
+      "/dinero-publico",
+      "/ccaa",
+      "/municipios",
+      "/indicadores",
+      "/calculadoras",
+    ]) {
+      expect(bySource.has(path)).toBe(false)
+    }
   })
 })

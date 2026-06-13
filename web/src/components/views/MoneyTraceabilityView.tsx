@@ -54,7 +54,7 @@ export async function MoneyTraceabilityView({ searchParams }: MoneyTraceabilityV
           .map((y) => (
             <ResponsiveLink
               key={y}
-              href={`/dinero?view=trazabilidad&year=${y}`}
+              href={`/dinero-publico?year=${y}`}
               className={`rounded-[2px] border px-2 py-1 font-mono ${
                 y === year
                   ? "border-foreground bg-foreground text-background"
