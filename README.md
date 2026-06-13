@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="web/public/brand/github-banner.svg" alt="España Transparente — datos públicos de la política española" />
+  <img src="espana-transparente-home.png" alt="España Transparente — captura de la portada en spaintransparencia.info" />
 </p>
 
 <p align="center">
