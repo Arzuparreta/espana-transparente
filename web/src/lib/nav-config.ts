@@ -106,9 +106,7 @@ export const SECTION_META: SectionMeta[] = [
 export function getSectionsByHub(): { hub: NavItem; sections: SectionMeta[] }[] {
   return PRIMARY_NAV.map((hub) => ({
     hub,
-    sections: SECTION_META.filter(
-      (section) => section.groupLabel === hub.label && section.key !== hub.key
-    ),
+    sections: SECTION_META.filter((section) => section.groupLabel === hub.label),
   }))
 }
 
