@@ -139,7 +139,7 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
   ]
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Declaraciones económicas"
         description="Registro de bienes, rentas, actividades e intereses económicos presentados por los diputados al tomar posesión y al cesar en el cargo."

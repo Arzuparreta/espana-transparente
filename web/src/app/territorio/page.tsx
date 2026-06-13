@@ -6,6 +6,7 @@ import { SectionViewNav } from "@/components/navigation/SectionViewNav"
 import { AutonomicSpendingView } from "@/components/views/AutonomicSpendingView"
 import { MunicipalSpendingView } from "@/components/views/MunicipalSpendingView"
 import { getSpainMapData } from "@/lib/data/multilevel"
+import { formatEuroCompact } from "@/lib/format"
 import { parseView, TERRITORY_VIEWS } from "@/lib/section-views"
 
 export const revalidate = 3600
@@ -95,9 +96,7 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
         <div>
           <span className="block font-mono text-xs text-muted-foreground">Gasto registrado</span>
           <span className="font-mono text-lg text-accent">
-            {totalAmount >= 1_000_000_000
-              ? `${(totalAmount / 1_000_000_000).toFixed(1)} mil M€`
-              : `${(totalAmount / 1_000_000).toFixed(0)} M€`}
+            {formatEuroCompact(totalAmount)}
           </span>
         </div>
       </div>

@@ -10,18 +10,12 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   getAutonomicTerritoryDetail,
 } from "@/lib/data/multilevel"
+import { formatEuroCompact } from "@/lib/format"
 
 export const dynamic = "force-dynamic"
 
 interface PageProps {
   params: Promise<{ territory: string }>
-}
-
-function formatAmount(value: number) {
-  if (!value) return "—"
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(".", ",")} M €`
-  return `${Math.round(value).toLocaleString("es-ES")} €`
 }
 
 function formatDate(value: string | null | undefined) {
@@ -84,9 +78,9 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
       <StatGrid
         items={[
           { label: "Subvenciones", value: detail.territory.subsidyCount.toLocaleString("es-ES") },
-          { label: "Importe subvenciones", value: formatAmount(detail.territory.subsidyAmount) },
+          { label: "Importe subvenciones", value: formatEuroCompact(detail.territory.subsidyAmount) },
           { label: "Contratos", value: detail.territory.contractCount.toLocaleString("es-ES") },
-          { label: "Importe contratos", value: formatAmount(detail.territory.contractAmount) },
+          { label: "Importe contratos", value: formatEuroCompact(detail.territory.contractAmount) },
         ]}
       />
 
@@ -114,7 +108,7 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
                     {subsidy.convocatoria || subsidy.beneficiario || "Subvención"}
                   </ResponsiveLink>
                   <div className="text-xs text-muted-foreground">
-                    {formatDate(subsidy.fechaConcesion)} · {formatAmount(subsidy.importe)}
+                    {formatDate(subsidy.fechaConcesion)} · {formatEuroCompact(subsidy.importe)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {subsidy.grantingBody || detail.territory.territoryName}
@@ -142,7 +136,7 @@ export default async function CcaaTerritoryPage({ params }: PageProps) {
                     {contract.title || "Contrato sin título"}
                   </ResponsiveLink>
                   <div className="text-xs text-muted-foreground">
-                    {formatDate(contract.date)} · {formatAmount(contract.amount)}
+                    {formatDate(contract.date)} · {formatEuroCompact(contract.amount)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {contract.awardingBody || detail.territory.territoryName}

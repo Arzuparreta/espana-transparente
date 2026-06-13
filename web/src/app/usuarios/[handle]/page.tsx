@@ -25,7 +25,7 @@ export default async function UsuarioPage({ params }: PageProps) {
   if (!data) notFound()
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="ui-page-narrow">
       <ContextTrail
         section={{ href: "/usuarios", label: "Usuarios" }}
         current={data.profile.display_name ?? `@${data.profile.handle}`}

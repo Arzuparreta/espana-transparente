@@ -1,19 +1,13 @@
 import { ImageResponse } from "@vercel/og"
 import { getContractDetail } from "@/lib/data"
 import { BRAND_NAME, BRAND_URL } from "@/lib/brand"
+import { formatEuroCompact } from "@/lib/format"
 
 export const contentType = "image/png"
 export const size = { width: 1200, height: 630 }
 
 interface Props {
   params: Promise<{ id: string }>
-}
-
-function formatAmount(amount: number | null): string {
-  if (amount == null) return "—"
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M €`
-  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount)
 }
 
 export default async function Image({ params }: Props) {
@@ -36,7 +30,7 @@ export default async function Image({ params }: Props) {
   }
 
   const title = contract.title ?? "Contrato público"
-  const amount = contract.amount ? formatAmount(contract.amount) : null
+  const amount = contract.amount ? formatEuroCompact(contract.amount) : null
   const body = contract.awarding_body ?? null
 
   return new ImageResponse(

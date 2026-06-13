@@ -120,10 +120,10 @@ export default async function SenadoPage() {
   )
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Senado de España"
-        description="La cámara alta del parlamento: 265 senadores que revisan y pueden vetar las leyes que vienen del Congreso. Electos por provincia y designados por las comunidades autónomas."
+        description="La cámara alta del parlamento: revisa y puede vetar las leyes que vienen del Congreso. Sus miembros son electos por provincia y designados por las comunidades autónomas."
       />
 
       <SourceFootnote

@@ -5,7 +5,7 @@ import { MobileNavDropdown } from "@/components/layout/MobileNavDropdown"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { SearchTrigger } from "@/components/search/SearchTrigger"
 import { useAuth } from "@/lib/auth/AuthContext"
-import { getSectionForPath, PRIMARY_NAV, type NavItem } from "@/lib/nav-config"
+import { getSectionForPath, getSectionsByHub, PRIMARY_NAV, type NavItem } from "@/lib/nav-config"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
 
@@ -27,6 +27,12 @@ export function Header() {
     if (isItemActive(item.href)) return true
     return getSectionForPath(pathname)?.groupLabel === item.label
   }
+
+  const activeSection = getSectionForPath(pathname)
+  const activeHub = activeSection?.groupLabel
+    ? getSectionsByHub().find((g) => g.hub.label === activeSection.groupLabel)
+    : null
+  const subNav = activeHub?.sections ?? []
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
@@ -105,6 +111,35 @@ export function Header() {
           <MobileNavDropdown />
         </div>
       </div>
+
+      {subNav.length > 0 ? (
+        <div className="hidden border-t border-border/60 bg-background/80 lg:block">
+          <nav
+            aria-label={`Secciones de ${activeHub?.hub.label}`}
+            className="flex w-full items-center gap-1 overflow-x-auto px-4 sm:px-6"
+          >
+            {subNav.map((section) => {
+              const sectionActive = activeSection?.key === section.key
+              return (
+                <ResponsiveLink
+                  key={section.key}
+                  href={section.href}
+                  prefetch={false}
+                  aria-current={sectionActive ? "page" : undefined}
+                  className={cn(
+                    "relative inline-flex h-10 shrink-0 items-center whitespace-nowrap px-2.5 text-[12px] font-medium tracking-tight transition-colors duration-150",
+                    sectionActive
+                      ? "text-foreground after:absolute after:bottom-0 after:left-2.5 after:right-2.5 after:h-[2px] after:bg-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {section.shortLabel ?? section.label}
+                </ResponsiveLink>
+              )
+            })}
+          </nav>
+        </div>
+      ) : null}
     </header>
   )
 }

@@ -148,7 +148,7 @@ export function IndicatorChart({
             strokeWidth={variant === "stage" ? 2.5 : 2}
             fill={`url(#${gradientId})`}
             className="text-foreground"
-            animationDuration={1100}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>

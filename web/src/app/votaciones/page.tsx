@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { Pagination } from "@/components/domain/Pagination"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { getVoteColor } from "@/lib/domain-style"
 import { PAGE_SIZE, getEtlLastFinished, getVotingSessionPage, parsePage } from "@/lib/data"
 
 export const revalidate = 3600
@@ -22,6 +23,9 @@ interface SessionRow {
   initiative_number?: string
   divergence_count?: number
   chamber?: string
+  votes_yes?: number
+  votes_no?: number
+  votes_abstain?: number
 }
 
 interface PageProps {
@@ -45,7 +49,7 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
       .at(-1) ?? null
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Votaciones"
         description="Sesiones con voto nominal: resultado, voto individual y divergencias dentro de cada grupo."
@@ -78,11 +82,16 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
           const titleParts = s.title.split(/\.\s+-\s+/, 2)
           const tipo = titleParts.length === 2 ? titleParts[0].trim() : null
           const descripcion = titleParts.length === 2 ? titleParts[1].trim() : s.title
+          const yes = s.votes_yes ?? 0
+          const no = s.votes_no ?? 0
+          const abstain = s.votes_abstain ?? 0
+          const hasResult = yes + no + abstain > 0
+          const outcome = hasResult ? (yes > no ? "Aprobada" : "Rechazada") : null
 
           return (
             <ResponsiveLink key={s.id} href={`/votaciones/${s.id}`}>
               <Card>
-                <CardContent className="flex items-start gap-3 py-4 sm:gap-4">
+                <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:gap-5">
                   <div className="min-w-0 flex-1">
                     {tipo ? (
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -96,11 +105,33 @@ export default async function VotacionesPage({ searchParams }: PageProps) {
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">
                         {s.chamber === "senate" ? "Senado" : "Congreso"} · Sesión {s.session_number} · {dateStr}
                       </span>
+                      {divCount > 0 && <ExceptionBadge count={divCount} />}
                     </div>
                   </div>
-                  {divCount > 0 && (
-                    <ExceptionBadge count={divCount} />
-                  )}
+                  {hasResult ? (
+                    <div className="flex shrink-0 items-center gap-4 sm:w-40 sm:flex-col sm:items-end sm:gap-1.5">
+                      <span
+                        className="font-mono text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: yes > no ? getVoteColor("Sí") : getVoteColor("No") }}
+                      >
+                        {outcome}
+                      </span>
+                      <div className="flex shrink-0 gap-3 font-mono text-xs tabular-nums text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <span className="h-2 w-2 shrink-0" style={{ backgroundColor: getVoteColor("Sí") }} />
+                          {yes}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="h-2 w-2 shrink-0" style={{ backgroundColor: getVoteColor("No") }} />
+                          {no}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="h-2 w-2 shrink-0" style={{ backgroundColor: getVoteColor("Abstención") }} />
+                          {abstain}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
             </ResponsiveLink>

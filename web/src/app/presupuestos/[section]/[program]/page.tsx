@@ -5,6 +5,7 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetProvenanceBadge, BudgetProvenanceNote } from "@/components/presupuestos/BudgetProvenanceBadge"
 import { getBudgetProgram, getBudgetSourceNote, getBudgetYearMeta } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -22,14 +23,6 @@ const CHAPTER_NAMES: Record<string, string> = {
   "7": "Transferencias de capital",
   "8": "Activos financieros",
   "9": "Pasivos financieros",
-}
-
-function formatAmount(eur: number | null): string {
-  if (eur == null) return "—"
-  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(2).replace(".", ",")} mil M €`
-  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(1)} M €`
-  if (eur >= 1_000) return `${Math.round(eur / 1_000)} K €`
-  return `${Math.round(eur)} €`
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -96,7 +89,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
           { label: "Años con datos", value: rows.length.toString() },
           {
             label: "Último crédito inicial",
-            value: formatAmount(latest.total_credit_initial),
+            value: formatEuroCompact(latest.total_credit_initial),
           },
           {
             label: "Último año",
@@ -149,7 +142,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                         {chapters.map(([ch, v]) => (
                           <span key={ch} className="text-xs text-muted-foreground">
-                            {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatAmount(v.initial)}
+                            {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatEuroCompact(v.initial)}
                           </span>
                         ))}
                       </div>
@@ -161,12 +154,12 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="font-mono text-base font-semibold">
-                      {formatAmount(row.total_credit_initial)}
+                      {formatEuroCompact(row.total_credit_initial)}
                     </p>
                     {row.total_credit_final != null &&
                     Math.abs(row.total_credit_final - (row.total_credit_initial ?? 0)) > 1 ? (
                       <p className="text-xs text-muted-foreground">
-                        def: {formatAmount(row.total_credit_final)}
+                        def: {formatEuroCompact(row.total_credit_final)}
                       </p>
                     ) : null}
                   </div>

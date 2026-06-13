@@ -8,7 +8,7 @@ export function ProfileLoginPrompt() {
   const { openModal } = useAuth()
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="ui-page-narrow">
       <PageHeader
         title="Perfil"
         description="Inicia sesión para crear y editar tu perfil de usuario."

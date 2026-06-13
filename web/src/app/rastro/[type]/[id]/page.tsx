@@ -52,7 +52,7 @@ export default async function RastroPage({ params }: PageProps) {
   const entityHref = ENTITY_HREF[type as TrailType](id)
 
   return (
-    <div className="space-y-8">
+    <div className="ui-page space-y-8">
       <ContextTrail
         section={{ href: section.href, label: section.label, groupLabel: section.groupLabel }}
         current={entity.label}

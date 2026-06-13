@@ -1,5 +1,4 @@
 import { LogoHero } from "@/components/layout/LogoHero"
-import { RevealSection } from "@/components/layout/RevealSection"
 import { ThreadCard, type SectionCount } from "@/components/domain/ThreadCard"
 import { HomePanorama } from "@/components/domain/HomePanorama"
 import {
@@ -28,7 +27,7 @@ function formatCount(n: number): string {
 }
 
 export default async function HomePage() {
-  const [{ parties, deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract, budgetAnchor] =
+  const [{ deudaPerCapita, deudaYear }, freshness, sectionIndex, inflation, topContract, budgetAnchor] =
     await Promise.all([
       getHomeData(),
       getEtlFreshnessSummary(),
@@ -48,8 +47,8 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8 sm:space-y-10">
-      <RevealSection>
-        <LogoHero parties={parties ?? []} />
+      <div>
+        <LogoHero />
         {freshness.status === "fresh" && freshness.latestFinishedAt ? (
           <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground/80">
             Datos actualizados · {formatShortDate(freshness.latestFinishedAt)} ·{" "}
@@ -62,25 +61,21 @@ export default async function HomePage() {
             </Link>
           </p>
         ) : null}
-      </RevealSection>
+      </div>
 
-      <RevealSection>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {THREADS.map((thread) => (
-            <ThreadCard key={thread.key} thread={thread} counts={countMap} />
-          ))}
-        </div>
-      </RevealSection>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {THREADS.map((thread) => (
+          <ThreadCard key={thread.key} thread={thread} counts={countMap} />
+        ))}
+      </div>
 
-      <RevealSection delayMs={150}>
-        <HomePanorama
-          deudaPerCapita={deudaPerCapita ?? null}
-          deudaYear={deudaYear ?? null}
-          topContract={topContract}
-          inflation={inflation}
-          budgetAnchor={budgetAnchor}
-        />
-      </RevealSection>
+      <HomePanorama
+        deudaPerCapita={deudaPerCapita ?? null}
+        deudaYear={deudaYear ?? null}
+        topContract={topContract}
+        inflation={inflation}
+        budgetAnchor={budgetAnchor}
+      />
     </div>
   )
 }

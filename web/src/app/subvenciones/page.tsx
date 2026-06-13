@@ -1,6 +1,5 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
-import { MoneyDataSummary } from "@/components/domain/MoneyDataSummary"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
@@ -12,6 +11,7 @@ import {
   getSubvencionPageFiltered,
   parsePage,
 } from "@/lib/data"
+import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -47,13 +47,8 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     ? { subsidies: filteredData.subsidies, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 
-  const totalAmount = statsRows.reduce((sum, s) => sum + ((s as { importe?: number }).importe ?? 0), 0)
-  const formatted =
-    totalAmount >= 1_000_000_000
-      ? `${(totalAmount / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
-      : `${(totalAmount / 1_000_000).toFixed(0)}M €`
-
-  const uniqueOrganos = new Set(statsRows.map((s) => (s as { nivel3?: string }).nivel3).filter(Boolean)).size
+  const topImporte = (statsRows[0] as { importe?: number } | undefined)?.importe ?? null
+  const topSum = statsRows.reduce((sum, s) => sum + ((s as { importe?: number }).importe ?? 0), 0)
 
   return (
     <div className="ui-page">
@@ -65,9 +60,17 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
       {statsRows.length > 0 ? (
         <StatGrid
           items={[
-            { label: "Concesiones (muestra)", value: statsRows.length.toLocaleString("es-ES") },
-            { label: "Importe total muestra", value: formatted },
-            { label: "Organismos", value: uniqueOrganos.toLocaleString("es-ES") },
+            { label: "Concesiones publicadas", value: total.toLocaleString("es-ES") },
+            {
+              label: "Mayor concesión",
+              value: formatEuroCompact(topImporte),
+              hint: "La subvención de mayor importe publicada en la BDNS.",
+            },
+            {
+              label: `Suma · ${statsRows.length.toLocaleString("es-ES")} mayores`,
+              value: formatEuroCompact(topSum),
+              hint: `Importe agregado de las ${statsRows.length.toLocaleString("es-ES")} concesiones más grandes.`,
+            },
           ]}
         />
       ) : null}
@@ -79,8 +82,6 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
         latestRecordDate={summary.total.latest_record_date}
         coverageLabel={`${total.toLocaleString("es-ES")} concesiones publicadas`}
       />
-
-      <MoneyDataSummary datasetHref="/subvenciones" rows={summary.rows} total={summary.total} />
 
       <SubvencionesClient
         activeNivel={activeNivel}

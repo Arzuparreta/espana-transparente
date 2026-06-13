@@ -44,7 +44,7 @@ export default async function IniciativasPage({ searchParams }: PageProps) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.initiatives))
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Iniciativas"
         description="Iniciativas legislativas del Congreso: proyectos de ley, proposiciones, mociones y otras propuestas en tramitación."
