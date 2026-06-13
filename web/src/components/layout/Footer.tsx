@@ -56,10 +56,10 @@ export function Footer() {
       <div className="ui-shell py-8 sm:py-10">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
           {SECTIONS.map((section) => (
-            <div key={section.heading} className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <nav key={section.heading} aria-label={section.heading} className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {section.heading}
-              </h2>
+              </p>
               <ul className="space-y-0">
                 {section.items.map((item) => (
                   <li key={item.href}>
@@ -83,7 +83,7 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 
