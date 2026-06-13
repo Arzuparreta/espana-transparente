@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
-import { PageHeader } from "@/components/domain/PageHeader"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { VoteBadge } from "@/components/domain/VoteBadge"
 import { EntityLink } from "@/components/domain/EntityLink"
@@ -109,6 +108,13 @@ export default async function VotacionPage({ params }: PageProps) {
       })
     : ""
 
+  // Congress titles are long sentences prefixed by a procedure category
+  // ("Dictámenes de Comisiones… - <proposición>"). Split so the category is a
+  // small eyebrow and the proposal reads at a humane size, not 48px display caps.
+  const titleParts = session.title.split(/\.\s+-\s+/, 2)
+  const tipo = titleParts.length === 2 ? titleParts[0].trim() : null
+  const descripcion = titleParts.length === 2 ? titleParts[1].trim() : session.title
+
   return (
     <div className="ui-page">
       <ContextTrail
@@ -145,25 +151,30 @@ export default async function VotacionPage({ params }: PageProps) {
           { href: "/votaciones", label: "Listado" },
         ]}
       />
-      <PageHeader
-        title={session.title}
-        description={
-          session.initiative_number
-            ? `Exp. ${session.initiative_number}`
-            : "Detalle de la votación y sus divergencias internas."
-        }
-        eyebrow={
-          <>
-            <Badge variant="outline" className="text-xs">
-              Sesión {session.session_number}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {chamberLabel}
-            </Badge>
-            <span className="text-sm text-muted-foreground">{dateStr}</span>
-          </>
-        }
-      />
+      <section className="flex flex-col gap-3 rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            Sesión {session.session_number}
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            {chamberLabel}
+          </Badge>
+          <span className="font-mono text-xs text-muted-foreground">{dateStr}</span>
+        </div>
+        {tipo ? (
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            {tipo}
+          </p>
+        ) : null}
+        <h1 className="max-w-4xl text-xl font-semibold leading-snug text-balance text-foreground sm:text-2xl">
+          {descripcion}
+        </h1>
+        {session.initiative_number ? (
+          <p className="font-mono text-xs text-muted-foreground">
+            Exp. {session.initiative_number}
+          </p>
+        ) : null}
+      </section>
 
       {totalRecorded > 0 ? (
         <section
