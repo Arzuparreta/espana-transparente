@@ -65,7 +65,13 @@ export const getSubvencionPage = unstable_cache(
 )
 
 export const getSubvencionPageFiltered = unstable_cache(
-  async (page: number, nivel1: string, ministry: string | null) => {
+  async (
+    page: number,
+    nivel1: string,
+    ministry: string | null,
+    territory: string | null = null,
+    year: number | null = null
+  ) => {
     const from = (page - 1) * PAGE_SIZE.subsidies
     const to = from + PAGE_SIZE.subsidies - 1
     let query = supabase
@@ -78,6 +84,12 @@ export const getSubvencionPageFiltered = unstable_cache(
 
     if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
     if (ministry) query = query.eq("ministry_normalized", ministry)
+    if (territory) query = query.eq("ccaa_key", territory)
+    if (year) {
+      query = query
+        .gte("fecha_concesion", `${year}-01-01`)
+        .lt("fecha_concesion", `${year + 1}-01-01`)
+    }
 
     const { data, count, error } = await query.range(from, to)
     throwDataError(error, "filtered subsidies page")

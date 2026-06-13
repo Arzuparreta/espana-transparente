@@ -1,0 +1,1 @@
+export { TerritoryAtlas } from "./TerritoryAtlas"

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR } from "./shared"
+import { unstable_cache, HOUR, throwDataError } from "./shared"
 import { CCAA_GEO, getCcaaByDbKey } from "@/lib/ccaa-geo-mapping"
+import { normalizeTerritoryAlias } from "@/lib/territory-catalog"
 
 export type TerritoryScope = "autonomic" | "municipal"
 
@@ -62,7 +63,7 @@ export type TerritoryDetailData = {
   recentContracts: TerritoryRecentContract[]
 }
 
-function toNumber(value: number | string | null | undefined) {
+function toNumber(value: unknown) {
   if (typeof value === "number") return value
   if (typeof value === "string") {
     const parsed = Number(value)
@@ -122,9 +123,71 @@ async function fetchMultilevelSummary(
 }
 
 async function fetchTerritoryLanding(scope: TerritoryScope): Promise<TerritoryLandingData> {
-  const subsidyNivel1 = scope === "autonomic" ? "AUTONOMICA" : "LOCAL"
+  if (scope === "autonomic") {
+    const atlas = await fetchTerritoryAtlas()
+    const ccaa = atlas.territories.filter((territory) => territory.type === "ccaa")
+    const territories: TerritoryMoneyRollup[] = ccaa
+      .map((territory) => {
+        const rows = atlas.spend.filter((row) => row.ccaaKey === territory.key)
+        const subsidyRows = rows.filter((row) => row.dataset === "subsidies")
+        const contractRows = rows.filter((row) => row.dataset === "contracts")
+        return {
+          territoryKey: territory.key,
+          territoryName: territory.name,
+          subsidyCount: subsidyRows.reduce((sum, row) => sum + row.recordCount, 0),
+          subsidyAmount: subsidyRows.reduce((sum, row) => sum + row.totalAmount, 0),
+          subsidyLatestDate:
+            subsidyRows
+              .map((row) => row.latestRecordDate)
+              .filter((value): value is string => Boolean(value))
+              .sort()
+              .at(-1) ?? null,
+          contractCount: contractRows.reduce((sum, row) => sum + row.recordCount, 0),
+          contractAmount: contractRows.reduce((sum, row) => sum + row.totalAmount, 0),
+          contractLatestDate:
+            contractRows
+              .map((row) => row.latestRecordDate)
+              .filter((value): value is string => Boolean(value))
+              .sort()
+              .at(-1) ?? null,
+        }
+      })
+      .sort(compareTerritories)
+    const summary = territories.reduce<MultilevelSummary>(
+      (acc, territory) => ({
+        subsidyCount: acc.subsidyCount + territory.subsidyCount,
+        subsidyLatestDate:
+          [acc.subsidyLatestDate, territory.subsidyLatestDate]
+            .filter((value): value is string => Boolean(value))
+            .sort()
+            .at(-1) ?? null,
+        contractCount: acc.contractCount + territory.contractCount,
+        contractLatestDate:
+          [acc.contractLatestDate, territory.contractLatestDate]
+            .filter((value): value is string => Boolean(value))
+            .sort()
+            .at(-1) ?? null,
+      }),
+      {
+        subsidyCount: 0,
+        subsidyLatestDate: null,
+        contractCount: 0,
+        contractLatestDate: null,
+      }
+    )
+    return {
+      summary,
+      territories,
+      coverage: atlas.coverage.map((row) => ({
+        dataset: row.dataset,
+        resolvedCount: row.resolvedRecords,
+        unresolvedCount: row.unresolvedRecords,
+      })),
+    }
+  }
+
   const [summary, rollupsRes, coverageRes] = await Promise.all([
-    fetchMultilevelSummary(subsidyNivel1, scope),
+    fetchMultilevelSummary("LOCAL", scope),
     supabase
       .from("v_territory_money_rollups")
       .select(
@@ -160,6 +223,94 @@ async function fetchTerritoryLanding(scope: TerritoryScope): Promise<TerritoryLa
 }
 
 async function fetchTerritoryDetail(scope: TerritoryScope, territoryKey: string): Promise<TerritoryDetailData | null> {
+  if (scope === "autonomic") {
+    const atlas = await fetchTerritoryAtlas()
+    let territory = atlas.territories.find(
+      (candidate) => candidate.type === "ccaa" && candidate.key === territoryKey
+    )
+    if (!territory) {
+      const aliasResponse = await supabase
+        .from("territory_aliases")
+        .select("territory_key")
+        .eq("alias_key", normalizeTerritoryAlias(territoryKey))
+        .maybeSingle()
+      throwDataError(aliasResponse.error, "autonomic territory alias")
+      const aliasTerritory = atlas.territories.find(
+        (candidate) => candidate.key === aliasResponse.data?.territory_key
+      )
+      territory =
+        aliasTerritory?.type === "ccaa"
+          ? aliasTerritory
+          : atlas.territories.find(
+              (candidate) =>
+                candidate.type === "ccaa" && candidate.key === aliasTerritory?.parentKey
+            )
+    }
+    if (!territory) return null
+    const canonicalKey = territory.key
+    const rows = atlas.spend.filter((row) => row.ccaaKey === canonicalKey)
+    const subsidyRows = rows.filter((row) => row.dataset === "subsidies")
+    const contractRows = rows.filter((row) => row.dataset === "contracts")
+    const [subsidiesRes, contractsRes] = await Promise.all([
+      supabase
+        .from("subsidies")
+        .select("id, nivel2, beneficiario, convocatoria, importe, fecha_concesion, source_url, nivel3")
+        .eq("ccaa_key", canonicalKey)
+        .order("fecha_concesion", { ascending: false, nullsFirst: false })
+        .limit(8),
+      supabase
+        .from("contracts")
+        .select("id, region, title, awarding_body, amount, date, source_url, contract_type")
+        .eq("ccaa_key", canonicalKey)
+        .order("date", { ascending: false, nullsFirst: false })
+        .limit(8),
+    ])
+    throwDataError(subsidiesRes.error, "autonomic territory subsidies")
+    throwDataError(contractsRes.error, "autonomic territory contracts")
+    return {
+      territory: {
+        territoryKey: canonicalKey,
+        territoryName: territory.name,
+        subsidyCount: subsidyRows.reduce((sum, row) => sum + row.recordCount, 0),
+        subsidyAmount: subsidyRows.reduce((sum, row) => sum + row.totalAmount, 0),
+        subsidyLatestDate:
+          subsidyRows
+            .map((row) => row.latestRecordDate)
+            .filter((value): value is string => Boolean(value))
+            .sort()
+            .at(-1) ?? null,
+        contractCount: contractRows.reduce((sum, row) => sum + row.recordCount, 0),
+        contractAmount: contractRows.reduce((sum, row) => sum + row.totalAmount, 0),
+        contractLatestDate:
+          contractRows
+            .map((row) => row.latestRecordDate)
+            .filter((value): value is string => Boolean(value))
+            .sort()
+            .at(-1) ?? null,
+      },
+      recentSubsidies: (subsidiesRes.data ?? []).map((row) => ({
+        id: String(row.id),
+        territoryName: String(row.nivel2 ?? territory.name),
+        beneficiario: (row.beneficiario as string | null) ?? null,
+        convocatoria: (row.convocatoria as string | null) ?? null,
+        importe: toNumber(row.importe),
+        fechaConcesion: (row.fecha_concesion as string | null) ?? null,
+        sourceUrl: (row.source_url as string | null) ?? null,
+        grantingBody: (row.nivel3 as string | null) ?? null,
+      })),
+      recentContracts: (contractsRes.data ?? []).map((row) => ({
+        id: String(row.id),
+        territoryName: String(row.region ?? territory.name),
+        title: (row.title as string | null) ?? null,
+        awardingBody: (row.awarding_body as string | null) ?? null,
+        amount: toNumber(row.amount),
+        date: (row.date as string | null) ?? null,
+        sourceUrl: (row.source_url as string | null) ?? null,
+        contractType: (row.contract_type as string | null) ?? null,
+      })),
+    }
+  }
+
   const [territoryRes, subsidiesRes, contractsRes] = await Promise.all([
     supabase
       .from("v_territory_money_rollups")
@@ -222,6 +373,13 @@ async function fetchTerritoryDetail(scope: TerritoryScope, territoryKey: string)
 }
 
 async function fetchTerritoryKeys(scope: TerritoryScope) {
+  if (scope === "autonomic") {
+    const atlas = await fetchTerritoryAtlas()
+    return atlas.territories
+      .filter((territory) => territory.type === "ccaa")
+      .map((territory) => ({ territoryKey: territory.key }))
+  }
+
   const response = await supabase
     .from("v_territory_money_rollups")
     .select("territory_key")
@@ -333,5 +491,121 @@ export const getAutonomicTerritoryKeys = unstable_cache(
 export const getMunicipalTerritoryKeys = unstable_cache(
   () => fetchTerritoryKeys("municipal"),
   ["multilevel-municipal-keys"],
+  { revalidate: HOUR }
+)
+
+export type AtlasTerritory = {
+  key: string
+  name: string
+  type: "ccaa" | "province"
+  parentKey: string | null
+  nutsCode: string | null
+  sortOrder: number
+}
+
+export type AtlasSpendRow = {
+  dataset: "contracts" | "subsidies"
+  year: number
+  ccaaKey: string
+  provinceKey: string | null
+  recordCount: number
+  totalAmount: number
+  latestRecordDate: string | null
+}
+
+export type AtlasPopulationRow = {
+  territoryKey: string
+  year: number
+  population: number
+}
+
+export type AtlasCoverageRow = {
+  dataset: "contracts" | "subsidies"
+  totalRecords: number
+  resolvedRecords: number
+  unresolvedRecords: number
+}
+
+export type TerritoryAtlasData = {
+  territories: AtlasTerritory[]
+  spend: AtlasSpendRow[]
+  population: AtlasPopulationRow[]
+  coverage: AtlasCoverageRow[]
+  years: number[]
+}
+
+async function fetchPagedTable(
+  table: string,
+  columns: string,
+  pageSize = 1000
+): Promise<Record<string, unknown>[]> {
+  const rows: Record<string, unknown>[] = []
+  for (let from = 0; ; from += pageSize) {
+    const response = await supabase
+      .from(table)
+      .select(columns)
+      .range(from, from + pageSize - 1)
+    throwDataError(response.error, table)
+    rows.push(...((response.data ?? []) as unknown as Record<string, unknown>[]))
+    if ((response.data?.length ?? 0) < pageSize) break
+  }
+  return rows
+}
+
+async function fetchTerritoryAtlas(): Promise<TerritoryAtlasData> {
+  const [territoryRows, spendRows, populationRows, coverageResponse] = await Promise.all([
+    fetchPagedTable(
+      "territory_catalog",
+      "territory_key, territory_name, territory_type, parent_key, nuts_code, sort_order"
+    ),
+    fetchPagedTable(
+      "v_territory_spend_yearly",
+      "dataset, year, ccaa_key, province_key, record_count, total_amount, latest_record_date"
+    ),
+    fetchPagedTable("territory_population", "territory_key, year, population"),
+    supabase
+      .from("v_territory_spend_coverage")
+      .select("dataset, total_records, resolved_records, unresolved_records"),
+  ])
+  throwDataError(coverageResponse.error, "territory atlas coverage")
+
+  const spend: AtlasSpendRow[] = spendRows.map((row) => ({
+    dataset: row.dataset as AtlasSpendRow["dataset"],
+    year: toNumber(row.year),
+    ccaaKey: String(row.ccaa_key),
+    provinceKey: row.province_key ? String(row.province_key) : null,
+    recordCount: toNumber(row.record_count),
+    totalAmount: toNumber(row.total_amount),
+    latestRecordDate: (row.latest_record_date as string | null) ?? null,
+  }))
+
+  return {
+    territories: territoryRows.map((row) => ({
+      key: String(row.territory_key),
+      name: String(row.territory_name),
+      type: row.territory_type as AtlasTerritory["type"],
+      parentKey: row.parent_key ? String(row.parent_key) : null,
+      nutsCode: row.nuts_code ? String(row.nuts_code) : null,
+      sortOrder: toNumber(row.sort_order),
+    })),
+    spend,
+    population: populationRows.map((row) => ({
+      territoryKey: String(row.territory_key),
+      year: toNumber(row.year),
+      population: toNumber(row.population),
+    })),
+    coverage: (coverageResponse.data ?? []).map((row) => ({
+      dataset: row.dataset as AtlasCoverageRow["dataset"],
+      totalRecords: toNumber(row.total_records),
+      resolvedRecords: toNumber(row.resolved_records),
+      unresolvedRecords: toNumber(row.unresolved_records),
+    })),
+    years: Array.from(new Set(spend.map((row) => row.year))).sort((a, b) => b - a),
+  }
+}
+
+export const getTerritoryAtlas = unstable_cache(
+  fetchTerritoryAtlas,
+  ["territory-atlas-v1"],
   { revalidate: HOUR }
 )

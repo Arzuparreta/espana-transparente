@@ -66,7 +66,14 @@ export const getContractPage = unstable_cache(
 const VALID_ADMIN_LEVELS = new Set(["state", "autonomic", "municipal"])
 
 export const getContractPageFiltered = unstable_cache(
-  async (page: number, type: string, ministry: string | null, level: string | null) => {
+  async (
+    page: number,
+    type: string,
+    ministry: string | null,
+    level: string | null,
+    territory: string | null = null,
+    year: number | null = null
+  ) => {
     const from = (page - 1) * PAGE_SIZE.contracts
     const to = from + PAGE_SIZE.contracts - 1
     let query = supabase
@@ -80,6 +87,8 @@ export const getContractPageFiltered = unstable_cache(
     if (type !== "all") query = query.eq("contract_type", type)
     if (ministry) query = query.eq("ministry_normalized", ministry)
     if (level && VALID_ADMIN_LEVELS.has(level)) query = query.eq("administration_level", level)
+    if (territory) query = query.eq("ccaa_key", territory)
+    if (year) query = query.gte("date", `${year}-01-01`).lt("date", `${year + 1}-01-01`)
 
     const { data, count, error } = await query.range(from, to)
     throwDataError(error, "filtered contracts page")

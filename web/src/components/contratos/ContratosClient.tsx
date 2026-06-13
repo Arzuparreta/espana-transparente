@@ -41,6 +41,8 @@ interface ContratosClientProps {
   activeType: string
   activeMinistry?: string | null
   activeLevel?: string | null
+  activeTerritory?: string | null
+  activeYear?: number | null
   contracts: Contrato[]
   page: number
   total: number
@@ -162,13 +164,17 @@ function contractsHref(
   type: string,
   page = 1,
   ministry?: string | null,
-  level?: string | null
+  level?: string | null,
+  territory?: string | null,
+  year?: number | null
 ) {
   const params = new URLSearchParams()
   if (type !== "all") params.set("type", type)
   if (page > 1) params.set("page", String(page))
   if (ministry) params.set("ministry", ministry)
   if (level) params.set("level", level)
+  if (territory) params.set("territory", territory)
+  if (year) params.set("year", String(year))
   const query = params.toString()
   return query ? `/contratos?${query}` : "/contratos"
 }
@@ -177,13 +183,17 @@ export function ContratosClient({
   activeType,
   activeMinistry,
   activeLevel,
+  activeTerritory,
+  activeYear,
   contracts,
   page,
   total,
   totalPages,
 }: ContratosClientProps) {
-  const clearLevelHref = contractsHref(activeType, 1, activeMinistry, null)
-  const clearMinistryHref = contractsHref(activeType, 1, null, activeLevel)
+  const clearLevelHref = contractsHref(activeType, 1, activeMinistry, null, activeTerritory, activeYear)
+  const clearMinistryHref = contractsHref(activeType, 1, null, activeLevel, activeTerritory, activeYear)
+  const clearTerritoryHref = contractsHref(activeType, 1, activeMinistry, activeLevel, null, activeYear)
+  const clearYearHref = contractsHref(activeType, 1, activeMinistry, activeLevel, activeTerritory, null)
 
   return (
     <div className="space-y-6">
@@ -191,7 +201,7 @@ export function ContratosClient({
         ariaLabel="Tipo de contrato"
         scroll={false}
         tabs={TYPE_TABS.map((tab) => ({
-          href: contractsHref(tab.value, 1, activeMinistry, activeLevel),
+          href: contractsHref(tab.value, 1, activeMinistry, activeLevel, activeTerritory, activeYear),
           label: tab.label,
           active: activeType === tab.value,
         }))}
@@ -211,6 +221,18 @@ export function ContratosClient({
           value={LEVEL_LABELS[activeLevel] ?? activeLevel}
           clearHref={clearLevelHref}
         />
+      )}
+
+      {activeTerritory && (
+        <FilterChip
+          label="Territorio"
+          value={activeTerritory.replaceAll("_", " ")}
+          clearHref={clearTerritoryHref}
+        />
+      )}
+
+      {activeYear && (
+        <FilterChip label="Año" value={String(activeYear)} clearHref={clearYearHref} />
       )}
 
       <div className="space-y-2">
@@ -238,7 +260,9 @@ export function ContratosClient({
       <Pagination
         page={page}
         totalPages={totalPages}
-        hrefForPage={(nextPage) => contractsHref(activeType, nextPage, activeMinistry, activeLevel)}
+        hrefForPage={(nextPage) =>
+          contractsHref(activeType, nextPage, activeMinistry, activeLevel, activeTerritory, activeYear)
+        }
       />
     </div>
   )

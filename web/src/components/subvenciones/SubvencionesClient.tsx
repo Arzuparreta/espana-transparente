@@ -29,6 +29,8 @@ interface Subvencion {
 interface SubvencionesClientProps {
   activeNivel: string
   activeMinistry?: string | null
+  activeTerritory?: string | null
+  activeYear?: number | null
   subsidies: Subvencion[]
   page: number
   total: number
@@ -69,11 +71,19 @@ function nivelClass(nivel1: string | null): string {
   }
 }
 
-function subvencionesHref(nivel: string, page = 1, ministry?: string | null) {
+function subvencionesHref(
+  nivel: string,
+  page = 1,
+  ministry?: string | null,
+  territory?: string | null,
+  year?: number | null
+) {
   const params = new URLSearchParams()
   if (nivel !== "all") params.set("nivel", nivel)
   if (page > 1) params.set("page", String(page))
   if (ministry) params.set("ministry", ministry)
+  if (territory) params.set("territory", territory)
+  if (year) params.set("year", String(year))
   const query = params.toString()
   return query ? `/subvenciones?${query}` : "/subvenciones"
 }
@@ -165,6 +175,8 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
 export function SubvencionesClient({
   activeNivel,
   activeMinistry,
+  activeTerritory,
+  activeYear,
   subsidies,
   page,
   total,
@@ -176,7 +188,7 @@ export function SubvencionesClient({
         ariaLabel="Nivel administrativo"
         scroll={false}
         tabs={NIVEL_TABS.map((tab) => ({
-          href: subvencionesHref(tab.value, 1, activeMinistry),
+          href: subvencionesHref(tab.value, 1, activeMinistry, activeTerritory, activeYear),
           label: tab.label,
           active: activeNivel === tab.value,
         }))}
@@ -186,7 +198,23 @@ export function SubvencionesClient({
         <FilterChip
           label="Ministerio"
           value={activeMinistry}
-          clearHref={subvencionesHref(activeNivel)}
+          clearHref={subvencionesHref(activeNivel, 1, null, activeTerritory, activeYear)}
+        />
+      )}
+
+      {activeTerritory && (
+        <FilterChip
+          label="Territorio"
+          value={activeTerritory.replaceAll("_", " ")}
+          clearHref={subvencionesHref(activeNivel, 1, activeMinistry, null, activeYear)}
+        />
+      )}
+
+      {activeYear && (
+        <FilterChip
+          label="Año"
+          value={String(activeYear)}
+          clearHref={subvencionesHref(activeNivel, 1, activeMinistry, activeTerritory, null)}
         />
       )}
 
@@ -204,7 +232,13 @@ export function SubvencionesClient({
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} hrefForPage={(nextPage) => subvencionesHref(activeNivel, nextPage, activeMinistry)} />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        hrefForPage={(nextPage) =>
+          subvencionesHref(activeNivel, nextPage, activeMinistry, activeTerritory, activeYear)
+        }
+      />
     </div>
   )
 }

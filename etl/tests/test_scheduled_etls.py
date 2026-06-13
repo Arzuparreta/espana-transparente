@@ -38,8 +38,9 @@ def test_daily_batch_continues_after_a_pipeline_failure(tmp_path):
 
     invoked = calls.read_text().splitlines()
     assert result.returncode == 1
-    assert len(invoked) == 9
+    assert len(invoked) == 10
     assert "src.contratacion.contratos" in invoked[3]
+    assert "src.territorio.atlas" in invoked[5]
     assert "common.search_refresh" in invoked[-1]
     assert "contracts_daily (exit 7)" in result.stderr
 

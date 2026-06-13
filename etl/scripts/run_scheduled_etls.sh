@@ -71,6 +71,7 @@ run_daily() {
   run_self_tracked_pipeline "contracts_daily" python -m src.contratacion.contratos
   run_self_tracked_pipeline "subsidies_daily" python -m src.bdns.subvenciones \
     --from-date "${yesterday}" --to-date "${today}" --importe-min 0 --max-pages 100
+  run_pipeline "territorio.atlas" python -m src.territorio.atlas
   run_pipeline "photos.run" python -m src.photos.run --refresh-missing
   run_pipeline "borme.officers" python -m src.borme.officers --limit 100 --resume
   run_pipeline "congreso.declaraciones_ocr" python -m src.congreso.declaraciones_ocr --limit 25 --resume

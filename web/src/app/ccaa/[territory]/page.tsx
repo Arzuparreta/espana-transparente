@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
@@ -35,9 +35,13 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CcaaTerritoryPage({ params }: PageProps) {
   const { territory } = await params
-  const detail = await getAutonomicTerritoryDetail(decodeURIComponent(territory))
+  const requestedTerritory = decodeURIComponent(territory)
+  const detail = await getAutonomicTerritoryDetail(requestedTerritory)
 
   if (!detail) notFound()
+  if (detail.territory.territoryKey !== requestedTerritory) {
+    permanentRedirect(`/ccaa/${encodeURIComponent(detail.territory.territoryKey)}`)
+  }
 
   const latestDate = [detail.territory.subsidyLatestDate, detail.territory.contractLatestDate]
     .filter((d): d is string => Boolean(d))

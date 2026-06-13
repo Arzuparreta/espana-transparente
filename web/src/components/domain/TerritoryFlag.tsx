@@ -6,9 +6,15 @@ type TerritoryFlagProps = {
   territoryName: string
   className?: string
   size?: "sm" | "lg"
+  priority?: boolean
 }
 
-export function TerritoryFlag({ territoryName, className, size = "sm" }: TerritoryFlagProps) {
+export function TerritoryFlag({
+  territoryName,
+  className,
+  size = "sm",
+  priority = false,
+}: TerritoryFlagProps) {
   const flag = getTerritoryFlag(territoryName)
   if (!flag) return null
 
@@ -27,6 +33,7 @@ export function TerritoryFlag({ territoryName, className, size = "sm" }: Territo
         height={80}
         className="h-full w-full object-cover"
         unoptimized
+        priority={priority}
       />
     </span>
   )
