@@ -228,7 +228,7 @@ export function SearchForm({
                               ) : null}
                             </div>
                             {meta ? (
-                              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{meta}</span>
+                              <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">{meta}</span>
                             ) : null}
                           </div>
                         </ResponsiveLink>

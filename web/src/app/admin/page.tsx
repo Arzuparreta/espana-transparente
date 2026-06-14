@@ -346,21 +346,21 @@ export default async function AdminPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Usuarios</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">{signups.length}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{signups.length}</p>
           <p className="mt-0.5 text-[12px] text-[#999992]">
             {signupsToday} hoy
           </p>
         </div>
         <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Anotaciones</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">{totalAnnotations}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{totalAnnotations}</p>
           <p className="mt-0.5 text-[12px] text-[#999992]">
             {annotationsToday} en 24h · {hiddenCount} ocultas
           </p>
         </div>
         <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">Site</p>
-          <p className={`mt-1 text-2xl font-semibold tabular-nums ${
+          <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${
             siteStatus === "ok" ? "text-green-500" : siteStatus === "down" ? "text-red-500" : "text-yellow-500"
           }`}>
             {siteStatus === "ok" ? "OK" : siteStatus === "down" ? "Down" : siteStatus}
@@ -369,7 +369,7 @@ export default async function AdminPage() {
         </div>
         <div className="rounded-[2px] border border-border bg-card p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.10em] text-[#999992]">ETL</p>
-          <p className={`mt-1 text-2xl font-semibold tabular-nums ${
+          <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${
             pipelines.length === 0 ? "text-[#999992]" : failedPipelines.length === 0 ? "text-green-500" : "text-red-500"
           }`}>
             {pipelines.length === 0 ? "—" : `${pipelines.filter((p) => p.last_status === "succeeded").length}/${pipelines.length}`}

@@ -95,7 +95,7 @@ export function DiputadosFilter({ politicians }: Props) {
               style={{ backgroundColor: color ?? undefined }}
             />
             {acronym}
-            <span className={`tabular-nums ${activeParty === acronym ? "opacity-70" : "text-muted-foreground/70"}`}>
+            <span className={`font-mono tabular-nums ${activeParty === acronym ? "opacity-70" : "text-muted-foreground/70"}`}>
               {n}
             </span>
           </button>

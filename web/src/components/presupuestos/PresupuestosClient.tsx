@@ -66,7 +66,7 @@ function SectionCard({ row, year }: { row: BudgetSectionRow; year: number }) {
             </div>
           </div>
           <div className="shrink-0 text-right">
-            <div className="text-base font-semibold tabular-nums">
+            <div className="text-base font-mono font-semibold tabular-nums">
               {formatAmount(row.total_credit_initial)}
             </div>
             {fraction != null && Math.abs(fraction - 1) > 0.001 ? (

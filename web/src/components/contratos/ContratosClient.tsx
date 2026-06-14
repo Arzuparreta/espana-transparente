@@ -141,7 +141,7 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
           {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
-          <div className="text-base font-semibold tabular-nums">{formatAmount(c.amount)}</div>
+          <div className="text-base font-mono font-semibold tabular-nums">{formatAmount(c.amount)}</div>
           {c.source_url ? (
             <a
               href={c.source_url}

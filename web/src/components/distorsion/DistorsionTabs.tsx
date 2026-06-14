@@ -93,7 +93,7 @@ export function DistorsionTabs({ dates, activeDate, withVotesPerSeat, maxVotesPe
                               borderLeft: `3px solid ${result.color}`,
                             }}
                           />
-                          <span className="shrink-0 text-right text-xs tabular-nums sm:w-20">
+                          <span className="shrink-0 text-right font-mono text-xs tabular-nums sm:w-20">
                             {result.votesPerSeat.toLocaleString()}
                           </span>
                         </div>

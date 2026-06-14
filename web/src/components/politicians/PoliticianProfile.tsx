@@ -287,7 +287,7 @@ export function PoliticianProfile({
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {linkedSummaryItems.map((item) => (
                 <div key={item.label} className="rounded-[2px] border border-border/60 px-3 py-2">
-                  <div className="text-xl font-semibold tabular-nums">{item.value}</div>
+                  <div className="text-xl font-mono font-semibold tabular-nums">{item.value}</div>
                   <div className="text-xs text-muted-foreground">{item.label}</div>
                 </div>
               ))}
@@ -342,7 +342,7 @@ export function PoliticianProfile({
                     className="flex min-w-0 items-baseline justify-between gap-3 rounded-[2px] border border-border/50 bg-background/60 px-3 py-2 text-sm transition-colors hover:bg-background"
                   >
                     <span className="min-w-0 truncate">{c.title}</span>
-                    <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
+                    <span className="shrink-0 font-mono tabular-nums text-xs text-muted-foreground">
                       {formatAmount(c.amount)}
                     </span>
                   </a>
@@ -654,7 +654,7 @@ export function PoliticianProfile({
                                     <span className="text-red-600 dark:text-red-400">Ausente</span>
                                   )}
                                 </td>
-                                <td className="hidden px-4 py-2 text-right tabular-nums text-muted-foreground sm:table-cell">
+                                <td className="hidden px-4 py-2 text-right font-mono tabular-nums text-muted-foreground sm:table-cell">
                                   {s.was_present ? String(s.votes_cast ?? 0) : "—"}
                                 </td>
                               </tr>
