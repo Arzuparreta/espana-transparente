@@ -12,6 +12,7 @@ const SITEMAP_CAPS = {
   initiatives: 3000,
   budgetPrograms: 5000,
   judicialCases: 3000,
+  lobbyingGroups: 5000,
 } as const
 
 const DAY = HOUR * 24
@@ -74,6 +75,19 @@ export const getSitemapEuFundSlugs = unstable_cache(
       .filter((x): x is { slug: string } => Boolean(x))
   },
   ["sitemap-eu-funds"],
+  { revalidate: DAY }
+)
+
+export const getSitemapLobbyingGroupIds = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from("lobbying_groups")
+      .select("id")
+      .order("name", { ascending: true })
+      .limit(SITEMAP_CAPS.lobbyingGroups)
+    return (data ?? []).map((r) => ({ id: r.id as string }))
+  },
+  ["sitemap-lobbying-groups"],
   { revalidate: DAY }
 )
 
