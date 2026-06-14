@@ -54,7 +54,11 @@ describe("public data query guard", () => {
 
   it("guards from and rpc queries without changing auth methods", async () => {
     const auth = { signOut: vi.fn() }
-    const client = guardPublicDataClient({
+    const client = guardPublicDataClient<{
+      auth: typeof auth
+      from: (table: string) => ReturnType<typeof queryResult>
+      rpc: (fn: string) => ReturnType<typeof queryResult>
+    }>({
       auth,
       from: vi.fn(() => queryResult({ data: null, error: { status: 503 } })),
       rpc: vi.fn(() => queryResult({ data: [], error: null })),
