@@ -14,6 +14,7 @@ Usage:
 """
 
 import argparse
+import json
 import time
 from datetime import date, timedelta
 
@@ -36,22 +37,45 @@ def _is_organization(beneficiario: str | None) -> bool:
     return not beneficiario.startswith("*")
 
 
-def fetch_page(from_date: str, to_date: str, page: int) -> dict:
+def fetch_page(from_date: str, to_date: str, page: int, retries: int = 5) -> dict:
     from_api = date.fromisoformat(from_date).strftime("%d/%m/%Y")
     to_api = date.fromisoformat(to_date).strftime("%d/%m/%Y")
-    resp = httpx.get(
-        BDNS_API,
-        params={
-            "pageSize": PAGE_SIZE,
-            "page": page,
-            "fechaDesde": from_api,
-            "fechaHasta": to_api,
-        },
-        headers={"User-Agent": "EspanaTransparente/1.0 (+https://spaintransparencia.info)"},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    for attempt in range(retries):
+        try:
+            resp = httpx.get(
+                BDNS_API,
+                params={
+                    "pageSize": PAGE_SIZE,
+                    "page": page,
+                    "fechaDesde": from_api,
+                    "fechaHasta": to_api,
+                },
+                headers={"User-Agent": "EspanaTransparente/1.0 (+https://spaintransparencia.info)"},
+                timeout=60,
+            )
+            resp.raise_for_status()
+        except (httpx.TimeoutException, httpx.TransportError):
+            if attempt == retries - 1:
+                raise
+            time.sleep(10 * (attempt + 1))
+            continue
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code < 500 or attempt == retries - 1:
+                raise
+            time.sleep(10 * (attempt + 1))
+            continue
+        try:
+            return resp.json()
+        except UnicodeDecodeError:
+            # BDNS occasionally serves a page in Latin-1 without declaring the charset.
+            return json.loads(resp.content.decode("latin-1"))
+        except json.JSONDecodeError:
+            if attempt == retries - 1:
+                raise
+            # BDNS occasionally returns an empty/non-JSON body; back off and retry.
+            time.sleep(5 * (attempt + 1))
+            continue
+    raise RuntimeError("BDNS request retry loop exhausted")
 
 
 def parse_record(raw: dict, importe_min: float) -> dict | None:

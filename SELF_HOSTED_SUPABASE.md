@@ -136,6 +136,51 @@ API:    http://127.0.0.1:54321
 DB:     postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
+## Local Supabase storage location
+
+The desktop stack keeps the heavy local Supabase data on the HDD, not on the
+root SSD. Docker still uses the standard Supabase CLI volume names, but they are
+local bind volumes:
+
+```text
+supabase_db_espana-transparente
+  -> /mnt/storage/docker-volumes/espana-transparente/supabase_db/_data
+supabase_storage_espana-transparente
+  -> /mnt/storage/docker-volumes/espana-transparente/supabase_storage/_data
+```
+
+Verify the wiring before destructive Docker cleanup:
+
+```bash
+docker volume inspect supabase_db_espana-transparente supabase_storage_espana-transparente
+```
+
+Both volumes should show `Options.type=none`, `Options.o=bind`, and `Options.device`
+pointing at `/mnt/storage/docker-volumes/espana-transparente/...`. Do not recreate
+these as regular Docker volumes unless you intentionally want the DB/storage data
+back under `/var/lib/docker` on the SSD.
+
+## Keep local analytics logs bounded
+
+The local Supabase analytics container stores Logflare events in the
+`_supabase._analytics.log_events_*` tables. These logs are useful for short-term
+debugging, but they are not source data and can grow quickly on the desktop
+stack.
+
+The maintenance script below keeps the newest log rows while capping analytics
+log storage to 1 GiB by default:
+
+```bash
+scripts/prune-supabase-analytics-logs.sh
+```
+
+The desktop user timer runs it hourly:
+
+```bash
+systemctl --user status espana-transparente-supabase-log-prune.timer
+systemctl --user start espana-transparente-supabase-log-prune.service
+```
+
 Use the publishable and secret keys printed by `npx supabase status`; do not
 commit machine-specific secrets to `.env.local`.
 
