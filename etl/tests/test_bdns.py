@@ -6,7 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from bdns.subvenciones import BDNS_API, _is_organization, fetch_page, parse_record
+from bdns.subvenciones import BDNS_API, _is_organization, fetch_page, parse_record, run_window
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -109,3 +109,21 @@ def test_fetch_page_does_not_retry_client_errors(monkeypatch):
 
     with pytest.raises(httpx.HTTPStatusError):
         fetch_page("2025-01-01", "2025-01-01", 0)
+
+
+def test_run_window_fails_when_max_pages_exhausted(monkeypatch):
+    monkeypatch.setattr("bdns.subvenciones.time.sleep", lambda _: None)
+    monkeypatch.setattr(
+        "bdns.subvenciones.fetch_page",
+        lambda *_: {"content": [{"beneficiario": "***123"}], "last": False, "totalElements": 999},
+    )
+
+    with pytest.raises(RuntimeError, match="exceeded max_pages=2"):
+        run_window(
+            from_date="2025-01-01",
+            to_date="2025-01-02",
+            importe_min=0,
+            max_pages=2,
+            dry_run=True,
+            resume=False,
+        )

@@ -246,6 +246,13 @@ def run_window(
             if data.get("last", False):
                 break
 
+            if page == max_pages - 1:
+                raise RuntimeError(
+                    f"BDNS window {from_date} -> {to_date} exceeded "
+                    f"max_pages={max_pages} before reaching the last page "
+                    f"(API total {total_api})"
+                )
+
             time.sleep(REQUEST_DELAY)
 
         if conn and run_id:
