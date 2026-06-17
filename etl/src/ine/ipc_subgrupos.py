@@ -85,7 +85,11 @@ def run(dry_run: bool = False) -> int:
                 continue
             print(f"Fetching {meta['name']}...")
             url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_key}?nult=240&tip=A"
-            series = fetch_json(url)
+            try:
+                series = fetch_json(url)
+            except Exception as exc:
+                print(f"  ERROR fetching {series_key}: {exc}")
+                continue
 
             inserted = 0
             data_points = series.get("Data", [])

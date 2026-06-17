@@ -210,10 +210,14 @@ def _best_match(borme_name: str, watchlist: list[str]) -> tuple[str | None, int]
 def _get_borme_section_a_pdf_urls(day: date) -> list[tuple[str, str]]:
     """Return [(pdf_url, province_name)] for section A items on a given BORME day."""
     summary_url = f"{BORME_API}/{day:%Y%m%d}"
-    result = subprocess.run(
-        ["curl", "-sL", "-H", "Accept: application/json", "-H", f"User-Agent: {UA}", summary_url],
-        capture_output=True, text=True, timeout=45,
-    )
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "-H", "Accept: application/json", "-H", f"User-Agent: {UA}", summary_url],
+            capture_output=True, text=True, timeout=45,
+        )
+    except subprocess.TimeoutExpired:
+        print(f"  BORME sumario timeout for {day}, skipping")
+        return []
     if result.returncode != 0 or not result.stdout.strip():
         return []
     try:

@@ -169,6 +169,7 @@ def upsert_positions(dry_run: bool) -> tuple[int, int]:
                   AND person_name = %s
                   AND start_date = %s
                   AND politician_id IS NULL
+                  AND official_id IS NULL
                 """,
                 (
                     politician_id,

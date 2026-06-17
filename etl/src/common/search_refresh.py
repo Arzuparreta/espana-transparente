@@ -160,7 +160,7 @@ _BATCH_SQL: dict[str, str] = {
 }
 
 
-def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 3000) -> int:
+def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 1500) -> int:
     """Process a large table in ID-ordered batches to stay within free-tier RAM."""
     sql = _BATCH_SQL[entity_type]
     # DELETE first so we don't accumulate stale rows across runs.
@@ -174,7 +174,7 @@ def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 3000) -
     batch_num = 0
     while True:
         with conn.cursor() as cur:
-            cur.execute("SET statement_timeout = '10min'")
+            cur.execute("SET statement_timeout = '20min'")
             cur.execute(
                 sql,
                 {
