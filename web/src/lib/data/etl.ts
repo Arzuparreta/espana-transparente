@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabase/client"
 import { dataErrorMessage, dataQuerySignal, unstable_cache, HOUR } from "./shared"
 
-const getEtlPipelineStatusCached = unstable_cache(
-  async () => {
+export async function getEtlPipelineStatus() {
+  try {
     const { data, error } = await supabase
       .from("v_etl_pipeline_status")
       .select("pipeline, last_status, last_finished_at, last_rows_inserted, last_rows_updated, last_error_summary")
@@ -12,15 +12,7 @@ const getEtlPipelineStatusCached = unstable_cache(
       console.error("getEtlPipelineStatus error:", dataErrorMessage(error))
       throw new Error("ETL pipeline status data source unavailable")
     }
-    return data ?? []
-  },
-  ["etl-pipeline-status"],
-  { revalidate: HOUR }
-)
-
-export async function getEtlPipelineStatus() {
-  try {
-    return { status: "ok" as const, pipelines: await getEtlPipelineStatusCached() }
+    return { status: "ok" as const, pipelines: data ?? [] }
   } catch (error) {
     console.error("getEtlPipelineStatus unavailable:", dataErrorMessage(error))
     return { status: "unavailable" as const, pipelines: [] }

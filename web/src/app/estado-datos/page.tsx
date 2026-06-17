@@ -12,7 +12,7 @@ import {
 } from "@/lib/etl-pipelines"
 import { Fragment } from "react"
 
-export const revalidate = 3600
+export const revalidate = 0
 
 export const metadata = {
   title: "Estado de los datos",
