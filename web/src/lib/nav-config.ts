@@ -41,7 +41,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "partidos", href: "/partidos", label: "Partidos", groupLabel: "Personas" },
   { key: "instituciones", href: "/instituciones", label: "Nombramientos", shortLabel: "Instituciones", groupLabel: "Personas" },
   { key: "votaciones", href: "/votaciones", label: "Votaciones", groupLabel: "Personas" },
-  { key: "corrupcion", href: "/corrupcion", label: "Procesos judiciales", shortLabel: "procesos judiciales", groupLabel: "Personas" },
+  { key: "corrupcion", href: "/corrupcion", label: "Procesos judiciales", shortLabel: "Procesos judiciales", groupLabel: "Personas" },
   { key: "presupuestos", href: "/presupuestos", label: "Presupuestos", groupLabel: "Dinero" },
   { key: "contratos", href: "/contratos", label: "Contratos", groupLabel: "Dinero" },
   { key: "subvenciones", href: "/subvenciones", label: "Subvenciones", groupLabel: "Dinero" },
