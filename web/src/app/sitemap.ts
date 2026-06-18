@@ -42,6 +42,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/votaciones",         changeFrequency: "daily",   priority: 0.9 },
   { path: "/distorsion",         changeFrequency: "weekly",  priority: 0.8 },
   { path: "/gobierno",           changeFrequency: "weekly",  priority: 0.8 },
+  { path: "/ministerios",        changeFrequency: "weekly",  priority: 0.7 },
   { path: "/senado",             changeFrequency: "weekly",  priority: 0.7 },
   { path: "/instituciones",      changeFrequency: "weekly",  priority: 0.7 },
   { path: "/partidos",           changeFrequency: "weekly",  priority: 0.7 },
