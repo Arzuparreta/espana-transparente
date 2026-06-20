@@ -29,6 +29,9 @@ interface PageProps {
     ministry?: string
     territory?: string
     year?: string
+    province?: string
+    municipio?: string
+    flow?: string
   }
 }
 
@@ -38,19 +41,29 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const activeNivel = VALID_NIVELES.includes(requestedNivel) ? requestedNivel : "all"
   const activeMinistry = searchParams?.ministry?.trim() || null
   const activeTerritory = searchParams?.territory?.trim() || null
+  const activeProvince = searchParams?.province?.trim() || null
+  const activeMunicipio = searchParams?.municipio?.trim() || null
+  const activeFlow = searchParams?.flow === "to" ? "to" : "by"
   const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
   const activeYear = Number.isFinite(requestedYear) ? requestedYear : null
 
+  const hasFilter = Boolean(
+    activeMinistry || activeTerritory || activeYear || activeProvince || activeMunicipio
+  )
+
   const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getSubvencionPage(page, activeNivel),
-    activeMinistry || activeTerritory || activeYear
-      ? getSubvencionPageFiltered(page, activeNivel, activeMinistry, activeTerritory, activeYear)
+    hasFilter
+      ? getSubvencionPageFiltered(
+          page, activeNivel, activeMinistry, activeTerritory, activeYear,
+          activeProvince, activeMunicipio, activeFlow
+        )
       : Promise.resolve(null),
     getMoneyDatasetSummary("subsidies"),
     getEtlLastFinished(["subsidies_daily", "subsidies_backfill"]),
   ])
 
-  const { subsidies, total, statsRows } = (activeMinistry || activeTerritory || activeYear) && filteredData
+  const { subsidies, total, statsRows } = hasFilter && filteredData
     ? { subsidies: filteredData.subsidies, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 

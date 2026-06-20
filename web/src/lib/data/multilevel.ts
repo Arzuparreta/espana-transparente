@@ -390,39 +390,18 @@ async function fetchTerritoryKeys(scope: TerritoryScope) {
     .filter((row) => row.territoryKey.length > 0)
 }
 
-export const getAutonomicSummary = unstable_cache(
-  () => fetchMultilevelSummary("AUTONOMICA", "autonomic"),
-  ["multilevel-autonomic-summary"],
+// Scope-parameterized boundary (autonomic | municipal). One cached path per
+// concern instead of duplicated autonomic/municipal wrappers — `unstable_cache`
+// keys on the arguments, so each scope is memoized independently.
+export const getTerritoryLanding = unstable_cache(
+  (scope: TerritoryScope) => fetchTerritoryLanding(scope),
+  ["multilevel-territory-landing"],
   { revalidate: HOUR }
 )
 
-export const getMunicipalSummary = unstable_cache(
-  () => fetchMultilevelSummary("LOCAL", "municipal"),
-  ["multilevel-municipal-summary"],
-  { revalidate: HOUR }
-)
-
-export const getAutonomicLanding = unstable_cache(
-  () => fetchTerritoryLanding("autonomic"),
-  ["multilevel-autonomic-landing"],
-  { revalidate: HOUR }
-)
-
-export const getMunicipalLanding = unstable_cache(
-  () => fetchTerritoryLanding("municipal"),
-  ["multilevel-municipal-landing"],
-  { revalidate: HOUR }
-)
-
-export const getAutonomicTerritoryDetail = unstable_cache(
-  (territoryKey: string) => fetchTerritoryDetail("autonomic", territoryKey),
-  ["multilevel-autonomic-detail"],
-  { revalidate: HOUR }
-)
-
-export const getMunicipalTerritoryDetail = unstable_cache(
-  (territoryKey: string) => fetchTerritoryDetail("municipal", territoryKey),
-  ["multilevel-municipal-detail"],
+export const getTerritoryDetail = unstable_cache(
+  (scope: TerritoryScope, territoryKey: string) => fetchTerritoryDetail(scope, territoryKey),
+  ["multilevel-territory-detail"],
   { revalidate: HOUR }
 )
 
@@ -482,15 +461,9 @@ export const getSpainMapData = unstable_cache(
   { revalidate: HOUR }
 )
 
-export const getAutonomicTerritoryKeys = unstable_cache(
-  () => fetchTerritoryKeys("autonomic"),
-  ["multilevel-autonomic-keys"],
-  { revalidate: HOUR }
-)
-
-export const getMunicipalTerritoryKeys = unstable_cache(
-  () => fetchTerritoryKeys("municipal"),
-  ["multilevel-municipal-keys"],
+export const getTerritoryKeys = unstable_cache(
+  (scope: TerritoryScope) => fetchTerritoryKeys(scope),
+  ["multilevel-territory-keys"],
   { revalidate: HOUR }
 )
 

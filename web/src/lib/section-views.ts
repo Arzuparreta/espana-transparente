@@ -7,9 +7,6 @@ export type MoneyView = (typeof MONEY_VIEWS)[number]
 export const ECONOMY_VIEWS = ["resumen", "series", "calculadoras"] as const
 export type EconomyView = (typeof ECONOMY_VIEWS)[number]
 
-export const TERRITORY_VIEWS = ["mapa", "autonomico", "municipal"] as const
-export type TerritoryView = (typeof TERRITORY_VIEWS)[number]
-
 export function parseView<T extends string>(
   value: string | string[] | undefined,
   allowed: readonly T[],

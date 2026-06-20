@@ -36,8 +36,13 @@ describe("section navigation", () => {
     expect(getSectionForPath("/asistencia")?.key).toBe("asistencia")
     expect(getSectionForPath("/divergencias")?.key).toBe("divergencias")
     expect(getSectionForPath("/dinero-publico")?.key).toBe("dinero-publico")
-    expect(getSectionForPath("/ccaa")?.key).toBe("ccaa")
-    expect(getSectionForPath("/municipios")?.key).toBe("municipios")
+    expect(getSectionForPath("/territorio")?.key).toBe("territorio")
     expect(getSectionForPath("/calculadoras")?.key).toBe("calculadoras")
+  })
+
+  it("resolves unified territorial detail routes to the territorio hub section", () => {
+    // /ccaa and /municipios collapsed into /territorio/[scope]/[key]
+    expect(getSectionForPath("/territorio/ccaa/ANDALUCIA")?.key).toBe("territorio")
+    expect(getSectionForPath("/territorio/municipio/madrid")?.key).toBe("territorio")
   })
 })

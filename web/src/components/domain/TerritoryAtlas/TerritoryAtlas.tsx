@@ -786,7 +786,7 @@ export function TerritoryAtlas({
 
               <div className="space-y-2 p-4">
                 <Link
-                  href={`/ccaa/${encodeURIComponent(selected?.key ?? "")}`}
+                  href={`/territorio/ccaa/${encodeURIComponent(selected?.key ?? "")}`}
                   className="flex items-center justify-between text-xs font-semibold hover:text-primary"
                 >
                   Ficha territorial completa

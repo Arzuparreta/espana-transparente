@@ -25,8 +25,8 @@ const POSITION_LABELS: Record<string, string> = {
 
 const ADMIN_LEVEL_SECTION: Record<string, { href: string; label: string }> = {
   state: { href: "/gobierno", label: "Gobierno" },
-  autonomic: { href: "/ccaa", label: "Comunidades autónomas" },
-  municipal: { href: "/municipios", label: "Municipios" },
+  autonomic: { href: "/territorio", label: "Comunidades autónomas" },
+  municipal: { href: "/territorio", label: "Municipios" },
 }
 
 function formatDate(iso: string | null): string {

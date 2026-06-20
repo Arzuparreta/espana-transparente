@@ -72,7 +72,10 @@ export const getContractPageFiltered = unstable_cache(
     ministry: string | null,
     level: string | null,
     territory: string | null = null,
-    year: number | null = null
+    year: number | null = null,
+    province: string | null = null,
+    municipio: string | null = null,
+    flow: "by" | "to" = "by"
   ) => {
     const from = (page - 1) * PAGE_SIZE.contracts
     const to = from + PAGE_SIZE.contracts - 1
@@ -87,7 +90,17 @@ export const getContractPageFiltered = unstable_cache(
     if (type !== "all") query = query.eq("contract_type", type)
     if (ministry) query = query.eq("ministry_normalized", ministry)
     if (level && VALID_ADMIN_LEVELS.has(level)) query = query.eq("administration_level", level)
-    if (territory) query = query.eq("ccaa_key", territory)
+    // flow="by": territory of the awarding administration (who spends).
+    // flow="to": territory of the contractor (where the money lands). No
+    // contractor_ccaa_key column, so receptor filtering is province/municipio.
+    if (flow === "to") {
+      if (province) query = query.eq("contractor_province_key", province)
+      if (municipio) query = query.eq("contractor_municipality_key", municipio)
+    } else {
+      if (territory) query = query.eq("ccaa_key", territory)
+      if (province) query = query.eq("province_key", province)
+      if (municipio) query = query.eq("municipality_key", municipio)
+    }
     if (year) query = query.gte("date", `${year}-01-01`).lt("date", `${year + 1}-01-01`)
 
     const { data, count, error } = await query.range(from, to)

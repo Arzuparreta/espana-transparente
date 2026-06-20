@@ -30,6 +30,9 @@ interface PageProps {
     level?: string
     territory?: string
     year?: string
+    province?: string
+    municipio?: string
+    flow?: string
   }
 }
 
@@ -45,19 +48,29 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     ? (requestedLevel as (typeof VALID_LEVELS)[number])
     : null
   const activeTerritory = searchParams?.territory?.trim() || null
+  const activeProvince = searchParams?.province?.trim() || null
+  const activeMunicipio = searchParams?.municipio?.trim() || null
+  const activeFlow = searchParams?.flow === "to" ? "to" : "by"
   const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
   const activeYear = Number.isFinite(requestedYear) ? requestedYear : null
 
+  const hasFilter = Boolean(
+    activeMinistry || activeLevel || activeTerritory || activeYear || activeProvince || activeMunicipio
+  )
+
   const [baseData, filteredData, summary, lastChecked] = await Promise.all([
     getContractPage(page, activeType),
-    activeMinistry || activeLevel || activeTerritory || activeYear
-      ? getContractPageFiltered(page, activeType, activeMinistry, activeLevel, activeTerritory, activeYear)
+    hasFilter
+      ? getContractPageFiltered(
+          page, activeType, activeMinistry, activeLevel, activeTerritory, activeYear,
+          activeProvince, activeMunicipio, activeFlow
+        )
       : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
     getEtlLastFinished(["contracts_daily", "contracts_backfill"]),
   ])
 
-  const { contracts, total, statsRows } = (activeMinistry || activeLevel || activeTerritory || activeYear) && filteredData
+  const { contracts, total, statsRows } = hasFilter && filteredData
     ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
     : baseData
 

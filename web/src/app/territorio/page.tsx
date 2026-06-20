@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
-import { permanentRedirect } from "next/navigation"
 import { TerritoryAtlas } from "@/components/domain/TerritoryAtlas"
+import { TerritorySpendingGrid } from "@/components/views/TerritorySpendingGrid"
 import { getTerritoryAtlas } from "@/lib/data/multilevel"
-import { parseView, TERRITORY_VIEWS } from "@/lib/section-views"
 import {
   parseTerritoryDataset,
   parseTerritoryMetric,
@@ -11,15 +10,14 @@ import {
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: "Mapa del gasto",
+  title: "Tu territorio",
   description:
-    "Atlas territorial de contratos y subvenciones autonómicas publicados, con comparación por año, expediente e importe por habitante.",
+    "Atlas territorial del dinero público: contratos y subvenciones por comunidad autónoma, provincia y municipio, con comparación por año, expediente e importe por habitante.",
   alternates: { canonical: "/territorio" },
 }
 
 interface PageProps {
   searchParams?: Promise<{
-    view?: string | string[]
     source?: string | string[]
     metric?: string | string[]
     year?: string | string[]
@@ -33,9 +31,6 @@ function first(value: string | string[] | undefined) {
 
 export default async function TerritorioPage({ searchParams }: PageProps) {
   const params = await searchParams
-  const view = parseView(params?.view, TERRITORY_VIEWS, "mapa")
-  if (view === "autonomico") permanentRedirect("/ccaa")
-  if (view === "municipal") permanentRedirect("/municipios")
 
   const data = await getTerritoryAtlas()
   const rawYear = first(params?.year)
@@ -53,12 +48,27 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
   )
 
   return (
-    <TerritoryAtlas
-      data={data}
-      initialDataset={parseTerritoryDataset(params?.source)}
-      initialMetric={parseTerritoryMetric(params?.metric)}
-      initialYear={parsedYear}
-      initialTerritory={rawTerritory && territoryKeys.has(rawTerritory) ? rawTerritory : null}
-    />
+    <>
+      <TerritoryAtlas
+        data={data}
+        initialDataset={parseTerritoryDataset(params?.source)}
+        initialMetric={parseTerritoryMetric(params?.metric)}
+        initialYear={parsedYear}
+        initialTerritory={rawTerritory && territoryKeys.has(rawTerritory) ? rawTerritory : null}
+      />
+
+      <section className="ui-page-wide space-y-4 sm:space-y-6">
+        <div className="space-y-1">
+          <h2 className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+            Gasto municipal
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            El mapa cubre comunidades autónomas y provincias. Los ayuntamientos y entidades locales
+            con territorio resoluble en las fuentes se listan aquí.
+          </p>
+        </div>
+        <TerritorySpendingGrid scope="municipal" />
+      </section>
+    </>
   )
 }

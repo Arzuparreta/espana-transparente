@@ -309,6 +309,7 @@ def upsert(conn, records: list[dict]) -> int:
                     name=rec["contractor"],
                     organization_type="company",
                     source_url=rec["source_url"],
+                    nif=rec["contractor_nif"],
                 )
             except ValueError:
                 rec["contractor_organization_id"] = None

@@ -21,6 +21,14 @@ def organization_collision_key(name: str, normalized: str | None = None) -> str:
     return f"{base} {digest}"
 
 
+def normalize_nif(nif: str | None) -> str | None:
+    """Uppercase, strip spaces/punctuation from a NIF/CIF. None if empty."""
+    if not nif:
+        return None
+    cleaned = re.sub(r"[^A-Za-z0-9]", "", nif).upper()
+    return cleaned or None
+
+
 def upsert_organization(
     cur,
     *,
@@ -28,9 +36,11 @@ def upsert_organization(
     organization_type: str,
     sector: str | None = None,
     source_url: str | None = None,
+    nif: str | None = None,
 ) -> str:
     normalized = normalize_organization_name(name)
     display_name = name.strip()
+    nif = normalize_nif(nif)
     if not normalized or not display_name:
         raise ValueError("organization name must normalize to a non-empty value")
 
@@ -41,6 +51,7 @@ def upsert_organization(
       END,
       sector = coalesce(EXCLUDED.sector, organizations.sector),
       source_url = coalesce(EXCLUDED.source_url, organizations.source_url),
+      nif = coalesce(EXCLUDED.nif, organizations.nif),
       updated_at = now()
     """
 
@@ -48,12 +59,12 @@ def upsert_organization(
     # owns that key, do not overwrite its name: preserve both identities.
     cur.execute(
         """
-        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url, nif)
+        VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (normalized_name) DO NOTHING
         RETURNING id
         """,
-        (display_name, normalized, organization_type, sector, source_url),
+        (display_name, normalized, organization_type, sector, source_url, nif),
     )
     row = cur.fetchone()
     if row:
@@ -69,12 +80,13 @@ def upsert_organization(
           END,
           sector = coalesce(%s, organizations.sector),
           source_url = coalesce(%s, organizations.source_url),
+          nif = coalesce(%s, organizations.nif),
           updated_at = now()
         WHERE normalized_name = %s
           AND lower(trim(name)) = lower(trim(%s))
         RETURNING id
         """,
-        (organization_type, sector, source_url, normalized, display_name),
+        (organization_type, sector, source_url, nif, normalized, display_name),
     )
     row = cur.fetchone()
     if row:
@@ -83,12 +95,12 @@ def upsert_organization(
     collision_key = organization_collision_key(display_name, normalized)
     cur.execute(
         f"""
-        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO organizations (name, normalized_name, organization_type, sector, source_url, nif)
+        VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (normalized_name) DO UPDATE SET
           {organization_type_conflict_update}
         RETURNING id
         """,
-        (display_name, collision_key, organization_type, sector, source_url),
+        (display_name, collision_key, organization_type, sector, source_url, nif),
     )
     return cur.fetchone()[0]

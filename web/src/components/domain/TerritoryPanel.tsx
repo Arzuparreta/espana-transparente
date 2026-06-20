@@ -24,7 +24,7 @@ export function TerritoryPanel({ selected, onClose }: Props) {
     )
   }
 
-  const detailHref = `/ccaa/${encodeURIComponent(selected.routeKey)}`
+  const detailHref = `/territorio/ccaa/${encodeURIComponent(selected.routeKey)}`
 
   return (
     <div className="w-full lg:w-72 shrink-0 border-t border-neutral-800 lg:border-t-0 lg:border-l p-5 flex flex-col gap-4">

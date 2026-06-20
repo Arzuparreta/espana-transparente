@@ -72,6 +72,7 @@ run_daily() {
   run_self_tracked_pipeline "subsidies_daily" python -m src.bdns.subvenciones \
     --from-date "${yesterday}" --to-date "${today}" --importe-min 0 --max-pages 100
   run_pipeline "territorio.atlas" python -m src.territorio.atlas
+  run_pipeline "territorio.org_geolocation" python -m src.territorio.org_geolocation --limit 500 --resume
   run_pipeline "photos.run" python -m src.photos.run --refresh-missing
   run_pipeline "borme.officers" python -m src.borme.officers --limit 100 --resume
   run_pipeline "congreso.declaraciones_ocr" python -m src.congreso.declaraciones_ocr --limit 25 --resume
@@ -94,6 +95,7 @@ run_weekly_core() {
   run_pipeline "instituciones.instituciones" python -m src.instituciones.instituciones
   run_pipeline "public_bodies.boe_nombramientos" python -m src.public_bodies.boe_nombramientos --days 7 --resume
   run_self_tracked_pipeline "kohesio.fondos_ue" python -m src.kohesio.fondos_ue
+  run_pipeline "territorio.municipios" python -m src.territorio.municipios
   run_pipeline "senado.senadores" python -m src.senado.senadores
   run_self_tracked_pipeline "senado.bajas" python -m src.senado.bajas
   run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones

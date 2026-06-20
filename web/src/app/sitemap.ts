@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 import { BRAND_URL } from "@/lib/brand"
 import { getDeputyCards, getParties } from "@/lib/data"
-import { getAutonomicTerritoryKeys, getMunicipalTerritoryKeys } from "@/lib/data/multilevel"
+import { getTerritoryKeys } from "@/lib/data/multilevel"
 import {
   getSitemapBudgetProgramPaths,
   getSitemapBudgetSectionPaths,
@@ -34,8 +34,6 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/indicadores",        changeFrequency: "weekly",  priority: 0.8 },
   { path: "/calculadoras",       changeFrequency: "monthly", priority: 0.6 },
   { path: "/territorio",         changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/ccaa",               changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/municipios",         changeFrequency: "weekly",  priority: 0.7 },
   { path: "/diputados",          changeFrequency: "daily",   priority: 0.9 },
   { path: "/asistencia",         changeFrequency: "daily",   priority: 0.8 },
   { path: "/divergencias",       changeFrequency: "daily",   priority: 0.7 },
@@ -135,8 +133,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     tryGet(() => getSitemapBudgetSectionPaths(), [] as { year: number; section_code: string }[]),
     tryGet(() => getSitemapBudgetProgramPaths(), [] as { section_code: string; program_code: string }[]),
     tryGet(() => getSitemapInitiativeIds(), [] as { id: string }[]),
-    tryGet(() => getAutonomicTerritoryKeys(), [] as { territoryKey: string }[]),
-    tryGet(() => getMunicipalTerritoryKeys(), [] as { territoryKey: string }[]),
+    tryGet(() => getTerritoryKeys("autonomic"), [] as { territoryKey: string }[]),
+    tryGet(() => getTerritoryKeys("municipal"), [] as { territoryKey: string }[]),
     tryGet(() => getSitemapSenatorIds(), [] as { id: string }[]),
     tryGet(() => getSitemapGobiernoIds(), [] as { id: string }[]),
   ])
@@ -268,14 +266,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const autonomicTerritoryEntries: MetadataRoute.Sitemap = autonomicTerritories.map((territory) => ({
-    url: url(`/ccaa/${encodeURIComponent(territory.territoryKey)}`),
+    url: url(`/territorio/ccaa/${encodeURIComponent(territory.territoryKey)}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.5,
   }))
 
   const municipalTerritoryEntries: MetadataRoute.Sitemap = municipalTerritories.map((territory) => ({
-    url: url(`/municipios/${encodeURIComponent(territory.territoryKey)}`),
+    url: url(`/territorio/municipio/${encodeURIComponent(territory.territoryKey)}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.5,

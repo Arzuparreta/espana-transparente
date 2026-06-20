@@ -221,7 +221,7 @@ export function SpainMap({ data }: Props) {
     setHovered(null)
   }, [])
 
-  const detailHref = selected ? `/ccaa/${encodeURIComponent(selected.routeKey)}` : null
+  const detailHref = selected ? `/territorio/ccaa/${encodeURIComponent(selected.routeKey)}` : null
   const transform = layer === "provinces" ? zoomForBounds(selectedBounds) : ""
   const showTotalLegend = layer === "ccaa" && colorMode === "total"
   const hoveredProvince =

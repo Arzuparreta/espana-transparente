@@ -70,7 +70,10 @@ export const getSubvencionPageFiltered = unstable_cache(
     nivel1: string,
     ministry: string | null,
     territory: string | null = null,
-    year: number | null = null
+    year: number | null = null,
+    province: string | null = null,
+    municipio: string | null = null,
+    flow: "by" | "to" = "by"
   ) => {
     const from = (page - 1) * PAGE_SIZE.subsidies
     const to = from + PAGE_SIZE.subsidies - 1
@@ -84,7 +87,15 @@ export const getSubvencionPageFiltered = unstable_cache(
 
     if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
     if (ministry) query = query.eq("ministry_normalized", ministry)
-    if (territory) query = query.eq("ccaa_key", territory)
+    // flow="by": granting administration. flow="to": beneficiary location.
+    // BDNS publishes no awarding province, so awarding granularity is ccaa/municipio.
+    if (flow === "to") {
+      if (province) query = query.eq("beneficiary_province_key", province)
+      if (municipio) query = query.eq("beneficiary_municipality_key", municipio)
+    } else {
+      if (territory) query = query.eq("ccaa_key", territory)
+      if (municipio) query = query.eq("municipality_key", municipio)
+    }
     if (year) {
       query = query
         .gte("fecha_concesion", `${year}-01-01`)

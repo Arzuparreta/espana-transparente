@@ -15,6 +15,7 @@ Usage:
 
 import argparse
 import json
+import re
 import time
 from datetime import date, timedelta
 
@@ -35,6 +36,29 @@ def _is_organization(beneficiario: str | None) -> bool:
     if not beneficiario:
         return False
     return not beneficiario.startswith("*")
+
+
+# CIF/NIF pattern: org CIF (letter + 7 digits + control) or 8-digit NIF + letter.
+_NIF_RE = re.compile(r"\b([A-Z]\d{7}[0-9A-J]|\d{8}[A-Z])\b")
+
+
+def _extract_beneficiary_nif(raw: dict) -> str | None:
+    """Best-effort beneficiary NIF from a BDNS concesion record.
+
+    BDNS field naming varies across endpoints; try the documented keys, then
+    fall back to a NIF/CIF pattern embedded in the beneficiary label. Feeds
+    organization geolocation (CIF province heuristic) — absent NIF is harmless.
+    """
+    for key in ("nifBeneficiario", "numeroIdentificacion", "idBeneficiario", "nif", "cif"):
+        value = raw.get(key)
+        if value and str(value).strip():
+            return str(value).strip()
+    label = raw.get("beneficiario")
+    if isinstance(label, str):
+        match = _NIF_RE.search(label.upper())
+        if match:
+            return match.group(1)
+    return None
 
 
 def fetch_page(from_date: str, to_date: str, page: int, retries: int = 5) -> dict:
@@ -97,6 +121,7 @@ def parse_record(raw: dict, importe_min: float) -> dict | None:
         "cod_concesion": raw.get("codConcesion"),
         "fecha_concesion": raw.get("fechaConcesion"),
         "beneficiario": raw.get("beneficiario"),
+        "beneficiary_nif": _extract_beneficiary_nif(raw),
         "instrumento": (raw.get("instrumento") or "").strip() or None,
         "importe": raw.get("importe"),
         "convocatoria": raw.get("convocatoria"),
@@ -125,6 +150,7 @@ def upsert(conn, records: list[dict]) -> int:
                 name=record["beneficiario"],
                 organization_type="other",
                 source_url=record["source_url"],
+                nif=record.get("beneficiary_nif"),
             )
         if record["nivel3"]:
             record["granting_body_organization_id"] = upsert_organization(

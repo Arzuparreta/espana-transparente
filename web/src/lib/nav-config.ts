@@ -28,7 +28,7 @@ export const SECTION_META: SectionMeta[] = [
   { key: "personas", href: "/personas", label: "Personas" },
   { key: "dinero", href: "/dinero", label: "Dinero" },
   { key: "economia", href: "/economia", label: "Economía" },
-  { key: "territorio", href: "/territorio", label: "Mapa del gasto", shortLabel: "Mapa", groupLabel: "Dinero" },
+  { key: "territorio", href: "/territorio", label: "Tu territorio", shortLabel: "Territorio", groupLabel: "Dinero" },
   { key: "diputados", href: "/diputados", label: "Diputados", groupLabel: "Personas" },
   {
     key: "asistencia",
@@ -72,20 +72,6 @@ export const SECTION_META: SectionMeta[] = [
     href: "/dinero-publico",
     label: "Trazabilidad del gasto",
     shortLabel: "Trazabilidad",
-    groupLabel: "Dinero",
-  },
-  {
-    key: "ccaa",
-    href: "/ccaa",
-    label: "Gasto autonómico",
-    shortLabel: "CCAA",
-    groupLabel: "Dinero",
-  },
-  {
-    key: "municipios",
-    href: "/municipios",
-    label: "Gasto municipal",
-    shortLabel: "Municipios",
     groupLabel: "Dinero",
   },
   {

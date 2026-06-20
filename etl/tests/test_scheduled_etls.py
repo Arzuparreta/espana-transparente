@@ -38,9 +38,10 @@ def test_daily_batch_continues_after_a_pipeline_failure(tmp_path):
 
     invoked = calls.read_text().splitlines()
     assert result.returncode == 1
-    assert len(invoked) == 10
+    assert len(invoked) == 11
     assert "src.contratacion.contratos" in invoked[3]
     assert "src.territorio.atlas" in invoked[5]
+    assert "src.territorio.org_geolocation" in invoked[6]
     assert "common.search_refresh" in invoked[-1]
     assert "contracts_daily (exit 7)" in result.stderr
 
@@ -80,7 +81,7 @@ def test_batch_stops_when_database_preflight_fails(tmp_path):
 @pytest.mark.parametrize(
     ("batch", "expected_count", "required_module"),
     [
-        ("weekly-core", 17, "src.congreso.declaraciones"),
+        ("weekly-core", 18, "src.congreso.declaraciones"),
         ("weekly-documents", 2, "src.borme.officers"),
         ("weekly-links", 10, "common.search_refresh"),
     ],
