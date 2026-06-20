@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation"
 import { TerritoryDossier } from "@/components/domain/TerritoryDossier"
-import { getTerritoryDetail } from "@/lib/data/multilevel"
+import { getTerritoryDetail, getTerritoryEnrichment } from "@/lib/data/multilevel"
 import { SEGMENT_SCOPE, territoryDetailHref } from "@/lib/territory-routes"
 
 export const dynamic = "force-dynamic"
@@ -38,5 +38,12 @@ export default async function TerritoryDetailPage({ params }: PageProps) {
     permanentRedirect(territoryDetailHref("autonomic", detail.territory.territoryKey))
   }
 
-  return <TerritoryDossier scope={territoryScope} detail={detail} />
+  // Receptor-side enrichment ("dónde está la empresa") is dense and unambiguous
+  // at CCAA level; municipal company location is not in the sources.
+  const enrichment =
+    territoryScope === "autonomic"
+      ? await getTerritoryEnrichment(detail.territory.territoryKey)
+      : null
+
+  return <TerritoryDossier scope={territoryScope} detail={detail} enrichment={enrichment} />
 }

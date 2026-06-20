@@ -467,6 +467,186 @@ export const getTerritoryKeys = unstable_cache(
   { revalidate: HOUR }
 )
 
+// ── Receptor-side enrichment ("¿a dónde llega el dinero?") ──────────────────
+// Built on the W2 geolocation columns: organizations.province_key /
+// municipality_key and contracts.contractor_*_key / subsidies.beneficiary_*_key.
+// Keyed on a CCAA (its child provinces), where geolocation is dense and
+// unambiguous (companies resolve to province via CIF). Coverage is partial; the
+// UI labels it and never implies completeness.
+
+export type TerritoryCompany = {
+  id: string
+  name: string
+  organizationType: string | null
+  receivedTotal: number
+  contractCount: number
+  subsidyCount: number
+}
+
+export type TerritoryRepresentative = {
+  id: string
+  name: string
+  party: string | null
+  constituency: string
+}
+
+export type TerritoryEnrichment = {
+  provinceKeys: string[]
+  moneyIn: {
+    contractCount: number
+    contractAmount: number
+    subsidyCount: number
+    subsidyAmount: number
+  }
+  companies: TerritoryCompany[]
+  euFundCount: number
+  euFundTotal: number
+  representatives: TerritoryRepresentative[]
+  locatedOrgCount: number
+}
+
+async function fetchTerritoryEnrichment(ccaaKey: string): Promise<TerritoryEnrichment> {
+  const atlas = await fetchTerritoryAtlas()
+  const provinceKeys = atlas.territories
+    .filter((t) => t.type === "province" && t.parentKey === ccaaKey)
+    .map((t) => t.key)
+  const empty: TerritoryEnrichment = {
+    provinceKeys,
+    moneyIn: { contractCount: 0, contractAmount: 0, subsidyCount: 0, subsidyAmount: 0 },
+    companies: [],
+    euFundCount: 0,
+    euFundTotal: 0,
+    representatives: [],
+    locatedOrgCount: 0,
+  }
+  if (provinceKeys.length === 0) return empty
+
+  // All reads are single, indexed queries against the dossier matviews — no bulk
+  // row pulls and no thousand-UUID URIs (see 20260714000000_territory_dossier_views).
+  const [companiesRes, moneyInRes, orgCountRes, repsRes] = await Promise.all([
+    supabase
+      .from("v_territory_receptor_orgs")
+      .select("organization_id, name, organization_type, received_total, contract_count, subsidy_count")
+      .in("province_key", provinceKeys)
+      .order("received_total", { ascending: false })
+      .limit(8),
+    supabase
+      .from("v_territory_money_in")
+      .select("dataset, record_count, total_amount")
+      .in("province_key", provinceKeys),
+    supabase
+      .from("organizations")
+      .select("id", { count: "exact", head: true })
+      .in("province_key", provinceKeys),
+    fetchTerritoryRepresentatives(ccaaKey, provinceKeys),
+  ])
+  throwDataError(companiesRes.error, "territory receptor orgs")
+  throwDataError(moneyInRes.error, "territory money-in")
+  throwDataError(orgCountRes.error, "territory located org count")
+
+  const companies: TerritoryCompany[] = (companiesRes.data ?? []).map((row) => ({
+    id: String(row.organization_id),
+    name: String(row.name),
+    organizationType: (row.organization_type as string | null) ?? null,
+    receivedTotal: toNumber(row.received_total),
+    contractCount: toNumber(row.contract_count),
+    subsidyCount: toNumber(row.subsidy_count),
+  }))
+
+  // money_in rows can repeat a dataset across several provinces of the CCAA — sum them.
+  const agg = { contracts: { c: 0, a: 0 }, subsidies: { c: 0, a: 0 }, eu_funds: { c: 0, a: 0 } }
+  for (const row of moneyInRes.data ?? []) {
+    const key = String(row.dataset) as keyof typeof agg
+    if (agg[key]) {
+      agg[key].c += toNumber(row.record_count)
+      agg[key].a += toNumber(row.total_amount)
+    }
+  }
+
+  return {
+    provinceKeys,
+    moneyIn: {
+      contractCount: agg.contracts.c,
+      contractAmount: agg.contracts.a,
+      subsidyCount: agg.subsidies.c,
+      subsidyAmount: agg.subsidies.a,
+    },
+    companies,
+    euFundCount: agg.eu_funds.c,
+    euFundTotal: agg.eu_funds.a,
+    representatives: repsRes,
+    locatedOrgCount: orgCountRes.count ?? 0,
+  }
+}
+
+async function fetchTerritoryRepresentatives(
+  ccaaKey: string,
+  provinceKeys: string[]
+): Promise<TerritoryRepresentative[]> {
+  // Memberships carry a free-text constituency (province or CCAA name). Resolve
+  // it to a canonical territory via territory_aliases and keep those landing in
+  // this CCAA (directly, or via one of its provinces).
+  const targetKeys = new Set<string>([ccaaKey, ...provinceKeys])
+  // Congress only: senators also carry a constituency, but they link to a
+  // different route — keep "Tus representantes" pointing at valid /diputados pages.
+  const membershipsRes = await supabase
+    .from("politician_memberships")
+    .select("constituency, politician_id, politicians(id, full_name), parties(name)")
+    .not("constituency", "is", null)
+    .eq("is_active", true)
+    .eq("chamber", "congress")
+    .limit(2000)
+  throwDataError(membershipsRes.error, "territory representatives memberships")
+
+  const constituencies = Array.from(
+    new Set(
+      ((membershipsRes.data ?? []) as Record<string, unknown>[])
+        .map((row) => String(row.constituency))
+        .filter(Boolean)
+    )
+  )
+  if (constituencies.length === 0) return []
+
+  // Map each distinct constituency label -> canonical territory_key via aliases.
+  const aliasRes = await supabase
+    .from("territory_aliases")
+    .select("alias_key, territory_key")
+  throwDataError(aliasRes.error, "territory representatives aliases")
+  const aliasMap = new Map(
+    ((aliasRes.data ?? []) as { alias_key: string; territory_key: string }[]).map((r) => [
+      r.alias_key,
+      r.territory_key,
+    ])
+  )
+
+  const seen = new Set<string>()
+  const reps: TerritoryRepresentative[] = []
+  for (const row of (membershipsRes.data ?? []) as Record<string, unknown>[]) {
+    const constituency = String(row.constituency ?? "")
+    const aliasKey = normalizeTerritoryAlias(constituency)
+    const territoryKey = aliasMap.get(aliasKey)
+    if (!territoryKey || !targetKeys.has(territoryKey)) continue
+    const pol = row.politicians as { id?: string; full_name?: string } | null
+    const id = pol?.id ? String(pol.id) : String(row.politician_id ?? "")
+    if (!id || seen.has(id)) continue
+    seen.add(id)
+    const party = row.parties as { name?: string } | null
+    reps.push({
+      id,
+      name: pol?.full_name ? String(pol.full_name) : "—",
+      party: party?.name ?? null,
+      constituency,
+    })
+  }
+  return reps.slice(0, 12)
+}
+
+export const getTerritoryEnrichment = unstable_cache(
+  (ccaaKey: string) => fetchTerritoryEnrichment(ccaaKey),
+  ["multilevel-territory-enrichment"],
+  { revalidate: HOUR }
+)
+
 export type AtlasTerritory = {
   key: string
   name: string

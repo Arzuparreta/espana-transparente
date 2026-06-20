@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { TerritoryAtlas } from "@/components/domain/TerritoryAtlas"
+import { TerritoryPicker } from "@/components/domain/TerritoryPicker"
 import { TerritorySpendingGrid } from "@/components/views/TerritorySpendingGrid"
 import { getTerritoryAtlas } from "@/lib/data/multilevel"
 import {
@@ -47,8 +48,23 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
       .map((territory) => territory.key)
   )
 
+  const pickerTerritories = data.territories
+    .filter((t) => t.type === "ccaa" || t.type === "province")
+    .map((t) => ({ key: t.key, name: t.name, type: t.type as "ccaa" | "province", parentKey: t.parentKey }))
+
   return (
     <>
+      <section className="ui-page-wide space-y-3 pt-2">
+        <div className="space-y-1">
+          <h1 className="text-lg font-semibold">Tu territorio</h1>
+          <p className="text-sm text-muted-foreground">
+            Elige tu zona para ver el dinero público que se mueve allí: lo que gasta tu
+            administración, las empresas con sede en la zona y lo que reciben.
+          </p>
+        </div>
+        <TerritoryPicker territories={pickerTerritories} />
+      </section>
+
       <TerritoryAtlas
         data={data}
         initialDataset={parseTerritoryDataset(params?.source)}

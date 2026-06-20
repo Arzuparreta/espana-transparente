@@ -6,7 +6,7 @@ import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { TerritoryFlag } from "@/components/domain/TerritoryFlag"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import type { TerritoryDetailData, TerritoryScope } from "@/lib/data/multilevel"
+import type { TerritoryDetailData, TerritoryEnrichment, TerritoryScope } from "@/lib/data/multilevel"
 import { formatEuroCompact } from "@/lib/format"
 
 function formatDate(value: string | null | undefined) {
@@ -68,9 +68,11 @@ const COPY: Record<TerritoryScope, Copy> = {
 export function TerritoryDossier({
   scope,
   detail,
+  enrichment,
 }: {
   scope: TerritoryScope
   detail: TerritoryDetailData
+  enrichment?: TerritoryEnrichment | null
 }) {
   const copy = COPY[scope]
   const { territory } = detail
@@ -172,6 +174,107 @@ export function TerritoryDossier({
           </CardContent>
         </Card>
       </div>
+
+      {enrichment ? (
+        <section className="space-y-4 border-t border-border pt-6">
+          <div className="space-y-1">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              ¿A dónde llega el dinero?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Contratos y subvenciones cuyo receptor (la empresa o entidad que cobra) tiene su sede
+              en {territory.territoryName}. Cobertura parcial: la ubicación se resuelve por CIF y por
+              el nombre del organismo, no para todos los registros.
+            </p>
+          </div>
+
+          <StatGrid
+            items={[
+              {
+                label: "Contratos que llegan aquí",
+                value: enrichment.moneyIn.contractCount.toLocaleString("es-ES"),
+                hint: formatEuroCompact(enrichment.moneyIn.contractAmount),
+              },
+              {
+                label: "Subvenciones que llegan aquí",
+                value: enrichment.moneyIn.subsidyCount.toLocaleString("es-ES"),
+                hint: formatEuroCompact(enrichment.moneyIn.subsidyAmount),
+              },
+              {
+                label: "Empresas y entidades con sede",
+                value: enrichment.locatedOrgCount.toLocaleString("es-ES"),
+                hint: enrichment.euFundCount > 0
+                  ? `${enrichment.euFundCount.toLocaleString("es-ES")} con fondos UE`
+                  : undefined,
+              },
+            ]}
+          />
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Empresas y entidades con sede aquí</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {enrichment.companies.length === 0 ? (
+                  <EmptyState
+                    title="Sin empresas localizadas"
+                    description="Ningún receptor con sede resoluble en este territorio ha recibido fondos en la muestra."
+                  />
+                ) : (
+                  enrichment.companies.map((company) => (
+                    <div key={company.id} className="flex items-baseline justify-between gap-3 border-l-2 border-muted py-1 pl-3 text-sm">
+                      <ResponsiveLink
+                        href={`/organizaciones/${company.id}`}
+                        className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
+                      >
+                        {company.name}
+                      </ResponsiveLink>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {formatEuroCompact(company.receivedTotal)}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Tus representantes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {enrichment.representatives.length === 0 ? (
+                  <EmptyState
+                    title="Sin representantes"
+                    description="No hay cargos con circunscripción resoluble a este territorio en la muestra activa."
+                  />
+                ) : (
+                  enrichment.representatives.map((rep) => (
+                    <div key={rep.id} className="flex items-baseline justify-between gap-3 border-l-2 border-muted py-1 pl-3 text-sm">
+                      <ResponsiveLink
+                        href={`/diputados/${rep.id}`}
+                        className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
+                      >
+                        {rep.name}
+                      </ResponsiveLink>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                        {rep.party ?? rep.constituency}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <SourceFootnote
+            sourceLabel="PCSP · BDNS · Kohesio · Registro Mercantil (CIF)"
+            sourceHref="https://contrataciondelestado.es"
+            coverageLabel={`${enrichment.locatedOrgCount.toLocaleString("es-ES")} entidades con sede resuelta · geolocalización parcial`}
+          />
+        </section>
+      ) : null}
     </div>
   )
 }
