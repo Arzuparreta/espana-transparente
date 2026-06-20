@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMoneyDataOverview, getEtlPipelineStatus } from "@/lib/data"
+import { getOrgGeolocationCoverage } from "@/lib/data/multilevel"
 import { checkDatabaseHealth } from "@/lib/data/database-health"
 import {
   getCriticalPipelineStatuses,
@@ -46,9 +47,10 @@ function datasetLabel(value: string) {
 }
 
 export default async function EstadoDatosPage() {
-  const [moneyOverview, pipelineResult, databaseAvailable] = await Promise.all([
+  const [moneyOverview, pipelineResult, geoCoverage, databaseAvailable] = await Promise.all([
     getMoneyDataOverview(),
     getEtlPipelineStatus(),
+    getOrgGeolocationCoverage(),
     checkDatabaseHealth().then(
       () => true,
       () => false
@@ -204,6 +206,39 @@ export default async function EstadoDatosPage() {
           )}
         </section>
       )}
+
+      {!dataUnavailable && geoCoverage && geoCoverage.totalOrgs > 0 ? (
+        <section className="space-y-4 rounded-[2px] border border-border bg-card p-4 sm:p-5">
+          <div className="min-w-0">
+            <h2 className="text-xl font-semibold">Geolocalización de receptores</h2>
+            <p className="text-sm text-muted-foreground">
+              Ubicación resuelta de las organizaciones que reciben dinero público (empresas y
+              entidades), para responder &laquo;a dónde llega&raquo; por territorio. Cobertura
+              parcial: se resuelve por CIF y por el nombre del organismo, no para todos los registros.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="rounded-[2px] border border-border/60 bg-background/70 p-3">
+              <div className="font-mono text-lg">
+                {Math.round((geoCoverage.locatedOrgs / geoCoverage.totalOrgs) * 100)}%
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {geoCoverage.locatedOrgs.toLocaleString("es-ES")} de{" "}
+                {geoCoverage.totalOrgs.toLocaleString("es-ES")} organizaciones ubicadas
+              </div>
+            </div>
+            <div className="rounded-[2px] border border-border/60 bg-background/70 p-3">
+              <div className="font-mono text-lg">{geoCoverage.viaCif.toLocaleString("es-ES")}</div>
+              <div className="text-xs text-muted-foreground">vía CIF (provincia)</div>
+            </div>
+            <div className="rounded-[2px] border border-border/60 bg-background/70 p-3">
+              <div className="font-mono text-lg">{geoCoverage.viaNameMatch.toLocaleString("es-ES")}</div>
+              <div className="text-xs text-muted-foreground">vía nombre (municipio)</div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {!dataUnavailable && (["contracts", "subsidies"] as const).map((dataset) => {
         const rows = coverageByDataset[dataset] ?? []

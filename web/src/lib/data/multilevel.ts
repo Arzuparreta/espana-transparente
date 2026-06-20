@@ -647,6 +647,120 @@ export const getTerritoryEnrichment = unstable_cache(
   { revalidate: HOUR }
 )
 
+// Municipal enrichment. The municipal dossier route keys on the raw region
+// literal; resolve it to a canonical MUNI key (ambiguity-safe: unique name match
+// only, mirroring the ETL) and read the small receptor set directly — a town has
+// few located orgs, so no aggregate view is needed.
+function normalizeMunicipioName(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/\//g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+const getMunicipalityNameIndex = unstable_cache(
+  async () => {
+    const rows = await fetchPagedTable(
+      "territory_catalog",
+      "territory_key, territory_name, territory_type"
+    )
+    const index: Record<string, string[]> = {}
+    for (const row of rows) {
+      if (row.territory_type !== "municipality") continue
+      const norm = normalizeMunicipioName(String(row.territory_name))
+      ;(index[norm] ??= []).push(String(row.territory_key))
+    }
+    return index
+  },
+  ["municipality-name-index"],
+  { revalidate: HOUR }
+)
+
+async function fetchMunicipalEnrichment(rawTerritoryKey: string): Promise<TerritoryEnrichment | null> {
+  const index = await getMunicipalityNameIndex()
+  const keys = index[normalizeMunicipioName(rawTerritoryKey)]
+  if (!keys || keys.length !== 1) return null // unresolved or ambiguous → no section
+  const municipalityKey = keys[0]
+
+  const orgsRes = await supabase
+    .from("v_territory_receptor_orgs")
+    .select("organization_id, name, organization_type, received_total, contract_count, contract_total, subsidy_count, subsidy_total")
+    .eq("municipality_key", municipalityKey)
+    .order("received_total", { ascending: false })
+  throwDataError(orgsRes.error, "municipal receptor orgs")
+  const rows = orgsRes.data ?? []
+  if (rows.length === 0) return null
+
+  const companies: TerritoryCompany[] = rows.slice(0, 8).map((row) => ({
+    id: String(row.organization_id),
+    name: String(row.name),
+    organizationType: (row.organization_type as string | null) ?? null,
+    receivedTotal: toNumber(row.received_total),
+    contractCount: toNumber(row.contract_count),
+    subsidyCount: toNumber(row.subsidy_count),
+  }))
+  const moneyIn = rows.reduce(
+    (acc, row) => ({
+      contractCount: acc.contractCount + toNumber(row.contract_count),
+      contractAmount: acc.contractAmount + toNumber(row.contract_total),
+      subsidyCount: acc.subsidyCount + toNumber(row.subsidy_count),
+      subsidyAmount: acc.subsidyAmount + toNumber(row.subsidy_total),
+    }),
+    { contractCount: 0, contractAmount: 0, subsidyCount: 0, subsidyAmount: 0 }
+  )
+
+  return {
+    provinceKeys: [],
+    moneyIn,
+    companies,
+    euFundCount: 0,
+    euFundTotal: 0,
+    representatives: [], // deputies are elected by province, not town
+    locatedOrgCount: rows.length,
+  }
+}
+
+export const getMunicipalEnrichment = unstable_cache(
+  (rawTerritoryKey: string) => fetchMunicipalEnrichment(rawTerritoryKey),
+  ["multilevel-municipal-enrichment"],
+  { revalidate: HOUR }
+)
+
+export type OrgGeolocationCoverage = {
+  totalOrgs: number
+  locatedOrgs: number
+  municipalityLocatedOrgs: number
+  viaCif: number
+  viaNameMatch: number
+  viaBorme: number
+}
+
+async function fetchOrgGeolocationCoverage(): Promise<OrgGeolocationCoverage | null> {
+  const res = await supabase
+    .from("v_org_geolocation_coverage")
+    .select("total_orgs, located_orgs, municipality_located_orgs, via_cif, via_name_match, via_borme")
+    .maybeSingle()
+  if (res.error) return null // estado-datos tolerates an unavailable panel
+  if (!res.data) return null
+  return {
+    totalOrgs: toNumber(res.data.total_orgs),
+    locatedOrgs: toNumber(res.data.located_orgs),
+    municipalityLocatedOrgs: toNumber(res.data.municipality_located_orgs),
+    viaCif: toNumber(res.data.via_cif),
+    viaNameMatch: toNumber(res.data.via_name_match),
+    viaBorme: toNumber(res.data.via_borme),
+  }
+}
+
+export const getOrgGeolocationCoverage = unstable_cache(
+  fetchOrgGeolocationCoverage,
+  ["org-geolocation-coverage"],
+  { revalidate: HOUR }
+)
+
 export type AtlasTerritory = {
   key: string
   name: string

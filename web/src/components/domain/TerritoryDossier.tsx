@@ -239,18 +239,13 @@ export function TerritoryDossier({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Tus representantes</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {enrichment.representatives.length === 0 ? (
-                  <EmptyState
-                    title="Sin representantes"
-                    description="No hay cargos con circunscripción resoluble a este territorio en la muestra activa."
-                  />
-                ) : (
-                  enrichment.representatives.map((rep) => (
+            {enrichment.representatives.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Tus representantes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {enrichment.representatives.map((rep) => (
                     <div key={rep.id} className="flex items-baseline justify-between gap-3 border-l-2 border-muted py-1 pl-3 text-sm">
                       <ResponsiveLink
                         href={`/diputados/${rep.id}`}
@@ -262,10 +257,10 @@ export function TerritoryDossier({
                         {rep.party ?? rep.constituency}
                       </span>
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
 
           <SourceFootnote
