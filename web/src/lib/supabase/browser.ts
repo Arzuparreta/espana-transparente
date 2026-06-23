@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr"
+import { createSupabaseFetch } from "@/lib/supabase/fetch"
 import { SUPABASE_AUTH_OPTIONS, SUPABASE_COOKIE_OPTIONS } from "@/lib/supabase/session"
 
 export function createClient() {
@@ -8,6 +9,9 @@ export function createClient() {
     {
       auth: SUPABASE_AUTH_OPTIONS,
       cookieOptions: SUPABASE_COOKIE_OPTIONS,
+      global: {
+        fetch: createSupabaseFetch(),
+      },
     }
   )
 }

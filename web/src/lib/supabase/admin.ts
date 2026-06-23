@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { createSupabaseFetch } from "@/lib/supabase/fetch"
 
 export function createAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -13,6 +14,9 @@ export function createAdminClient() {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
+      },
+      global: {
+        fetch: createSupabaseFetch(),
       },
     }
   )

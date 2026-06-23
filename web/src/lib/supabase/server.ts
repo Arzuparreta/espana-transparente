@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { createSupabaseFetch } from "@/lib/supabase/fetch"
 import { SUPABASE_AUTH_OPTIONS, SUPABASE_COOKIE_OPTIONS } from "@/lib/supabase/session"
 
 export async function createClient() {
@@ -11,6 +12,9 @@ export async function createClient() {
     {
       auth: SUPABASE_AUTH_OPTIONS,
       cookieOptions: SUPABASE_COOKIE_OPTIONS,
+      global: {
+        fetch: createSupabaseFetch(),
+      },
       cookies: {
         getAll() {
           return cookieStore.getAll()
