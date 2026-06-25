@@ -34,6 +34,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/indicadores",        changeFrequency: "weekly",  priority: 0.8 },
   { path: "/calculadoras",       changeFrequency: "monthly", priority: 0.6 },
   { path: "/territorio",         changeFrequency: "weekly",  priority: 0.7 },
+  { path: "/territorio/tu-zona", changeFrequency: "monthly", priority: 0.5 },
   { path: "/diputados",          changeFrequency: "daily",   priority: 0.9 },
   { path: "/asistencia",         changeFrequency: "daily",   priority: 0.8 },
   { path: "/divergencias",       changeFrequency: "daily",   priority: 0.7 },

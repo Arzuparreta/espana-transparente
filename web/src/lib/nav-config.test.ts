@@ -37,6 +37,7 @@ describe("section navigation", () => {
     expect(getSectionForPath("/divergencias")?.key).toBe("divergencias")
     expect(getSectionForPath("/dinero-publico")?.key).toBe("dinero-publico")
     expect(getSectionForPath("/territorio")?.key).toBe("territorio")
+    expect(getSectionForPath("/territorio/tu-zona")?.key).toBe("tu-zona")
     expect(getSectionForPath("/calculadoras")?.key).toBe("calculadoras")
   })
 
@@ -44,5 +45,12 @@ describe("section navigation", () => {
     // /ccaa and /municipios collapsed into /territorio/[scope]/[key]
     expect(getSectionForPath("/territorio/ccaa/ANDALUCIA")?.key).toBe("territorio")
     expect(getSectionForPath("/territorio/municipio/madrid")?.key).toBe("territorio")
+  })
+
+  it("groups the Territorio hub under its own label with Mapa + Tu zona sections", () => {
+    const territorioHub = getSectionsByHub().find((g) => g.hub.href === "/territorio")
+    expect(territorioHub?.hub.label).toBe("Territorio")
+    expect(territorioHub?.sections.map((s) => s.key)).toEqual(["territorio", "tu-zona"])
+    expect(territorioHub?.sections.every((s) => s.groupLabel === "Territorio")).toBe(true)
   })
 })

@@ -183,8 +183,8 @@ export const THREADS: ThreadConfig[] = [
       },
       {
         href: "/territorio",
-        label: "Gasto por territorio",
-        description: "Mapa, comunidades autónomas y municipios en una sola exploración.",
+        label: "Territorio · mapa",
+        description: "Atlas del gasto público por comunidad autónoma, provincia y municipio.",
         section: "Por territorio",
         icon: "gasto-territorios",
       },

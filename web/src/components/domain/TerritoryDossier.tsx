@@ -84,11 +84,11 @@ export function TerritoryDossier({
   return (
     <div className="ui-page">
       <ContextTrail
-        section={{ href: "/territorio", label: "Tu territorio" }}
+        section={{ href: "/territorio", label: "Mapa" }}
         current={territory.territoryName}
-        meta="Tu territorio"
+        meta="Mapa"
         fallbackHref="/territorio"
-        fallbackLabel="Volver a Tu territorio"
+        fallbackLabel="Volver al mapa"
         related={[
           territory.subsidyCount > 0
             ? { href: copy.subsidyVerticalHref, label: copy.subsidyVerticalLabel }

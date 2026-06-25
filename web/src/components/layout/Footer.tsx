@@ -23,8 +23,14 @@ const SECTIONS: Array<{ heading: string; items: Array<{ label: string; href: str
       { label: "Contratos", href: "/contratos" },
       { label: "Subvenciones", href: "/subvenciones" },
       { label: "Fondos UE", href: "/fondos-ue" },
-      { label: "Tu territorio", href: "/territorio" },
       { label: "Organizaciones", href: "/organizaciones" },
+    ],
+  },
+  {
+    heading: "Territorio",
+    items: [
+      { label: "Mapa", href: "/territorio" },
+      { label: "Tu zona", href: "/territorio/tu-zona" },
     ],
   },
   {
@@ -52,7 +58,7 @@ export function Footer() {
   return (
     <footer className="mt-12 border-t border-border bg-card/40">
       <div className="ui-shell py-8 sm:py-10">
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 lg:grid-cols-5 sm:gap-8">
           {SECTIONS.map((section) => (
             <nav key={section.heading} aria-label={section.heading} className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
