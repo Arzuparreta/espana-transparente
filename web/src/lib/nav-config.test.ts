@@ -3,6 +3,7 @@ import { existsSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { getSectionForPath, getSectionsByHub } from "./nav-config"
+import { getThread } from "./thread-config"
 
 const APP_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../app")
 
@@ -35,10 +36,25 @@ describe("section navigation", () => {
   it("resolves every standalone view as its own active section", () => {
     expect(getSectionForPath("/asistencia")?.key).toBe("asistencia")
     expect(getSectionForPath("/divergencias")?.key).toBe("divergencias")
+    expect(getSectionForPath("/distorsion")?.key).toBe("distorsion")
     expect(getSectionForPath("/dinero-publico")?.key).toBe("dinero-publico")
     expect(getSectionForPath("/territorio")?.key).toBe("territorio")
     expect(getSectionForPath("/territorio/tu-zona")?.key).toBe("tu-zona")
     expect(getSectionForPath("/calculadoras")?.key).toBe("calculadoras")
+  })
+
+  it("surfaces electoral distortion under Personas decisions", () => {
+    const personas = getThread("personas")
+    const source = personas.sources.find((item) => item.href === "/distorsion")
+
+    expect(source).toMatchObject({
+      label: "Distorsión electoral",
+      section: "Decisiones",
+      icon: "distorsion",
+    })
+
+    const personasHub = getSectionsByHub().find((g) => g.hub.href === "/personas")
+    expect(personasHub?.sections.map((s) => s.key)).toContain("distorsion")
   })
 
   it("resolves unified territorial detail routes to the territorio hub section", () => {

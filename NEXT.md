@@ -182,12 +182,6 @@ removed from `web/src/app/page.tsx`.
 - **EntityTrail standalone:** ✅ `/rastro/[type]/[id]` built. Embedded card links to it. Accessible list format.
 - **Locale:** Single-locale (Spanish). No i18n layer.
 
-### What remains open / pending validation
-
-- **`/distorsion`** — deferred; belongs under Personas/Conducta when revived.
-
-
-
 ### Success criteria
 
 - No-name visitor reaches a relevant, understood answer in one scroll + one click (vs.
@@ -203,7 +197,7 @@ removed from `web/src/app/page.tsx`.
 1. **Dual-home datasets** — resolved by hallway test: organizaciones → Dinero, instituciones → Integridad (cross-listed Poder), CCAA/municipios → Territorio, iniciativas → Poder.
 2. **4 or 5 threads** — revisited: the real product did not support a standalone territorial thread. Territorial spend now lives canonically under Dinero.
 3. **Scrollytelling depth** — resolved: lean "calm sectioned" shipped.
-4. **`/distorsion`** — deferred; Poder thread when revived.
+4. **`/distorsion`** — resolved: lives under Personas/Decisiones as the electoral-rule context for how votes become seats.
 5. **DESIGN.md signal-color broadening** — ✅ approved 2026-05-25. Scope: highlighted evidence, sourced anomalies, exception counts. Vote-divergence home recaps excluded.
 
 ### Hallway test results (2026-05-25)
@@ -477,6 +471,7 @@ Replaced hardcoded 2023 data with dynamic DB-backed elections.
   - Election selector pills (2019 vs 2023).
   - Dynamic tabs: votes per seat, % votes vs % seats, provincial threshold.
   - `ElectionCompare` component: compare two elections side-by-side with seat change and vote % change per party.
+- Integrated into Personas › Decisiones navigation so the built page is reachable from the canonical IA, not only from sitemap/direct URL.
 - All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.
 
 ### NEXT (ACTIVE): Phase E — La Cadena (designed 2026-06-10)

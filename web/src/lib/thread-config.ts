@@ -91,6 +91,13 @@ export const THREADS: ThreadConfig[] = [
         countUnit: "registradas",
       },
       {
+        href: "/distorsion",
+        label: "Distorsión electoral",
+        description: "Votos por escaño, sesgo por provincia y comparativa entre elecciones generales.",
+        section: "Decisiones",
+        icon: "distorsion",
+      },
+      {
         href: "/declaraciones",
         label: "Declaraciones",
         description: "Bienes, rentas, actividades e intereses económicos declarados.",
