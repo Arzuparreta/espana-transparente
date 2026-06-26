@@ -3,6 +3,7 @@ from src.senado.votaciones import (
     parse_open_data_catalog_links,
     parse_initiative_vote_index,
     parse_senate_date_label,
+    fetch_senate_session_votations,
     parse_senate_session_vote_xml,
     parse_senate_vote_date,
     parse_session_catalog,
@@ -144,3 +145,12 @@ def test_parse_senate_session_vote_xml():
     assert votation.totals["afirmativos"] == 1
     assert [row.vote for row in votation.votes] == ["Sí", "No", "No vota"]
     assert votation.votes[-1].absent is True
+
+
+def test_fetch_senate_session_votations_skips_malformed_xml(monkeypatch):
+    monkeypatch.setattr(
+        "src.senado.votaciones.curl_text",
+        lambda url: "<main><sesion></main>",
+    )
+
+    assert fetch_senate_session_votations("https://www.senado.es/bad.xml", attempts=1) == []

@@ -414,6 +414,25 @@ def parse_senate_session_vote_xml(xml_text: str, source_url: str) -> list[Senate
     return votations
 
 
+def fetch_senate_session_votations(url: str, attempts: int = 3) -> list[SenateVotation]:
+    last_error: ET.ParseError | None = None
+    for attempt in range(1, attempts + 1):
+        xml = curl_text(url)
+        try:
+            return parse_senate_session_vote_xml(xml, source_url=url)
+        except ET.ParseError as exc:
+            last_error = exc
+            if attempt < attempts:
+                print(
+                    f"  warning: malformed Senate XML at {url} "
+                    f"({exc}); retrying {attempt}/{attempts}"
+                )
+                continue
+
+    print(f"  warning: skipping malformed Senate XML at {url}: {last_error}")
+    return []
+
+
 def build_senator_index(cur) -> dict[str, str | None]:
     cur.execute(
         """
@@ -614,8 +633,7 @@ def run(
 
     if dry_run:
         for url in urls[:5]:
-            xml = curl_text(url)
-            votations = parse_senate_session_vote_xml(xml, source_url=url)
+            votations = fetch_senate_session_votations(url)
             vote_count = sum(len(v.votes) for v in votations)
             print(f"  · {url}: {len(votations)} votaciones, {vote_count} votos nominales")
         return
@@ -638,8 +656,7 @@ def run(
             rows_inserted = 0
             rows_unmatched = 0
             for i, url in enumerate(urls, 1):
-                xml = curl_text(url)
-                votations = parse_senate_session_vote_xml(xml, source_url=url)
+                votations = fetch_senate_session_votations(url)
                 if resume and votations:
                     cur.execute(
                         """
