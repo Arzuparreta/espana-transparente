@@ -271,40 +271,36 @@ export async function getHomeHeroAnchor(
 // One-line freshness signal. Counts pipelines that have ever completed and
 // returns the most recent successful finish across all of them. Renders in the
 // header strip on the home: "DATOS ACTUALIZADOS · 21 MAY 2026 · 14 FUENTES".
-export const getEtlFreshnessSummary = unstable_cache(
-  async (): Promise<EtlFreshness> => {
-    const { data, error } = await supabase
-      .from("v_etl_pipeline_status")
-      .select("pipeline, last_finished_at, last_status")
-    if (error) {
-      return {
-        status: "unavailable",
-        latestFinishedAt: null,
-        pipelineCount: 0,
-        delayedPipelines: [],
-      }
-    }
-
-    const rows = (data ?? []) as EtlPipelineRow[]
-    const finished = rows
-      .filter((r) => r.last_status === "succeeded" && r.last_finished_at != null)
-      .map((r) => r.last_finished_at as string)
-      .sort()
-    const criticalStatuses = getCriticalPipelineStatuses(rows)
-    const delayedPipelines = criticalStatuses
-      .filter((row) => row.status !== "fresh")
-      .map((row) => row.label)
-
+export async function getEtlFreshnessSummary(): Promise<EtlFreshness> {
+  const { data, error } = await supabase
+    .from("v_etl_pipeline_status")
+    .select("pipeline, last_finished_at, last_status")
+  if (error) {
     return {
-      status: delayedPipelines.length > 0 ? "delayed" : "fresh",
-      latestFinishedAt: finished.at(-1) ?? null,
-      pipelineCount: rows.length,
-      delayedPipelines,
+      status: "unavailable",
+      latestFinishedAt: null,
+      pipelineCount: 0,
+      delayedPipelines: [],
     }
-  },
-  ["etl-freshness-summary-v2"],
-  { revalidate: HOUR }
-)
+  }
+
+  const rows = (data ?? []) as EtlPipelineRow[]
+  const finished = rows
+    .filter((r) => r.last_status === "succeeded" && r.last_finished_at != null)
+    .map((r) => r.last_finished_at as string)
+    .sort()
+  const criticalStatuses = getCriticalPipelineStatuses(rows)
+  const delayedPipelines = criticalStatuses
+    .filter((row) => row.status !== "fresh")
+    .map((row) => row.label)
+
+  return {
+    status: delayedPipelines.length > 0 ? "delayed" : "fresh",
+    latestFinishedAt: finished.at(-1) ?? null,
+    pipelineCount: rows.length,
+    delayedPipelines,
+  }
+}
 
 export const getLatestInflationAnchor = unstable_cache(
   async (): Promise<InflationAnchor | null> => {
