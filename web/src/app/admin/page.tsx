@@ -1,4 +1,5 @@
-import { cookies, headers } from "next/headers"
+import { headers } from "next/headers"
+import { isAdminRequestAuthorized } from "@/lib/admin-auth"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getEtlPipelineLabel } from "@/lib/etl-pipelines"
 import { BRAND_URL } from "@/lib/brand"
@@ -195,11 +196,7 @@ async function fetchPipelines(): Promise<PipelineRow[]> {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function AdminPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("admin_token")?.value
-  const adminPassword = process.env.ADMIN_PASSWORD
-
-  if (!adminPassword || token !== adminPassword) {
+  if (!(await isAdminRequestAuthorized())) {
     return <AdminLoginForm />
   }
 

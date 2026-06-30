@@ -50,6 +50,7 @@ read at build time and baked into the client bundle):
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
+ADMIN_PASSWORD
 ```
 
 Repo secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` authenticate the deploy job

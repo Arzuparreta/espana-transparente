@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isAdminRequestAuthorized } from "@/lib/admin-auth"
 import { NextResponse } from "next/server"
 
 async function parseBody(request: Request): Promise<{ action?: string; id?: string }> {
@@ -20,6 +21,10 @@ async function parseBody(request: Request): Promise<{ action?: string; id?: stri
 }
 
 export async function POST(request: Request) {
+  if (!(await isAdminRequestAuthorized())) {
+    return NextResponse.redirect(new URL("/admin", request.url), { status: 303 })
+  }
+
   const { action, id } = await parseBody(request)
 
   if (!id || typeof id !== "string") {

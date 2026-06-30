@@ -1,7 +1,11 @@
 "use server"
 
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import {
+  isAdminPasswordConfigured,
+  setAdminSessionCookie,
+  verifyAdminPassword,
+} from "@/lib/admin-auth"
 
 interface AuthState {
   error: string | null
@@ -9,24 +13,16 @@ interface AuthState {
 
 export async function authenticate(_prevState: AuthState, formData: FormData): Promise<AuthState> {
   const password = formData.get("password")?.toString() ?? ""
-  const adminPassword = process.env.ADMIN_PASSWORD
 
-  if (!adminPassword) {
+  if (!isAdminPasswordConfigured()) {
     return { error: "ADMIN_PASSWORD no está configurado en el servidor." }
   }
 
-  if (password !== adminPassword) {
+  if (!verifyAdminPassword(password)) {
     return { error: "Contraseña incorrecta." }
   }
 
-  const cookieStore = await cookies()
-  cookieStore.set("admin_token", adminPassword, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/admin",
-    maxAge: 30 * 24 * 60 * 60,
-  })
+  await setAdminSessionCookie()
 
   redirect("/admin")
 }
