@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminRequestAuthorized } from "@/lib/admin-auth"
+import { BRAND_URL } from "@/lib/brand"
 import { NextResponse } from "next/server"
 
 async function parseBody(request: Request): Promise<{ action?: string; id?: string }> {
@@ -22,7 +23,7 @@ async function parseBody(request: Request): Promise<{ action?: string; id?: stri
 
 export async function POST(request: Request) {
   if (!(await isAdminRequestAuthorized())) {
-    return NextResponse.redirect(new URL("/admin", request.url), { status: 303 })
+    return NextResponse.redirect(new URL("/admin", BRAND_URL), { status: 303 })
   }
 
   const { action, id } = await parseBody(request)
@@ -46,5 +47,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.redirect(new URL("/admin", request.url))
+  return NextResponse.redirect(new URL("/admin", BRAND_URL))
 }
