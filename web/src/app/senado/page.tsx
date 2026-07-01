@@ -68,7 +68,7 @@ function SenatorCard({ senator }: { senator: Senator }) {
             {constituency ?? "—"}
             {tipo ? ` · ${tipo.charAt(0) + tipo.slice(1).toLowerCase()}` : ""}
           </p>
-          <EntityLink kind="politician" id={senator.id}>
+          <EntityLink kind="senator" id={senator.id}>
             <p className="font-semibold leading-snug line-clamp-2 underline-offset-2 hover:underline">
               {formatName(senator.full_name)}
             </p>

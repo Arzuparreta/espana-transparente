@@ -1,6 +1,7 @@
 export interface Politician {
   id: string
   congress_id: string
+  senate_id?: string
   first_name: string
   last_name: string
   full_name: string
@@ -40,6 +41,7 @@ export interface Legislature {
 
 export interface PoliticianMembership {
   id: string
+  chamber?: "congress" | "senate"
   constituency?: string
   group_parliamentary?: string
   start_date?: string

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 
 export type EntityKind =
   | "politician"
+  | "senator"
   | "party"
   | "organization"
   | "voting-session"
@@ -15,6 +16,7 @@ export type EntityKind =
 
 const HREF_BY_KIND: Record<EntityKind, (id: string | number) => string> = {
   politician: (id) => `/diputados/${id}`,
+  senator: (id) => `/senadores/${id}`,
   party: (id) => `/partidos/${id}`,
   organization: (id) => `/organizaciones/${id}`,
   "voting-session": (id) => `/votaciones/${id}`,
