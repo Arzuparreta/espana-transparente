@@ -7,6 +7,12 @@ interface PageHeaderProps {
   eyebrow?: ReactNode
   actions?: ReactNode
   className?: string
+  /**
+   * "panel" (default): boxed card header for index/list pages.
+   * "record": flat, left-anchored case-sheet hero for detail pages — no box,
+   * just a bottom hairline, with a larger display title.
+   */
+  variant?: "panel" | "record"
 }
 
 export function PageHeader({
@@ -15,11 +21,16 @@ export function PageHeader({
   eyebrow,
   actions,
   className,
+  variant = "panel",
 }: PageHeaderProps) {
+  const isRecord = variant === "record"
   return (
     <section
       className={cn(
-        "flex flex-col gap-4 rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6",
+        "flex flex-col gap-4",
+        isRecord
+          ? "border-b border-border pb-5"
+          : "rounded-[2px] border border-border bg-card px-4 py-5 sm:px-6 sm:py-6",
         className
       )}
     >
@@ -27,7 +38,12 @@ export function PageHeader({
         <div className="min-w-0 space-y-2">
           {eyebrow ? <div className="flex flex-wrap items-center gap-2">{eyebrow}</div> : null}
           <div className="space-y-1">
-            <h1 className="font-display text-3xl font-black uppercase tracking-[-0.03em] text-balance sm:text-5xl">
+            <h1
+              className={cn(
+                "font-display font-black uppercase tracking-[-0.03em] text-balance",
+                isRecord ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl"
+              )}
+            >
               {title}
             </h1>
             {description ? (

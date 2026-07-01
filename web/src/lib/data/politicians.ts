@@ -70,6 +70,17 @@ export const getPoliticianProfileData = unstable_cache(
           .maybeSingle(),
       ])
 
+    // Derive the person's current chamber from the active-legislature membership.
+    // Senators reach this via /senadores/[id]; deputies via /diputados/[id].
+    const membershipsData = (pol.data?.politician_memberships ?? []) as Array<{
+      chamber?: string
+      legislature?: { is_active?: boolean } | null
+    }>
+    const activeMembership =
+      membershipsData.find((m) => m.legislature?.is_active) ?? membershipsData[0]
+    const role: "congress" | "senate" =
+      activeMembership?.chamber === "senate" ? "senate" : "congress"
+
     const govPos = govPosition.data ?? null
     let ministryContracts: unknown[] = []
     if (govPos?.organization_name) {
@@ -84,6 +95,7 @@ export const getPoliticianProfileData = unstable_cache(
 
     return {
       pol: pol.data,
+      role,
       votes: votes.data ?? [],
       totalVotes: totalVotes.count,
       powerRels: powerRels.data ?? [],

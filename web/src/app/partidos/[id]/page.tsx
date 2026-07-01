@@ -5,20 +5,22 @@ import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { PartyLogo } from "@/components/domain/PartyLogo"
-import { PoliticianCard } from "@/components/politicians/PoliticianCard"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { SectionTabs } from "@/components/domain/SectionTabs"
+import { RecordLayout } from "@/components/domain/RecordLayout"
+import { RecordTable } from "@/components/domain/RecordTable"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getPartyPageData, getPartyVotingSessions, getPartyJudicialCases, JUDICIAL_STATUS_LABEL } from "@/lib/data"
 import type { JudicialStatus } from "@/lib/data"
-import type { PoliticianWithMemberships } from "@/types"
 
 export const revalidate = 3600
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
+
+const LINK = "underline-offset-2 hover:underline"
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
@@ -63,7 +65,6 @@ export default async function PartyPage({ params }: PageProps) {
 
   const partyLabel = party.name ?? party.acronym ?? "Partido"
 
-  // Deduplicate cases (one row per case, multiple actors possible)
   const seenCaseIds = new Set<string>()
   const uniqueCases = judicialCases.filter((c) => {
     if (seenCaseIds.has(c.case_id)) return false
@@ -79,8 +80,10 @@ export default async function PartyPage({ params }: PageProps) {
     tabs.push({ value: "casos", label: "Casos judiciales", count: uniqueCases.length })
   }
 
+  const memberRows = memberships as unknown as Array<Record<string, unknown>>
+
   return (
-    <div className="ui-page space-y-8">
+    <div className="ui-page">
       <ContextTrail
         section={{ href: "/partidos", label: "Partidos" }}
         current={party.acronym ?? partyLabel}
@@ -99,139 +102,147 @@ export default async function PartyPage({ params }: PageProps) {
             : null,
         ]}
       />
-      <PageHeader
-        title={party.acronym}
-        description={party.name}
-        eyebrow={
-          <PartyLogo
-            src={party.logo_url}
-            color={party.color}
-            acronym={party.acronym}
-            size="lg"
+
+      <RecordLayout
+        hero={
+          <PageHeader
+            variant="record"
+            eyebrow={<PartyLogo src={party.logo_url} color={party.color} acronym={party.acronym} size="lg" />}
+            title={party.acronym}
+            description={party.name}
           />
         }
-      />
+        aside={
+          <Suspense fallback={<EntityTrailSkeleton />}>
+            <EntityTrail entityType="party" entityId={id} />
+          </Suspense>
+        }
+      >
+        <StatGrid variant="flat" items={statItems} />
 
-      <StatGrid items={statItems} />
-
-      <SectionTabs
-        tabs={tabs}
-        defaultTab="diputados"
-        panels={{
-          diputados: (
-            <div id="diputados" className="ui-grid-cards scroll-mt-24">
-              {memberships.map((m) => {
-                const pol = m.politician as unknown as Record<string, unknown>
-                return (
-                  <PoliticianCard
-                    key={pol.id as string}
-                    politician={{ ...pol, politician_memberships: [m] } as unknown as PoliticianWithMemberships}
+        <SectionTabs
+          tabs={tabs}
+          defaultTab="diputados"
+          panels={{
+            diputados: (
+              <div id="diputados" className="scroll-mt-24">
+                {memberships.length === 0 ? (
+                  <EmptyState title="Sin diputados activos" description="No hay escaños con membresía activa en la muestra actual." />
+                ) : (
+                  <RecordTable
+                    caption="Diputados del grupo parlamentario"
+                    rows={memberRows}
+                    keyFor={(m) => String((m.politician as Record<string, unknown>).id)}
+                    columns={[
+                      {
+                        header: "Diputado",
+                        primary: true,
+                        cell: (m) => {
+                          const pol = m.politician as Record<string, unknown>
+                          return (
+                            <EntityLink kind="politician" id={pol.id as string} className={LINK}>
+                              {String(pol.full_name ?? "")}
+                            </EntityLink>
+                          )
+                        },
+                      },
+                      { header: "Circunscripción", cell: (m) => (m.constituency as string) || "—" },
+                      { header: "Grupo", hideOnMobile: true, cell: (m) => (m.group_parliamentary as string) || "—" },
+                    ]}
                   />
-                )
-              })}
-            </div>
-          ),
-          votaciones: (
-            <div id="votaciones" className="space-y-2 scroll-mt-24">
-              {votingSessions.length === 0 ? (
-                <EmptyState
-                  title="Sin votaciones"
-                  description="No hay sesiones registradas para este grupo en la muestra actual."
-                  action={
-                    <a
-                      href="/estado-datos"
-                      className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                    >
-                      Ver estado de los datos →
-                    </a>
-                  }
-                />
-              ) : (
-                votingSessions.map((s) => {
-                  const total = Object.values(s.partyVotes).reduce((a, b) => a + b, 0)
-                  const pctYes = total > 0 ? Math.round(((s.partyVotes["Sí"] ?? 0) / total) * 100) : 0
-                  const pctNo = total > 0 ? Math.round(((s.partyVotes["No"] ?? 0) / total) * 100) : 0
-                  const pctAbs = total > 0 ? Math.round(((s.partyVotes["Abstención"] ?? 0) / total) * 100) : 0
-                  const dateStr = new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+                )}
+              </div>
+            ),
+            votaciones: (
+              <div id="votaciones" className="scroll-mt-24">
+                {votingSessions.length === 0 ? (
+                  <EmptyState
+                    title="Sin votaciones"
+                    description="No hay sesiones registradas para este grupo en la muestra actual."
+                    action={
+                      <a href="/estado-datos" className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                        Ver estado de los datos →
+                      </a>
+                    }
+                  />
+                ) : (
+                  <div className="divide-y divide-border/50">
+                    {votingSessions.map((s) => {
+                      const total = Object.values(s.partyVotes).reduce((a, b) => a + b, 0)
+                      const pctYes = total > 0 ? Math.round(((s.partyVotes["Sí"] ?? 0) / total) * 100) : 0
+                      const pctNo = total > 0 ? Math.round(((s.partyVotes["No"] ?? 0) / total) * 100) : 0
+                      const pctAbs = total > 0 ? Math.round(((s.partyVotes["Abstención"] ?? 0) / total) * 100) : 0
+                      const dateStr = new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
 
-                  return (
-                    <EntityLink
-                      key={s.id}
-                      kind="voting-session"
-                      id={s.id}
-                      className="flex min-w-0 items-start justify-between gap-4 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40"
-                    >
-                      <div className="min-w-0">
-                        <p className="min-w-0 truncate font-medium">{s.title}</p>
-                        {total > 0 && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {s.partyVotes["Sí"] ?? 0} sí · {s.partyVotes["No"] ?? 0} no · {s.partyVotes["Abstención"] ?? 0} abs
-                            {" · "}
-                            <span className="text-green-600 dark:text-green-400">{pctYes}% favor</span>
-                            {pctNo > 0 && <span className="text-red-600 dark:text-red-400"> · {pctNo}% contra</span>}
-                            {pctAbs > 0 && <span> · {pctAbs}% abs</span>}
-                          </p>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <span className="text-xs text-muted-foreground">{dateStr}</span>
-                        {s.divergence_count > 0 && (
-                          <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                            {s.divergence_count} div.
-                          </p>
-                        )}
-                      </div>
-                    </EntityLink>
-                  )
-                })
-              )}
-            </div>
-          ),
-          ...(uniqueCases.length > 0
-            ? {
-                casos: (
-                  <div id="casos" className="space-y-2 scroll-mt-24">
-                    <p className="text-xs text-muted-foreground">
-                      Procedimientos en los que el partido está identificado como actor por fuentes oficiales.
-                    </p>
-                    <ul className="space-y-2">
-                      {uniqueCases.map((c) => (
-                        <li key={c.case_id}>
-                          <div className="rounded-[2px] border border-border bg-card px-4 py-3">
-                            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <div className="min-w-0 space-y-1">
-                                <ResponsiveLink
-                                  href={`/corrupcion/${c.case_id}`}
-                                  className="block min-w-0 text-sm font-medium underline-offset-2 hover:underline"
-                                >
-                                  {c.title}
-                                </ResponsiveLink>
-                                <p className="text-xs text-muted-foreground">
-                                  {c.procedural_status
-                                    ? JUDICIAL_STATUS_LABEL[c.procedural_status as JudicialStatus] ?? c.procedural_status
-                                    : "Estado no especificado"}
-                                  {c.court_body ? ` · ${c.court_body}` : ""}
-                                  {c.territory ? ` · ${c.territory}` : ""}
-                                </p>
-                              </div>
-                              <div className="shrink-0 text-left font-mono text-xs text-muted-foreground sm:text-right">
-                                {formatDate(c.source_published_at)}
-                              </div>
+                      return (
+                        <EntityLink
+                          key={s.id}
+                          kind="voting-session"
+                          id={s.id}
+                          className="-mx-2 flex min-w-0 items-start justify-between gap-4 px-2 py-3 text-sm transition-colors hover:bg-muted/40"
+                        >
+                          <div className="min-w-0">
+                            <p className="min-w-0 truncate font-medium">{s.title}</p>
+                            {total > 0 && (
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                {s.partyVotes["Sí"] ?? 0} sí · {s.partyVotes["No"] ?? 0} no · {s.partyVotes["Abstención"] ?? 0} abs
+                                {" · "}
+                                <span className="text-green-600 dark:text-green-400">{pctYes}% favor</span>
+                                {pctNo > 0 && <span className="text-red-600 dark:text-red-400"> · {pctNo}% contra</span>}
+                                {pctAbs > 0 && <span> · {pctAbs}% abs</span>}
+                              </p>
+                            )}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <span className="text-xs text-muted-foreground">{dateStr}</span>
+                            {s.divergence_count > 0 && (
+                              <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+                                {s.divergence_count} div.
+                              </p>
+                            )}
+                          </div>
+                        </EntityLink>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            ),
+            ...(uniqueCases.length > 0
+              ? {
+                  casos: (
+                    <div id="casos" className="space-y-3 scroll-mt-24">
+                      <p className="text-xs text-muted-foreground">
+                        Procedimientos en los que el partido está identificado como actor por fuentes oficiales.
+                      </p>
+                      <div className="divide-y divide-border/50">
+                        {uniqueCases.map((c) => (
+                          <div key={c.case_id} className="flex min-w-0 flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 space-y-1">
+                              <ResponsiveLink href={`/corrupcion/${c.case_id}`} className="block min-w-0 text-sm font-medium underline-offset-2 hover:underline">
+                                {c.title}
+                              </ResponsiveLink>
+                              <p className="text-xs text-muted-foreground">
+                                {c.procedural_status
+                                  ? JUDICIAL_STATUS_LABEL[c.procedural_status as JudicialStatus] ?? c.procedural_status
+                                  : "Estado no especificado"}
+                                {c.court_body ? ` · ${c.court_body}` : ""}
+                                {c.territory ? ` · ${c.territory}` : ""}
+                              </p>
+                            </div>
+                            <div className="shrink-0 text-left font-mono text-xs text-muted-foreground sm:text-right">
+                              {formatDate(c.source_published_at)}
                             </div>
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ),
-              }
-            : {}),
-        }}
-      />
-
-      <Suspense fallback={<EntityTrailSkeleton />}>
-        <EntityTrail entityType="party" entityId={id} />
-      </Suspense>
+                        ))}
+                      </div>
+                    </div>
+                  ),
+                }
+              : {}),
+          }}
+        />
+      </RecordLayout>
     </div>
   )
 }

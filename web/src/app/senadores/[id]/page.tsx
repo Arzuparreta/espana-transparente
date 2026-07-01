@@ -16,10 +16,10 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
   const { data } = await supabase.from("politicians").select("full_name").eq("id", id).single()
-  return { title: data?.full_name || "Diputado" }
+  return { title: data?.full_name || "Senador" }
 }
 
-export default async function PoliticianPage({ params, searchParams }: PageProps) {
+export default async function SenatorPage({ params, searchParams }: PageProps) {
   const { id } = await params
   const { page: pageParam, apage: apageParam } = await searchParams
   const votePage = parsePage(pageParam)
@@ -33,12 +33,12 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
 
   const { pol, role, votes, totalVotes, powerRels, subordinates, revolvingDoors, attendance, divergentSessionIds, govPosition, ministryContracts, entitySummary } = profile
   if (!pol) notFound()
-  // A senator reached the deputy route — send them to their honest URL.
-  if (role === "senate") redirect(`/senadores/${id}`)
+  // A deputy reached the senate route — send them to their honest URL.
+  if (role !== "senate") redirect(`/diputados/${id}`)
 
   const displayVotes = pagedVotes ?? votes
   const politician = pol as Record<string, unknown>
-  const fullName = String(politician.full_name ?? "Diputado")
+  const fullName = String(politician.full_name ?? "Senador")
   const memberships = (politician.politician_memberships ?? []) as Array<Record<string, unknown>>
   const activeMembership = memberships.find(
     (membership) => (membership.legislature as Record<string, unknown> | undefined)?.is_active
@@ -47,22 +47,16 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
   const currentGroup = String(activeMembership?.group_parliamentary ?? "")
   const related = [
     totalVotes && totalVotes > 0
-      ? { href: `/diputados/${id}?tab=votes`, label: "Votaciones", meta: String(totalVotes) }
+      ? { href: `/senadores/${id}?tab=votes`, label: "Votaciones", meta: String(totalVotes) }
       : null,
     activeParty?.id
       ? { href: `/partidos/${activeParty.id}`, label: "Partido", meta: activeParty.acronym }
       : null,
-    powerRels.length > 0 || subordinates.length > 0 || govPosition
-      ? { href: `/diputados/${id}?tab=power`, label: "Relaciones" }
+    powerRels.length > 0 || subordinates.length > 0
+      ? { href: `/senadores/${id}?tab=power`, label: "Relaciones" }
       : null,
     revolvingDoors.length > 0
-      ? { href: `/diputados/${id}?tab=power`, label: "Puertas giratorias", meta: String(revolvingDoors.length) }
-      : null,
-    govPosition
-      ? { href: `/ministerios/${govPosition.id}`, label: "Ministerio" }
-      : null,
-    ministryContracts.length > 0
-      ? { href: `/contratos?q=${encodeURIComponent(govPosition?.organization_name ?? fullName)}`, label: "Contratos" }
+      ? { href: `/senadores/${id}?tab=power`, label: "Puertas giratorias", meta: String(revolvingDoors.length) }
       : null,
   ].filter(Boolean) as ContextTrailLink[]
 
@@ -70,11 +64,11 @@ export default async function PoliticianPage({ params, searchParams }: PageProps
     <>
       <ContextTrail
         className="mx-auto w-full max-w-6xl"
-        section={{ href: "/diputados", label: "Diputados" }}
+        section={{ href: "/senado", label: "Senado" }}
         current={fullName}
         meta={currentGroup || undefined}
-        fallbackHref="/diputados"
-        fallbackLabel="Volver a Diputados"
+        fallbackHref="/senado"
+        fallbackLabel="Volver al Senado"
         related={related}
       />
       <PoliticianProfile

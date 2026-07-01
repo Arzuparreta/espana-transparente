@@ -5,6 +5,10 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { ShareButton } from "@/components/domain/ShareButton"
+import { RecordLayout } from "@/components/domain/RecordLayout"
+import { RecordSection } from "@/components/domain/RecordSection"
+import { FieldList, type FieldItem } from "@/components/domain/FieldList"
+import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getContractDetail, getJudicialLinksForContract, getPartyAcronymMap, JUDICIAL_STATUS_LABEL } from "@/lib/data"
 import type { JudicialStatus } from "@/lib/data"
@@ -42,14 +46,7 @@ function formatDateLabel(value: string | null): string | null {
   })
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid gap-1 border-t border-border/50 py-3 text-sm first:border-0 sm:grid-cols-[10rem_1fr] sm:gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 font-medium">{children}</dd>
-    </div>
-  )
-}
+const LINK = "underline-offset-2 hover:underline"
 
 const ADMIN_LEVEL: Record<string, string> = {
   state: "Administración General del Estado",
@@ -89,13 +86,67 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
   const dateStr = formatDateLabel(contract.date)
   const awardDateStr = formatDateLabel(contract.award_date)
-  // Only show award date separately if it differs from the main date
   const showAwardDate = awardDateStr && awardDateStr !== dateStr
   const budgetAmount = contract.amount
   const awardAmount = contract.award_amount
-  // Show award amount distinctly when it differs from budget by > 1%
   const showAwardAmount = awardAmount != null && budgetAmount != null
     && Math.abs(awardAmount - budgetAmount) / budgetAmount > 0.01
+
+  const items: FieldItem[] = []
+  if (dateStr) items.push({ label: "Fecha", value: dateStr, mono: true })
+  if (contract.contract_type) items.push({ label: "Tipo", value: contract.contract_type })
+  if (contract.awarding_body) {
+    items.push({
+      label: "Órgano convocante",
+      value: contract.awarding_body_organization_id ? (
+        <EntityLink kind="organization" id={contract.awarding_body_organization_id} className={LINK}>
+          {contract.awarding_body}
+        </EntityLink>
+      ) : (
+        contract.awarding_body
+      ),
+    })
+  }
+  if (contract.contractor) items.push({ label: "Adjudicatario", value: contract.contractor })
+  if (contract.contractor_nif) items.push({ label: "NIF", value: contract.contractor_nif, mono: true })
+  if (contract.contractor_is_sme || contract.contractor_is_ute) {
+    items.push({
+      label: "Tipo de empresa",
+      value: (
+        <div className="flex flex-wrap gap-2">
+          {contract.contractor_is_sme && (
+            <span className="rounded-[2px] border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+              PYME
+            </span>
+          )}
+          {contract.contractor_is_ute && (
+            <span className="rounded-[2px] border border-border bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
+              UTE
+            </span>
+          )}
+        </div>
+      ),
+    })
+  }
+  if (contract.ministry_normalized) {
+    items.push({
+      label: "Ministerio",
+      value: (
+        <ResponsiveLink href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`} className={LINK}>
+          {contract.ministry_normalized}
+        </ResponsiveLink>
+      ),
+    })
+  }
+  if (contract.region) items.push({ label: "Región", value: contract.region })
+  if (contract.administration_level) {
+    items.push({ label: "Nivel administrativo", value: ADMIN_LEVEL[contract.administration_level] ?? contract.administration_level })
+  }
+  if (contract.contract_number) items.push({ label: "Nº de contrato", value: contract.contract_number, mono: true })
+  if (contract.received_tender_quantity != null) items.push({ label: "Ofertas recibidas", value: contract.received_tender_quantity, mono: true })
+  if (showAwardDate) items.push({ label: "Fecha de adjudicación", value: awardDateStr, mono: true })
+  if (contract.cpv_code) items.push({ label: "Código CPV", value: contract.cpv_code, mono: true })
+  if (contract.description) items.push({ label: "Descripción", value: contract.description })
 
   return (
     <div className="ui-page">
@@ -107,242 +158,125 @@ export default async function ContractDetailPage({ params }: PageProps) {
         fallbackLabel="Volver a Contratos"
         related={[
           contract.awarding_body_organization_id
-            ? {
-                href: `/organizaciones/${contract.awarding_body_organization_id}`,
-                label: "Órgano adjudicador",
-              }
+            ? { href: `/organizaciones/${contract.awarding_body_organization_id}`, label: "Órgano adjudicador" }
             : null,
           contract.ministry_normalized
-            ? {
-                href: `/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`,
-                label: "Ministerio",
-              }
+            ? { href: `/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`, label: "Ministerio" }
             : null,
           responsible?.politician_id
-            ? {
-                href: `/diputados/${responsible.politician_id}`,
-                label: "Responsable político",
-              }
+            ? { href: `/diputados/${responsible.politician_id}`, label: "Responsable político" }
             : responsible?.official_id
-              ? {
-                  href: `/cargos/${responsible.official_id}`,
-                  label: "Responsable político",
-                }
+              ? { href: `/cargos/${responsible.official_id}`, label: "Responsable político" }
               : null,
           contract.contractor ? { href: "/organizaciones", label: "Adjudicatario" } : null,
           contract.source_url
-            ? {
-                href: contract.source_url,
-                label: "Fuente oficial",
-                external: true,
-              }
+            ? { href: contract.source_url, label: "Fuente oficial", external: true }
             : null,
         ]}
       />
-      <PageHeader
-        title={contract.title}
-        description={contract.contract_folder_id ? `Expediente ${contract.contract_folder_id}` : "Detalle del contrato público"}
-      />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-        <div className="min-w-0 rounded-[2px] border border-border bg-card px-4 py-2 sm:px-6">
-          <dl>
-            {dateStr && <Row label="Fecha">{dateStr}</Row>}
-            {contract.contract_type && <Row label="Tipo">{contract.contract_type}</Row>}
-            {contract.awarding_body && (
-              <Row label="Órgano convocante">
-                {contract.awarding_body_organization_id ? (
-                  <EntityLink
-                    kind="organization"
-                    id={contract.awarding_body_organization_id}
-                    className="underline-offset-2 hover:underline"
-                  >
-                    {contract.awarding_body}
-                  </EntityLink>
-                ) : (
-                  contract.awarding_body
-                )}
-              </Row>
-            )}
-            {contract.contractor && <Row label="Adjudicatario">{contract.contractor}</Row>}
-            {contract.contractor_nif && (
-              <Row label="NIF">
-                <span className="font-mono">{contract.contractor_nif}</span>
-              </Row>
-            )}
-            {(contract.contractor_is_sme || contract.contractor_is_ute) && (
-              <Row label="Tipo de empresa">
-                <div className="flex flex-wrap gap-2">
-                  {contract.contractor_is_sme && (
-                    <span className="rounded-[2px] border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                      PYME
-                    </span>
-                  )}
-                  {contract.contractor_is_ute && (
-                    <span className="rounded-[2px] border border-border bg-muted px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                      UTE
-                    </span>
-                  )}
-                </div>
-              </Row>
-            )}
-            {contract.ministry_normalized && (
-              <Row label="Ministerio">
-                <ResponsiveLink
-                  href={`/contratos?ministry=${encodeURIComponent(contract.ministry_normalized)}`}
-                  className="underline-offset-2 hover:underline"
-                >
-                  {contract.ministry_normalized}
-                </ResponsiveLink>
-              </Row>
-            )}
-            {contract.region && <Row label="Región">{contract.region}</Row>}
-            {contract.administration_level && (
-              <Row label="Nivel administrativo">
-                {ADMIN_LEVEL[contract.administration_level] ?? contract.administration_level}
-              </Row>
-            )}
-            {contract.contract_number && (
-              <Row label="Nº de contrato">
-                <span className="font-mono">{contract.contract_number}</span>
-              </Row>
-            )}
-            {contract.received_tender_quantity != null && (
-              <Row label="Ofertas recibidas">
-                <span className="font-mono tabular-nums">{contract.received_tender_quantity}</span>
-              </Row>
-            )}
-            {showAwardDate && (
-              <Row label="Fecha de adjudicación">{awardDateStr}</Row>
-            )}
-            {contract.cpv_code && (
-              <Row label="Código CPV">{contract.cpv_code}</Row>
-            )}
-            {contract.description && (
-              <Row label="Descripción">
-                <span className="font-normal">{contract.description}</span>
-              </Row>
-            )}
-          </dl>
-        </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-20">
-          <div className="rounded-[2px] border border-border bg-card px-5 py-5">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Presupuesto sin IVA</p>
-            <p className="mt-1 break-words font-mono text-3xl font-bold">
-              {formatAmount(budgetAmount, contract.currency ?? "EUR")}
-            </p>
-          </div>
-
-          {showAwardAmount && (
-            <div className="rounded-[2px] border border-accent/35 bg-accent/[0.03] px-5 py-5">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                Importe adjudicado sin IVA
-              </p>
-              <p className="mt-1 break-words font-mono text-3xl font-bold text-accent">
-                {formatAmount(awardAmount, contract.currency ?? "EUR")}
-              </p>
-              {awardAmount != null && budgetAmount != null && (
-                <p className="mt-1 font-mono text-xs tabular-nums text-accent/70">
-                  {awardAmount < budgetAmount ? "−" : "+"}
-                  {Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto
-                </p>
-              )}
-            </div>
-          )}
-
-          {responsible && (
-            <div className="rounded-[2px] border border-border bg-card px-5 py-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Responsable político
-              </p>
-              <div className="flex min-w-0 items-start justify-between gap-4">
-                <div className="min-w-0">
-                  {responsible.politician_id ? (
-                    <EntityLink
-                      kind="politician"
-                      id={responsible.politician_id}
-                      className="font-semibold underline-offset-2 hover:underline"
-                    >
-                      {responsible.person_name}
-                    </EntityLink>
-                  ) : responsible.official_id ? (
-                    <EntityLink
-                      kind="official"
-                      id={responsible.official_id}
-                      className="font-semibold underline-offset-2 hover:underline"
-                    >
-                      {responsible.person_name}
-                    </EntityLink>
-                  ) : (
-                    <p className="font-semibold">{responsible.person_name}</p>
-                  )}
-                  {responsible.ministry && (
-                    <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>
-                  )}
-                  {responsible.government && (
-                    <p className="text-xs text-muted-foreground">{responsible.government}</p>
-                  )}
-                </div>
-                {responsible.political_party ? (
-                  <PartyBadge
-                    acronym={responsible.political_party}
-                    partyId={responsiblePartyId}
-                    className="text-xs"
-                  />
-                ) : null}
-              </div>
-            </div>
-          )}
-
-          {judicialLinks.length > 0 && (
-            <div className="rounded-[2px] border border-border bg-card px-5 py-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Procedimientos relacionados
-              </p>
-              <div className="space-y-3">
-                {judicialLinks.map((link) => (
-                  <div key={link.id} className="text-sm">
-                    <ResponsiveLink
-                      href={`/corrupcion/${link.case_id}`}
-                      className="font-semibold underline-offset-2 hover:underline"
-                    >
-                      {link.case_title}
-                    </ResponsiveLink>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {JUDICIAL_STATUS_LABEL[link.procedural_status as JudicialStatus]}
-                      {link.offence_category ? ` · ${link.offence_category}` : ""}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{link.link_reason}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <InfoPanel title="Fuente">
-            Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
-            {contract.source_url && (
-              <>
-                {" "}
-                <a
-                  href={contract.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Ver expediente oficial →
-                </a>
-              </>
-            )}
-          </InfoPanel>
-
-          <ShareButton
-            text={buildShareText(contract)}
-            url={`${BRAND_URL}/contratos/${id}`}
+      <RecordLayout
+        hero={
+          <PageHeader
+            variant="record"
+            eyebrow={
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Contrato{contract.contract_folder_id ? ` · Exp. ${contract.contract_folder_id}` : ""}
+              </span>
+            }
+            title={contract.title}
+            description="Detalle del contrato público enlazado a su órgano, adjudicatario y responsable."
           />
-        </aside>
-      </div>
+        }
+        aside={
+          <>
+            {responsible && (
+              <div className="rounded-[2px] border border-border bg-card px-5 py-4">
+                <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Responsable político
+                </p>
+                <div className="flex min-w-0 items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    {responsible.politician_id ? (
+                      <EntityLink kind="politician" id={responsible.politician_id} className={`font-semibold ${LINK}`}>
+                        {responsible.person_name}
+                      </EntityLink>
+                    ) : responsible.official_id ? (
+                      <EntityLink kind="official" id={responsible.official_id} className={`font-semibold ${LINK}`}>
+                        {responsible.person_name}
+                      </EntityLink>
+                    ) : (
+                      <p className="font-semibold">{responsible.person_name}</p>
+                    )}
+                    {responsible.ministry && <p className="mt-0.5 text-sm text-muted-foreground">{responsible.ministry}</p>}
+                    {responsible.government && <p className="text-xs text-muted-foreground">{responsible.government}</p>}
+                  </div>
+                  {responsible.political_party ? (
+                    <PartyBadge acronym={responsible.political_party} partyId={responsiblePartyId} className="text-xs" />
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            {judicialLinks.length > 0 && (
+              <div className="rounded-[2px] border border-border bg-card px-5 py-4">
+                <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Procedimientos relacionados
+                </p>
+                <div className="space-y-3">
+                  {judicialLinks.map((link) => (
+                    <div key={link.id} className="text-sm">
+                      <ResponsiveLink href={`/corrupcion/${link.case_id}`} className={`font-semibold ${LINK}`}>
+                        {link.case_title}
+                      </ResponsiveLink>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {JUDICIAL_STATUS_LABEL[link.procedural_status as JudicialStatus]}
+                        {link.offence_category ? ` · ${link.offence_category}` : ""}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{link.link_reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <InfoPanel title="Fuente">
+              Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
+              {contract.source_url && (
+                <>
+                  {" "}
+                  <a href={contract.source_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                    Ver expediente oficial →
+                  </a>
+                </>
+              )}
+            </InfoPanel>
+
+            <ShareButton text={buildShareText(contract)} url={`${BRAND_URL}/contratos/${id}`} />
+          </>
+        }
+      >
+        <StatGrid
+          variant="flat"
+          items={[
+            { label: "Presupuesto sin IVA", value: formatAmount(budgetAmount, contract.currency ?? "EUR") },
+            ...(showAwardAmount && awardAmount != null && budgetAmount != null
+              ? [
+                  {
+                    label: "Importe adjudicado sin IVA",
+                    value: formatAmount(awardAmount, contract.currency ?? "EUR"),
+                    valueClassName: "text-accent",
+                    hint: `${awardAmount < budgetAmount ? "−" : "+"}${Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto`,
+                  },
+                ]
+              : []),
+          ]}
+        />
+
+        <RecordSection title="Datos del expediente">
+          <FieldList items={items} />
+        </RecordSection>
+      </RecordLayout>
     </div>
   )
 }

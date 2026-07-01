@@ -3,6 +3,9 @@ import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { PageHeader } from "@/components/domain/PageHeader"
+import { RecordLayout } from "@/components/domain/RecordLayout"
+import { RecordSection } from "@/components/domain/RecordSection"
+import { FieldList, type FieldItem } from "@/components/domain/FieldList"
 import { getVoteColor } from "@/lib/domain-style"
 import { getInitiativeDetail } from "@/lib/data"
 
@@ -108,6 +111,38 @@ export default async function IniciativaPage({ params }: PageProps) {
   const typeLabel = TYPE_LABELS[initiative.type] ?? initiative.type
   const statusLabel = STATUS_LABELS[initiative.status ?? ""] ?? initiative.status
 
+  const items: FieldItem[] = []
+  if (initiative.type) items.push({ label: "Tipo", value: typeLabel })
+  if (initiative.proposer_group) items.push({ label: "Grupo proponente", value: initiative.proposer_group })
+  if (proposers.length > 0) {
+    items.push({
+      label: "Proponentes",
+      value: (
+        <div className="flex flex-wrap gap-2">
+          {proposers.map((proposer) => (
+            <span key={proposer.id} className="rounded-[2px] border border-border bg-background px-2 py-1 text-xs font-medium">
+              <ProposerLink proposer={proposer} />
+            </span>
+          ))}
+        </div>
+      ),
+    })
+  }
+  if (statusLabel) items.push({ label: "Estado", value: statusLabel })
+  if (initiative.origin_type) items.push({ label: "Origen", value: originLabel(initiative.origin_type) })
+  if (initiative.eu_directive_ref) items.push({ label: "Directiva UE", value: initiative.eu_directive_ref, mono: true })
+  if (initiative.budget_veto_used) items.push({ label: "Presupuestos", value: "Veto presupuestario utilizado" })
+  if (initiative.source_url) {
+    items.push({
+      label: "Fuente",
+      value: (
+        <a href={initiative.source_url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+          Ver en Congreso.es →
+        </a>
+      ),
+    })
+  }
+
   return (
     <div className="ui-page">
       <ContextTrail
@@ -125,136 +160,71 @@ export default async function IniciativaPage({ params }: PageProps) {
             : null,
         ]}
       />
-      <PageHeader
-        title={initiative.title ?? initiative.number}
-        description={[typeLabel, statusLabel ? `Estado: ${statusLabel}` : null].filter(Boolean).join(" · ")}
-        eyebrow={
-          initiative.number ? (
-            <span className="font-mono text-xs text-muted-foreground">Exp. {initiative.number}</span>
-          ) : undefined
+
+      <RecordLayout
+        hero={
+          <PageHeader
+            variant="record"
+            eyebrow={
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Iniciativa{initiative.number ? ` · Exp. ${initiative.number}` : ""}
+              </span>
+            }
+            title={initiative.title ?? initiative.number}
+            description={[typeLabel, statusLabel ? `Estado: ${statusLabel}` : null].filter(Boolean).join(" · ")}
+          />
         }
-      />
+      >
+        <RecordSection title="Ficha">
+          <FieldList items={items} />
+        </RecordSection>
 
-      <div className="rounded-[2px] border border-border bg-card px-6 py-4">
-        <dl className="space-y-0">
-          {initiative.type && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm first:border-0">
-              <dt className="text-muted-foreground">Tipo</dt>
-              <dd className="font-medium">{typeLabel}</dd>
-            </div>
-          )}
-          {initiative.proposer_group && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Grupo proponente</dt>
-              <dd className="font-medium">{initiative.proposer_group}</dd>
-            </div>
-          )}
-          {proposers.length > 0 && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Proponentes</dt>
-              <dd className="flex flex-wrap gap-2">
-                {proposers.map((proposer) => (
-                  <span
-                    key={proposer.id}
-                    className="rounded-[2px] border border-border bg-background px-2 py-1 text-xs font-medium"
+        <RecordSection title="Votaciones vinculadas" count={sessions.length}>
+          {sessions.length === 0 ? (
+            <EmptyState
+              title="Sin votaciones vinculadas"
+              description="No se han registrado votaciones nominales vinculadas a esta iniciativa."
+            />
+          ) : (
+            <div className="divide-y divide-border/50">
+              {sessions.map((s) => {
+                const yes = (s.votes_yes as number) ?? 0
+                const no = (s.votes_no as number) ?? 0
+                const abs = (s.votes_abstain as number) ?? 0
+                const absent = (s.votes_no_vote as number) ?? 0
+                const dateStr = s.date
+                  ? new Date(s.date as string).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
+                  : ""
+
+                return (
+                  <EntityLink
+                    key={s.id as string}
+                    kind="voting-session"
+                    id={s.id as string}
+                    className="-mx-2 block px-2 py-3 transition-colors hover:bg-muted/40"
                   >
-                    <ProposerLink proposer={proposer} />
-                  </span>
-                ))}
-              </dd>
+                    <p className="text-sm font-medium leading-snug">{s.title as string}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{dateStr}</p>
+                    <div className="mt-2 space-y-1">
+                      <VoteBar yes={yes} no={no} abs={abs} absent={absent} />
+                      <div className="flex gap-4 text-xs text-muted-foreground">
+                        <span className="text-green-600 dark:text-green-400">{yes} sí</span>
+                        <span className="text-red-600 dark:text-red-400">{no} no</span>
+                        {abs > 0 && <span className="text-amber-600 dark:text-amber-400">{abs} abs</span>}
+                        {(s.divergence_count as number) > 0 && (
+                          <span className="ml-auto rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
+                            {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </EntityLink>
+                )
+              })}
             </div>
           )}
-          {statusLabel && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Estado</dt>
-              <dd className="font-medium">{statusLabel}</dd>
-            </div>
-          )}
-          {initiative.source_url && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Fuente</dt>
-              <dd>
-                <a
-                  href={initiative.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium underline-offset-2 hover:underline"
-                >
-                  Ver en Congreso.es →
-                </a>
-              </dd>
-            </div>
-          )}
-          {initiative.origin_type && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Origen</dt>
-              <dd className="font-medium">{originLabel(initiative.origin_type)}</dd>
-            </div>
-          )}
-          {initiative.eu_directive_ref && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Directiva UE</dt>
-              <dd className="font-medium">{initiative.eu_directive_ref}</dd>
-            </div>
-          )}
-          {initiative.budget_veto_used && (
-            <div className="grid grid-cols-[10rem_1fr] gap-3 border-t border-border/50 py-3 text-sm">
-              <dt className="text-muted-foreground">Presupuestos</dt>
-              <dd className="font-medium">Veto presupuestario utilizado</dd>
-            </div>
-          )}
-        </dl>
-      </div>
-
-      {sessions.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">
-            Votaciones vinculadas
-            <span className="ml-2 text-sm font-normal text-muted-foreground">({sessions.length})</span>
-          </h2>
-          {sessions.map((s) => {
-            const yes = (s.votes_yes as number) ?? 0
-            const no = (s.votes_no as number) ?? 0
-            const abs = (s.votes_abstain as number) ?? 0
-            const absent = (s.votes_no_vote as number) ?? 0
-            const dateStr = s.date
-              ? new Date(s.date as string).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })
-              : ""
-
-            return (
-              <EntityLink
-                key={s.id as string}
-                kind="voting-session"
-                id={s.id as string}
-                className="block rounded-[2px] border border-border/60 bg-card px-4 py-4 transition-colors hover:border-foreground/40"
-              >
-                <p className="text-sm font-medium leading-snug">{s.title as string}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{dateStr}</p>
-                <div className="mt-2 space-y-1">
-                  <VoteBar yes={yes} no={no} abs={abs} absent={absent} />
-                  <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span className="text-green-600 dark:text-green-400">{yes} sí</span>
-                    <span className="text-red-600 dark:text-red-400">{no} no</span>
-                    {abs > 0 && <span className="text-amber-600 dark:text-amber-400">{abs} abs</span>}
-                    {(s.divergence_count as number) > 0 && (
-                      <span className="ml-auto rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                        {s.divergence_count as number} divergencia{(s.divergence_count as number) !== 1 ? "s" : ""}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </EntityLink>
-            )
-          })}
-        </section>
-      )}
-
-      {sessions.length === 0 && (
-        <EmptyState
-          title="Sin votaciones vinculadas"
-          description="No se han registrado votaciones nominales vinculadas a esta iniciativa."
-        />
-      )}
+        </RecordSection>
+      </RecordLayout>
     </div>
   )
 }
