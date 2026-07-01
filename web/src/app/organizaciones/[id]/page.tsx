@@ -1,9 +1,12 @@
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { RecordLayout } from "@/components/domain/RecordLayout"
+import { RecordSection } from "@/components/domain/RecordSection"
+import { FieldList } from "@/components/domain/FieldList"
+import { RecordTable } from "@/components/domain/RecordTable"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { getOrganizationPageData, JUDICIAL_STATUS_LABEL } from "@/lib/data"
@@ -15,6 +18,26 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+const LINK = "underline-offset-2 hover:underline"
+
+const ORG_TYPE_LABELS: Record<string, string> = {
+  public_body: "Organismo público",
+  autonomous_body: "Organismo autónomo",
+  company: "Empresa",
+  state_company: "Empresa pública",
+  state_owned: "Empresa pública",
+  ministry: "Ministerio",
+  foundation: "Fundación",
+  association: "Asociación",
+  university: "Universidad",
+  other: "Otra",
+}
+
+function formatOrgType(value?: string | null) {
+  if (!value) return null
+  return ORG_TYPE_LABELS[value] ?? value.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase())
+}
+
 function formatAmount(value: number | null | undefined) {
   if (value == null) return "—"
   if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
@@ -24,7 +47,7 @@ function formatAmount(value: number | null | undefined) {
 }
 
 function formatDate(value: string | null | undefined) {
-  if (!value) return null
+  if (!value) return "—"
   return new Date(`${value}T00:00:00`).toLocaleDateString("es-ES", {
     day: "numeric",
     month: "short",
@@ -56,19 +79,29 @@ export default async function OrganizacionPage({ params }: PageProps) {
   const subsidyReceivedCount = summary?.subsidy_received_count ?? organization.subsidy_beneficiary_count
   const subsidyGrantedCount = summary?.subsidy_granted_count ?? organization.subsidy_granting_count
   const euFundCount = summary?.eu_fund_count ?? organization.eu_fund_count
-  const revolvingDoorCount = summary?.revolving_door_count ?? organization.revolving_door_count
-  const judicialCaseCount = summary?.judicial_case_count ?? organization.judicial_case_count
-  const bormeOfficerCount = summary?.borme_officer_count ?? bormeOfficers.length
-  const appointmentCount = summary?.institutional_appointment_count ?? appointments.length
-  const lobbyingGroupCount = summary?.lobbying_group_count ?? lobbyingLinks.length
-  const hasGovernanceData = appointments.length > 0 || bormeOfficers.length > 0
+  const orgTypeLabel = formatOrgType(organization.organization_type)
+
+  const governance = [
+    ...appointments.map((a: Record<string, unknown>) => ({
+      key: `appt-${a.institution}-${a.person_name}`,
+      source: "SEPI",
+      name: a.person_name as string,
+      role: [a.position_title, a.political_party].filter(Boolean).join(" · "),
+    })),
+    ...bormeOfficers.map((o: Record<string, unknown>) => ({
+      key: `borme-${o.person_name}-${o.role}`,
+      source: "BORME",
+      name: o.person_name as string,
+      role: [o.role, o.since ? `desde ${(o.since as string).slice(0, 7)}` : null].filter(Boolean).join(" · "),
+    })),
+  ]
 
   return (
     <div className="ui-page">
       <ContextTrail
         section={{ href: "/organizaciones", label: "Organizaciones" }}
         current={organization.name}
-        meta={organization.organization_type ?? undefined}
+        meta={orgTypeLabel ?? undefined}
         fallbackHref="/organizaciones"
         fallbackLabel="Volver a Organizaciones"
         related={[
@@ -83,264 +116,248 @@ export default async function OrganizacionPage({ params }: PageProps) {
             : null,
         ]}
       />
-      <PageHeader
-        title={organization.name}
-        description="Ficha de organización enlazada a contratos, subvenciones, fondos europeos, cargos publicados y vínculos revisados."
-      />
 
-      <StatGrid
-        items={[
-          { label: "Contratos", value: formatAmount(summary?.contract_total ?? 0), hint: `${contractCount.toLocaleString("es-ES")} expedientes como órgano contratante o adjudicataria.`, valueClassName: "text-2xl" },
-          { label: "Subvenciones recibidas", value: formatAmount(summary?.subsidy_received_total ?? 0), hint: `${subsidyReceivedCount.toLocaleString("es-ES")} concesiones como beneficiaria.`, valueClassName: "text-2xl" },
-          { label: "Subvenciones concedidas", value: formatAmount(summary?.subsidy_granted_total ?? 0), hint: `${subsidyGrantedCount.toLocaleString("es-ES")} concesiones como órgano concedente.`, valueClassName: "text-2xl" },
-          { label: "Fondos UE", value: formatAmount(summary?.eu_fund_total ?? 0), hint: `${euFundCount.toLocaleString("es-ES")} registros Kohesio vinculados.`, valueClassName: "text-2xl" },
-        ]}
-      />
+      <RecordLayout
+        hero={
+          <PageHeader
+            variant="record"
+            eyebrow={
+              <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                Organización{orgTypeLabel ? ` · ${orgTypeLabel}` : ""}
+              </span>
+            }
+            title={organization.name}
+            description="Ficha enlazada a contratos, subvenciones, fondos europeos, cargos publicados y vínculos revisados."
+          />
+        }
+        aside={
+          <Suspense fallback={<EntityTrailSkeleton />}>
+            <EntityTrail entityType="organization" entityId={id} />
+          </Suspense>
+        }
+      >
+        <StatGrid
+          variant="flat"
+          items={[
+            { label: "Contratos", value: formatAmount(summary?.contract_total ?? 0), hint: `${contractCount.toLocaleString("es-ES")} expedientes como órgano contratante o adjudicataria.`, valueClassName: "text-2xl" },
+            { label: "Subvenciones recibidas", value: formatAmount(summary?.subsidy_received_total ?? 0), hint: `${subsidyReceivedCount.toLocaleString("es-ES")} concesiones como beneficiaria.`, valueClassName: "text-2xl" },
+            { label: "Subvenciones concedidas", value: formatAmount(summary?.subsidy_granted_total ?? 0), hint: `${subsidyGrantedCount.toLocaleString("es-ES")} concesiones como órgano concedente.`, valueClassName: "text-2xl" },
+            { label: "Fondos UE", value: formatAmount(summary?.eu_fund_total ?? 0), hint: `${euFundCount.toLocaleString("es-ES")} registros Kohesio vinculados.`, valueClassName: "text-2xl" },
+          ]}
+        />
 
-      <StatGrid
-        items={[
-          { label: "Cargos SEPI", value: appointmentCount, hint: "Nombramientos publicados para filiales SEPI." },
-          { label: "BORME", value: bormeOfficerCount, hint: "Administradores vigentes en el Registro Mercantil." },
-          { label: "Puertas giratorias", value: revolvingDoorCount, hint: "Movimientos publicados asociados a esta organización." },
-          { label: "Procesos judiciales", value: judicialCaseCount, hint: "Vínculos revisados con procedimientos publicados." },
-          { label: "Grupos de interés", value: lobbyingGroupCount, hint: "Vínculos revisados con el registro CNMC." },
-        ]}
-      />
+        <RecordSection title="Perfil">
+          <FieldList
+            items={[
+              { label: "Tipo", value: orgTypeLabel || "—" },
+              { label: "Sector", value: organization.sector || "—" },
+              { label: "País", value: organization.country || "—" },
+              organization.source_url
+                ? {
+                    label: "Fuente base",
+                    value: (
+                      <a href={organization.source_url} target="_blank" rel="noreferrer" className={LINK}>
+                        Ver registro oficial ↗
+                      </a>
+                    ),
+                  }
+                : { label: "Fuente base", value: "—" },
+            ]}
+          />
+        </RecordSection>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Perfil</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div><span className="text-muted-foreground">Tipo:</span> {organization.organization_type || "—"}</div>
-            <div><span className="text-muted-foreground">Sector:</span> {organization.sector || "—"}</div>
-            <div><span className="text-muted-foreground">País:</span> {organization.country || "—"}</div>
-            {organization.source_url ? (
-              <a
-                href={organization.source_url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block text-sm underline-offset-4 hover:underline"
-              >
-                Fuente base
-              </a>
-            ) : null}
-          </CardContent>
-        </Card>
+        {governance.length > 0 ? (
+          <RecordSection
+            title={appointments.length > 0 ? "Consejo de administración" : "Administradores"}
+            count={governance.length}
+          >
+            <RecordTable
+              caption="Personas con cargo en esta organización"
+              rows={governance}
+              keyFor={(row) => row.key}
+              columns={[
+                { header: "Persona", primary: true, cell: (row) => row.name },
+                { header: "Cargo", cell: (row) => row.role || "—" },
+                { header: "Fuente", cell: (row) => row.source },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {hasGovernanceData && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                {appointments && appointments.length > 0 ? "Consejo de administración" : "Administradores (BORME)"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {appointments && appointments.length > 0 && appointments.map((a: Record<string, unknown>) => (
-                <div key={`${a.institution}-${a.person_name}`} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <div className="font-medium">{a.person_name as string}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {a.position_title as string}
-                    {a.political_party ? ` · ${a.political_party}` : ""}
-                  </div>
-                </div>
-              ))}
-              {bormeOfficers && bormeOfficers.length > 0 && (
-                <>
-                  {appointments && appointments.length > 0 && bormeOfficers.length > 0 && (
-                    <div className="text-xs text-muted-foreground border-t border-border pt-2">
-                      También en el Registro Mercantil (BORME)
-                    </div>
-                  )}
-                  {bormeOfficers.map((o: Record<string, unknown>) => (
-                    <div key={`borme-${o.person_name}-${o.role}`} className="border-l-2 border-muted/50 py-1 pl-3 text-sm">
-                      <div className="font-medium">{o.person_name as string}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {o.role as string}
-                        {o.since ? ` · desde ${(o.since as string).slice(0, 7)}` : ""}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
+        {contracts.length > 0 ? (
+          <RecordSection title="Contratos vinculados" count={contracts.length}>
+            <RecordTable
+              caption="Contratos vinculados a la organización"
+              rows={contracts}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Expediente",
+                  primary: true,
+                  cell: (row) => (
+                    <ResponsiveLink href={`/contratos/${row.id}`} className={LINK}>
+                      {row.title}
+                    </ResponsiveLink>
+                  ),
+                },
+                { header: "Fecha", numeric: true, cell: (row) => formatDate(row.date) },
+                { header: "Importe", numeric: true, cell: (row) => formatAmount(row.amount) },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        {contracts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Contratos vinculados</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {contracts.map((contract) => (
-                <div key={contract.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/contratos/${contract.id}`} className="font-medium underline-offset-2 hover:underline">
-                    {contract.title}
-                  </ResponsiveLink>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDate(contract.date)} · {formatAmount(contract.amount)}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {beneficiarySubsidies.length > 0 ? (
+          <RecordSection title="Subvenciones recibidas" count={beneficiarySubsidies.length}>
+            <RecordTable
+              caption="Subvenciones recibidas por la organización"
+              rows={beneficiarySubsidies}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Beneficiaria",
+                  primary: true,
+                  cell: (row) => (
+                    <ResponsiveLink href={`/subvenciones/${row.id}`} className={LINK}>
+                      {row.beneficiario || organization.name}
+                    </ResponsiveLink>
+                  ),
+                },
+                { header: "Fecha", numeric: true, cell: (row) => formatDate(row.fecha_concesion) },
+                { header: "Importe", numeric: true, cell: (row) => formatAmount(row.importe) },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {beneficiarySubsidies.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Subvenciones recibidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {beneficiarySubsidies.map((subsidy) => (
-                <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
-                    {subsidy.beneficiario || organization.name}
-                  </ResponsiveLink>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDate(subsidy.fecha_concesion)} · {formatAmount(subsidy.importe)}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {grantingSubsidies.length > 0 ? (
+          <RecordSection title="Subvenciones concedidas" count={grantingSubsidies.length}>
+            <RecordTable
+              caption="Subvenciones concedidas por la organización"
+              rows={grantingSubsidies}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Beneficiario",
+                  primary: true,
+                  cell: (row) => (
+                    <ResponsiveLink href={`/subvenciones/${row.id}`} className={LINK}>
+                      {row.beneficiario || "Beneficiario sin nombre"}
+                    </ResponsiveLink>
+                  ),
+                },
+                { header: "Fecha", numeric: true, cell: (row) => formatDate(row.fecha_concesion) },
+                { header: "Importe", numeric: true, cell: (row) => formatAmount(row.importe) },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {grantingSubsidies.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Subvenciones concedidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {grantingSubsidies.map((subsidy) => (
-                <div key={subsidy.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/subvenciones/${subsidy.id}`} className="font-medium underline-offset-2 hover:underline">
-                    {subsidy.beneficiario || "Beneficiario sin nombre"}
-                  </ResponsiveLink>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDate(subsidy.fecha_concesion)} · {formatAmount(subsidy.importe)}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {revolvingDoorCases.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Puertas giratorias</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {revolvingDoorCases.map((entry) => (
-                <div key={entry.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <div className="font-medium">
-                    {entry.person_id ? (
-                      <ResponsiveLink
-                        href={`/diputados/${entry.person_id}`}
-                        className="underline-offset-2 hover:underline"
-                      >
-                        {entry.person_name}
+        {revolvingDoorCases.length > 0 ? (
+          <RecordSection title="Puertas giratorias" count={revolvingDoorCases.length}>
+            <RecordTable
+              caption="Movimientos de puertas giratorias asociados"
+              rows={revolvingDoorCases}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Persona",
+                  primary: true,
+                  cell: (row) =>
+                    row.person_id ? (
+                      <ResponsiveLink href={`/diputados/${row.person_id}`} className={LINK}>
+                        {row.person_name}
                       </ResponsiveLink>
                     ) : (
-                      entry.person_name
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {entry.public_role} → {entry.private_role}
-                    {entry.private_start_date ? ` · ${formatDate(entry.private_start_date)}` : ""}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                      row.person_name
+                    ),
+                },
+                { header: "Movimiento", cell: (row) => `${row.public_role} → ${row.private_role}` },
+                { header: "Fecha", numeric: true, cell: (row) => formatDate(row.private_start_date) },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {euFunds.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Fondos europeos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {euFunds.map((fund) => (
-                <div key={fund.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink
-                    href={`/fondos-ue/${fund.id.split("/").pop()}`}
-                    className="font-medium underline-offset-2 hover:underline"
-                  >
-                    {fund.label}
-                  </ResponsiveLink>
-                  <div className="text-xs text-muted-foreground">
-                    {fund.number_projects != null ? `${fund.number_projects} proyectos` : "—"}
-                    {" · "}
-                    {formatAmount(fund.eu_budget)}
-                    {fund.cofinancing_rate != null ? ` · cofin. ${fund.cofinancing_rate}%` : ""}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {euFunds.length > 0 ? (
+          <RecordSection title="Fondos europeos" count={euFunds.length}>
+            <RecordTable
+              caption="Fondos europeos vinculados"
+              rows={euFunds}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Programa",
+                  primary: true,
+                  cell: (row) => (
+                    <ResponsiveLink href={`/fondos-ue/${row.id.split("/").pop()}`} className={LINK}>
+                      {row.label}
+                    </ResponsiveLink>
+                  ),
+                },
+                { header: "Proyectos", numeric: true, cell: (row) => (row.number_projects != null ? row.number_projects.toLocaleString("es-ES") : "—") },
+                { header: "Presupuesto UE", numeric: true, cell: (row) => formatAmount(row.eu_budget) },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {judicialLinks.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Procesos judiciales relacionados</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {judicialLinks.map((link) => (
-                <div key={link.id} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                  <ResponsiveLink href={`/corrupcion/${link.case_id}`} className="font-medium underline-offset-2 hover:underline">
-                    {link.case_title}
-                  </ResponsiveLink>
-                  <div className="text-xs text-muted-foreground">
-                    {JUDICIAL_STATUS_LABEL[link.procedural_status as JudicialStatus]}
-                    {link.offence_category ? ` · ${link.offence_category}` : ""}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{link.link_reason}</div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {judicialLinks.length > 0 ? (
+          <RecordSection title="Procesos judiciales relacionados" count={judicialLinks.length}>
+            <RecordTable
+              caption="Procesos judiciales relacionados"
+              rows={judicialLinks}
+              keyFor={(row) => row.id}
+              columns={[
+                {
+                  header: "Caso",
+                  primary: true,
+                  cell: (row) => (
+                    <ResponsiveLink href={`/corrupcion/${row.case_id}`} className={LINK}>
+                      {row.case_title}
+                    </ResponsiveLink>
+                  ),
+                },
+                { header: "Estado", cell: (row) => JUDICIAL_STATUS_LABEL[row.procedural_status as JudicialStatus] },
+                { header: "Vínculo", hideOnMobile: true, cell: (row) => row.link_reason },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
 
-        {lobbyingLinks.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Grupos de interés relacionados</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {lobbyingLinks.map((link: Record<string, unknown>) => {
-                const group = getLobbyingGroup(link)
-                if (!group) return null
-                return (
-                  <div key={link.id as string} className="border-l-2 border-muted py-1 pl-3 text-sm">
-                    <a
-                      href={group.source_url as string}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium underline-offset-2 hover:underline"
-                    >
-                      {group.name as string}
-                    </a>
-                    <div className="text-xs text-muted-foreground">
-                      {[group.category, group.subcategory].filter(Boolean).join(" · ") || "Registro de Grupos de Interés CNMC"}
-                    </div>
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <Suspense fallback={<EntityTrailSkeleton />}>
-        <EntityTrail entityType="organization" entityId={id} />
-      </Suspense>
+        {lobbyingLinks.length > 0 ? (
+          <RecordSection title="Grupos de interés relacionados" count={lobbyingLinks.length}>
+            <RecordTable
+              caption="Grupos de interés relacionados"
+              rows={lobbyingLinks as Record<string, unknown>[]}
+              keyFor={(row) => row.id as string}
+              columns={[
+                {
+                  header: "Grupo",
+                  primary: true,
+                  cell: (row) => {
+                    const group = getLobbyingGroup(row)
+                    if (!group) return "—"
+                    return (
+                      <a href={group.source_url as string} target="_blank" rel="noreferrer" className={LINK}>
+                        {group.name as string}
+                      </a>
+                    )
+                  },
+                },
+                {
+                  header: "Categoría",
+                  cell: (row) => {
+                    const group = getLobbyingGroup(row)
+                    if (!group) return "—"
+                    return [group.category, group.subcategory].filter(Boolean).join(" · ") || "Registro CNMC"
+                  },
+                },
+              ]}
+            />
+          </RecordSection>
+        ) : null}
+      </RecordLayout>
     </div>
   )
 }

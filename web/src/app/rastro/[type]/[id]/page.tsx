@@ -62,6 +62,7 @@ export default async function RastroPage({ params }: PageProps) {
         related={[{ href: entityHref, label: "Perfil completo" }]}
       />
       <PageHeader
+        variant="record"
         title={entity.label}
         description={entity.subtitle}
         eyebrow={
