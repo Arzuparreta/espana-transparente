@@ -65,7 +65,7 @@ jobs:
     needs: web
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Deploy and restart
         uses: appleboy/ssh-action@v1.2.5
@@ -73,15 +73,30 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: "20m"
           script: |
             set -e
             cd /root/Proyectos/espana-transparente
+            # Bootstrap: update the checkout (and the deploy script itself) first.
             git fetch origin main
             git reset --hard origin/main
-            cd web
-            npm ci
-            npm run build
-            pm2 restart espana-transparente-web
+            chmod +x scripts/deploy-vps.sh
+            # Run the build+restart DETACHED so a dropped SSH session can't kill it
+            # (the previous inline pattern died with SIGTERM on transient drops).
+            rm -f /tmp/et-deploy.done /tmp/et-deploy.log
+            setsid bash -c 'bash scripts/deploy-vps.sh > /tmp/et-deploy.log 2>&1; echo $? > /tmp/et-deploy.done' </dev/null >/dev/null 2>&1 &
+            echo "deploy launched (detached); waiting for completion…"
+            # Heartbeat poll keeps the SSH session active and reports progress.
+            for i in $(seq 1 90); do
+              [ -f /tmp/et-deploy.done ] && break
+              echo "  …building ($((i * 10))s)"
+              sleep 10
+            done
+            echo "----- deploy log (tail) -----"
+            tail -n 40 /tmp/et-deploy.log 2>/dev/null || true
+            CODE=$(cat /tmp/et-deploy.done 2>/dev/null || echo TIMEOUT)
+            echo "deploy exit code: $CODE"
+            [ "$CODE" = "0" ]
       - name: Verify deployment health
         run: |
           curl --fail --show-error --silent \
