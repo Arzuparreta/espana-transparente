@@ -13,6 +13,7 @@ interface PageHeaderProps {
    * just a bottom hairline, with a larger display title.
    */
   variant?: "panel" | "record"
+  titleFit?: "auto" | "long"
 }
 
 export function PageHeader({
@@ -22,11 +23,12 @@ export function PageHeader({
   actions,
   className,
   variant = "panel",
+  titleFit = "auto",
 }: PageHeaderProps) {
   const isRecord = variant === "record"
   const titleWordCount = title.trim().split(/\s+/).filter(Boolean).length
   const hasLongToken = title.split(/\s+/).some((word) => word.length > 18)
-  const isLongTitle = title.length > 72 || titleWordCount > 9 || hasLongToken
+  const isLongTitle = titleFit === "long" || title.length > 72 || titleWordCount > 9 || hasLongToken
   const isVeryLongTitle = title.length > 140 || titleWordCount > 18
 
   return (
