@@ -98,6 +98,13 @@
     color: hsl(var(--accent-foreground));
   }
 
+  @media (max-width: 1023px) and (hover: none), (max-width: 1023px) and (pointer: coarse) {
+    :where(a, button, input, textarea, select, summary, [role="button"], [tabindex]) {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+  }
+
   td,
   th,
   .tabular-nums,

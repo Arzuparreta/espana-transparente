@@ -72,6 +72,7 @@ export function ResponsiveLink({
       prefetch={prefetch}
       onPointerEnter={(event) => {
         onPointerEnter?.(event)
+        if (event.pointerType === "touch") return
         prefetchTarget()
       }}
       onFocus={(event) => {
