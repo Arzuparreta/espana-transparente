@@ -24,6 +24,11 @@ export function PageHeader({
   variant = "panel",
 }: PageHeaderProps) {
   const isRecord = variant === "record"
+  const titleWordCount = title.trim().split(/\s+/).filter(Boolean).length
+  const hasLongToken = title.split(/\s+/).some((word) => word.length > 18)
+  const isLongTitle = title.length > 72 || titleWordCount > 9 || hasLongToken
+  const isVeryLongTitle = title.length > 140 || titleWordCount > 18
+
   return (
     <section
       className={cn(
@@ -34,14 +39,29 @@ export function PageHeader({
         className
       )}
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
+      <div
+        className={cn(
+          "flex flex-col gap-4",
+          actions && !isLongTitle ? "sm:flex-row sm:items-start sm:justify-between" : null
+        )}
+      >
+        <div className="min-w-0 max-w-full space-y-2">
           {eyebrow ? <div className="flex flex-wrap items-center gap-2">{eyebrow}</div> : null}
           <div className="space-y-1">
             <h1
               className={cn(
-                "font-display font-black uppercase tracking-[-0.03em] text-balance",
-                isRecord ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl"
+                "max-w-none font-display font-black break-words",
+                isLongTitle
+                  ? "normal-case leading-[1.08] tracking-[-0.01em] text-pretty"
+                  : "uppercase leading-[0.9] tracking-[-0.03em] text-balance",
+                !isLongTitle && (isRecord ? "text-4xl sm:text-6xl" : "text-3xl sm:text-5xl"),
+                isLongTitle && isVeryLongTitle
+                  ? "text-[clamp(1.45rem,5.8vw,3.5rem)]"
+                  : isLongTitle && isRecord
+                    ? "text-[clamp(1.65rem,6.4vw,4rem)]"
+                    : isLongTitle
+                      ? "text-[clamp(1.55rem,5.6vw,3.5rem)]"
+                      : null
               )}
             >
               {title}
