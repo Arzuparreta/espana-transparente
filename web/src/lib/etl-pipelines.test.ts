@@ -12,6 +12,10 @@ describe("getEtlPipelineLabel", () => {
     expect(ETL_PIPELINE_LABELS["congreso.asistencia"]).toBe("Asistencia y votaciones")
     expect(ETL_PIPELINE_LABELS["senado.votaciones"]).toBe("Sesiones Senado")
     expect(ETL_PIPELINE_LABELS["kohesio.fondos_ue"]).toBe("Fondos UE")
+    expect(ETL_PIPELINE_LABELS["territorio.org_geolocation"]).toBe("Geolocalización de receptores")
+    expect(ETL_PIPELINE_LABELS["ine.ipc_subgrupos"]).toBe("IPC por subgrupos")
+    expect(ETL_PIPELINE_LABELS["ine.bde"]).toBe("Deuda pública Eurostat")
+    expect(ETL_PIPELINE_LABELS["elections.ingest"]).toBe("Resultados electorales")
     expect(ETL_PIPELINE_LABELS["common.search_refresh"]).toBe("Búsqueda (actualización)")
   })
 
@@ -39,6 +43,9 @@ describe("getEtlPipelineLabel", () => {
 
     expect(statuses.find((row) => row.key === "contracts")?.status).toBe("fresh")
     expect(statuses.find((row) => row.key === "initiatives")?.status).toBe("delayed")
+    expect(statuses.find((row) => row.key === "ipc-subgroups")?.status).toBe("missing")
+    expect(statuses.find((row) => row.key === "public-debt")?.status).toBe("missing")
+    expect(statuses.find((row) => row.key === "receiver-geolocation")?.status).toBe("missing")
     expect(statuses.find((row) => row.key === "deputies")?.status).toBe("missing")
   })
 

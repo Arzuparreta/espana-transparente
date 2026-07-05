@@ -22,9 +22,9 @@
 
 ## Qué es esto
 
-España Transparente reúne en un mismo sitio los datos que ya son públicos pero viven dispersos entre el Congreso, el INE, la Plataforma de Contratación, la BDNS y otros registros oficiales. Los normaliza, los enlaza por persona y los presenta sin editorializar: cada cifra apunta a su fuente original.
+España Transparente reúne en un mismo sitio los datos que ya son públicos pero viven dispersos entre el Congreso, el INE, la Plataforma de Contratación, la BDNS y otros registros oficiales. Los normaliza, los enlaza por persona y los presenta como una cadena verificable: gasto → déficit → deuda → quién paga. Cada cifra apunta a su fuente original.
 
-> El producto es un **portal de datos**, no un manifiesto. Las reglas editoriales viven en [`AGENTS.md`](AGENTS.md), la hoja de ruta activa en [`NEXT.md`](NEXT.md), y la interfaz solo muestra hechos.
+> El producto tiene tesis explícita, pero las afirmaciones tienen que ser desmontables solo atacando la fuente oficial. Las reglas editoriales viven en [`AGENTS.md`](AGENTS.md) y la hoja de ruta activa en [`NEXT.md`](NEXT.md).
 
 ## Qué incluye hoy
 
@@ -32,7 +32,7 @@ España Transparente reúne en un mismo sitio los datos que ya son públicos per
 - **Votaciones nominales** — votos individuales enlazados a cada diputado, sesión a sesión.
 - **Cadenas de responsabilidad** — cargos estatales, autonómicos y municipales conectados al gasto público.
 - **Contratos y subvenciones** — PCSP (Plataforma de Contratación) y BDNS (`infosubvenciones.es`).
-- **Indicadores macro** — IPC, PIB, EPA y deuda desde la API del INE.
+- **Indicadores macro** — IPC, PIB, EPA y salarios desde el INE; deuda pública Maastricht desde Eurostat.
 - **Puertas giratorias** — pipeline de tres fases con curación humana obligatoria antes de publicar.
 - **Divergencias** — detección automática de votos contra el grupo parlamentario.
 - **Anotaciones** — sistema propio para que la comunidad añada contexto verificable.
@@ -112,7 +112,8 @@ npx supabase db push
 | Fuente                                                              | Uso                                      |
 | ------------------------------------------------------------------- | ---------------------------------------- |
 | [Congreso Open Data](https://www.congreso.es/es/opendata)           | Diputados, votaciones, iniciativas       |
-| [INE API](https://www.ine.es/dyngs/DataLab/manual.html?cid=66)      | IPC, PIB, EPA, deuda                     |
+| [INE API](https://www.ine.es/dyngs/DataLab/manual.html?cid=66)      | IPC, PIB, EPA y salarios                 |
+| [Eurostat](https://ec.europa.eu/eurostat)                           | Deuda pública Maastricht                 |
 | [PCSP](https://contrataciondelestado.es)                            | Contratos públicos (ATOM/XML)            |
 | [BDNS · infosubvenciones.es](https://www.infosubvenciones.es)       | Subvenciones (organizaciones)            |
 | [datos.gob.es](https://datos.gob.es)                                | Catálogo abierto de la AGE               |
@@ -123,7 +124,7 @@ npx supabase db push
 
 ## Reglas duras (auditadas en CI)
 
-- **Editorial** (`npm run content:audit`) — la UI no contiene metodología, juicios de valor, ni referencias filosóficas. Solo etiquetas factuales.
+- **Contenido** (`npm run content:audit`) — cobertura de explicaciones para cada indicador y bloqueo de términos de riesgo legal aplicados a personas sin condena firme.
 - **UI** (`npm run ui:audit`) — `grid-cols-N` requiere variante responsive; `flex items-center justify-between` requiere `min-w-0`; los colores de voto/partido se importan de `lib/domain-style.ts`; los tabs viven en `components/domain/SectionTabs.tsx`.
 
 Detalles completos en [`CLAUDE.md`](CLAUDE.md), [`DESIGN.md`](DESIGN.md) y [`NEXT.md`](NEXT.md).
