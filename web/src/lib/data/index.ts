@@ -154,9 +154,13 @@ export {
 export {
   getDeclarationsPage,
   getDeclarationById,
+  getPoliticianDeclarations,
   parseDeclarationSort,
   type DeclarationPageRow,
   type DeclarationDetailRow,
+  type PoliticianDeclarationsResult,
+  type PoliticianDeclarationDoc,
+  type PoliticianDeclarationActivity,
   type DeclarationSortField,
   type SortDirection,
   type DeclarationType,

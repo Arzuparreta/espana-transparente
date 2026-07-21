@@ -683,7 +683,19 @@ export function PoliticianProfile({
                 <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{bio}</p>
               ) : null}
 
-              {active === "declarations" ? <EconomicDeclarationList declarations={econDecls} /> : null}
+              {active === "declarations" ? (
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <ResponsiveLink
+                      href={`/declaraciones/diputado/${p.id}`}
+                      className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    >
+                      Página de declaraciones →
+                    </ResponsiveLink>
+                  </div>
+                  <EconomicDeclarationList declarations={econDecls} />
+                </div>
+              ) : null}
 
               {active === "annotations" ? (
                 <AnnotationPanel entityType="politician" entityId={String(p.id)} />

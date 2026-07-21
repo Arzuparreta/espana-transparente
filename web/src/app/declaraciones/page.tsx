@@ -246,7 +246,7 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <ResponsiveLink
-                        href={`/diputados/${row.politician_id}`}
+                        href={`/declaraciones/diputado/${row.politician_id}`}
                         className="block truncate font-medium underline-offset-2 hover:underline"
                       >
                         {row.politician_name ?? "—"}
@@ -322,7 +322,7 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
                             <AvatarFallback className="text-[10px]">{row.politician_name ? initials(row.politician_name) : "?"}</AvatarFallback>
                           </Avatar>
                           <ResponsiveLink
-                            href={`/declaraciones/${row.id}`}
+                            href={`/declaraciones/diputado/${row.politician_id}`}
                             className="min-w-0 font-medium underline-offset-2 hover:underline"
                           >
                             {row.politician_name ?? "—"}

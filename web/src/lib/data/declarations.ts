@@ -213,4 +213,168 @@ export async function getDeclarationById(id: string): Promise<DeclarationDetailR
   }
 }
 
+// ── Per-deputy aggregated declarations ────────────────────────────────────────
+
+export interface PoliticianDeclarationActivity {
+  type: string | null
+  period: string | null
+  employer: string | null
+  sector: string | null
+  description: string | null
+  declaration: string | null
+}
+
+export interface PoliticianDeclarationDoc {
+  id: string
+  type: string | null
+  declaration_date: string | null
+  /** "congreso_opendata" for structured registry data, otherwise OCR-derived. */
+  source: string | null
+  source_url: string | null
+  total_income: number | null
+  irpf_paid: number | null
+  inmuebles: number | null
+  vehiculos: number | null
+  financial_assets: number | null
+  incomes: Array<{ source: string; amount: number }>
+  activities: PoliticianDeclarationActivity[]
+  ocr_text: string | null
+  ocr_status: string | null
+}
+
+export interface PoliticianDeclarationsResult {
+  politician: {
+    id: string
+    full_name: string | null
+    photo_url: string | null
+    photo_variants: Record<string, string> | null
+    party_acronym: string | null
+    party_color: string | null
+    party_id: string | null
+    group_parliamentary: string | null
+    chamber: string | null
+  }
+  docs: PoliticianDeclarationDoc[]
+}
+
+function toNum(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null
+  if (typeof value === "string") {
+    const n = Number(value)
+    return Number.isFinite(n) ? n : null
+  }
+  return null
+}
+
+function toInt(value: unknown): number | null {
+  const n = toNum(value)
+  return n == null ? null : Math.trunc(n)
+}
+
+const getPoliticianDeclarationsCached = unstable_cache(
+  async (id: string): Promise<PoliticianDeclarationsResult | null> => {
+    const { data, error } = await supabase
+      .from("politicians")
+      .select(
+        `id, full_name, photo_url, photo_variants,
+         politician_memberships(group_parliamentary, chamber, party:parties(id, acronym, color), legislature:legislatures(is_active)),
+         economic_declarations(id, declaration_date, source_url, raw_data)`
+      )
+      .eq("id", id)
+      .abortSignal(dataQuerySignal())
+      .single()
+
+    if (error) {
+      console.error("getPoliticianDeclarations error:", dataErrorMessage(error))
+      return null
+    }
+    if (!data) return null
+
+    type MembershipRow = {
+      group_parliamentary: string | null
+      chamber: string | null
+      party: { id: string; acronym: string | null; color: string | null } | { id: string; acronym: string | null; color: string | null }[] | null
+      legislature: { is_active: boolean | null } | { is_active: boolean | null }[] | null
+    }
+    const memberships = (data.politician_memberships ?? []) as MembershipRow[]
+    const isActive = (m: MembershipRow) => {
+      const leg = Array.isArray(m.legislature) ? m.legislature[0] : m.legislature
+      return leg?.is_active === true
+    }
+    const active = memberships.find(isActive) ?? memberships[0] ?? null
+    const activeParty = active
+      ? (Array.isArray(active.party) ? active.party[0] : active.party) ?? null
+      : null
+
+    type DeclRow = {
+      id: string
+      declaration_date: string | null
+      source_url: string | null
+      raw_data: Record<string, unknown> | null
+    }
+    const rawDecls = (data.economic_declarations ?? []) as DeclRow[]
+
+    const docs: PoliticianDeclarationDoc[] = rawDecls.map((d) => {
+      const raw = (d.raw_data ?? {}) as Record<string, unknown>
+      const incomesRaw = Array.isArray(raw.incomes) ? (raw.incomes as Array<Record<string, unknown>>) : []
+      const incomes = incomesRaw
+        .map((inc) => ({ source: String(inc.source ?? ""), amount: toNum(inc.amount) ?? 0 }))
+        .filter((inc) => inc.amount > 0)
+      const activitiesRaw = Array.isArray(raw.activities) ? (raw.activities as Array<Record<string, unknown>>) : []
+      const activities: PoliticianDeclarationActivity[] = activitiesRaw.map((a) => ({
+        type: a.type != null ? String(a.type) : null,
+        period: a.period != null ? String(a.period) : null,
+        employer: a.employer != null ? String(a.employer) : null,
+        sector: a.sector != null ? String(a.sector) : null,
+        description: a.description != null ? String(a.description) : null,
+        declaration: a.declaration != null ? String(a.declaration) : null,
+      }))
+      return {
+        id: d.id,
+        type: raw.type != null ? String(raw.type) : null,
+        declaration_date: d.declaration_date,
+        source: raw.source != null ? String(raw.source) : null,
+        source_url: d.source_url,
+        total_income: toNum(raw.total_income),
+        irpf_paid: toNum(raw.irpf_paid),
+        inmuebles: toInt(raw.inmuebles_mentioned),
+        vehiculos: toInt(raw.vehiculos_mentioned),
+        financial_assets: toInt(raw.financial_assets_mentioned),
+        incomes,
+        activities,
+        ocr_text: raw.ocr_text != null ? String(raw.ocr_text) : null,
+        ocr_status: raw.ocr_status != null ? String(raw.ocr_status) : null,
+      }
+    })
+
+    // Newest first within the same type.
+    docs.sort((a, b) => (b.declaration_date ?? "").localeCompare(a.declaration_date ?? ""))
+
+    return {
+      politician: {
+        id: data.id,
+        full_name: data.full_name ?? null,
+        photo_url: data.photo_url ?? null,
+        photo_variants: (data.photo_variants as Record<string, string> | null) ?? null,
+        party_acronym: activeParty?.acronym ?? null,
+        party_color: activeParty?.color ?? null,
+        party_id: activeParty?.id ?? null,
+        group_parliamentary: active?.group_parliamentary ?? null,
+        chamber: active?.chamber ?? null,
+      },
+      docs,
+    }
+  },
+  ["politician-declarations-v1"],
+  { revalidate: HOUR }
+)
+
+export async function getPoliticianDeclarations(id: string): Promise<PoliticianDeclarationsResult | null> {
+  try {
+    return await getPoliticianDeclarationsCached(id)
+  } catch {
+    return null
+  }
+}
+
 export { PAGE_SIZE }
