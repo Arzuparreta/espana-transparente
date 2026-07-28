@@ -17,6 +17,7 @@ Usage:
 
 import argparse
 import re
+import shutil
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -133,6 +134,16 @@ def _resume_filter(retry_failed: bool) -> str:
           AND raw_data->>'ocr_processed_at' IS NULL
           {status_filter}
     """
+
+
+def _require_ocr_runtime() -> None:
+    """Fail before touching rows when the host cannot render PDF pages."""
+    missing = [binary for binary in ("pdfinfo", "pdftoppm") if not shutil.which(binary)]
+    if missing:
+        raise RuntimeError(
+            "poppler-utils is required for declarations OCR; "
+            f"missing binaries: {', '.join(missing)}"
+        )
 
 
 def _with_ocr_success(existing: dict[str, Any], fields: dict[str, Any]) -> dict[str, Any]:
@@ -326,6 +337,13 @@ def run(
         cur.close()
         conn.close()
         return
+
+    if total == 0:
+        cur.close()
+        conn.close()
+        return
+
+    _require_ocr_runtime()
 
     # Load EasyOCR once, then parallelize with threads (GIL is released during inference)
     print("Loading EasyOCR Spanish model (one-time)...")

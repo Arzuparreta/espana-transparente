@@ -1,9 +1,22 @@
+import pytest
+
 from congreso.declaraciones_ocr import (
+    _require_ocr_runtime,
     _resume_filter,
     _source_filter_for_kind,
     _with_ocr_failure,
     _with_ocr_success,
 )
+
+
+def test_ocr_runtime_fails_before_processing_without_poppler(monkeypatch):
+    monkeypatch.setattr(
+        "congreso.declaraciones_ocr.shutil.which",
+        lambda binary: None if binary == "pdfinfo" else f"/usr/bin/{binary}",
+    )
+
+    with pytest.raises(RuntimeError, match="poppler-utils.*pdfinfo"):
+        _require_ocr_runtime()
 
 
 def test_source_filter_for_bienes_rentas_targets_docbienes():
