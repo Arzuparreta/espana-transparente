@@ -65,6 +65,14 @@ publicly.
 The runner uses `uv` to maintain a persistent Python 3.12 environment under
 `RUNNER_TOOL_CACHE`. Keep the custom setup action so scheduled jobs reuse that
 environment instead of downloading Python and dependencies for every batch.
+The host must also have `poppler-utils` installed (`pdfinfo` and `pdftoppm`);
+the declarations OCR pipeline uses it through `pdf2image`. The setup action
+fails early if those binaries are absent, avoiding a successful-looking batch
+that only records empty OCR results.
+
+```bash
+sudo apt-get install --no-install-recommends poppler-utils
+```
 
 Scheduled operations:
 
