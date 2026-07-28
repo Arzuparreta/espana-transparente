@@ -99,8 +99,9 @@ production while retaining its Docker volumes, run `supabase stop` without
 volumes are regular Docker volumes and that option removes them.
 
 The nginx configuration is tracked at
-`ops/nginx/espana-transparente.conf`. UFW exposes only SSH, HTTP/HTTPS, and other
-explicit VPS services; ports 54321-54324 stay blocked from the public network.
+`ops/nginx/espana-transparente.conf`. Docker-published ports bypass ordinary UFW
+input rules, so `espana-transparente-supabase-firewall.service` installs IPv4
+and IPv6 `DOCKER-USER` rules that block public access to ports 54321-54329.
 The public `/supabase/` route allowlists Auth, REST, Storage, Realtime, and
 GraphQL and returns 404 for Studio/pg_meta/analytics paths.
 
@@ -109,6 +110,7 @@ System services:
 ```bash
 systemctl status espana-transparente-runner.service
 systemctl status espana-transparente-supabase-log-prune.timer
+systemctl status espana-transparente-supabase-firewall.service
 ```
 
 ## Critical backups

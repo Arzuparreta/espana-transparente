@@ -1,0 +1,14 @@
+[Unit]
+Description=Keep Espana Transparente Supabase ports private
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/Proyectos/espana-transparente
+ExecStart=/root/Proyectos/espana-transparente/scripts/lock-down-supabase-ports.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
