@@ -101,7 +101,7 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 | Base de datos | Supabase (PostgreSQL) |
 | ETL | Python 3.12 + psycopg2 + httpx |
 | CI/CD | GitHub Actions (cron diario/semanal + deploy SSH a VPS) |
-| Despliegue | VPS propio (Node 20 + PM2 + nginx) + Supabase autoalojado (Tailscale Funnel) |
+| Despliegue | VPS propio (Node 20 + PM2 + nginx + Supabase autoalojado) |
 
 ## Cómo arrancar
 

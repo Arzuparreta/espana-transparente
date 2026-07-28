@@ -1,0 +1,12 @@
+[Unit]
+Description=Prune Espana Transparente Supabase analytics logs
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/Proyectos/espana-transparente
+Environment=SUPABASE_ANALYTICS_LOG_MAX_BYTES=1073741824
+Environment=SUPABASE_ANALYTICS_KEEP_RECENT_ROWS=50000
+ExecStart=/root/Proyectos/espana-transparente/scripts/prune-supabase-analytics-logs.sh
+Nice=10

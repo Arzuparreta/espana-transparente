@@ -1,0 +1,20 @@
+[Unit]
+Description=GitHub Actions runner for espana-transparente
+After=network-online.target docker.service
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=et-runner
+Group=et-runner
+WorkingDirectory=/opt/espana-transparente-runner
+Environment=HOME=/var/lib/et-runner
+Environment=RUNNER_TOOL_CACHE=/var/cache/espana-transparente-runner
+Environment=PATH=/var/lib/et-runner/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/espana-transparente-runner/run.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

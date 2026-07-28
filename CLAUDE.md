@@ -48,7 +48,7 @@ python apply_migration.py ../supabase/migrations/<file>.sql   # direct apply via
 npx supabase db push                                          # via Supabase CLI
 ```
 
-Migration files are sorted by timestamped prefix. Local project ref is `espana-transparente` (`supabase/config.toml`); both commands above target the self-hosted stack on `desktop-ruben`.
+Migration files are sorted by timestamped prefix. Local project ref is `espana-transparente` (`supabase/config.toml`); production migrations run on the VPS runner against PostgreSQL on `127.0.0.1:54322`.
 
 ## Architecture
 
@@ -139,7 +139,7 @@ Data pages stay factual steel: the thesis orders and frames the data; charts and
 
 ## Operational notes
 
-- Production hostname: `spaintransparencia.info`. Frontend self-hosted on a VPS (Node 20 + PM2 + nginx, see `web/ecosystem.config.js`); DB is a self-hosted Supabase stack exposed publicly via a Tailscale Funnel (`https://desktop-ruben.taileed0d5.ts.net`, `tailscale funnel --bg 54321`) — both client and server use this URL as `NEXT_PUBLIC_SUPABASE_URL`. The `zktpodkvlgciluhbulwr.supabase.co` cloud project referenced in `etl/.env`/`.mcp.json` is legacy/paused and not production.
+- Production hostname: `spaintransparencia.info`. Frontend, self-hosted Supabase, and the GitHub Actions ETL runner live on the VPS. nginx exposes only the public Supabase APIs below `https://spaintransparencia.info/supabase`; PostgreSQL, Studio, pg_meta, analytics, and Mailpit remain private. Both client and server use that URL as `NEXT_PUBLIC_SUPABASE_URL`. The `zktpodkvlgciluhbulwr.supabase.co` cloud project referenced in `etl/.env`/`.mcp.json` is legacy/paused and not production.
 - **Deploy:** pushing to `main` auto-deploys via the `deploy-web` job in `ci.yml`, which SSHes to the VPS and runs `scripts/deploy-vps.sh` (git reset to `origin/main` → `npm ci` → `npm run build` → `pm2 restart espana-transparente-web`). The job runs the build **detached** on the VPS so a dropped SSH session can't kill it, then polls a completion marker. Manual deploy uses the same script: `ssh root@<VPS_HOST> 'bash /root/Proyectos/espana-transparente/scripts/deploy-vps.sh'`. Health check: `https://spaintransparencia.info/api/health` returns `{"status":"ok","database":"ok"}`.
 
 ## Skill routing

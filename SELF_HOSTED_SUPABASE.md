@@ -1,9 +1,9 @@
 # Self-hosted Supabase production
 
-Production uses the Supabase stack on `desktop-ruben`. The VPS frontend
-(`spaintransparencia.info`) reaches its HTTP API through Tailscale Funnel; ETL
-and migration jobs run on the same machine through the `desktop-ruben` GitHub
-Actions runner and connect to PostgreSQL on `127.0.0.1:54322`.
+Production is consolidated on the VPS: Next.js, nginx, the Supabase stack, and
+the GitHub Actions runner all run on the same machine. nginx exposes only the
+public Supabase APIs below `https://spaintransparencia.info/supabase`; ETL and
+migration jobs connect directly to PostgreSQL on `127.0.0.1:54322`.
 
 The old `zktpodkvlgciluhbulwr.supabase.co` project is not part of the production
 data path. Do not add it back as a fallback: a reachable but obsolete project
@@ -14,12 +14,12 @@ looks like an empty database and hides configuration drift.
 ```text
 Browser
   -> https://spaintransparencia.info (VPS: Next.js + PM2 + nginx)
-  -> https://desktop-ruben.taileed0d5.ts.net
-  -> Tailscale Funnel
+  -> https://spaintransparencia.info/supabase
+  -> nginx public-API allowlist
   -> Supabase Kong on 127.0.0.1:54321
 
 GitHub Actions ETL / migrations
-  -> self-hosted runner: desktop-ruben
+  -> self-hosted runner: VPS
   -> PostgreSQL on 127.0.0.1:54322
 
 GitHub Actions deploy (push to main)
@@ -56,15 +56,15 @@ ADMIN_PASSWORD
 Repo secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` authenticate the deploy job
 against the VPS.
 
-The runner is installed as the user service
-`espana-transparente-runner.service`, with lingering enabled so it starts after
-a reboot. Every push to `main` applies pending migrations before the next ETL
-cycle. Daily and weekly ETLs run on this self-hosted runner because PostgreSQL
-is not exposed publicly.
+The runner is installed as the system service
+`espana-transparente-runner.service` under the unprivileged `et-runner` user.
+Every push to `main` applies pending migrations before the next ETL cycle.
+Daily and weekly ETLs run on this runner because PostgreSQL is not exposed
+publicly.
 
 The runner uses `uv` to maintain a persistent Python 3.12 environment under
-`RUNNER_TOOL_CACHE`. Do not use `actions/setup-python` on this CachyOS host:
-the action does not provide CachyOS toolcache builds.
+`RUNNER_TOOL_CACHE`. Keep the custom setup action so scheduled jobs reuse that
+environment instead of downloading Python and dependencies for every batch.
 
 Scheduled operations:
 
@@ -81,6 +81,35 @@ without GitHub's job-concurrency behavior cancelling older pending jobs.
 The weekly work is split into three jobs so OCR/BORME have an independent
 timeout and cannot prevent judicial, lobbying, indicator, and search refreshes
 from running.
+
+## VPS runtime
+
+The production checkout is `/root/Proyectos/espana-transparente`. Supabase is
+kept on CLI `2.108.0` until an upgrade is tested separately from the hosting
+migration:
+
+```bash
+cd /root/Proyectos/espana-transparente
+NPM_CONFIG_CACHE=/root/.npm-et-supabase npx -y supabase@2.108.0 start
+```
+
+The containers use `unless-stopped`, so they return after a VPS reboot. To stop
+production while retaining its Docker volumes, run `supabase stop` without
+`--no-backup`. Never use `supabase stop --no-backup` on the VPS: the production
+volumes are regular Docker volumes and that option removes them.
+
+The nginx configuration is tracked at
+`ops/nginx/espana-transparente.conf`. UFW exposes only SSH, HTTP/HTTPS, and other
+explicit VPS services; ports 54321-54324 stay blocked from the public network.
+The public `/supabase/` route allowlists Auth, REST, Storage, Realtime, and
+GraphQL and returns 404 for Studio/pg_meta/analytics paths.
+
+System services:
+
+```bash
+systemctl status espana-transparente-runner.service
+systemctl status espana-transparente-supabase-log-prune.timer
+```
 
 ## Critical backups
 
@@ -137,11 +166,11 @@ API:    http://127.0.0.1:54321
 DB:     postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
-## Local Supabase storage location
+## Retained desktop rollback copy
 
-The desktop stack keeps the heavy local Supabase data on the HDD, not on the
-root SSD. Docker still uses the standard Supabase CLI volume names, but they are
-local bind volumes:
+After the VPS migration, the stopped desktop stack remains a rollback copy on
+the HDD. It is not part of the production path. Docker still uses the standard
+Supabase CLI volume names, backed by these local bind volumes:
 
 ```text
 supabase_db_espana-transparente
@@ -156,12 +185,12 @@ Verify the wiring before destructive Docker cleanup:
 docker volume inspect supabase_db_espana-transparente supabase_storage_espana-transparente
 ```
 
-Both volumes should show `Options.type=none`, `Options.o=bind`, and `Options.device`
-pointing at `/mnt/storage/docker-volumes/espana-transparente/...`. Do not recreate
-these as regular Docker volumes unless you intentionally want the DB/storage data
-back under `/var/lib/docker` on the SSD.
+Both volumes should show `Options.type=none`, `Options.o=bind`, and
+`Options.device` pointing at
+`/mnt/storage/docker-volumes/espana-transparente/...`. Do not start this stack
+while production ETLs target the VPS unless intentionally performing a rollback.
 
-## Keep local analytics logs bounded
+## Keep analytics logs bounded
 
 The local Supabase analytics container stores Logflare events in the
 `_supabase._analytics.log_events_*` tables. These logs are useful for short-term
@@ -175,11 +204,11 @@ log storage to 1 GiB by default:
 scripts/prune-supabase-analytics-logs.sh
 ```
 
-The desktop user timer runs it hourly:
+The VPS system timer runs it hourly:
 
 ```bash
-systemctl --user status espana-transparente-supabase-log-prune.timer
-systemctl --user start espana-transparente-supabase-log-prune.service
+systemctl status espana-transparente-supabase-log-prune.timer
+systemctl start espana-transparente-supabase-log-prune.service
 ```
 
 Use the publishable and secret keys printed by `npx supabase status`; do not
@@ -339,7 +368,7 @@ The migration chain has been patched for clean bootstrap from an empty database:
 | `refresh_vote_divergences_cache()` | Added DISTINCT ON to prevent duplicate cache entries |
 | `refresh_search_documents(text)` | Added DISTINCT ON to vote_divergence CTE (`20260704000000`) to prevent duplicate entity_ids |
 | `refresh_search_person_aliases()` | Truncated alias values to 500 chars to avoid btree index size limit |
-| `.github/workflows/ci.yml` | Runs daily/weekly ETLs on `desktop-ruben` with a persistent `uv` Python 3.12 environment |
+| `.github/workflows/ci.yml` | Runs daily/weekly ETLs on the VPS runner with a persistent `uv` Python 3.12 environment |
 | `.github/workflows/auth-backup.yml` | Daily encrypted critical backup with 30-day retention and restore validation |
 | `.github/workflows/critical-restore.yml` | Dry-run/apply recovery workflow with natural-key review restoration |
 | `.github/workflows/ci.yml` | Added `congreso.power_relationships` to weekly ETL job |
@@ -350,7 +379,7 @@ The migration chain has been patched for clean bootstrap from an empty database:
 
 - The migration chain must stay reproducible from an empty database.
 - Avoid migrations that depend on rows produced by historical ETL runs.
-- Keep Tailscale Funnel and the GitHub runner online; `/api/health` verifies the
+- Keep nginx, Supabase, and the GitHub runner online; `/api/health` verifies the
   public path after every production deployment.
 - `/api/health` checks availability only. Data freshness is reported separately
   on the home page and `/estado-datos`: 36 hours for daily critical sources and

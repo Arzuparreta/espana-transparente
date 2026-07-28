@@ -38,7 +38,7 @@ pública) are published as raw tables that require economics training to interpr
 
 ## Constraints
 
-- Self-hosted Postgres (`desktop-ruben`, behind Tailscale Funnel). No new heavy tables without auditing current usage first.
+- Self-hosted Postgres on the production VPS, private on `127.0.0.1:54322`. No new heavy tables without auditing current usage first.
 - `transparencia.gob.es` is the government's own portal — Spain has a documented pattern of
   labeling accountability journalism as partisan. Source-backed defensibility and legal-risk
   hygiene are non-negotiable.
@@ -572,8 +572,8 @@ tab (conditional on data) + `EntityTrail` with `EntityTrailSkeleton` fallback. D
 
 - **Web CI** (`lint`, `ui:audit`, `content:audit`, `search:routes`, `build`): ✅ Passing on push/PR to main
 - **ETL check** (`pytest`, `--dry-run`): ✅ Passing on push/PR to main
-- **ETL daily** (diputados, asistencia, INE base, contratos, BDNS, territorio, geolocalización, fotos, BORME, OCR, search): 04:00 UTC on `desktop-ruben`
-- **ETL weekly** (cods, declaraciones, iniciativas, gobierno, responsables, cargos públicos, presupuestos, UE, senado, OCR, BORME, lobbying, OpenData, judicial, INE ampliado, IPC subgrupos, deuda Eurostat, elecciones, search): Mondays 06:00 UTC on `desktop-ruben`
+- **ETL daily** (diputados, asistencia, INE base, contratos, BDNS, territorio, geolocalización, fotos, BORME, OCR, search): 04:00 UTC on the VPS runner
+- **ETL weekly** (cods, declaraciones, iniciativas, gobierno, responsables, cargos públicos, presupuestos, UE, senado, OCR, BORME, lobbying, OpenData, judicial, INE ampliado, IPC subgrupos, deuda Eurostat, elecciones, search): Mondays 06:00 UTC on the VPS runner
 - **Critical backup**: 02:30 UTC daily, encrypted, 30-day artifact retention
 - **Auth health**: 03:15 UTC daily, read-only
 - All production database writers share one concurrency group.

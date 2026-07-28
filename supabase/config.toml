@@ -151,7 +151,7 @@ enabled = true
 # in emails.
 site_url = "https://spaintransparencia.info"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
-# external_url = ""
+external_url = "https://spaintransparencia.info/supabase"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = [
   "http://127.0.0.1:3000",
