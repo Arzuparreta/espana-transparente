@@ -33,6 +33,11 @@ REQUEST_DELAY = 1.2  # free tier: 200 req/day, be conservative
 BATCH_SIZE = 5
 MAX_RETRIES = 3
 
+
+class OpenMercantilRateLimited(RuntimeError):
+    """The provider kept rejecting requests after the bounded retry window."""
+
+
 # ── Prefix patterns that don't contain the actual company name ────────────────
 ADMIN_PREFIXES = [
     r"(?i)\bconsejo\s+de\s+administraci[oó]n[^a-z]*",
@@ -146,11 +151,13 @@ def search_company(client: httpx.Client, query: str) -> dict[str, Any] | None:
     """Search OpenMercantil for a company by name and return the best match."""
     url = f"{API_BASE}/search"
     params = {"q": query}
+    rate_limited = False
 
     for attempt in range(MAX_RETRIES):
         try:
             resp = client.get(url, params=params, timeout=30.0)
             if resp.status_code == 429:
+                rate_limited = True
                 wait = 10 * (attempt + 1)
                 print(f"(rate limited, waiting {wait}s)", end=' ', flush=True)
                 time.sleep(wait)
@@ -168,6 +175,10 @@ def search_company(client: httpx.Client, query: str) -> dict[str, Any] | None:
         except Exception:
             time.sleep(1)
             continue
+    if rate_limited:
+        raise OpenMercantilRateLimited(
+            f"OpenMercantil kept rate-limiting search for {query!r}"
+        )
     return None
 
 
@@ -239,6 +250,7 @@ def _validate_match(org_name: str, match: dict, min_similarity: float = 0.35) ->
 def fetch_officers_for_slug(client: httpx.Client, slug: str) -> dict[str, Any] | None:
     """Fetch officers for a company given its OpenMercantil slug."""
     url = f"{API_BASE}/company/{slug}"
+    rate_limited = False
 
     for attempt in range(MAX_RETRIES):
         try:
@@ -246,6 +258,7 @@ def fetch_officers_for_slug(client: httpx.Client, slug: str) -> dict[str, Any] |
             if resp.status_code == 404:
                 return None
             if resp.status_code == 429:
+                rate_limited = True
                 time.sleep(5 * (attempt + 1))
                 continue
             if resp.status_code >= 500:
@@ -259,6 +272,10 @@ def fetch_officers_for_slug(client: httpx.Client, slug: str) -> dict[str, Any] |
         except Exception:
             time.sleep(1)
             continue
+    if rate_limited:
+        raise OpenMercantilRateLimited(
+            f"OpenMercantil kept rate-limiting officer data for {slug!r}"
+        )
     return None
 
 
@@ -388,9 +405,15 @@ def _api_health_check(client: httpx.Client) -> bool:
     """Quick preflight: test that the OpenMercantil API is reachable."""
     try:
         resp = client.get(f"{API_BASE}/search", params={"q": "test"}, timeout=15.0)
+        if resp.status_code == 429:
+            raise OpenMercantilRateLimited(
+                "OpenMercantil rate limit is already exhausted"
+            )
         resp.raise_for_status()
         data = resp.json()
         return "items" in data
+    except OpenMercantilRateLimited:
+        raise
     except Exception as exc:
         print(f"OpenMercantil API unreachable: {exc}")
         return False
@@ -423,7 +446,13 @@ def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -
                 timeout=httpx.Timeout(connect=10.0, read=20.0, write=10.0, pool=5.0),
                 transport=httpx.HTTPTransport(local_address="0.0.0.0"),
             ) as client:
-                if not _api_health_check(client):
+                try:
+                    api_reachable = _api_health_check(client)
+                except OpenMercantilRateLimited as exc:
+                    print(f"OpenMercantil batch deferred: {exc}. Resume on the next schedule.")
+                    return processed, total_officers
+
+                if not api_reachable:
                     print("ERROR: OpenMercantil API is not reachable. Aborting.")
                     return processed, total_officers
 
@@ -432,7 +461,16 @@ def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -
                     print(f"[{i+1}/{len(orgs)}] {name_short}...", end=' ', flush=True)
 
                     # Step 1: Find company via search API
-                    match = find_company(client, org['name'], org.get('cif'))
+                    try:
+                        match = find_company(client, org['name'], org.get('cif'))
+                    except OpenMercantilRateLimited as exc:
+                        conn.commit()
+                        remaining = len(orgs) - i
+                        print(
+                            f"\nOpenMercantil batch deferred after {processed} orgs: "
+                            f"{exc}. {remaining} orgs remain for the next schedule."
+                        )
+                        break
                     if not match:
                         print("(no match)")
                         processed += 1
@@ -444,7 +482,16 @@ def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -
                     print(f"→ {matched_name[:50]}", end=' ', flush=True)
 
                     # Step 2: Fetch officers via company slug
-                    data = fetch_officers_for_slug(client, matched_slug)
+                    try:
+                        data = fetch_officers_for_slug(client, matched_slug)
+                    except OpenMercantilRateLimited as exc:
+                        conn.commit()
+                        remaining = len(orgs) - i
+                        print(
+                            f"\nOpenMercantil batch deferred after {processed} orgs: "
+                            f"{exc}. {remaining} orgs remain for the next schedule."
+                        )
+                        break
                     if not data:
                         print("(no officer data)")
                     else:
