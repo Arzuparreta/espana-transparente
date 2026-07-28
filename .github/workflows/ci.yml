@@ -26,6 +26,9 @@ on:
           - checks-only
           - daily
           - weekly
+          - weekly-core
+          - weekly-documents
+          - weekly-links
           - all
   schedule:
     - cron: '0 4 * * *'   # etl-daily
@@ -195,8 +198,9 @@ jobs:
     name: ETL weekly core
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1') ||
-      (github.event_name == 'workflow_dispatch' &&
-       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
+       (github.event_name == 'workflow_dispatch' &&
+       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'weekly-core' ||
+        inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 180
     defaults:
@@ -218,8 +222,9 @@ jobs:
     name: ETL weekly documents
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1') ||
-      (github.event_name == 'workflow_dispatch' &&
-       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
+       (github.event_name == 'workflow_dispatch' &&
+       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'weekly-documents' ||
+        inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 360
     defaults:
@@ -241,8 +246,9 @@ jobs:
     name: ETL weekly links and indexes
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '0 6 * * 1') ||
-      (github.event_name == 'workflow_dispatch' &&
-       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'all'))
+       (github.event_name == 'workflow_dispatch' &&
+       (inputs.etl_batch == 'weekly' || inputs.etl_batch == 'weekly-links' ||
+        inputs.etl_batch == 'all'))
     runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 240
     defaults:
