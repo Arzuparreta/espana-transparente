@@ -246,3 +246,55 @@ class _FakeConn:
 
     def close(self):
         return None
+
+
+# ── block-page detection ─────────────────────────────────────────────────────
+
+_BLOCK_PAGE = """<HTML><HEAD>
+<TITLE>Access Denied</TITLE>
+</HEAD><BODY>
+<H1>Access Denied</H1>
+You don't have permission to access "http://www.senado.es/web/" on this server.
+<P>Reference&#32;&#35;18&#46;1234</P>
+</BODY></HTML>"""
+
+
+def test_block_page_is_recognised():
+    """Distinguish "we were blocked" from "the markup changed".
+
+    Both surface as "the parser found nothing", but only one is a code problem,
+    and saying which saves the next person the investigation.
+    """
+    from common.http_headers import looks_like_block_page
+
+    assert looks_like_block_page(_BLOCK_PAGE) is True
+
+
+def test_real_page_is_not_mistaken_for_a_block():
+    from common.http_headers import looks_like_block_page
+
+    real = "<html><body>" + ("<li>ABDESELAM AL LAL, ABDELHAKIM</li>" * 200) + "</body></html>"
+    assert looks_like_block_page(real) is False
+
+
+def test_long_page_quoting_the_phrase_is_not_a_block():
+    """The denial body is tiny; a real page merely quoting it must pass."""
+    from common.http_headers import looks_like_block_page
+
+    article = "<html><body>" + ("x" * 5000) + "Access Denied</body></html>"
+    assert looks_like_block_page(article) is False
+
+
+def test_fetch_raises_a_specific_error_when_blocked(monkeypatch):
+    import subprocess as sp
+
+    from senado import senadores as mod
+
+    class _R:
+        returncode = 0
+        stdout = _BLOCK_PAGE.encode()
+        stderr = b""
+
+    monkeypatch.setattr(sp, "run", lambda *a, **kw: _R())
+    with pytest.raises(RuntimeError, match="Access Denied page"):
+        mod._fetch("https://www.senado.es/web/anything")

@@ -15,7 +15,7 @@ import subprocess
 import time
 import psycopg2.extras
 from common.db import get_pg_conn
-from common.http_headers import curl_header_args
+from common.http_headers import curl_header_args, looks_like_block_page
 
 BASE_URL = "https://www.senado.es"
 REQUEST_DELAY = 1.5
@@ -73,7 +73,14 @@ def _fetch(url: str) -> str:
     )
     if result.returncode != 0:
         raise RuntimeError(f"curl failed for {url}: {result.stderr.decode()[:200]}")
-    return result.stdout.decode("utf-8", errors="replace")
+    text = result.stdout.decode("utf-8", errors="replace")
+    if looks_like_block_page(text):
+        raise RuntimeError(
+            f"senado.es refused {url} with its Access Denied page — this IP is "
+            "rate-limited or blocked, not a markup change. Wait it out; the "
+            "scrapers already send the browser headers the front-end requires."
+        )
+    return text
 
 
 def _get_meta(html: str, name: str) -> str:

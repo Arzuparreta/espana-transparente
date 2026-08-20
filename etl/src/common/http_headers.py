@@ -39,3 +39,21 @@ def curl_header_args(extra: dict[str, str] | None = None) -> list[str]:
     for name, value in headers.items():
         args += ["-H", f"{name}: {value}"]
     return args
+
+
+# Akamai's denial page for this host: a tiny HTML body with this exact title.
+# Worth naming explicitly — the block and a markup change both surface as "the
+# parser found nothing", and only one of them is a code problem.
+_ACCESS_DENIED_MARKERS = ("<title>access denied</title>", "you don't have permission to access")
+
+
+def looks_like_block_page(html: str) -> bool:
+    """True when `html` is the front-end's denial page rather than content.
+
+    The body is ~400 bytes, so the length check keeps a real page that happens
+    to quote one of these phrases from being misread as a block.
+    """
+    if len(html) > 4096:
+        return False
+    lowered = html.lower()
+    return any(marker in lowered for marker in _ACCESS_DENIED_MARKERS)

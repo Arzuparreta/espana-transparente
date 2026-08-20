@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 
 import psycopg2.extras
 from common.db import get_pg_conn
-from common.http_headers import curl_header_args
+from common.http_headers import curl_header_args, looks_like_block_page
 from common.etl_runs import finish_run, start_run
 
 BASE = "https://www.senado.es"
@@ -137,12 +137,22 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
         timeout=60,
     )
     raw = result.stdout
+    text = None
     for enc in ("utf-8", "iso-8859-1", "windows-1252", "latin1"):
         try:
-            return raw.decode(enc)
+            text = raw.decode(enc)
+            break
         except UnicodeDecodeError:
             continue
-    return raw.decode("utf-8", errors="replace")
+    if text is None:
+        text = raw.decode("utf-8", errors="replace")
+    if looks_like_block_page(text):
+        raise RuntimeError(
+            f"senado.es refused {url} with its Access Denied page — this IP is "
+            "rate-limited or blocked, not a markup change. Wait it out; the "
+            "scrapers already send the browser headers the front-end requires."
+        )
+    return text
 
 
 def senate_id_from_name(full_name: str) -> str:
