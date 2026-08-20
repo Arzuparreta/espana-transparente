@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Espana Transparente Next.js cache pruning daily
+
+[Timer]
+OnBootSec=20min
+OnUnitActiveSec=24h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Prune the Espana Transparente Next.js build cache
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/Proyectos/espana-transparente
+Environment=NEXT_CACHE_MAX_BYTES=5368709120
+ExecStart=/root/Proyectos/espana-transparente/scripts/prune-next-cache.sh
+Nice=10
