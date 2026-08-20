@@ -44,11 +44,17 @@ def download_with_final_url(
     *,
     user_agent: str = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)",
     timeout: float = 30.0,
+    extra_headers: dict[str, str] | None = None,
 ) -> DownloadResult:
-    """Download a photo and return bytes plus the final redirect-resolved URL."""
+    """Download a photo and return bytes plus the final redirect-resolved URL.
+
+    `extra_headers` lets a source add whatever its portal's front-end demands
+    (senado.es, for one, refuses requests without browser navigation headers).
+    """
+    headers = {"User-Agent": user_agent, **(extra_headers or {})}
     try:
         with httpx.Client(follow_redirects=True, timeout=timeout,
-                          headers={"User-Agent": user_agent}) as client:
+                          headers=headers) as client:
             resp = client.get(url)
         resp.raise_for_status()
     except httpx.HTTPError as exc:

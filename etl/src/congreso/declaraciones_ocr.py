@@ -16,6 +16,7 @@ Usage:
 """
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -38,7 +39,15 @@ OCR_DPI = 150  # resolution for PDF→image conversion (150 is good enough for S
 BATCH_SIZE = 5  # how many PDFs to process before committing
 PDF_CONVERT_TIMEOUT = 60  # seconds per PDF conversion
 PDF_CONVERT_THREADS = 2
-PARALLEL_WORKERS = 4  # number of parallel OCR workers
+PARALLEL_WORKERS = 2  # number of parallel OCR workers
+# EasyOCR runs on CPU torch. Left alone, every worker opens its own OMP thread
+# pool sized to the core count and each pool allocates its own inference
+# buffers, so peak RSS scales with workers × cores rather than with workers.
+# On the 11 GB VPS runner that reached ~7 GB and tripped the global OOM killer,
+# which took the whole Actions runner down mid-batch. One torch thread per
+# worker keeps the pipeline inside a predictable envelope; OCR here is
+# throughput-bound on page count, not on per-page parallelism.
+TORCH_THREADS_PER_WORKER = 1
 OCR_MAX_PAGES = 3  # only OCR first N pages (skip boilerplate instruction pages)
 
 DECLARATION_KIND_PATTERNS = {
@@ -347,6 +356,14 @@ def run(
 
     # Load EasyOCR once, then parallelize with threads (GIL is released during inference)
     print("Loading EasyOCR Spanish model (one-time)...")
+    # These must be set before torch is first imported: the OMP runtime reads
+    # them when it builds its pool, and set_num_threads alone cannot shrink an
+    # already-allocated pool.
+    os.environ.setdefault("OMP_NUM_THREADS", str(TORCH_THREADS_PER_WORKER))
+    os.environ.setdefault("MKL_NUM_THREADS", str(TORCH_THREADS_PER_WORKER))
+    import torch
+
+    torch.set_num_threads(TORCH_THREADS_PER_WORKER)
     import easyocr
     reader = easyocr.Reader(["es"], gpu=False)
     print(f"OCR ready. Processing with {workers} threads.")

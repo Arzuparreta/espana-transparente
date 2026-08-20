@@ -76,7 +76,7 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
 
     sql = f"""
         SELECT p.id::text AS id, p.congress_id, p.full_name, p.first_name, p.last_name,
-               p.cod_parlamentario, p.wikidata_qid,
+               p.cod_parlamentario, p.wikidata_qid, p.photo_url,
                (
                  SELECT party.acronym
                  FROM politician_memberships pm
@@ -121,6 +121,7 @@ def _select_candidates(opts: RunOptions) -> list[PoliticianRow]:
             party_acronym=r["party_acronym"],
             position_types=tuple(r["position_types"] or ()),
             active_legislature_number=r["active_legislature_number"],
+            photo_url=r["photo_url"],
         )
         for r in rows
     ]

@@ -89,20 +89,32 @@ def _fetch_sparql(query: str) -> list[dict]:
 
 class WikidataSource:
     name = "wikidata"
-    priority = 2
+    priority = 3
 
     # Lower threshold = more false positives. 0.6 + 2-shared-token guard works well
     # because Spanish full names are 3–4 tokens after dropping particles.
     MIN_JACCARD = 0.6
     MIN_SHARED_TOKENS = 2
 
+    # The index is one query for the whole run. Without a cap, a SPARQL outage
+    # makes every candidate re-attempt it (RETRIES requests each), which turns a
+    # blip into hundreds of calls against a service that is already struggling.
+    MAX_INDEX_ATTEMPTS = 3
+
     def __init__(self) -> None:
         self._index: Optional[list[dict]] = None
         self._by_congress_id: dict[str, dict] = {}
+        self._index_attempts = 0
 
     def _ensure_index(self) -> None:
         if self._index is not None:
             return
+        if self._index_attempts >= self.MAX_INDEX_ATTEMPTS:
+            raise RuntimeError(
+                f"Wikidata SPARQL index unavailable after "
+                f"{self._index_attempts} attempts this run — not retrying"
+            )
+        self._index_attempts += 1
         print("[wikidata] fetching SPARQL index (Spanish politicians with photos)...")
         rows = _fetch_sparql(SPARQL_QUERY)
         entries: list[dict] = []

@@ -154,3 +154,57 @@ def test_fetch_senate_session_votations_skips_malformed_xml(monkeypatch):
     )
 
     assert fetch_senate_session_votations("https://www.senado.es/bad.xml", attempts=1) == []
+
+
+def test_run_fails_when_no_session_file_parses(monkeypatch):
+    """Discovery and fetching use different paths on senado.es.
+
+    The catalog lives under /web/ while the session XMLs live under /legisNN/,
+    so discovery can succeed while every fetch returns a block page.
+    fetch_senate_session_votations swallows unparseable XML as an empty list,
+    which would otherwise be reported as a successful run that read nothing.
+    """
+    import pytest
+
+    from src.senado import votaciones as mod
+
+    monkeypatch.setattr(
+        mod,
+        "discover_session_vote_urls",
+        lambda **kw: [
+            f"https://www.senado.es/legis15/votaciones/ses_{n}.xml" for n in range(1, 4)
+        ],
+    )
+    monkeypatch.setattr(mod, "fetch_senate_session_votations", lambda url: [])
+    monkeypatch.setattr(mod, "build_senator_index", lambda cur: {})
+    monkeypatch.setattr(mod, "start_run", lambda cur, **kw: "run-1")
+    monkeypatch.setattr(mod, "finish_run", lambda cur, **kw: None)
+    monkeypatch.setattr(mod, "get_pg_conn", lambda: _FakeVotesConn())
+
+    with pytest.raises(RuntimeError, match="yielded parseable votes"):
+        mod.run()
+
+
+class _FakeVotesCursor:
+    def execute(self, *args, **kwargs):
+        return None
+
+    def fetchone(self):
+        return ("00000000-0000-0000-0000-000000000001",)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakeVotesConn:
+    def cursor(self, *args, **kwargs):
+        return _FakeVotesCursor()
+
+    def commit(self):
+        return None
+
+    def close(self):
+        return None

@@ -32,7 +32,7 @@ SELECT DISTINCT ?person ?personLabel ?photo WHERE {
 
 class AlcaldesWikidataSource:
     name = "alcaldes_wikidata"
-    priority = 3
+    priority = 4
 
     MIN_JACCARD = 0.55
     MIN_SHARED_TOKENS = 2

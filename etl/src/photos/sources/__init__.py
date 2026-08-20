@@ -7,12 +7,14 @@ until one returns valid bytes for a given politician.
 from .base import PhotoSource, PoliticianRow, SourceMatch
 from .wikidata import WikidataSource
 from .congreso import CongresoOficialSource
+from .senado import SenadoOficialSource
 from .alcaldes_wikidata import AlcaldesWikidataSource
 
 ALL_SOURCES: list[PhotoSource] = [
     CongresoOficialSource(),     # priority 1: retrato oficial del Congreso
-    WikidataSource(),            # priority 2: P1768 / nombre + Commons P18
-    AlcaldesWikidataSource(),    # priority 3: Wikidata vía P39 = alcalde de <municipio>
+    SenadoOficialSource(),       # priority 2: retrato oficial del Senado (senadores)
+    WikidataSource(),            # priority 3: P1768 / nombre + Commons P18
+    AlcaldesWikidataSource(),    # priority 4: Wikidata vía P39 = alcalde de <municipio>
 ]
 
 __all__ = [
@@ -22,5 +24,6 @@ __all__ = [
     "ALL_SOURCES",
     "WikidataSource",
     "CongresoOficialSource",
+    "SenadoOficialSource",
     "AlcaldesWikidataSource",
 ]

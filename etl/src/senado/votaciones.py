@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.http_headers import curl_header_args
 from common.etl_runs import finish_run, start_run
 from common.utils import normalize_name
 
@@ -31,7 +32,6 @@ OPEN_DATA_CATALOG_URL = (
     f"{BASE}/web/relacionesciudadanos/datosabiertos/catalogodatos/"
     "sesionesplenariascd/votacionescd/index.html"
 )
-UA = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)"
 REQUEST_DELAY = 1.5
 DEFAULT_MAX_SESSION = 120
 
@@ -126,7 +126,7 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
+        ["curl", "-sL", "--compressed", *curl_header_args(), url],
         capture_output=True,
         timeout=60,
     )
@@ -143,7 +143,7 @@ def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", "-H", f"User-Agent: {UA}", url],
+        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=30,
@@ -631,6 +631,14 @@ def run(
     urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
     print(f"Discovered {len(urls)} Senate session XML files")
 
+    # Past sessions stay published, so an empty discovery is a blocked request
+    # or a moved catalog — not a legislature without votes.
+    if not urls:
+        raise RuntimeError(
+            "Senate open-data catalog returned 0 session files — refusing to "
+            "report success; the source is blocked or its catalog moved"
+        )
+
     if dry_run:
         for url in urls[:5]:
             votations = fetch_senate_session_votations(url)
@@ -655,8 +663,11 @@ def run(
             rows_read = 0
             rows_inserted = 0
             rows_unmatched = 0
+            sessions_parsed = 0
             for i, url in enumerate(urls, 1):
                 votations = fetch_senate_session_votations(url)
+                if votations:
+                    sessions_parsed += 1
                 if resume and votations:
                     cur.execute(
                         """
@@ -688,6 +699,19 @@ def run(
                 print(
                     f"  {i}/{len(urls)} {url.rsplit('/', 1)[-1]}: "
                     f"{len(votations)} votaciones, {session_inserted}/{session_read} matched"
+                )
+
+            # Discovery reads the catalog over /web/, but the session XMLs live
+            # under /legisNN/ — a path senado.es serves separately. If every one
+            # of them came back unparseable, we fetched a block page 60 times;
+            # fetch_senate_session_votations swallows that as an empty list, so
+            # without this the run would report success having read nothing.
+            # Under --resume, already-ingested sessions still parse before being
+            # skipped, so this only fires on a genuine fetch failure.
+            if sessions_parsed == 0:
+                raise RuntimeError(
+                    f"None of the {len(urls)} discovered Senate session files "
+                    "yielded parseable votes — refusing to report success"
                 )
 
             finish_run(

@@ -94,7 +94,16 @@ run_weekly_core() {
     --watchlist data/personas_vigiladas.yml
   run_pipeline "instituciones.instituciones" python -m src.instituciones.instituciones
   run_pipeline "public_bodies.boe_nombramientos" python -m src.public_bodies.boe_nombramientos --days 7 --resume
-  run_self_tracked_pipeline "kohesio.fondos_ue" python -m src.kohesio.fondos_ue
+  # Kohesio is fetched on a GitHub-hosted runner (this IP is 403'd by the EC
+  # edge) and handed over as a file. Fall back to a direct fetch when the
+  # payload is absent, so manual runs from an unblocked host still work.
+  if [[ -n "${KOHESIO_PAYLOAD:-}" && -s "${KOHESIO_PAYLOAD}" ]]; then
+    run_self_tracked_pipeline "kohesio.fondos_ue" \
+      python -m src.kohesio.fondos_ue --from-file "${KOHESIO_PAYLOAD}"
+  else
+    echo "::warning title=Kohesio payload missing::Falling back to a direct fetch"
+    run_self_tracked_pipeline "kohesio.fondos_ue" python -m src.kohesio.fondos_ue
+  fi
   run_pipeline "territorio.municipios" python -m src.territorio.municipios
   run_pipeline "senado.senadores" python -m src.senado.senadores
   run_self_tracked_pipeline "senado.bajas" python -m src.senado.bajas
