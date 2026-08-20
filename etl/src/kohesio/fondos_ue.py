@@ -4,8 +4,9 @@ Fetches from kohesio.ec.europa.eu/api/beneficiaries with country=Q7 (Spain's
 entity in the Kohesio LOD graph) and upserts records into the eu_funds table.
 
 API limitation: offset > 0 returns 400 for large page sizes. The API accepts
-up to limit=30000 at offset=0. Total Spanish beneficiaries are ~72K; this ETL
-ingests up to MAX_FETCH (~30K) per run — enough to cover all major recipients.
+up to limit=30000 at offset=0. Spain reports ~80.6K beneficiaries (verified
+2026-08-20), so each run ingests the top MAX_FETCH (~30K) by the API's own
+ordering — enough to cover all major recipients.
 
 Egress constraint: kohesio.ec.europa.eu sits behind an AWS load balancer that
 returns a bare 403 to the VPS runner's IP for every path, headers or not. The
@@ -45,6 +46,7 @@ from common.organizations import upsert_organization
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
 MAX_FETCH = 30_000
+
 
 class TransientHTTPError(Exception):
     """A 429/5xx worth retrying. Other 4xx are raised as-is and fail fast."""
