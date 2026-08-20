@@ -453,8 +453,14 @@ def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -
                     return processed, total_officers
 
                 if not api_reachable:
-                    print("ERROR: OpenMercantil API is not reachable. Aborting.")
-                    return processed, total_officers
+                    # Returning here recorded the run as 'succeeded' with zero
+                    # officers, which is indistinguishable from "checked
+                    # everything, found nothing" in the status table. An
+                    # unreachable upstream is a failure and must read as one.
+                    raise RuntimeError(
+                        "OpenMercantil API is not reachable — aborting before "
+                        "reporting a run that examined nothing"
+                    )
 
                 for i, org in enumerate(orgs):
                     name_short = org['name'][:60]
