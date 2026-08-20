@@ -9,11 +9,15 @@ up to limit=30000 at offset=0. Spain reports ~80.6K beneficiaries (verified
 ordering — enough to cover all major recipients.
 
 Egress constraint: kohesio.ec.europa.eu sits behind an AWS load balancer that
-returns a bare 403 to the VPS runner's IP for every path, headers or not. The
-fetch is therefore split from the ingest: a GitHub-hosted runner (whose egress
-is not blocked) writes the raw payload with --fetch-only, and the self-hosted
-runner ingests that file with --from-file. Direct runs still work anywhere the
-API is reachable.
+403s datacenter traffic on every path, headers or not. Verified 2026-08-20 from
+both the VPS runner and a GitHub-hosted runner; the same requests succeed from a
+residential connection, so the block is on the network, not the request.
+
+There is therefore no automated path to this API from any runner we control.
+--fetch-only writes the payload from a machine that *can* reach it, and
+--from-file ingests that payload on the VPS; point KOHESIO_PAYLOAD at the file
+to wire it into the weekly batch. Without one, the weekly run attempts a direct
+fetch and fails loudly rather than leaving eu_funds silently stale.
 
 Usage:
     PYTHONPATH=src python -m src.kohesio.fondos_ue
