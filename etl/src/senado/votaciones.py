@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.http_headers import curl_header_args
 from common.etl_runs import finish_run, start_run
 from common.utils import normalize_name
 
@@ -31,7 +32,6 @@ OPEN_DATA_CATALOG_URL = (
     f"{BASE}/web/relacionesciudadanos/datosabiertos/catalogodatos/"
     "sesionesplenariascd/votacionescd/index.html"
 )
-UA = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)"
 REQUEST_DELAY = 1.5
 DEFAULT_MAX_SESSION = 120
 
@@ -126,7 +126,7 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
+        ["curl", "-sL", "--compressed", *curl_header_args(), url],
         capture_output=True,
         timeout=60,
     )
@@ -143,7 +143,7 @@ def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", "-H", f"User-Agent: {UA}", url],
+        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=30,
@@ -630,6 +630,14 @@ def run(
 ) -> None:
     urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
     print(f"Discovered {len(urls)} Senate session XML files")
+
+    # Past sessions stay published, so an empty discovery is a blocked request
+    # or a moved catalog — not a legislature without votes.
+    if not urls:
+        raise RuntimeError(
+            "Senate open-data catalog returned 0 session files — refusing to "
+            "report success; the source is blocked or its catalog moved"
+        )
 
     if dry_run:
         for url in urls[:5]:

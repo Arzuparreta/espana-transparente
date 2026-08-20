@@ -134,3 +134,115 @@ def test_scrape_ficha_offline(monkeypatch):
     assert result["tipo_procedencia"] == "DESIGNADO"
     assert result["procedencia"] == "ANDALUCÍA"
     assert result["photo_url"] == "https://www.senado.es/legis15/senadores/fotos/S15001.jpg"
+
+
+# ── request headers (regression: senado.es 403 from datacenter IPs) ──────────
+
+def test_curl_header_args_carries_sec_fetch():
+    """senado.es only serves content when the request looks like a navigation.
+
+    Plain curl (any User-Agent) gets a 403 "Access Denied" from Akamai when the
+    caller is a datacenter IP; adding the Sec-Fetch-* set is what unblocks it.
+    """
+    from common.http_headers import curl_header_args
+
+    args = curl_header_args()
+    rendered = dict(
+        arg.split(": ", 1) for flag, arg in zip(args[::2], args[1::2]) if flag == "-H"
+    )
+    assert rendered["Sec-Fetch-Mode"] == "navigate"
+    assert rendered["Sec-Fetch-Dest"] == "document"
+    assert rendered["Sec-Fetch-Site"] == "none"
+    assert "Chrome" in rendered["User-Agent"]
+
+
+def test_senado_scrapers_use_shared_headers():
+    """All three Senate scrapers must go through the same header set."""
+    import inspect
+
+    from senado import bajas, senadores, votaciones
+
+    for module in (senadores, bajas, votaciones):
+        source = inspect.getsource(module)
+        assert "curl_header_args()" in source, module.__name__
+        assert 'f"User-Agent: {UA}"' not in source, module.__name__
+
+
+# ── scrape_list parsing ──────────────────────────────────────────────────────
+
+_LIST_HTML = """
+<ul class="lista-alterna">
+<li class="alterna three-col"><span class="col-1"><a title="ficha"
+href="/web/composicionorganizacion/senadores/composicionsenado/fichasenador/index.html;jsessionid=ABC?id1=19848&legis=15"
+class="text_c2">ABDESELAM AL LAL, ABDELHAKIM</a></span><span class="col-2">
+<abbr title="GRUPO PARLAMENTARIO POPULAR EN EL SENADO">GPP</abbr></span>
+<span class="col-3">Electo:  Ceuta</span></li>
+<li class=" three-col"><span class="col-1"><a title="ficha"
+href="/web/composicionorganizacion/senadores/composicionsenado/fichasenador/index.html;jsessionid=ABC?id1=20017&legis=15"
+class="text_c2">ADRIAN GUTIERREZ, MIGUEL ANGEL</a></span><span class="col-2">
+<abbr title="GRUPO PARLAMENTARIO SOCIALISTA">GPS</abbr></span>
+<span class="col-3">Electo:  Burgos</span></li>
+</ul>
+"""
+
+
+def _scrape_list_from(html, monkeypatch):
+    from senado import senadores as mod
+
+    monkeypatch.setattr(mod, "LETTERS", ["A"])
+    monkeypatch.setattr(mod, "REQUEST_DELAY", 0)
+    monkeypatch.setattr(mod, "_fetch", lambda url: html)
+    return mod.scrape_list()
+
+
+def test_scrape_list_extracts_ids_and_row_text(monkeypatch):
+    rows = _scrape_list_from(_LIST_HTML, monkeypatch)
+    assert [r["senate_id_num"] for r in rows] == ["19848", "20017"]
+    # Each row must carry its OWN <li> text, not the first <li> on the page.
+    assert rows[0]["li_text"].startswith("ABDESELAM AL LAL, ABDELHAKIM")
+    assert rows[1]["li_text"].startswith("ADRIAN GUTIERREZ, MIGUEL ANGEL")
+    # Opening-tag attributes must not leak into the text.
+    assert "three-col" not in rows[0]["li_text"]
+
+
+def test_scrape_list_row_text_supports_name_fallback(monkeypatch):
+    """run() falls back to li_text.split("G")[0] when the ficha has no name."""
+    rows = _scrape_list_from(_LIST_HTML, monkeypatch)
+    assert rows[0]["li_text"].split("G")[0].strip() == "ABDESELAM AL LAL, ABDELHAKIM"
+
+
+def test_run_refuses_to_succeed_on_empty_index(monkeypatch):
+    """A blocked scrape must fail loudly, not report a successful no-op run.
+
+    This is the regression that mattered most: senado.es answered 403, the
+    parser found zero senators, and the pipeline still recorded 'succeeded',
+    so the site showed months-old Senate data with a green status.
+    """
+    from senado import senadores as mod
+
+    monkeypatch.setattr(mod, "scrape_list", lambda: [])
+    monkeypatch.setattr(mod, "get_pg_conn", lambda: _FakeConn())
+    with pytest.raises(RuntimeError, match="0 senators"):
+        mod.run(dry_run=True)
+
+
+class _FakeCursor:
+    def execute(self, *args, **kwargs):
+        return None
+
+    def fetchone(self):
+        return (1,)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakeConn:
+    def cursor(self, *args, **kwargs):
+        return _FakeCursor()
+
+    def close(self):
+        return None

@@ -281,3 +281,115 @@ def test_photo_source_errors_fail_when_nothing_was_updated():
 
     assert _exit_code(RunStats(candidates=1, source_errors=1)) == 1
     assert _exit_code(RunStats(candidates=2, updated=1, source_errors=1)) == 0
+
+
+# ── senado_oficial source ────────────────────────────────────────────────────
+
+def _senator_row(photo_url="https://www.senado.es/legis15/senadores/fotos/S15110.jpg"):
+    from photos.sources.base import PoliticianRow
+
+    return PoliticianRow(
+        id="00000000-0000-0000-0000-000000000001",
+        congress_id="sen-test-1",
+        full_name="TEST SENADOR",
+        first_name="Test",
+        last_name="Senador",
+        cod_parlamentario=None,
+        wikidata_qid=None,
+        party_acronym="PP",
+        photo_url=photo_url,
+    )
+
+
+def test_senado_source_ignores_non_senate_photo_urls():
+    from photos.sources.senado import SenadoOficialSource
+
+    src = SenadoOficialSource()
+    assert src.find(_senator_row(photo_url=None)) is None
+    assert src.find(_senator_row("https://www.congreso.es/docu/imgweb/x.jpg")) is None
+
+
+def test_senado_source_retires_after_repeated_failures(monkeypatch):
+    """senado.es blocks its static photo path from datacenter IPs.
+
+    The source must record that once and stop, instead of re-failing for every
+    senator in the backlog and inflating source_errors by two orders of
+    magnitude.
+    """
+    from photos import validate
+    from photos.sources import senado as senado_source
+
+    calls = {"n": 0}
+
+    def _always_blocked(*args, **kwargs):
+        calls["n"] += 1
+        raise validate.PhotoValidationError("unexpected content-type: 'text/html'")
+
+    monkeypatch.setattr(senado_source, "download_with_final_url", _always_blocked)
+
+    src = senado_source.SenadoOficialSource()
+    for _ in range(50):
+        assert src.find(_senator_row()) is None
+
+    assert calls["n"] == senado_source.CIRCUIT_BREAK_AFTER
+
+
+def test_senado_source_returns_match_when_reachable(monkeypatch):
+    from photos.sources import senado as senado_source
+    from photos.validate import DownloadResult
+
+    monkeypatch.setattr(
+        senado_source,
+        "download_with_final_url",
+        lambda url, **kw: DownloadResult(data=b"raw", final_url=url, content_type="image/jpeg"),
+    )
+    monkeypatch.setattr(senado_source, "to_webp_square", lambda data: b"webp")
+
+    match = senado_source.SenadoOficialSource().find(_senator_row())
+    assert match is not None
+    assert match.source == "senado_oficial"
+    assert match.source_url.endswith("S15110.jpg")
+
+
+def test_senado_source_sends_browser_headers(monkeypatch):
+    from photos.sources import senado as senado_source
+    from photos.validate import DownloadResult
+
+    seen = {}
+
+    def _capture(url, **kw):
+        seen.update(kw)
+        return DownloadResult(data=b"raw", final_url=url, content_type="image/jpeg")
+
+    monkeypatch.setattr(senado_source, "download_with_final_url", _capture)
+    monkeypatch.setattr(senado_source, "to_webp_square", lambda data: b"webp")
+    senado_source.SenadoOficialSource().find(_senator_row())
+
+    assert seen["extra_headers"]["Sec-Fetch-Dest"] == "image"
+    assert "Chrome" in seen["user_agent"]
+
+
+# ── wikidata index backoff ───────────────────────────────────────────────────
+
+def test_wikidata_index_stops_refetching_after_repeated_failures(monkeypatch):
+    """A SPARQL outage must cost a bounded number of requests per run.
+
+    Previously the index was only cached on success, so every candidate
+    re-triggered the whole fetch (RETRIES requests each) during an outage.
+    """
+    from photos.sources import wikidata as wd
+
+    calls = {"n": 0}
+
+    def _boom(query):
+        calls["n"] += 1
+        raise RuntimeError("Wikidata SPARQL failed after 3 retries: HTTP Error 502")
+
+    monkeypatch.setattr(wd, "_fetch_sparql", _boom)
+
+    src = wd.WikidataSource()
+    for _ in range(40):
+        with pytest.raises(RuntimeError):
+            src._ensure_index()
+
+    assert calls["n"] == wd.WikidataSource.MAX_INDEX_ATTEMPTS

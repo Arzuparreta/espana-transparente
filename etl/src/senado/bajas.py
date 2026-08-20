@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.http_headers import curl_header_args
 from common.etl_runs import finish_run, start_run
 
 BASE = "https://www.senado.es"
@@ -33,7 +34,6 @@ BAJAS_ALFABETICA_URL = (
     f"{BASE}/web/composicionorganizacion/senadores/composicionsenado/"
     "modificacionescomposicion/ListaAlfabetica/index.html"
 )
-UA = "Mozilla/5.0 (compatible; EspanaTransparente/1.0)"
 REQUEST_DELAY = 1.5
 LEGISLATURE_NUMBER = 15
 
@@ -132,7 +132,7 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", "-H", f"User-Agent: {UA}", url],
+        ["curl", "-sL", "--compressed", *curl_header_args(), url],
         capture_output=True,
         timeout=60,
     )
@@ -334,6 +334,14 @@ def run(dry_run: bool = False) -> None:
     html = curl_text(BAJAS_ALFABETICA_URL, delay=0)
     records = parse_bajas_page(html)
     print(f"Found {len(records)} former senators (bajas)")
+
+    # The bajas index is cumulative for the whole legislature, so it is never
+    # legitimately empty. Zero means the request was blocked or the markup moved.
+    if not records:
+        raise RuntimeError(
+            "Senate bajas index returned 0 records — refusing to report success; "
+            "the source is blocked or its markup changed"
+        )
 
     if dry_run:
         for r in records:

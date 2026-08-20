@@ -3,7 +3,7 @@
 Adds to the existing IPC indicators:
   - PIB (GDP) — quarterly, from Contabilidad Nacional Trimestral
   - PIB_VAR_ANUAL — annual GDP variation, quarterly
-  - TASA_PARO — unemployment rate, from EPA (annual)
+  - TASA_PARO — unemployment rate, from EPA (quarterly)
   - PARADOS — number of unemployed people, from EPA (quarterly)
   - SALARIO_MEDIO — average gross salary, from EAES (annual)
 
@@ -37,7 +37,11 @@ INDICATORS: dict[str, dict[str, str]] = {
         "unit": "%",
     },
     # ── Paro / Desempleo — Encuesta de Población Activa (EPA) ──
-    "EPA667825": {
+    # EPA423474 is the quarterly national rate. The annual series (EPA667825)
+    # was used until 2026-08 and left the headline figure a year stale while
+    # PARADOS — the same survey, same table — was already current; the site's
+    # own copy describes this indicator as quarterly.
+    "EPA423474": {
         "code": "TASA_PARO",
         "name": "Tasa de paro — EPA",
         "unit": "%",

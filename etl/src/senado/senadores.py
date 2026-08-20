@@ -15,10 +15,10 @@ import subprocess
 import time
 import psycopg2.extras
 from common.db import get_pg_conn
+from common.http_headers import curl_header_args
 
 BASE_URL = "https://www.senado.es"
 REQUEST_DELAY = 1.5
-UA = "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0"
 LEGISLATURE_NUMBER = 15
 
 LETTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + ["%c3%91"]  # Ñ URL-encoded
@@ -68,7 +68,7 @@ CANONICAL_PARTY_NAMES = {
 
 def _fetch(url: str) -> str:
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", "-A", UA, url],
+        ["curl", "-sL", "--compressed", *curl_header_args(), url],
         capture_output=True, timeout=30
     )
     if result.returncode != 0:
@@ -129,24 +129,30 @@ def scrape_list() -> list[dict]:
         html = _fetch(url)
         time.sleep(REQUEST_DELAY)
 
-        # Each senator is in a <li> that contains a <a href="...fichasenador...?id1=NNN&legis=15">
-        items = re.findall(
-            r'<a\s[^>]*href="(/web/[^"]*fichasenador[^"]*id1=(\d+)[^"]*)"[^>]*>(.*?)</a>',
-            html, re.DOTALL | re.IGNORECASE
-        )
-        for href, senate_id_num, _name_in_link in items:
+        # Each senator is one <li> holding "NAME  GROUP  type: CONSTITUENCY" and a
+        # link to their ficha. Split on <li> first so each entry is matched
+        # inside its own block: searching the whole document for a <li>…</li>
+        # around a given href matched from the first <li> on the page instead,
+        # which fed page chrome into li_text.
+        items = 0
+        for block in re.split(r"<li\b", html, flags=re.IGNORECASE)[1:]:
+            m = re.search(
+                r'href="(/web/[^"]*fichasenador[^"]*id1=(\d+)[^"]*)"',
+                block, re.IGNORECASE
+            )
+            if not m:
+                continue
+            href, senate_id_num = m.group(1), m.group(2)
+            items += 1
             if senate_id_num in seen_ids:
                 continue
             seen_ids.add(senate_id_num)
 
-            # The surrounding <li> has the structured text: "NAME    GROUP    type: CONSTITUENCY"
-            # Find the <li> that contains this href
-            li_match = re.search(
-                rf'<li[^>]*>.*?{re.escape(href.split(";")[0])}.*?</li>',
-                html, re.DOTALL
-            )
-            li_text = re.sub(r"<[^>]+>", " ", li_match.group(0)).strip() if li_match else ""
-            li_text = re.sub(r"\s+", " ", li_text)
+            # `block` still starts with the rest of the opening <li ...> tag;
+            # drop it so its attributes do not leak into the text.
+            li_body = block.split(">", 1)[-1].split("</li>", 1)[0]
+            li_text = re.sub(r"<[^>]+>", " ", li_body)
+            li_text = re.sub(r"\s+", " ", li_text).strip()
 
             senators.append({
                 "senate_id_num": senate_id_num,
@@ -154,7 +160,7 @@ def scrape_list() -> list[dict]:
                 "li_text": li_text,
             })
 
-        print(f"  {letter}: {len(items)} senators")
+        print(f"  {letter}: {items} senators")
 
     return senators
 
@@ -272,6 +278,15 @@ def run(dry_run: bool = False) -> None:
     print("Scraping senator list (A-Z+Ñ)...")
     raw_list = scrape_list()
     print(f"Total senators found: {len(raw_list)}")
+
+    # The Senate always has ~250 sitting members. An empty index means the
+    # scrape was blocked or the markup changed — never a real emptying of the
+    # chamber — so fail loudly instead of reporting a successful no-op run.
+    if not raw_list:
+        raise RuntimeError(
+            "Senate alphabetical index returned 0 senators — refusing to report "
+            "success; the source is blocked or its markup changed"
+        )
 
     ok = 0
     for i, entry in enumerate(raw_list):

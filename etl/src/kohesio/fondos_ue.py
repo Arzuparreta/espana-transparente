@@ -7,16 +7,27 @@ API limitation: offset > 0 returns 400 for large page sizes. The API accepts
 up to limit=30000 at offset=0. Total Spanish beneficiaries are ~72K; this ETL
 ingests up to MAX_FETCH (~30K) per run — enough to cover all major recipients.
 
+Egress constraint: kohesio.ec.europa.eu sits behind an AWS load balancer that
+returns a bare 403 to the VPS runner's IP for every path, headers or not. The
+fetch is therefore split from the ingest: a GitHub-hosted runner (whose egress
+is not blocked) writes the raw payload with --fetch-only, and the self-hosted
+runner ingests that file with --from-file. Direct runs still work anywhere the
+API is reachable.
+
 Usage:
     PYTHONPATH=src python -m src.kohesio.fondos_ue
     PYTHONPATH=src python -m src.kohesio.fondos_ue --dry-run
     PYTHONPATH=src python -m src.kohesio.fondos_ue --limit 500   # partial ingest
+    PYTHONPATH=src python -m src.kohesio.fondos_ue --fetch-only beneficiaries.json
+    PYTHONPATH=src python -m src.kohesio.fondos_ue --from-file beneficiaries.json
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 import httpx
 import psycopg2.extras
@@ -35,7 +46,11 @@ API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
 MAX_FETCH = 30_000
 
-_TRANSIENT = (httpx.TransportError, httpx.HTTPStatusError, httpx.ReadTimeout)
+class TransientHTTPError(Exception):
+    """A 429/5xx worth retrying. Other 4xx are raised as-is and fail fast."""
+
+
+_TRANSIENT = (httpx.TransportError, httpx.ReadTimeout, TransientHTTPError)
 
 
 def _to_decimal(value: str | float | None) -> Decimal | None:
@@ -59,12 +74,41 @@ def fetch_all(client: httpx.Client, limit: int) -> tuple[list[dict], int]:
         params={"country": SPAIN_ENTITY, "limit": limit, "offset": 0},
         timeout=120,
     )
-    # 5xx and 429 → retry. 4xx (other than 429) → fail fast.
+    # 5xx and 429 → retry. 4xx (other than 429) → fail fast: a 403 from the
+    # edge is a standing block, and hammering it four more times helps nobody.
     if resp.status_code == 429 or resp.status_code >= 500:
-        resp.raise_for_status()
+        raise TransientHTTPError(f"{resp.status_code} from Kohesio, retrying")
     resp.raise_for_status()
     data = resp.json()
     return data["list"], data["numberResults"]
+
+
+def fetch_to_file(destination: Path, limit: int | None = None) -> int:
+    """Fetch the beneficiary payload and write it verbatim for a later ingest."""
+    fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
+    with httpx.Client(headers={"Accept": "application/json"}) as client:
+        print(f"Fetching up to {fetch_limit:,} beneficiaries from Kohesio...")
+        items, total_remote = fetch_all(client, fetch_limit)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(
+        json.dumps({"list": items, "numberResults": total_remote}), encoding="utf-8"
+    )
+    print(
+        f"Wrote {len(items):,} of {total_remote:,} Spanish beneficiaries "
+        f"to {destination}"
+    )
+    return len(items)
+
+
+def _load_items(source: Path) -> tuple[list[dict], int]:
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    items = payload["list"]
+    if not items:
+        raise RuntimeError(
+            f"{source} contains no beneficiaries — refusing to ingest an empty "
+            "payload over live data"
+        )
+    return items, payload.get("numberResults", len(items))
 
 
 def upsert_batch(conn, rows: list[dict]) -> int:
@@ -158,11 +202,16 @@ def link_beneficiary_organizations(conn, batch_size: int = 2000) -> tuple[int, i
     return linked, len(unique_labels)
 
 
-def run(dry_run: bool = False, limit: int | None = None) -> None:
-    fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
-    with httpx.Client(headers={"Accept": "application/json"}) as client:
-        print(f"Fetching up to {fetch_limit:,} beneficiaries from Kohesio...")
-        items, total_remote = fetch_all(client, fetch_limit)
+def run(dry_run: bool = False, limit: int | None = None,
+        from_file: Path | None = None) -> None:
+    if from_file is not None:
+        items, total_remote = _load_items(from_file)
+        print(f"Loaded {len(items):,} beneficiaries from {from_file}")
+    else:
+        fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
+        with httpx.Client(headers={"Accept": "application/json"}) as client:
+            print(f"Fetching up to {fetch_limit:,} beneficiaries from Kohesio...")
+            items, total_remote = fetch_all(client, fetch_limit)
 
     print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
 
@@ -218,8 +267,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=None, help="Max records to fetch (for testing)")
+    parser.add_argument("--fetch-only", type=Path, default=None, metavar="PATH",
+                        help="Fetch the payload to PATH and exit (no database writes)")
+    parser.add_argument("--from-file", type=Path, default=None, metavar="PATH",
+                        help="Ingest a payload previously written by --fetch-only")
     args = parser.parse_args()
-    run(dry_run=args.dry_run, limit=args.limit)
+    if args.fetch_only and args.from_file:
+        parser.error("--fetch-only and --from-file are mutually exclusive")
+    if args.fetch_only:
+        fetch_to_file(args.fetch_only, limit=args.limit)
+        return
+    run(dry_run=args.dry_run, limit=args.limit, from_file=args.from_file)
 
 
 if __name__ == "__main__":

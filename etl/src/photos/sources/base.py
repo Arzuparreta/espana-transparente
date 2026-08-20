@@ -22,6 +22,9 @@ class PoliticianRow:
     party_acronym: Optional[str]
     position_types: tuple[str, ...] = ()
     active_legislature_number: Optional[int] = None
+    # Portrait URL already published by the chamber that seats this person
+    # (senado.es for senators). Sources that can re-host it read it from here.
+    photo_url: Optional[str] = None
 
 
 @dataclass(frozen=True)

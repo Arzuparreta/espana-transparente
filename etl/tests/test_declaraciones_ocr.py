@@ -77,3 +77,28 @@ def test_ocr_failure_preserves_existing_payload_and_records_attempt():
     assert merged["ocr_status"] == "failed"
     assert merged["ocr_error"] == "download_failed"
     assert "ocr_attempted_at" in merged
+
+
+def test_ocr_memory_envelope_is_bounded():
+    """The OCR batch must stay inside the 11 GB runner.
+
+    On 2026-08-20 four workers with unbounded torch thread pools peaked at
+    ~7 GB RSS and tripped the global OOM killer, which took down the Actions
+    runner mid-batch and truncated the whole daily ETL run.
+    """
+    from congreso import declaraciones_ocr as mod
+
+    assert mod.PARALLEL_WORKERS <= 2
+    assert mod.TORCH_THREADS_PER_WORKER == 1
+
+
+def test_ocr_pins_thread_env_before_importing_torch():
+    """OMP reads its pool size at import time; set_num_threads cannot shrink it."""
+    import inspect
+
+    source = inspect.getsource(
+        __import__("congreso.declaraciones_ocr", fromlist=["run"]).run
+    )
+    omp_at = source.index('OMP_NUM_THREADS')
+    torch_at = source.index('import torch')
+    assert omp_at < torch_at, "OMP_NUM_THREADS must be set before torch is imported"
