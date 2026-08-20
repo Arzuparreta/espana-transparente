@@ -145,6 +145,12 @@ jobs:
       - run: PYTHONPATH=src python -m src.public_bodies.boe_nombramientos --dry-run --days 1
       - run: PYTHONPATH=src python -m src.ine.ipc_subgrupos --dry-run
       - run: PYTHONPATH=src python -m src.elections.ingest --dry-run
+      # The weekly Kohesio fetch depends on hosted-runner egress reaching the EC
+      # edge, which 403s the VPS runner outright. This is the only place that
+      # assumption gets exercised between weekly runs — if it breaks, the
+      # fetch/ingest split needs rethinking, and a red check here says so.
+      - name: Kohesio reachable from a hosted runner
+        run: PYTHONPATH=src python -m src.kohesio.fondos_ue --fetch-only "${RUNNER_TEMP}/kohesio-smoke.json" --limit 5
 
   database-migrate:
     name: Apply self-hosted database migrations
