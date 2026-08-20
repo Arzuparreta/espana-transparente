@@ -133,3 +133,63 @@ def test_from_file_refuses_an_empty_payload(tmp_path):
     dest.write_text(json.dumps({"list": [], "numberResults": 0}))
     with pytest.raises(RuntimeError, match="no beneficiaries"):
         _load_items(dest)
+
+
+def test_a_failed_fetch_is_recorded_as_a_failed_run(monkeypatch):
+    """A 403 must land in etl_runs, not leave the last success standing.
+
+    fetch_all used to run before start_run, so an unreachable API produced no
+    etl_runs entry at all and /estado-datos kept showing the previous week's
+    success instead of the failure that had just happened.
+    """
+    from kohesio import fondos_ue as mod
+
+    calls = {"start": 0, "finish": []}
+
+    def _start(cur, **kw):
+        calls["start"] += 1
+        return "run-1"
+
+    def _finish(cur, run_id, status, **kw):
+        calls["finish"].append(status)
+
+    def _boom(limit, from_file):
+        raise httpx.HTTPStatusError(
+            "403", request=httpx.Request("GET", mod.API_BASE), response=httpx.Response(403)
+        )
+
+    monkeypatch.setattr(mod, "get_pg_conn", lambda: _FakeKohesioConn())
+    monkeypatch.setattr(mod, "start_run", _start)
+    monkeypatch.setattr(mod, "finish_run", _finish)
+    monkeypatch.setattr(mod, "_load_or_fetch", _boom)
+
+    with pytest.raises(httpx.HTTPStatusError):
+        mod.run()
+
+    assert calls["start"] == 1, "the run must be opened before the fetch"
+    assert calls["finish"] == ["failed"]
+
+
+class _FakeKohesioCursor:
+    def execute(self, *a, **kw):
+        return None
+
+    def fetchone(self):
+        return None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class _FakeKohesioConn:
+    def cursor(self, *a, **kw):
+        return _FakeKohesioCursor()
+
+    def commit(self):
+        return None
+
+    def close(self):
+        return None

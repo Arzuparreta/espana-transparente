@@ -208,20 +208,8 @@ def link_beneficiary_organizations(conn, batch_size: int = 2000) -> tuple[int, i
     return linked, len(unique_labels)
 
 
-def run(dry_run: bool = False, limit: int | None = None,
-        from_file: Path | None = None) -> None:
-    if from_file is not None:
-        items, total_remote = _load_items(from_file)
-        print(f"Loaded {len(items):,} beneficiaries from {from_file}")
-    else:
-        fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
-        with httpx.Client(headers={"Accept": "application/json"}) as client:
-            print(f"Fetching up to {fetch_limit:,} beneficiaries from Kohesio...")
-            items, total_remote = fetch_all(client, fetch_limit)
-
-    print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
-
-    rows = [
+def _to_rows(items: list[dict]) -> list[dict]:
+    return [
         {
             "id": item["id"],
             "label": item["label"] or "",
@@ -235,19 +223,45 @@ def run(dry_run: bool = False, limit: int | None = None,
         for item in items
     ]
 
+
+def _load_or_fetch(limit: int | None, from_file: Path | None) -> tuple[list[dict], int]:
+    if from_file is not None:
+        items, total_remote = _load_items(from_file)
+        print(f"Loaded {len(items):,} beneficiaries from {from_file}")
+        return items, total_remote
+    fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
+    with httpx.Client(headers={"Accept": "application/json"}) as client:
+        print(f"Fetching up to {fetch_limit:,} beneficiaries from Kohesio...")
+        return fetch_all(client, fetch_limit)
+
+
+def run(dry_run: bool = False, limit: int | None = None,
+        from_file: Path | None = None) -> None:
     if dry_run:
+        items, total_remote = _load_or_fetch(limit, from_file)
+        print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
+        rows = _to_rows(items)
         print(f"[DRY-RUN] Would upsert {len(rows):,} rows. Sample:")
         for r in rows[:3]:
             budget_m = float(r["eu_budget"] or 0) / 1_000_000
             print(f"  {r['label'][:60]:<60s}  {budget_m:>10.1f} M€  {r['number_projects']} proyectos")
         return
 
+    # Open the run before fetching. The EC edge 403s us, and a fetch that
+    # raised before start_run left no etl_runs entry at all — so the status
+    # table kept showing the last success from weeks earlier instead of the
+    # failure that just happened.
     conn = get_pg_conn()
     run_id = None
     try:
         with conn.cursor() as cur:
             run_id = start_run(cur, pipeline="kohesio.fondos_ue", chunk_key="es")
             conn.commit()
+
+        items, total_remote = _load_or_fetch(limit, from_file)
+        print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
+        rows = _to_rows(items)
+
         upserted = upsert_batch(conn, rows)
         print(f"Upserted {upserted:,} beneficiaries into eu_funds")
 
