@@ -663,8 +663,11 @@ def run(
             rows_read = 0
             rows_inserted = 0
             rows_unmatched = 0
+            sessions_parsed = 0
             for i, url in enumerate(urls, 1):
                 votations = fetch_senate_session_votations(url)
+                if votations:
+                    sessions_parsed += 1
                 if resume and votations:
                     cur.execute(
                         """
@@ -696,6 +699,19 @@ def run(
                 print(
                     f"  {i}/{len(urls)} {url.rsplit('/', 1)[-1]}: "
                     f"{len(votations)} votaciones, {session_inserted}/{session_read} matched"
+                )
+
+            # Discovery reads the catalog over /web/, but the session XMLs live
+            # under /legisNN/ — a path senado.es serves separately. If every one
+            # of them came back unparseable, we fetched a block page 60 times;
+            # fetch_senate_session_votations swallows that as an empty list, so
+            # without this the run would report success having read nothing.
+            # Under --resume, already-ingested sessions still parse before being
+            # skipped, so this only fires on a genuine fetch failure.
+            if sessions_parsed == 0:
+                raise RuntimeError(
+                    f"None of the {len(urls)} discovered Senate session files "
+                    "yielded parseable votes — refusing to report success"
                 )
 
             finish_run(
