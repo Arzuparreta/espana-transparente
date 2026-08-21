@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type TopDivergenceSessionAncla, type InflationAnchor } from "./shared"
+import { unstable_cache, dataQuerySignal, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type TopDivergenceSessionAncla, type InflationAnchor } from "./shared"
 import { getIndicatorSectionFacts } from "./conexiones"
 import { getCriticalPipelineStatuses, type EtlPipelineRow } from "@/lib/etl-pipelines"
 
@@ -272,9 +272,16 @@ export async function getHomeHeroAnchor(
 // returns the most recent successful finish across all of them. Renders in the
 // header strip on the home: "DATOS ACTUALIZADOS · 21 MAY 2026 · 14 FUENTES".
 export async function getEtlFreshnessSummary(): Promise<EtlFreshness> {
+  // abortSignal is what keeps this out of Next's fetch Data Cache: a request
+  // carrying a signal is never cached. Without it this read was served from
+  // cache indefinitely, so the header could keep announcing a delayed source
+  // for hours after the pipeline had caught up — while /estado-datos, whose
+  // query does pass a signal, showed the true state. A freshness banner that
+  // goes stale is worse than no banner.
   const { data, error } = await supabase
     .from("v_etl_pipeline_status")
     .select("pipeline, last_finished_at, last_status")
+    .abortSignal(dataQuerySignal())
   if (error) {
     return {
       status: "unavailable",
