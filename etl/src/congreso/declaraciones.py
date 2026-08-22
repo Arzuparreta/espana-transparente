@@ -45,6 +45,10 @@ DECLARATION_PATH_RE = re.compile(
     r"\d{6}_\d{3}_e_\d{7}_(?P<date>\d{8})\.pdf",
 )
 
+# Above this share of unreachable deputy pages the run is not partial, it is
+# blocked, and must not be recorded as a success.
+MAX_FETCH_ERROR_RATIO = 0.2
+
 KIND_LABEL = {
     "docbienes": "bienes_rentas",
     "docacteco": "intereses_economicos",
@@ -52,10 +56,17 @@ KIND_LABEL = {
 
 
 def curl_text(url: str) -> str:
-    result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
-        capture_output=True, text=True, timeout=30,
-    )
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
+            capture_output=True, text=True, timeout=30,
+        )
+    except subprocess.TimeoutExpired as exc:
+        # The caller skips a deputy on RuntimeError, but TimeoutExpired is not
+        # one, so a single slow response from congreso.es used to abort the whole
+        # 350-deputy run. It stalls under rate limiting, which is exactly when
+        # finishing the rest matters.
+        raise RuntimeError(f"timed out after 30s: {url}") from exc
     if result.returncode != 0:
         raise RuntimeError(f"curl failed: {result.stderr}")
     return result.stdout
@@ -153,6 +164,7 @@ def run(
     no_decls = 0
     actividades_found = 0
 
+    fetch_errors = 0
     for i, (pol_id, full_name, cod) in enumerate(politicians, start=1):
         if not cod:
             no_cod += 1
@@ -165,6 +177,7 @@ def run(
         try:
             html = curl_text(FICHA_URL.format(cod=cod))
         except RuntimeError as exc:
+            fetch_errors += 1
             print(f"FETCH ERROR: {exc}")
             continue
 
@@ -213,9 +226,19 @@ def run(
     act_summary = "" if skip_actividades else f", {actividades_found} actividades"
     print(
         f"\nDone! {inserted} upserts, "
-        f"{no_cod} without cod_parlamentario, {no_decls} without declarations"
-        f"{act_summary}.",
+        f"{no_cod} without cod_parlamentario, {no_decls} without declarations, "
+        f"{fetch_errors} fetch errors{act_summary}.",
     )
+
+    # Skipping the odd deputy is fine; skipping most of them is a blocked run
+    # wearing a success badge.
+    attempted = len(politicians) - no_cod
+    if attempted and fetch_errors > attempted * MAX_FETCH_ERROR_RATIO:
+        raise RuntimeError(
+            f"{fetch_errors} of {attempted} deputy pages failed to fetch — "
+            "congreso.es is most likely rate-limiting this IP; refusing to "
+            "report a successful run"
+        )
 
 
 def main() -> None:

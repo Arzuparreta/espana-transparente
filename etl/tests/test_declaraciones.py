@@ -52,3 +52,31 @@ def test_salazar_ficha_yields_two_bienes_updates():
 
 def test_empty_html_yields_no_declarations():
     assert parse_declarations("<html><body>nada que ver</body></html>") == []
+
+
+def test_curl_timeout_becomes_a_skippable_error(monkeypatch):
+    """A slow deputy page must not abort the whole run.
+
+    The loop skips a deputy on RuntimeError, but subprocess.TimeoutExpired is
+    not one, so one stalled request used to kill a 350-deputy run 233 deputies
+    in — and congreso.es stalls exactly when it is rate-limiting us.
+    """
+    import subprocess
+
+    import pytest
+
+    from src.congreso import declaraciones as mod
+
+    def _timeout(*a, **kw):
+        raise subprocess.TimeoutExpired(cmd="curl", timeout=30)
+
+    monkeypatch.setattr(subprocess, "run", _timeout)
+    with pytest.raises(RuntimeError, match="timed out"):
+        mod.curl_text("https://www.congreso.es/whatever")
+
+
+def test_a_mostly_blocked_run_is_not_a_success():
+    """Most pages unreachable is a blocked run, not a partial one."""
+    from src.congreso import declaraciones as mod
+
+    assert 0 < mod.MAX_FETCH_ERROR_RATIO < 1
