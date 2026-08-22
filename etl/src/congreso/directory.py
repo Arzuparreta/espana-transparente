@@ -89,7 +89,19 @@ def fetch_active_directory() -> list[ActiveDeputyDirectoryEntry]:
         "&_diputadomodule_nombreCircunscripcion="
     )
     body = _curl(SEARCH_DIPUTADOS_URL, data=payload)
-    parsed = json.loads(body)
+    try:
+        parsed = json.loads(body)
+    except json.JSONDecodeError as exc:
+        # congreso.es answers bursts with an HTML block/error page. Decoding it
+        # as JSON raises "Expecting value: line 1 column 1", which says nothing
+        # about what actually happened; name it so the next reader does not have
+        # to guess whether the endpoint moved or we were throttled.
+        snippet = body.strip()[:200].replace("\n", " ")
+        raise RuntimeError(
+            "searchDiputados did not return JSON — congreso.es is most likely "
+            "rate-limiting this IP (it serves an HTML page after bursts). "
+            f"Body starts with: {snippet!r}"
+        ) from exc
     rows = parsed.get("data", [])
     entries: list[ActiveDeputyDirectoryEntry] = []
     for row in rows:

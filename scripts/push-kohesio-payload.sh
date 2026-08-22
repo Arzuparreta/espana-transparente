@@ -18,7 +18,10 @@ set -euo pipefail
 
 REPO="${ET_REPO:-/mnt/storage/Git-projects-storage/espana-transparente}"
 VPS="${ET_VPS:-root@spaintransparencia.info}"
-REMOTE_PATH="${ET_KOHESIO_REMOTE:-/root/kohesio-beneficiaries.json}"
+# Not under /root: the Actions runner executes as et-runner and cannot even
+# traverse into root's home, so a payload left there is silently invisible to
+# it and the weekly run falls back to a direct fetch that the EC blocks.
+REMOTE_PATH="${ET_KOHESIO_REMOTE:-/var/lib/espana-transparente/kohesio-beneficiaries.json}"
 PYTHON="${ET_PYTHON:-python3}"
 
 tmp="$(mktemp -t kohesio-payload-XXXXXX.json)"
@@ -36,6 +39,9 @@ if [ "$count" -lt 1000 ]; then
 fi
 
 echo "[kohesio] pushing ${count} records to ${VPS}:${REMOTE_PATH}"
+ssh -o BatchMode=yes "$VPS" "install -d -m 755 \"\$(dirname ${REMOTE_PATH})\""
 scp -q -o BatchMode=yes "$tmp" "${VPS}:${REMOTE_PATH}.tmp"
-ssh -o BatchMode=yes "$VPS" "mv ${REMOTE_PATH}.tmp ${REMOTE_PATH}"
+# Readable by the runner user, and swapped in atomically so a half-copied file
+# is never ingested. The data is public EU beneficiary information.
+ssh -o BatchMode=yes "$VPS" "chmod 644 ${REMOTE_PATH}.tmp && mv ${REMOTE_PATH}.tmp ${REMOTE_PATH}"
 echo "[kohesio] done."

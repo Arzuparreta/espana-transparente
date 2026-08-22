@@ -42,3 +42,20 @@ def test_fetch_active_directory_returns_cod_parlamentario(monkeypatch):
 
 def test_normalize_name_strips_accents_and_collapses_spaces():
     assert normalize_name("  Álvarez   González, Alicia ") == "alvarez gonzalez, alicia"
+
+
+def test_non_json_response_names_the_rate_limit(monkeypatch):
+    """congreso.es serves HTML when throttling; the raw JSONDecodeError hid that.
+
+    "Expecting value: line 1 column 1" gives no clue whether the endpoint moved
+    or the IP was blocked — and only one of those is a code problem.
+    """
+    import pytest
+
+    from src.congreso import directory as mod
+
+    monkeypatch.setattr(
+        mod, "_curl", lambda *a, **kw: "<html><body>Forbidden</body></html>"
+    )
+    with pytest.raises(RuntimeError, match="rate-limiting"):
+        mod.fetch_active_directory()
