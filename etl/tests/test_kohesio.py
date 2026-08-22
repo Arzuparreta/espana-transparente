@@ -127,10 +127,65 @@ def test_fetch_only_then_from_file_round_trip(tmp_path, monkeypatch):
     assert items[0]["label"] == "Government of Andalusia"
 
 
+def _write_payload(path, items, *, fetched_at=None, age_days=None):
+    import datetime as _dt
+
+    if fetched_at is None:
+        when = _dt.datetime.now(_dt.timezone.utc)
+        if age_days is not None:
+            when -= _dt.timedelta(days=age_days)
+        fetched_at = when.isoformat()
+    payload = {"list": items, "numberResults": len(items)}
+    if fetched_at is not False:
+        payload["fetched_at"] = fetched_at
+    path.write_text(json.dumps(payload))
+    return path
+
+
+def test_from_file_accepts_a_fresh_payload(tmp_path):
+    dest = _write_payload(tmp_path / "k.json", [{"id": "x"}], age_days=1)
+    items, _ = _load_items(dest)
+    assert len(items) == 1
+
+
+def test_from_file_refuses_a_stale_payload(tmp_path):
+    """A handed-over payload must expire, or a dead fetcher looks healthy.
+
+    The file is copied to the VPS by whichever machine can reach Kohesio. If
+    that machine stops running, re-ingesting the same months-old file would
+    keep reporting successful runs over frozen data.
+    """
+    dest = _write_payload(tmp_path / "k.json", [{"id": "x"}], age_days=40)
+    with pytest.raises(RuntimeError, match="days ago"):
+        _load_items(dest)
+
+
+def test_from_file_refuses_an_unstamped_payload(tmp_path):
+    """Without fetched_at there is no way to tell how old the data is."""
+    dest = _write_payload(tmp_path / "k.json", [{"id": "x"}], fetched_at=False)
+    with pytest.raises(RuntimeError, match="no fetched_at"):
+        _load_items(dest)
+
+
+def test_payload_max_age_is_configurable(tmp_path):
+    dest = _write_payload(tmp_path / "k.json", [{"id": "x"}], age_days=20)
+    with pytest.raises(RuntimeError):
+        _load_items(dest, max_age_days=14)
+    assert len(_load_items(dest, max_age_days=30)[0]) == 1
+
+
+def test_fetch_only_stamps_the_payload(tmp_path, monkeypatch):
+    """The stamp comes from the fetcher, so copying the file cannot refresh it."""
+    monkeypatch.setattr("kohesio.fondos_ue.fetch_all", lambda c, l: ([{"id": "x"}], 1))
+    dest = tmp_path / "k.json"
+    fetch_to_file(dest)
+    assert "fetched_at" in json.loads(dest.read_text())
+    assert len(_load_items(dest)[0]) == 1
+
+
 def test_from_file_refuses_an_empty_payload(tmp_path):
     """An empty artifact must not be ingested over live data."""
-    dest = tmp_path / "kohesio.json"
-    dest.write_text(json.dumps({"list": [], "numberResults": 0}))
+    dest = _write_payload(tmp_path / "kohesio.json", [])
     with pytest.raises(RuntimeError, match="no beneficiaries"):
         _load_items(dest)
 
@@ -153,7 +208,7 @@ def test_a_failed_fetch_is_recorded_as_a_failed_run(monkeypatch):
     def _finish(cur, run_id, status, **kw):
         calls["finish"].append(status)
 
-    def _boom(limit, from_file):
+    def _boom(limit, from_file, max_age_days=None):
         raise httpx.HTTPStatusError(
             "403", request=httpx.Request("GET", mod.API_BASE), response=httpx.Response(403)
         )

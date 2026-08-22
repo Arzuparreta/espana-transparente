@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -50,6 +51,9 @@ from common.organizations import upsert_organization
 API_BASE = "https://kohesio.ec.europa.eu/api/beneficiaries"
 SPAIN_ENTITY = "https://linkedopendata.eu/entity/Q7"
 MAX_FETCH = 30_000
+# A handed-over payload must not be ingested forever. Kohesio moves slowly, but
+# silently re-ingesting a months-old file would look exactly like a healthy run.
+DEFAULT_PAYLOAD_MAX_AGE_DAYS = 14
 
 
 class TransientHTTPError(Exception):
@@ -97,7 +101,16 @@ def fetch_to_file(destination: Path, limit: int | None = None) -> int:
         items, total_remote = fetch_all(client, fetch_limit)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(
-        json.dumps({"list": items, "numberResults": total_remote}), encoding="utf-8"
+        json.dumps(
+            {
+                "list": items,
+                "numberResults": total_remote,
+                # Stamped by the fetcher, not read from the file's mtime: copying
+                # the payload around must not make it look freshly fetched.
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
+            }
+        ),
+        encoding="utf-8",
     )
     print(
         f"Wrote {len(items):,} of {total_remote:,} Spanish beneficiaries "
@@ -106,7 +119,9 @@ def fetch_to_file(destination: Path, limit: int | None = None) -> int:
     return len(items)
 
 
-def _load_items(source: Path) -> tuple[list[dict], int]:
+def _load_items(
+    source: Path, max_age_days: int = DEFAULT_PAYLOAD_MAX_AGE_DAYS
+) -> tuple[list[dict], int]:
     payload = json.loads(source.read_text(encoding="utf-8"))
     items = payload["list"]
     if not items:
@@ -114,6 +129,21 @@ def _load_items(source: Path) -> tuple[list[dict], int]:
             f"{source} contains no beneficiaries — refusing to ingest an empty "
             "payload over live data"
         )
+
+    stamped = payload.get("fetched_at")
+    if stamped is None:
+        raise RuntimeError(
+            f"{source} has no fetched_at stamp — re-create it with --fetch-only "
+            "so its age can be checked"
+        )
+    age = datetime.now(timezone.utc) - datetime.fromisoformat(stamped)
+    if age > timedelta(days=max_age_days):
+        raise RuntimeError(
+            f"{source} was fetched {age.days} days ago (limit {max_age_days}); "
+            "the machine that can reach Kohesio has not refreshed it. Refusing "
+            "to report a successful run over stale data"
+        )
+    print(f"Payload fetched {age.days}d {age.seconds // 3600}h ago")
     return items, payload.get("numberResults", len(items))
 
 
@@ -224,9 +254,10 @@ def _to_rows(items: list[dict]) -> list[dict]:
     ]
 
 
-def _load_or_fetch(limit: int | None, from_file: Path | None) -> tuple[list[dict], int]:
+def _load_or_fetch(limit: int | None, from_file: Path | None,
+                   max_age_days: int = DEFAULT_PAYLOAD_MAX_AGE_DAYS) -> tuple[list[dict], int]:
     if from_file is not None:
-        items, total_remote = _load_items(from_file)
+        items, total_remote = _load_items(from_file, max_age_days=max_age_days)
         print(f"Loaded {len(items):,} beneficiaries from {from_file}")
         return items, total_remote
     fetch_limit = min(limit or MAX_FETCH, MAX_FETCH)
@@ -236,9 +267,10 @@ def _load_or_fetch(limit: int | None, from_file: Path | None) -> tuple[list[dict
 
 
 def run(dry_run: bool = False, limit: int | None = None,
-        from_file: Path | None = None) -> None:
+        from_file: Path | None = None,
+        payload_max_age_days: int = DEFAULT_PAYLOAD_MAX_AGE_DAYS) -> None:
     if dry_run:
-        items, total_remote = _load_or_fetch(limit, from_file)
+        items, total_remote = _load_or_fetch(limit, from_file, payload_max_age_days)
         print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
         rows = _to_rows(items)
         print(f"[DRY-RUN] Would upsert {len(rows):,} rows. Sample:")
@@ -258,7 +290,7 @@ def run(dry_run: bool = False, limit: int | None = None,
             run_id = start_run(cur, pipeline="kohesio.fondos_ue", chunk_key="es")
             conn.commit()
 
-        items, total_remote = _load_or_fetch(limit, from_file)
+        items, total_remote = _load_or_fetch(limit, from_file, payload_max_age_days)
         print(f"Kohesio ES total: {total_remote:,} | fetched: {len(items):,}")
         rows = _to_rows(items)
 
@@ -291,13 +323,18 @@ def main() -> None:
                         help="Fetch the payload to PATH and exit (no database writes)")
     parser.add_argument("--from-file", type=Path, default=None, metavar="PATH",
                         help="Ingest a payload previously written by --fetch-only")
+    parser.add_argument("--payload-max-age-days", type=int,
+                        default=DEFAULT_PAYLOAD_MAX_AGE_DAYS, metavar="N",
+                        help=f"Reject a --from-file payload older than N days "
+                             f"(default: {DEFAULT_PAYLOAD_MAX_AGE_DAYS})")
     args = parser.parse_args()
     if args.fetch_only and args.from_file:
         parser.error("--fetch-only and --from-file are mutually exclusive")
     if args.fetch_only:
         fetch_to_file(args.fetch_only, limit=args.limit)
         return
-    run(dry_run=args.dry_run, limit=args.limit, from_file=args.from_file)
+    run(dry_run=args.dry_run, limit=args.limit, from_file=args.from_file,
+        payload_max_age_days=args.payload_max_age_days)
 
 
 if __name__ == "__main__":
