@@ -167,3 +167,26 @@ permanentes (`/poder`, `/integridad`, `/ccaa`, `/municipios`) responden correcta
 ejecuta fuera del VPS: la URL directa de Postgres apunta a loopback y solo es alcanzable
 allí. Ahora esa comprobación se marca como omitida con el motivo, en vez de simular una
 caída.
+
+## Ejecución semanal completa, en verde
+
+El cron semanal del lunes se ejecutó con el código ya corregido y terminó correctamente en
+sus tres lotes — 32 ejecuciones registradas, ninguna fallida y ninguna colgada en «en
+curso». Lo que efectivamente entró (no solo el estado, sino filas):
+
+| Pipeline | Filas |
+|---|---|
+| `senado.votaciones` | 163.009 insertadas · 327 actualizadas |
+| `kohesio.fondos_ue` | 30.000 (desde el payload de Tailscale, 1 día de antigüedad) |
+| `ine.ipc_subgrupos` | 3.360 |
+| `presupuestos` | 837 |
+| `ine.indicadores_ampliados` | 461 |
+| `congreso.iniciativas` | 476 actualizadas |
+| `judicial.wikipedia` / `judicial.cgpj` | 160 / 33 actualizadas |
+| `ine.bde` | 31 |
+| `common.search_refresh` | 531.019 filas tocadas en 619 s |
+
+`photos.run` —el que había fallado por la mañana— pasó también en su variante semanal.
+Tras la pasada, el índice de búsqueda sigue coincidiendo exactamente con el origen
+(484.851 / 975.924 / 369.235) y `/api/data-health` responde `ok` sobre 37 fuentes
+vigiladas, sin incidencias.

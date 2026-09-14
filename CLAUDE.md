@@ -22,7 +22,7 @@ npm run ui:audit     # enforces layout primitives & responsive rules
 npm run content:audit # enforces editorial rules (see "Hard rules" below)
 ```
 
-Required env vars (also wired in CI): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Anon key uses the new publishable format (`sb_publishable_…`); legacy JWT keys do not work.
+Required env vars (also wired in CI): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Production serves the publishable key (`sb_publishable_…`). The self-hosted instance still accepts the legacy JWT anon key as well, and the `SUPABASE_ANON_KEY` repository variable used by CI is one — so CI validates a different credential from the one production ships.
 
 ### ETL (Python 3.12)
 
