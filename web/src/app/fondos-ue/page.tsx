@@ -4,6 +4,7 @@ import { Pagination } from "@/components/domain/Pagination"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import {
   PAGE_SIZE,
   getEtlLastFinished,
@@ -39,7 +40,16 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
           {rank}
         </span>
         <div className="min-w-0">
-          <p className="truncate font-medium leading-snug">{fund.label}</p>
+          {kohesioId ? (
+            <ResponsiveLink
+              href={`/fondos-ue/${encodeURIComponent(kohesioId)}`}
+              className="block truncate font-medium leading-snug underline-offset-2 hover:underline"
+            >
+              {fund.label}
+            </ResponsiveLink>
+          ) : (
+            <p className="truncate font-medium leading-snug">{fund.label}</p>
+          )}
           <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {fund.number_projects != null ? `${fund.number_projects.toLocaleString("es-ES")} proyectos` : "—"}
             {fund.cofinancing_rate != null

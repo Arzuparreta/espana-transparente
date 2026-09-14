@@ -79,16 +79,24 @@ else
   note "Supabase REST/Auth" "NEXT_PUBLIC_SUPABASE_URL / ANON_KEY not set"
 fi
 
-# 5. Direct pooler connection (optional, needs DATABASE_URL + psql).
-if [[ -n "${DATABASE_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
+# 5. Direct Postgres connection (optional, needs DATABASE_URL + psql).
+#
+# Production binds Postgres on loopback only, so this probe means something just
+# on the VPS. Run from a laptop it always refuses the connection, which used to
+# print a red FAIL blaming the database for a port that was never exposed.
+db_host="${DATABASE_URL:-}"
+db_host="${db_host#*@}"; db_host="${db_host%%:*}"; db_host="${db_host%%/*}"
+if [[ -z "${DATABASE_URL:-}" ]] || ! command -v psql >/dev/null 2>&1; then
+  note "Postgres (direct)" "DATABASE_URL or psql unavailable"
+elif [[ "$db_host" =~ ^(127\.0\.0\.1|localhost|::1)$ ]] && [[ ! -d /root/Proyectos/espana-transparente ]]; then
+  note "Postgres (direct)" "loopback URL — reachable only from the VPS, not from here"
+else
   if out="$(PGCONNECT_TIMEOUT=8 psql "$DATABASE_URL" -At -v ON_ERROR_STOP=1 \
         -c "SET statement_timeout='5s'; SELECT (SELECT count(*) FROM pg_stat_activity) || ' conns, ' || pg_size_pretty(pg_database_size(current_database())) || ' db';" 2>&1)"; then
-    ok "Postgres pooler :5432" "$out"
+    ok "Postgres (direct)" "$out"
   else
-    bad "Postgres pooler :5432" "$(echo "$out" | head -1 | cut -c1-90)"
+    bad "Postgres (direct)" "$(echo "$out" | head -1 | cut -c1-90)"
   fi
-else
-  note "Postgres pooler :5432" "DATABASE_URL or psql unavailable"
 fi
 
 echo

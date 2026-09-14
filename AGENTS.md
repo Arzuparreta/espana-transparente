@@ -97,11 +97,11 @@ El ciudadano debe poder seguir el hilo de QUIÉN decidió QUÉ.
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | Next.js 14 (App Router) + Tailwind + shadcn/ui |
+| Frontend | Next.js 15 (App Router) + Tailwind + shadcn/ui |
 | Base de datos | Supabase (PostgreSQL) |
 | ETL | Python 3.12 + psycopg2 + httpx |
 | CI/CD | GitHub Actions (cron diario/semanal + deploy SSH a VPS) |
-| Despliegue | VPS propio (Node 20 + PM2 + nginx + Supabase autoalojado) |
+| Despliegue | VPS propio (Node 22 + PM2 + nginx + Supabase autoalojado) |
 
 ## Cómo arrancar
 

@@ -43,7 +43,7 @@ pública) are published as raw tables that require economics training to interpr
   labeling accountability journalism as partisan. Source-backed defensibility and legal-risk
   hygiene are non-negotiable.
 - Congress portal rate-limits at 1.5s/request. Declaration PDF parsing must be async and resumable.
-- Self-hosted VPS (Node 20 + PM2 + nginx). Server-side compute is available but not unlimited — keep pages cacheable.
+- Self-hosted VPS (Node 22 + PM2 + nginx). Server-side compute is available but not unlimited — keep pages cacheable.
 
 ---
 
@@ -570,14 +570,21 @@ tab (conditional on data) + `EntityTrail` with `EntityTrailSkeleton` fallback. D
 
 ## CI Status Notes
 
-- **Web CI** (`lint`, `ui:audit`, `content:audit`, `search:routes`, `build`): ✅ Passing on push/PR to main
+- **Web CI** (`npm test`, `lint`, `ui:audit`, `content:audit`, `build`): ✅ Passing on push/PR to main
 - **ETL check** (`pytest`, `--dry-run`): ✅ Passing on push/PR to main
 - **ETL daily** (diputados, asistencia, INE base, contratos, BDNS, territorio, geolocalización, fotos, BORME, OCR, search): 04:00 UTC on the VPS runner
 - **ETL weekly** (cods, declaraciones, iniciativas, gobierno, responsables, cargos públicos, presupuestos, UE, senado, OCR, BORME, lobbying, OpenData, judicial, INE ampliado, IPC subgrupos, deuda Eurostat, elecciones, search): Mondays 06:00 UTC on the VPS runner
 - **Critical backup**: 02:30 UTC daily, encrypted, 30-day artifact retention
 - **Auth health**: 03:15 UTC daily, read-only
+- **Data freshness** (`/api/data-health`, 37 critical sources): every 6 hours; a delayed or failed
+  source fails the workflow.
 - All production database writers share one concurrency group.
 - Home and `/estado-datos` report critical-source delay separately from database availability.
+- The deploy compares `/api/health`'s `revision` against the pushed SHA, so a build that did not
+  actually replace the running one fails the job instead of passing silently.
+- One self-hosted runner serves migrations, deploys and every ETL batch, so a long batch queues the
+  rest behind it. Don't cancel a batch mid-run to free it: that leaves the pipeline's row stuck in
+  `running` until the 8-hour cleanup.
 
 ---
 

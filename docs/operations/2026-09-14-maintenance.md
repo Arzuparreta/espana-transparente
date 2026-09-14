@@ -83,6 +83,10 @@ Lo comprobado:
 - Probado `proxy_buffering off` y sin cabecera de *upgrade* en nginx: no cambia la tasa,
   así que la configuración se dejó como estaba.
 
+Y el dato que lo cierra: con la caché del navegador ya caliente **no aparece nunca**
+(0 de 9 recargas seguidas en el mismo contexto); solo se da en la primera visita, cuando
+la descarga del JavaScript compite con la transmisión del HTML.
+
 Como la única variable es el momento de entrega de los fragmentos por red, el aviso
 corresponde a la carrera entre la hidratación y el reemplazo de las fronteras de Suspense
 transmitidas, no a un defecto del marcado de la aplicación.
@@ -118,3 +122,48 @@ Dos detalles necesarios para que funcione:
 - El refresco es concurrente, así que la página sigue leyendo mientras se recalcula; eso
   exige el índice único sobre `politician_id`, que los datos permiten (una militancia
   activa por persona, sin siglas nulas).
+
+## Fichas de fondos UE inalcanzables desde el índice
+
+`/fondos-ue/[id]` se genera, entra en el buscador y está en el sitemap, pero el índice
+`/fondos-ue` solo enlazaba a Kohesio: 50 filas por página, ninguna con enlace interno. El
+nombre del beneficiario pasa a enlazar su ficha — el identificador es el mismo último
+segmento que ya se usaba para construir el enlace externo y para el sitemap. El enlace a
+Kohesio se mantiene aparte, sin anidarse dentro de otro enlace.
+
+`/puertas-giratorias` se comprobó también y no tiene ese problema: el índice muestra cada
+caso completo y la ruta de detalle existe como enlace permanente.
+
+## Nota operativa: no cancelar un lote de ETL en ejecución
+
+Al cancelar un despacho semanal que ya había arrancado, `congreso.declaraciones` quedó con
+su fila de ejecución en estado «en curso». La vista pública la ignora y la limpieza
+automática la cerraría a las 8 horas, pero mientras tanto oculta el resultado real. Se
+cerró explícitamente. Si hay que liberar el runner, conviene esperar al final del lote.
+
+## Estado de las fuentes locales de desarrollo
+
+`web/.env.local` apuntaba a `desktop-ruben.taileed0d5.ts.net`, que hoy responde con la API
+de otro proyecto (`Soundsible Core API`), no con Supabase; por eso fallaban las
+comprobaciones de rutas de búsqueda en local. Ahora apunta al endpoint público del portal.
+Es un fichero local no versionado: si se recupera un Supabase propio en esa máquina, basta
+con revertir esa línea.
+
+## Verificación final del sitio
+
+Barrido de las 30 rutas públicas sobre la revisión desplegada: todas responden 200 con su
+encabezado y contenido, ninguna cae en estado de error ni queda vacía, no hay enlaces
+anidados y no hay desbordamiento horizontal en las seis rutas comprobadas a 390 px. Doce
+fichas de detalle (diputado, contrato, subvención, organización, partido, caso judicial,
+iniciativa, votación, indicador, programa presupuestario, grupo de interés y senador)
+responden igualmente sin incidencias. El único ruido que queda es el aviso de hidratación
+descrito arriba, que cambia de ruta en cada pasada porque depende del momento de carga.
+
+Además: imagen Open Graph dinámica (1200×630 PNG tras migrar de `@vercel/og` a `next/og`),
+`sitemap.xml`, `robots.txt`, manifiesto, sugerencias de búsqueda y las cuatro redirecciones
+permanentes (`/poder`, `/integridad`, `/ccaa`, `/municipios`) responden correctamente.
+
+`scripts/check-production.sh` daba un FALLO rojo culpando a la base de datos cuando se
+ejecuta fuera del VPS: la URL directa de Postgres apunta a loopback y solo es alcanzable
+allí. Ahora esa comprobación se marca como omitida con el motivo, en vez de simular una
+caída.

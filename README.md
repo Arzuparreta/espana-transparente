@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img alt="Next.js 14" src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" />
+  <img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" />
   <img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" />
   <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white" />
   <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-blue" />
@@ -45,7 +45,7 @@ Fuentes públicas  →  etl/src/<source>/   →  Supabase (Postgres)  →  web/s
 
 | Capa            | Tecnología                                            | Carpeta              |
 | --------------- | ----------------------------------------------------- | -------------------- |
-| Frontend        | Next.js 14 · App Router · Tailwind · shadcn/ui        | `web/`               |
+| Frontend        | Next.js 15 · App Router · Tailwind · shadcn/ui        | `web/`               |
 | ETL             | Python 3.12 · psycopg2 · httpx                        | `etl/`               |
 | Base de datos   | Supabase (PostgreSQL) · 15+ tablas, vistas y RPCs     | `supabase/migrations/` |
 | Datos curados   | YAML revisado vía PR (liderazgos, responsables)       | `etl/data/`          |

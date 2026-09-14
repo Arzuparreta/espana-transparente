@@ -10,7 +10,7 @@ Read **`AGENTS.md`**, **`NEXT.md`**, and **`DESIGN.md`** first. `AGENTS.md` carr
 
 ## Commands
 
-### Web (Next.js 14 / App Router)
+### Web (Next.js 15 / App Router)
 
 ```bash
 cd web
@@ -34,8 +34,22 @@ PYTHONPATH=src python -m pytest tests/    # tests
 PYTHONPATH=src python -m pytest tests/test_responsibility.py::test_name  # single test
 ```
 
-Daily pipelines (run via GH Actions cron `0 4 * * *`): `src.congreso.diputados`, `src.congreso.asistencia --from-date 20250101`, `src.ine.indicadores`, `src.contratacion.contratos`, `src.bdns.subvenciones`, `src.photos.run --refresh-missing`, then `common.search_refresh`.
-Weekly (`0 5 * * 1`): `src.congreso.cods --resume`, `src.congreso.declaraciones`, `src.congreso.iniciativas`, `src.congreso.gobierno`, `src.congreso.responsables`, `src.photos.run --no-refresh-missing --max-age-days 30`, `src.presupuestos.presupuestos --year $(date +%Y) --resume`, `src.puertas_giratorias.ingest`, `src.instituciones.instituciones`, `src.kohesio.fondos_ue`, `src.senado.senadores`, `src.senado.votaciones`, `src.judicial.wikipedia --resume --extract-people`, `src.judicial.cgpj --resume`, `src.judicial.contract_links`, then `common.search_refresh`.
+The schedules live in one place — `etl/scripts/run_scheduled_etls.sh`, invoked by the
+`etl-daily` / `etl-weekly-*` jobs in `.github/workflows/ci.yml`. Read that script for the exact
+commands and flags rather than trusting a list here; it is the source of truth.
+
+- **Daily** (cron `0 4 * * *`): `congreso.diputados`, `congreso.asistencia`, `ine.indicadores`,
+  `contratacion.contratos --since-days 7`, `bdns.subvenciones` (7-day window), `territorio.atlas`,
+  `territorio.org_geolocation`, `photos.run`, `borme.officers`, `congreso.declaraciones_ocr`,
+  then `common.search_refresh`.
+- **Weekly** (cron `0 6 * * 1`), split into three jobs so one slow batch cannot starve the others:
+  `weekly-core` (Congress directory and documents, government, responsibles, budgets, revolving
+  door, institutions, BOE appointments, Kohesio, territory catalogue, Senate), `weekly-documents`
+  (OCR and BORME in larger batches) and `weekly-links` (lobbying, judicial, extended INE series,
+  elections, then `common.search_refresh`).
+
+A batch runs every pipeline even if one fails, and exits non-zero listing the failures, so a single
+broken source does not hide the rest.
 
 ETL writes need `DATABASE_URL` (direct Postgres URI from Supabase → Settings → Database). Reads use the publishable key. The Supabase Python SDK is only used for reads; **all writes go through `psycopg2` via `common.db.get_pg_conn()`** — do not try to write through the SDK.
 
@@ -141,7 +155,9 @@ Data pages stay factual steel: the thesis orders and frames the data; charts and
 ## Operational notes
 
 - Production hostname: `spaintransparencia.info`. Frontend, self-hosted Supabase, and the GitHub Actions ETL runner live on the VPS. nginx exposes only the public Supabase APIs below `https://spaintransparencia.info/supabase`; PostgreSQL, Studio, pg_meta, analytics, and Mailpit remain private. Both client and server use that URL as `NEXT_PUBLIC_SUPABASE_URL`. The `zktpodkvlgciluhbulwr.supabase.co` cloud project referenced in `etl/.env`/`.mcp.json` is legacy/paused and not production.
-- **Deploy:** pushing to `main` auto-deploys via the `deploy-web` job in `ci.yml`, which SSHes to the VPS and runs `scripts/deploy-vps.sh` (git reset to `origin/main` → `npm ci` → `npm run build` → `pm2 restart espana-transparente-web`). The job runs the build **detached** on the VPS so a dropped SSH session can't kill it, then polls a completion marker. Manual deploy uses the same script: `ssh root@<VPS_HOST> 'bash /root/Proyectos/espana-transparente/scripts/deploy-vps.sh'`. Health check: `https://spaintransparencia.info/api/health` returns `{"status":"ok","database":"ok"}`.
+- **Deploy:** pushing to `main` auto-deploys via the `deploy-web` job in `ci.yml`, which SSHes to the VPS and runs `scripts/deploy-vps.sh` (git reset to `origin/main` → `npm ci` → `npm run build` → `pm2 restart espana-transparente-web`). The job runs the build **detached** on the VPS so a dropped SSH session can't kill it, then polls a completion marker. Manual deploy uses the same script: `ssh root@<VPS_HOST> 'bash /root/Proyectos/espana-transparente/scripts/deploy-vps.sh'`. Health check: `https://spaintransparencia.info/api/health` returns `{"status":"ok","database":"ok","revision":"<deployed sha>"}`; CI compares that revision against the pushed SHA, so a deploy that silently kept the old build fails the job.
+
+  The app does **not** run on the system Node. `scripts/ensure-node-runtime.sh` installs the version pinned in `web/.node-version` under `/opt/espana-transparente/`, verifies its SHA-256, and the deploy pins PM2's interpreter to it — the system Node stays where the other services on the box need it. CI reads the same file via `node-version-file`, so bumping the runtime is a one-line change in `web/.node-version`.
 
 ## Skill routing
 
