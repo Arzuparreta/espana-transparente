@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: web/.node-version
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
@@ -129,7 +129,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: web/.node-version
       - run: node scripts/search-check.mjs --routes-only
 
   etl-check:
@@ -164,7 +164,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: web/.node-version
       - name: Apply pending migrations
         run: NPM_CONFIG_CACHE=${RUNNER_TEMP}/npm-cache npx supabase migration up --db-url "$DATABASE_URL" --include-all
       - name: Close abandoned ETL runs

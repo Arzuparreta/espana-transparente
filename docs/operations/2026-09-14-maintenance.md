@@ -31,6 +31,8 @@ Los retratos oficiales del Senado siguen devolviendo 403 desde el VPS. Se conser
 - Fotos en el VPS, sin escrituras: 194 candidatos, cero errores de fuente o persistencia; sin nuevos retratos disponibles en esta ejecución.
 - Auditoría npm tras actualizar: cero vulnerabilidades detectadas.
 
+La validación del despliegue detectó Node 20 en producción. Se fija Node 22.23.2 para CI y producción; el despliegue instala el binario oficial, verifica SHA-256 y lo utiliza únicamente para esta aplicación, persistiendo el intérprete en PM2.
+
 ## Dependencias operativas
 
 Kohesio depende del temporizador de usuario `espana-transparente-kohesio-push.timer` de este equipo: la fuente rechaza las conexiones desde el VPS y desde GitHub. El temporizador estaba activo y la última transferencia (13 de septiembre) fue correcta. La ingestión rechaza ficheros caducados; mantener este equipo disponible sigue siendo necesario para esta fuente. La cobertura parcial que impone la API de Kohesio no se convierte en cobertura completa por ejecutar el ETL.

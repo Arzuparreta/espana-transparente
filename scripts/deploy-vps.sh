@@ -19,11 +19,15 @@ git fetch origin main
 git reset --hard "${ET_DEPLOY_REVISION:-origin/main}"
 echo "[deploy] now at $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
 
+NODE_RUNTIME="$(bash "$REPO/scripts/ensure-node-runtime.sh")"
+export PATH="$NODE_RUNTIME/bin:$PATH"
+
 cd web
 echo "[deploy] npm ci…"
 npm ci
 echo "[deploy] next build…"
 npm run build
 echo "[deploy] restarting PM2 process…"
-pm2 restart espana-transparente-web
+pm2 restart espana-transparente-web --interpreter "$NODE_RUNTIME/bin/node" --update-env
+pm2 save
 echo "[deploy] done."
