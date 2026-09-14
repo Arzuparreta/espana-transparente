@@ -205,6 +205,17 @@ def refresh_attendance_cache(cur) -> None:
         print("attendance ranking cache not installed; skipping refresh")
 
 
+def refresh_divergence_cache(cur) -> None:
+    """Refresh the public divergence ranking cache when the migration exists."""
+    try:
+        cur.execute("SELECT refresh_divergence_ranking()")
+        refreshed = cur.fetchone()[0]
+        print(f"divergence ranking cache refreshed: {refreshed} rows")
+    except psycopg2.errors.UndefinedFunction:
+        cur.connection.rollback()
+        print("divergence ranking cache not installed; skipping refresh")
+
+
 def run(dry_run: bool = False, from_date: int | None = None, resume: bool = False) -> None:
     conn = get_pg_conn()
     run_id = None
@@ -304,6 +315,7 @@ def run(dry_run: bool = False, from_date: int | None = None, resume: bool = Fals
         if run_id:
             cur = conn.cursor()
             refresh_attendance_cache(cur)
+            refresh_divergence_cache(cur)
             finish_run(cur, run_id=run_id, status="succeeded",
                        rows_read=len(all_dates), rows_inserted=total_votes)
             conn.commit()

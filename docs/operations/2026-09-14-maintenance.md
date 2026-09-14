@@ -95,3 +95,26 @@ se ejecuta sin un solo error de página.
 Queda anotado como pendiente de seguimiento: si se decide cerrarlo, el camino es revisar
 las fronteras `loading.tsx` (56 rutas más una global) frente al comportamiento de
 transmisión de React 19, no seguir tocando la aplicación a ciegas.
+
+## `/divergencias` devolvía "datos no disponibles"
+
+El barrido de las 30 rutas públicas encontró que `/divergencias` no mostraba su ranking.
+Causa: `v_divergence_ranking` era una vista normal sobre `get_divergences()`, que recorre
+todo el historial de votos — 3,2 s en producción para 285 filas. Las consultas de la web
+se abortan a los 5 s, así que bastaba algo de carga en la base de datos para que la página
+cayera a su estado de error.
+
+Se materializa la vista siguiendo el patrón que ya usa el ranking de asistencia, y el
+refresco se ejecuta en `congreso.asistencia`, el pipeline diario que ya recalcula esa otra
+caché. Las filas no cambian: 285 personas, 285 identificadores distintos y un máximo de
+340 divergencias, idéntico a la vista anterior (comprobado contra producción dentro de una
+transacción revertida).
+
+Dos detalles necesarios para que funcione:
+
+- `get_divergences()` no fijaba su `search_path`, y tanto la creación como el refresco de
+  una vista materializada se ejecutan con uno restringido: sin `ALTER FUNCTION ... SET
+  search_path` la población falla con `relation "votes" does not exist`.
+- El refresco es concurrente, así que la página sigue leyendo mientras se recalcula; eso
+  exige el índice único sobre `politician_id`, que los datos permiten (una militancia
+  activa por persona, sin siglas nulas).
