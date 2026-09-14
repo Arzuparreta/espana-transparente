@@ -127,3 +127,12 @@ def test_run_window_fails_when_max_pages_exhausted(monkeypatch):
             dry_run=True,
             resume=False,
         )
+
+
+def test_fetch_page_retries_invalid_latin1_response(monkeypatch):
+    monkeypatch.setattr("bdns.subvenciones.time.sleep", lambda _: None)
+    responses = [_response(b"<html>Error de conexi\xf3n</html>"),
+                 _response(json_body={"content": [], "last": True})]
+    monkeypatch.setattr("bdns.subvenciones.httpx.get", lambda *a, **kw: responses.pop(0))
+    assert fetch_page("2026-09-07", "2026-09-14", 0)["last"] is True
+    assert not responses

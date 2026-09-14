@@ -93,8 +93,7 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
   const tenderCount = c.received_tender_quantity
 
   return (
-    <Card className="transition-colors hover:bg-card">
-      <ResponsiveLink href={`/contratos/${c.id}`}>
+    <Card className="relative transition-colors hover:bg-card">
       <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
@@ -118,17 +117,24 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
                 {tenderCount} oferta{tenderCount !== 1 ? "s" : ""}
               </span>
             )}
-            <ResponsibleChip
-              responsible={c.responsible}
-              ministryHref={c.responsible?.ministry && !activeMinistry ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}` : null}
-            />
+            <div className="relative z-10">
+              <ResponsibleChip
+                responsible={c.responsible}
+                ministryHref={c.responsible?.ministry && !activeMinistry ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}` : null}
+              />
+            </div>
           </div>
-          <div className="text-sm font-medium leading-snug text-balance">{c.title}</div>
+          <ResponsiveLink
+            href={`/contratos/${c.id}`}
+            className="block text-sm font-medium leading-snug text-balance after:absolute after:inset-0"
+          >
+            {c.title}
+          </ResponsiveLink>
           <div className="text-xs text-muted-foreground">
             {c.awarding_body_organization_id ? (
               <ResponsiveLink
                 href={`/organizaciones/${c.awarding_body_organization_id}`}
-                className="underline-offset-2 hover:text-foreground hover:underline"
+                className="relative z-10 underline-offset-2 hover:text-foreground hover:underline"
               >
                 {c.awarding_body ?? "—"}
               </ResponsiveLink>
@@ -147,15 +153,13 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
               href={c.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-              onClick={(e) => e.stopPropagation()}
+              className="relative z-10 text-xs text-muted-foreground underline-offset-2 hover:underline"
             >
               Ver expediente →
             </a>
           ) : null}
         </div>
       </CardContent>
-      </ResponsiveLink>
     </Card>
   )
 }

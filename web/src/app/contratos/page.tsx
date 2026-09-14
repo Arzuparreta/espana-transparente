@@ -124,7 +124,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
 
       <InfoPanel title="Fuente">
         Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
-        Datos actualizados mensualmente. Solo se muestran licitaciones cuyo importe supera el umbral de publicación.
+        Consulta automática diaria de las licitaciones publicadas en la PCSP. La fecha de cada registro corresponde a su actualización en la fuente.
       </InfoPanel>
     </div>
   )

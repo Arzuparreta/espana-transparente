@@ -38,3 +38,9 @@ La validación del despliegue detectó Node 20 en producción. Se fija Node 22.2
 Kohesio depende del temporizador de usuario `espana-transparente-kohesio-push.timer` de este equipo: la fuente rechaza las conexiones desde el VPS y desde GitHub. El temporizador estaba activo y la última transferencia (13 de septiembre) fue correcta. La ingestión rechaza ficheros caducados; mantener este equipo disponible sigue siendo necesario para esta fuente. La cobertura parcial que impone la API de Kohesio no se convierte en cobertura completa por ejecutar el ETL.
 
 Los cron de GitHub pueden empezar con retraso. Los umbrales públicos contemplan margen para la cadencia diaria/semanal. El monitor alerta mediante el estado fallido del workflow; no garantiza que una fuente externa esté siempre disponible.
+
+## Reparaciones encontradas en producción
+
+- Las tarjetas de contratos anidaban enlaces de organización, responsable y fuente dentro del enlace principal. React 19 detectó la divergencia entre el HTML del navegador y el servidor. Se sustituye el enlace envolvente por el enlace del título con área extendida y enlaces secundarios independientes.
+- BDNS podía devolver una página HTML en Latin-1: el error JSON de la decodificación alternativa escapaba del bucle de reintentos. Se mantiene esa decodificación dentro del mismo límite de recuperación, con regresión específica.
+- La prueba SQL manual creó cachés Python como root dentro del entorno del runner. Se restableció su propietario a `et-runner` y se reparó la instalación con ese usuario. Las verificaciones manuales posteriores deshabilitan la escritura de bytecode.

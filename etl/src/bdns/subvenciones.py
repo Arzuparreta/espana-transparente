@@ -89,10 +89,12 @@ def fetch_page(from_date: str, to_date: str, page: int, retries: int = 5) -> dic
             time.sleep(10 * (attempt + 1))
             continue
         try:
-            return resp.json()
-        except UnicodeDecodeError:
-            # BDNS occasionally serves a page in Latin-1 without declaring the charset.
-            return json.loads(resp.content.decode("latin-1"))
+            try:
+                return resp.json()
+            except UnicodeDecodeError:
+                # The fallback can also be an HTML error page; keep parsing
+                # inside the retry boundary instead of escaping on that error.
+                return json.loads(resp.content.decode("latin-1"))
         except json.JSONDecodeError:
             if attempt == retries - 1:
                 raise
