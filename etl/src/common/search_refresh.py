@@ -28,11 +28,7 @@ _BATCH_SQL: dict[str, str] = {
           SELECT o.* FROM organizations o
           WHERE o.id > %(last_id)s
             AND o.name IS NOT NULL AND trim(o.name) <> ''
-            AND NOT EXISTS (
-              SELECT 1 FROM search_documents d
-              WHERE d.entity_type = 'organization' AND d.entity_id = o.id::text
-                AND d.updated_at >= o.updated_at
-            )
+
           ORDER BY o.id
           LIMIT %(batch)s
         ), written AS (
@@ -54,6 +50,11 @@ _BATCH_SQL: dict[str, str] = {
         FROM candidates o
         WHERE o.name IS NOT NULL AND trim(o.name) <> ''
           AND o.id > %(last_id)s
+          AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'organization' AND d.entity_id = o.id::text
+              AND d.updated_at >= o.updated_at
+            )
         ORDER BY o.id
         LIMIT %(batch)s
         ON CONFLICT (entity_type, entity_id) DO UPDATE SET
@@ -64,17 +65,13 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT count(*), max(entity_id) FROM written
+        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
     """,
     "contract": """
         WITH candidates AS MATERIALIZED (
           SELECT c.* FROM contracts c
           WHERE c.id > %(last_id)s
-            AND NOT EXISTS (
-              SELECT 1 FROM search_documents d
-              WHERE d.entity_type = 'contract' AND d.entity_id = c.id::text
-                AND d.updated_at >= c.updated_at
-            )
+
           ORDER BY c.id
           LIMIT %(batch)s
         ), written AS (
@@ -105,6 +102,11 @@ _BATCH_SQL: dict[str, str] = {
           'v3', now()
         FROM candidates c
         WHERE c.id > %(last_id)s
+          AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'contract' AND d.entity_id = c.id::text
+              AND d.updated_at >= c.updated_at
+            )
         ORDER BY c.id
         LIMIT %(batch)s
         ON CONFLICT (entity_type, entity_id) DO UPDATE SET
@@ -116,17 +118,13 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT count(*), max(entity_id) FROM written
+        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
     """,
     "subsidy": """
         WITH candidates AS MATERIALIZED (
           SELECT s.* FROM subsidies s
           WHERE s.id > %(last_id)s
-            AND NOT EXISTS (
-              SELECT 1 FROM search_documents d
-              WHERE d.entity_type = 'subsidy' AND d.entity_id = s.id::text
-                AND d.updated_at >= s.updated_at
-            )
+
           ORDER BY s.id
           LIMIT %(batch)s
         ), written AS (
@@ -156,6 +154,11 @@ _BATCH_SQL: dict[str, str] = {
           'v3', now()
         FROM candidates s
         WHERE s.id > %(last_id)s
+          AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'subsidy' AND d.entity_id = s.id::text
+              AND d.updated_at >= s.updated_at
+            )
         ORDER BY s.id
         LIMIT %(batch)s
         ON CONFLICT (entity_type, entity_id) DO UPDATE SET
@@ -167,7 +170,7 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT count(*), max(entity_id) FROM written
+        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
     """,
 }
 
@@ -181,10 +184,10 @@ def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 1500) -
         with conn.cursor() as cur:
             cur.execute("SET statement_timeout = '5min'")
             cur.execute(sql, {"last_id": last_id, "batch": batch_size})
-            n, newest_id = cur.fetchone()
+            n, newest_id, scanned = cur.fetchone()
         conn.commit()
         total += n
-        if n < batch_size:
+        if scanned < batch_size:
             break
         last_id = newest_id
         print(f"  {entity_type}: {total} updated so far", flush=True)
