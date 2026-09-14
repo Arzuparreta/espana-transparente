@@ -28,7 +28,6 @@ _BATCH_SQL: dict[str, str] = {
           SELECT o.* FROM organizations o
           WHERE o.id > %(last_id)s
             AND o.name IS NOT NULL AND trim(o.name) <> ''
-
           ORDER BY o.id
           LIMIT %(batch)s
         ), written AS (
@@ -65,7 +64,9 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
+        SELECT (SELECT count(*) FROM written),
+               (SELECT id::text FROM candidates ORDER BY id DESC LIMIT 1),
+               count(*) FROM candidates
     """,
     "contract": """
         WITH candidates AS MATERIALIZED (
@@ -118,7 +119,9 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
+        SELECT (SELECT count(*) FROM written),
+               (SELECT id::text FROM candidates ORDER BY id DESC LIMIT 1),
+               count(*) FROM candidates
     """,
     "subsidy": """
         WITH candidates AS MATERIALIZED (
@@ -170,7 +173,9 @@ _BATCH_SQL: dict[str, str] = {
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
         RETURNING entity_id
         )
-        SELECT (SELECT count(*) FROM written), max(id::text), count(*) FROM candidates
+        SELECT (SELECT count(*) FROM written),
+               (SELECT id::text FROM candidates ORDER BY id DESC LIMIT 1),
+               count(*) FROM candidates
     """,
 }
 

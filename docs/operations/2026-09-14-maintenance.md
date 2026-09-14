@@ -46,3 +46,52 @@ Los cron de GitHub pueden empezar con retraso. Los umbrales públicos contemplan
 - La prueba SQL manual creó cachés Python como root dentro del entorno del runner. Se restableció su propietario a `et-runner` y se reparó la instalación con ese usuario. Las verificaciones manuales posteriores deshabilitan la escritura de bytecode.
 - Durante la recuperación se observó que `refresh_entity_summary()` bloqueaba lecturas de las fichas públicas. La vista ya dispone de índice único completo; se cambia a refresco concurrente para mantener las fichas disponibles mientras se recalcula.
 - La segunda pasada del índice completo reveló que limitar solo las filas modificadas dejaba sin límite las examinadas cuando casi no había cambios. Los lotes ahora limitan primero las filas de origen y avanzan el cursor aunque no escriban documentos; así la ejecución incremental no concentra todo el histórico en una consulta.
+
+## Verificación del índice completo
+
+Tras la primera ejecución con lotes acotados, el índice de búsqueda queda sincronizado
+exactamente con las tablas de origen (antes había un tope de 10.000 documentos por tipo):
+
+| Tipo | Filas en origen | Documentos indexados |
+|---|---|---|
+| organizaciones | 484.851 | 484.851 |
+| contratos | 975.924 | 975.924 |
+| subvenciones | 369.235 | 369.235 |
+
+No queda ningún contrato con documento ausente o anterior a su última modificación.
+El cursor de cada lote se calcula ahora tomando la última fila por orden de `id`, en vez
+de un máximo sobre su representación textual: el avance deja de depender de la
+intercalación de la base de datos.
+
+## Aviso de hidratación en producción (abierto, sin impacto funcional)
+
+React registra de forma intermitente `error #418` («el HTML del servidor no coincide con
+el cliente») en aproximadamente el 12-25 % de las cargas, en cualquier página. Es un error
+*recuperable*: React regenera ese subárbol en el cliente.
+
+Lo comprobado:
+
+- El HTML servido es **idéntico byte a byte** entre la compilación local y producción
+  (211.110 bytes en `/contratos`, mismas fronteras de Suspense y mismos scripts de
+  intercambio). El JavaScript también es el mismo, así que no hay diferencia de marcado.
+- No se reproduce contra la misma compilación servida en local (0/18), ni siquiera
+  emulando latencia y ancho de banda reducidos (0/12).
+- No hay anidamiento inválido: ni enlaces dentro de enlaces, ni bloques dentro de `<p>`
+  o `<button>`, en ninguna de las páginas afectadas.
+- No hay un proceso antiguo sirviendo en paralelo: un único `next-server` 15.5.25 escucha
+  en el puerto de la aplicación y nginx tiene un solo destino.
+- Probado `proxy_buffering off` y sin cabecera de *upgrade* en nginx: no cambia la tasa,
+  así que la configuración se dejó como estaba.
+
+Como la única variable es el momento de entrega de los fragmentos por red, el aviso
+corresponde a la carrera entre la hidratación y el reemplazo de las fronteras de Suspense
+transmitidas, no a un defecto del marcado de la aplicación.
+
+Impacto comprobado: ninguno. Las 30 rutas públicas responden 200 con su contenido y
+encabezado correctos, sin desbordamiento horizontal en móvil, y una sesión de navegación
+completa (filtros por tipo, ficha de contrato, búsqueda desde la cabecera y paginación)
+se ejecuta sin un solo error de página.
+
+Queda anotado como pendiente de seguimiento: si se decide cerrarlo, el camino es revisar
+las fronteras `loading.tsx` (56 rutas más una global) frente al comportamiento de
+transmisión de React 19, no seguir tocando la aplicación a ciegas.
