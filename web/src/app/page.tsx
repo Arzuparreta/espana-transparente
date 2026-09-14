@@ -57,7 +57,7 @@ export default async function HomePage() {
         ) : freshness.status === "delayed" ? (
           <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-amber-700 dark:text-amber-400">
             <Link href="/estado-datos" className="underline-offset-2 hover:underline">
-              Actualización retrasada · {formatCount(freshness.delayedPipelines.length)} fuentes pendientes
+              Actualización retrasada · {formatCount(freshness.delayedPipelines.length)} {freshness.delayedPipelines.length === 1 ? "fuente pendiente" : "fuentes pendientes"}
             </Link>
           </p>
         ) : null}

@@ -18,7 +18,7 @@ def _normalize_database_url(url: str) -> str:
     """Route old hosted Supabase direct URLs through the transaction pooler."""
     try:
         parsed = urlsplit(url)
-        if parsed.port != 5432:
+        if parsed.port != 5432 or not (parsed.hostname or "").endswith(".pooler.supabase.com"):
             return url
     except ValueError:
         return url

@@ -29,3 +29,11 @@ def test_organization_collision_key_preserves_normalized_prefix_but_splits_label
         "TETRA 5, S.L.U.",
         normalized,
     )
+
+
+def test_native_postgres_port_is_not_rewritten():
+    from common.db import _normalize_database_url
+    url = 'postgresql://user:pass@127.0.0.1:5432/postgres'
+    assert _normalize_database_url(url) == url
+    pooler = 'postgresql://user:pass@aws-0-eu-west-1.pooler.supabase.com:5432/postgres'
+    assert ':6543/' in _normalize_database_url(pooler)

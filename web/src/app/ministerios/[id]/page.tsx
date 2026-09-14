@@ -9,7 +9,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getMinistrioDetail, getPartyAcronymMap, type MinistrioContract } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
-export const revalidate = 3600 * 6
+export const revalidate = 21600
 
 interface PageProps {
   params: Promise<{ id: string }>

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 import httpx
 import psycopg2.extras
 
@@ -22,6 +24,8 @@ EUROSTAT_URL = (
 SOURCE_URL = "https://ec.europa.eu/eurostat/databrowser/view/demo_r_pjanaggr3/default/table"
 
 
+@retry(stop=stop_after_attempt(4), wait=wait_exponential(min=2, max=15),
+       retry=retry_if_exception_type((httpx.HTTPError, ValueError)), reraise=True)
 def fetch_population(nuts_code: str) -> list[tuple[int, int]]:
     response = httpx.get(
         EUROSTAT_URL,
@@ -46,6 +50,8 @@ def fetch_population(nuts_code: str) -> list[tuple[int, int]]:
         if raw_value is None:
             continue
         rows.append((int(year), int(raw_value)))
+    if not rows:
+        raise ValueError(f"Eurostat returned no population observations for {nuts_code}")
     return rows
 
 
@@ -64,9 +70,14 @@ def refresh(*, skip_population: bool = False, dry_run: bool = False) -> tuple[in
     territories = cur.fetchall()
     population_rows: list[tuple[str, int, int, str]] = []
 
+    population_errors = []
     if not skip_population:
         for territory_key, nuts_code in territories:
-            rows = fetch_population(nuts_code)
+            try:
+                rows = fetch_population(nuts_code)
+            except Exception as exc:
+                population_errors.append(f"{nuts_code}: {exc}")
+                continue
             population_rows.extend(
                 (territory_key, year, population, SOURCE_URL)
                 for year, population in rows
@@ -97,6 +108,8 @@ def refresh(*, skip_population: bool = False, dry_run: bool = False) -> tuple[in
     conn.commit()
     cur.close()
     conn.close()
+    if population_errors:
+        raise RuntimeError("Spend atlas refreshed; population update incomplete: " + "; ".join(population_errors))
     print(f"Atlas refreshed; {len(population_rows)} population rows upserted")
     return len(population_rows), 1
 

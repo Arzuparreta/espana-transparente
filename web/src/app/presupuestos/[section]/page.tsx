@@ -13,8 +13,8 @@ import { notFound } from "next/navigation"
 export const revalidate = 3600
 
 interface PageProps {
-  params: { section: string }
-  searchParams?: { year?: string }
+  params: Promise<{ section: string }>
+  searchParams?: Promise<{ year?: string }>
 }
 
 const CHAPTER_NAMES: Record<string, string> = {
@@ -30,10 +30,10 @@ const CHAPTER_NAMES: Record<string, string> = {
 
 export default async function BudgetSectionPage({ params, searchParams }: PageProps) {
   const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
-  const requestedYear = Number.parseInt(searchParams?.year ?? String(latestYear), 10)
+  const requestedYear = Number.parseInt((await searchParams)?.year ?? String(latestYear), 10)
   const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
   const meta = getBudgetYearMeta(year)
-  const sectionCode = decodeURIComponent(params.section)
+  const sectionCode = decodeURIComponent((await params).section)
 
   const [programs, minister] = await Promise.all([
     getBudgetSection(year, sectionCode),

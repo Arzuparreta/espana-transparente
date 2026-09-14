@@ -29,13 +29,13 @@ interface SessionRow {
 }
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string
-  }
+  }>
 }
 
 export default async function VotacionesPage({ searchParams }: PageProps) {
-  const page = parsePage(searchParams?.page)
+  const page = parsePage((await searchParams)?.page)
   const [{ sessions, total }, lastChecked] = await Promise.all([
     getVotingSessionPage(page),
     getEtlLastFinished(["congreso.asistencia", "senado.votaciones"]),

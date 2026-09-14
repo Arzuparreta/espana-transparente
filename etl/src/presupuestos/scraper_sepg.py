@@ -47,13 +47,14 @@ def _curl_get(url: str, timeout: int = 30) -> bytes:
     with tempfile.NamedTemporaryFile(suffix=".tmp", delete=False) as tmp:
         result = subprocess.run(
             [
-                "curl", "-sL", "--max-time", str(timeout),
+                "curl", "-fsSL", "--max-time", str(timeout),
+                "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
                 "-H", "User-Agent: Mozilla/5.0 (compatible; EspanaTransparente/1.0)",
                 "-H", "Referer: https://www.sepg.pap.hacienda.gob.es/",
                 url, "-o", tmp.name,
             ],
             capture_output=True,
-            timeout=timeout + 5,
+            timeout=timeout * 4 + 15,
         )
         if result.returncode != 0:
             raise RuntimeError(f"curl failed [{url}]: {result.stderr.decode()[:200]}")
@@ -213,6 +214,8 @@ def scrape_year(year: int, *, verbose: bool = True) -> list[SepgRecord]:
         print(f"Fetching ROM index for {folder} ...")
 
     gastos_pages = get_gastos_page_names(folder)
+    if not gastos_pages:
+        raise RuntimeError(f"SEPG {folder}: no budget sections in source index")
     if verbose:
         print(f"  {len(gastos_pages)} section 'estado de gastos' pages")
 
@@ -245,6 +248,8 @@ def scrape_year(year: int, *, verbose: bool = True) -> list[SepgRecord]:
         unique_programs = len({(r.section_code, r.program_code) for r in all_records})
         print(f"\nTotal: {len(all_records)} records across {unique_programs} programs")
 
+    if not all_records:
+        raise RuntimeError(f"SEPG {folder}: no budget observations parsed")
     return all_records
 
 

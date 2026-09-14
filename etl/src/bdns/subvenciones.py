@@ -191,7 +191,8 @@ def upsert(conn, records: list[dict]) -> int:
             EXCLUDED.granting_body_organization_id,
             subsidies.granting_body_organization_id
           ),
-          source_url          = EXCLUDED.source_url
+          source_url          = EXCLUDED.source_url,
+          updated_at          = now()
         """,
         [
             (
@@ -257,7 +258,11 @@ def run_window(
         for page in range(max_pages):
             data = fetch_page(from_date, to_date, page)
             content = data.get("content", [])
+            if not isinstance(data.get("content"), list):
+                raise RuntimeError("BDNS returned an invalid page without content")
             if not content:
+                if data.get("totalElements", 0) > total_fetched:
+                    raise RuntimeError("BDNS returned an empty page before all reported records were read")
                 break
 
             records = [r for raw in content if (r := parse_record(raw, importe_min)) is not None]
@@ -282,6 +287,7 @@ def run_window(
             time.sleep(REQUEST_DELAY)
 
         if conn and run_id:
+            conn.rollback()
             cur = conn.cursor()
             finish_run(
                 cur,
@@ -294,6 +300,7 @@ def run_window(
             cur.close()
     except Exception as exc:
         if conn and run_id:
+            conn.rollback()
             cur = conn.cursor()
             finish_run(
                 cur,

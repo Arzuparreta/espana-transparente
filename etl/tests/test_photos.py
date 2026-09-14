@@ -393,3 +393,24 @@ def test_wikidata_index_stops_refetching_after_repeated_failures(monkeypatch):
             src._ensure_index()
 
     assert calls["n"] == wd.WikidataSource.MAX_INDEX_ATTEMPTS
+
+
+def test_wikidata_recovers_index_before_skipping_first_candidate(monkeypatch):
+    from photos.sources import wikidata as wd
+
+    responses = iter([RuntimeError("invalid JSON"), []])
+    calls = []
+
+    def fetch(query):
+        calls.append(query)
+        result = next(responses)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    monkeypatch.setattr(wd, "_fetch_sparql", fetch)
+    source = wd.WikidataSource()
+    source._ensure_index()
+    source._ensure_index()
+    assert source._index == []
+    assert len(calls) == 2

@@ -128,3 +128,25 @@ def test_download_feed_page_retries_transient_failures(monkeypatch):
     monkeypatch.setattr("contratacion.contratos.subprocess.run", fake_run)
 
     assert download_feed_page("https://example.test/feed.atom") == output
+
+
+def test_daily_feed_follows_all_pages_in_overlap(monkeypatch):
+    from contratacion import contratos as c
+    from datetime import date, timedelta
+    dates = [date.today()] * 4 + [date.today() - timedelta(days=9)]
+    monkeypatch.setattr(c, 'download_feed_page', lambda url: url)
+    def parse(url):
+        i = 0 if url == c.BASE_FEED_URL else int(url)
+        return ([{'date': dates[i]}], str(i + 1))
+    monkeypatch.setattr(c, 'parse_atom', parse)
+    assert c.run_feed(max_pages=10, dry_run=True, since_days=7) == (5, 0)
+
+
+def test_daily_feed_cap_cannot_report_success(monkeypatch):
+    import pytest
+    from contratacion import contratos as c
+    from datetime import date
+    monkeypatch.setattr(c, 'download_feed_page', lambda url: b'feed')
+    monkeypatch.setattr(c, 'parse_atom', lambda _: ([{'date': date.today()}], 'more'))
+    with pytest.raises(RuntimeError, match='incomplete update'):
+        c.run_feed(max_pages=3, dry_run=True, since_days=7)

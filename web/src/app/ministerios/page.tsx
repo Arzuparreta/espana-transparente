@@ -7,7 +7,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getGobiernoActual, type GobiernoMember } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 export const metadata = {
   title: "Ministerios",

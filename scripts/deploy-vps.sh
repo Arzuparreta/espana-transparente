@@ -16,7 +16,7 @@ cd "$REPO"
 
 echo "[deploy] fetching origin/main…"
 git fetch origin main
-git reset --hard origin/main
+git reset --hard "${ET_DEPLOY_REVISION:-origin/main}"
 echo "[deploy] now at $(git rev-parse --short HEAD) — $(git log -1 --pretty=%s)"
 
 cd web

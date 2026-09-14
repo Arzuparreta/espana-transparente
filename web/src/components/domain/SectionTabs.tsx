@@ -28,7 +28,7 @@ function TabRow({
   tabs: TabItem[]
   activeTab: string
   onChange: (next: string) => void
-  scrollRef?: RefObject<HTMLDivElement>
+  scrollRef?: RefObject<HTMLDivElement | null>
 }) {
   return (
     <div

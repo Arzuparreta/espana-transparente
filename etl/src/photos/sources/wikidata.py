@@ -114,9 +114,18 @@ class WikidataSource:
                 f"Wikidata SPARQL index unavailable after "
                 f"{self._index_attempts} attempts this run — not retrying"
             )
-        self._index_attempts += 1
-        print("[wikidata] fetching SPARQL index (Spanish politicians with photos)...")
-        rows = _fetch_sparql(SPARQL_QUERY)
+        # Finish bounded recovery before evaluating this politician. Otherwise
+        # a later candidate can recover the index while the first is never
+        # retried and the whole run retains an obsolete source error.
+        while self._index_attempts < self.MAX_INDEX_ATTEMPTS:
+            self._index_attempts += 1
+            print("[wikidata] fetching SPARQL index (Spanish politicians with photos)...")
+            try:
+                rows = _fetch_sparql(SPARQL_QUERY)
+                break
+            except RuntimeError:
+                if self._index_attempts >= self.MAX_INDEX_ATTEMPTS:
+                    raise
         entries: list[dict] = []
         for b in rows:
             person_iri = b.get("person", {}).get("value", "")

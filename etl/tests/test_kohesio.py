@@ -240,6 +240,9 @@ class _FakeKohesioCursor:
 
 
 class _FakeKohesioConn:
+    def rollback(self):
+        pass
+
     def cursor(self, *a, **kw):
         return _FakeKohesioCursor()
 

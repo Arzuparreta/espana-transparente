@@ -4,18 +4,18 @@ import { SearchResults } from "@/components/search/SearchResults"
 import { searchDocuments } from "@/lib/data"
 
 interface PageProps {
-  searchParams?: { q?: string }
+  searchParams?: Promise<{ q?: string }>
 }
 
-export function generateMetadata({ searchParams }: PageProps) {
-  const q = searchParams?.q
+export async function generateMetadata({ searchParams }: PageProps) {
+  const q = (await searchParams)?.q
   return {
     title: q ? `"${q}" — Búsqueda` : "Búsqueda",
   }
 }
 
 export default async function BuscarPage({ searchParams }: PageProps) {
-  const query = searchParams?.q?.trim() ?? ""
+  const query = (await searchParams)?.q?.trim() ?? ""
   const results = query.length >= 2 ? await searchDocuments(query, { limit: 24 }) : []
 
   return (

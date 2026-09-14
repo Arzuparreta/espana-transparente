@@ -269,14 +269,9 @@ def test_build_carried_forward_records_clones_missing_prorroga_section():
     assert carried[0]["credit_initial"] == pytest.approx(159688815850.0)
 
 
-# ─── --resume skip path (records the skip so freshness view updates) ─────────
-
-def test_run_year_resume_skip_records_succeeded_run(monkeypatch):
-    """When --resume detects the chunk is already succeeded, run_year must
-    still INSERT a row in etl_runs with status='succeeded' and finished_at=now()
-    so that v_etl_pipeline_status picks it up. Otherwise the freshness view
-    keeps pointing at the previous run's finished_at and the portal marks
-    the pipeline as 'delayed' forever."""
+# Resume does not claim a new source verification.
+def test_run_year_resume_skip_keeps_last_verification(monkeypatch):
+    """Skipping cached data must not reset the public freshness clock."""
 
     from common import etl_runs as er
     from presupuestos import presupuestos as p
@@ -296,6 +291,9 @@ def test_run_year_resume_skip_records_succeeded_run(monkeypatch):
     class FakeConn:
         def cursor(self):
             return FakeCursor()
+
+        def rollback(self):
+            pass
 
         def commit(self):
             committed["n"] += 1
@@ -341,15 +339,9 @@ def test_run_year_resume_skip_records_succeeded_run(monkeypatch):
     read, upserted = p.run_year(year=2026, resume=True, dry_run=False)
 
     assert (read, upserted) == (0, 0)
-    # start_run + finish_run were called even though the chunk was skipped
-    assert len(started) == 1
-    assert started[0]["pipeline"] == "presupuestos"
-    assert started[0]["chunk_key"] == "2026"
-    assert len(finished) == 1
-    assert finished[0]["status"] == "succeeded"
-    assert finished[0]["rows_inserted"] == 0
-    # The skip path must commit the start + finish (2 commits) before close
-    assert committed["n"] == 2
+    assert started == []
+    assert finished == []
+    assert committed["n"] == 0
 
 
 def test_run_year_resume_no_skip_still_works(monkeypatch):
@@ -370,6 +362,9 @@ def test_run_year_resume_no_skip_still_works(monkeypatch):
     class FakeConn:
         def cursor(self):
             return FakeCursor()
+
+        def rollback(self):
+            pass
 
         def commit(self):
             pass

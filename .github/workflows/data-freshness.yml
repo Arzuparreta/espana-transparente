@@ -1,0 +1,14 @@
+name: Data freshness
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify all scheduled sources
+        run: |
+          curl --fail-with-body --silent --show-error --retry 2 --retry-delay 10 --retry-all-errors \
+            --connect-timeout 10 --max-time 30 https://spaintransparencia.info/api/data-health

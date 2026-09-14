@@ -297,7 +297,7 @@ export default async function EstadoDatosPage() {
               {examplesRows.length === 0 ? (
                 <EmptyState
                   title="Sin ejemplos abiertos"
-                  description="No hay conflictos o registros sin resolver en la muestra pública."
+                  description="No hay ejemplos disponibles en esta muestra. Consulta los recuentos de cobertura para conocer los registros pendientes."
                 />
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">

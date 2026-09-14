@@ -5,10 +5,10 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { PartyBadge } from "@/components/domain/PartyBadge"
 import { getInstitucionById, getPartyAcronymMap } from "@/lib/data"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 const INSTITUTION_LABEL: Record<string, string> = {
@@ -19,7 +19,7 @@ const INSTITUTION_LABEL: Record<string, string> = {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const member = await getInstitucionById(params.id)
+  const member = await getInstitucionById((await params).id)
   return { title: member?.person_name ?? "Nombramiento" }
 }
 
@@ -50,7 +50,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export default async function InstitucionDetailPage({ params }: PageProps) {
-  const member = await getInstitucionById(params.id)
+  const member = await getInstitucionById((await params).id)
   if (!member) notFound()
 
   if (member.politician_id) {

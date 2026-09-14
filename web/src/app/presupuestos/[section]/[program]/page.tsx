@@ -12,8 +12,8 @@ import { formatEuroCompact } from "@/lib/format"
 export const revalidate = 3600
 
 interface PageProps {
-  params: { section: string; program: string }
-  searchParams?: { year?: string }
+  params: Promise<{ section: string; program: string }>
+  searchParams?: Promise<{ year?: string }>
 }
 
 const CHAPTER_NAMES: Record<string, string> = {
@@ -28,8 +28,8 @@ const CHAPTER_NAMES: Record<string, string> = {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const sectionCode = decodeURIComponent(params.section)
-  const programCode = decodeURIComponent(params.program)
+  const sectionCode = decodeURIComponent((await params).section)
+  const programCode = decodeURIComponent((await params).program)
   const rows = await getBudgetProgram(sectionCode, programCode)
   const latest = rows[0]
   return {
@@ -40,8 +40,8 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function BudgetProgramDetailPage({ params, searchParams }: PageProps) {
-  const sectionCode = decodeURIComponent(params.section)
-  const programCode = decodeURIComponent(params.program)
+  const sectionCode = decodeURIComponent((await params).section)
+  const programCode = decodeURIComponent((await params).program)
   const rows = await getBudgetProgram(sectionCode, programCode)
   if (rows.length === 0) notFound()
 
@@ -49,7 +49,7 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
   const programName = latest.program_name ?? programCode
   const sectionName = latest.section_name ?? sectionCode
   const ministry = latest.ministry_normalized
-  const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
+  const requestedYear = Number.parseInt((await searchParams)?.year ?? "", 10)
   const traceYear = rows.some((row) => row.year === requestedYear)
     ? requestedYear
     : latest.year

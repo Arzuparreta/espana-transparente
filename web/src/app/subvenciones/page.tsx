@@ -23,7 +23,7 @@ export const metadata = {
 const VALID_NIVELES = ["all", "ESTADO", "AUTONOMICA", "LOCAL"]
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string
     nivel?: string
     ministry?: string
@@ -32,19 +32,19 @@ interface PageProps {
     province?: string
     municipio?: string
     flow?: string
-  }
+  }>
 }
 
 export default async function SubvencionesPage({ searchParams }: PageProps) {
-  const page = parsePage(searchParams?.page)
-  const requestedNivel = searchParams?.nivel || "all"
+  const page = parsePage((await searchParams)?.page)
+  const requestedNivel = (await searchParams)?.nivel || "all"
   const activeNivel = VALID_NIVELES.includes(requestedNivel) ? requestedNivel : "all"
-  const activeMinistry = searchParams?.ministry?.trim() || null
-  const activeTerritory = searchParams?.territory?.trim() || null
-  const activeProvince = searchParams?.province?.trim() || null
-  const activeMunicipio = searchParams?.municipio?.trim() || null
-  const activeFlow = searchParams?.flow === "to" ? "to" : "by"
-  const requestedYear = Number.parseInt(searchParams?.year ?? "", 10)
+  const activeMinistry = (await searchParams)?.ministry?.trim() || null
+  const activeTerritory = (await searchParams)?.territory?.trim() || null
+  const activeProvince = (await searchParams)?.province?.trim() || null
+  const activeMunicipio = (await searchParams)?.municipio?.trim() || null
+  const activeFlow = (await searchParams)?.flow === "to" ? "to" : "by"
+  const requestedYear = Number.parseInt((await searchParams)?.year ?? "", 10)
   const activeYear = Number.isFinite(requestedYear) ? requestedYear : null
 
   const hasFilter = Boolean(

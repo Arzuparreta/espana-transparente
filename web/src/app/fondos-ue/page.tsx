@@ -14,7 +14,7 @@ import {
 } from "@/lib/data"
 import { formatEuroCompact } from "@/lib/format"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 export const metadata = {
   title: "Fondos UE",
@@ -22,7 +22,7 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams?: { page?: string }
+  searchParams?: Promise<{ page?: string }>
 }
 
 function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
@@ -73,7 +73,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
 }
 
 export default async function FondosUEPage({ searchParams }: PageProps) {
-  const page = parsePage(searchParams?.page)
+  const page = parsePage((await searchParams)?.page)
   const [{ funds, total }, summary, lastChecked] = await Promise.all([
     getEuFundsPage(page),
     getEuFundsSummary(),

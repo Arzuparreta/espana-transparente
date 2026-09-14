@@ -6,7 +6,7 @@ import { EntityLink } from "@/components/domain/EntityLink"
 import { getGobiernoActual, getPartyAcronymMap, type GobiernoMember } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 export const metadata = {
   title: "Gobierno",

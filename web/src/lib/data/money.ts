@@ -17,12 +17,17 @@ const getMoneyDataOverviewCached = unstable_cache(
         .order("dataset")
         .order("administration_level")
         .abortSignal(dataQuerySignal()),
-      supabase
+      Promise.all((["contracts", "subsidies"] as const).map((dataset) => supabase
         .from("v_unresolved_money_examples")
         .select("dataset, record_id, record_date, body_name, body_normalized, administration_level, display_title, source_url, issue_type")
+        .eq("dataset", dataset)
         .order("record_date", { ascending: false })
-        .limit(18)
-        .abortSignal(dataQuerySignal()),
+        .limit(9)
+        .abortSignal(dataQuerySignal())
+      )).then((results) => ({
+        data: results.flatMap((result) => result.data ?? []),
+        error: results.find((result) => result.error)?.error ?? null,
+      })),
     ])
 
     if (coverage.error || examples.error) {

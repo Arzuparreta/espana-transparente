@@ -98,5 +98,5 @@ if [[ $fail -eq 0 ]]; then
 fi
 echo "❌ $fail check(s) failed."
 echo "   Edge up + DB checks down  → Supabase project is paused / out of resources."
-echo "   Fix on the Supabase dashboard (project ${SUPABASE_URL##*//}); this is not a repo bug."
+echo "   Inspect the self-hosted VPS: container health, Postgres logs, disk and memory."
 exit 1

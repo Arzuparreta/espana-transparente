@@ -16,10 +16,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 from typing import Any
 
 from common.db import get_pg_conn
+from ine.client import fetch_json, require_observations
 from common.etl_runs import finish_run, start_run
 
 # INE Tempus3 series codes discovered via the API's OPERACIONES_DISPONIBLES
@@ -60,21 +60,6 @@ INDICATORS: dict[str, dict[str, str]] = {
 }
 
 
-def fetch_json(url: str) -> Any:
-    """Fetch JSON from INE Tempus API via curl (avoids httpx dependency)."""
-    result = subprocess.run(
-        ["curl", "-sL", url],
-        capture_output=True,
-        timeout=30,
-        check=True,
-    )
-    try:
-        payload = result.stdout.decode("utf-8")
-    except UnicodeDecodeError:
-        payload = result.stdout.decode("latin-1")
-    return json.loads(payload)
-
-
 def parse_period(point: dict) -> str | None:
     """Parse a Tempus3 data point into a 'YYYY-MM' or 'YYYY-QN' period string.
 
@@ -112,6 +97,7 @@ def run(dry_run: bool = False) -> dict[str, int]:
     results: dict[str, int] = {}
     run_id = None
     total_read = 0
+    failures = []
     try:
         if not dry_run:
             run_id = start_run(cur, pipeline="ine.indicadores_ampliados")
@@ -130,12 +116,13 @@ def run(dry_run: bool = False) -> dict[str, int]:
             try:
                 series_data = fetch_json(url)
                 metadata = fetch_json(metadata_url)
+                data_points = require_observations(series_data, series_id)
             except Exception as exc:
                 print(f"  ERROR fetching {series_id}: {exc}")
                 results[meta["code"]] = 0
+                failures.append(f"{series_id}: {exc}")
                 continue
 
-            data_points = series_data.get("Data", [])
             total_read += len(data_points)
             inserted = 0
             for point in data_points:
@@ -183,6 +170,8 @@ def run(dry_run: bool = False) -> dict[str, int]:
             results[meta["code"]] = inserted
             print(f"  {inserted} data points ingested")
 
+        if failures:
+            raise RuntimeError("INE series failed: " + "; ".join(failures))
         if run_id:
             finish_run(cur, run_id=run_id, status="succeeded",
                        rows_read=total_read, rows_inserted=sum(results.values()))

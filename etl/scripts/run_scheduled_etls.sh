@@ -22,6 +22,7 @@ run_pipeline() {
     :
   else
     echo "::warning title=${label} status unavailable::Could not record pipeline start"
+    failures+=("${label} (could not record start)")
     run_id=""
   fi
 
@@ -30,7 +31,7 @@ run_pipeline() {
     echo "${label}: OK"
     if [[ -n "${run_id}" ]]; then
       python -m common.pipeline_monitor finish "${run_id}" succeeded \
-        || echo "::warning title=${label} status unavailable::Could not record pipeline success"
+        || { failures+=("${label} (could not record success)"); echo "::error::Could not record pipeline success"; }
     fi
   else
     local exit_code=$?
@@ -39,7 +40,7 @@ run_pipeline() {
     if [[ -n "${run_id}" ]]; then
       python -m common.pipeline_monitor finish "${run_id}" failed \
         --error-summary "Scheduled command exited with code ${exit_code}" \
-        || echo "::warning title=${label} status unavailable::Could not record pipeline failure"
+        || { failures+=("${label} (could not record failure)"); echo "::error::Could not record pipeline failure"; }
     fi
   fi
   echo "::endgroup::"
@@ -61,16 +62,16 @@ run_self_tracked_pipeline() {
 }
 
 run_daily() {
-  local yesterday today
-  yesterday="$(date -d 'yesterday' +%Y-%m-%d)"
+  local since today
+  since="$(date -d '7 days ago' +%Y-%m-%d)"
   today="$(date +%Y-%m-%d)"
 
   run_pipeline "congreso.diputados" python -m src.congreso.diputados
   run_self_tracked_pipeline "congreso.asistencia" python -m src.congreso.asistencia --from-date 20250101
-  run_pipeline "ine.indicadores" python -m src.ine.indicadores
-  run_self_tracked_pipeline "contracts_daily" python -m src.contratacion.contratos
+  run_self_tracked_pipeline "ine.indicadores" python -m src.ine.indicadores
+  run_self_tracked_pipeline "contracts_daily" python -m src.contratacion.contratos --since-days 7 --max-pages 100
   run_self_tracked_pipeline "subsidies_daily" python -m src.bdns.subvenciones \
-    --from-date "${yesterday}" --to-date "${today}" --importe-min 0 --max-pages 100
+    --from-date "${since}" --to-date "${today}" --importe-min 0 --max-pages 500
   run_pipeline "territorio.atlas" python -m src.territorio.atlas
   run_pipeline "territorio.org_geolocation" python -m src.territorio.org_geolocation --limit 500 --resume
   run_pipeline "photos.run" python -m src.photos.run --refresh-missing
@@ -89,7 +90,7 @@ run_weekly_core() {
   run_pipeline "photos.public_officials_wikidata" python -m src.photos.sources.public_officials_wikidata
   run_pipeline "congreso.power_relationships" python -m src.congreso.power_relationships
   run_pipeline "photos.run" python -m src.photos.run --no-refresh-missing --max-age-days 30
-  run_self_tracked_pipeline "presupuestos" python -m src.presupuestos.presupuestos --year "$(date +%Y)" --resume
+  run_self_tracked_pipeline "presupuestos" python -m src.presupuestos.presupuestos --year "$(date +%Y)"
   run_pipeline "puertas_giratorias.ingest" python -m src.puertas_giratorias.ingest \
     --watchlist data/personas_vigiladas.yml
   run_pipeline "instituciones.instituciones" python -m src.instituciones.instituciones
@@ -121,9 +122,9 @@ run_weekly_links() {
   run_self_tracked_pipeline "judicial.wikipedia" python -m src.judicial.wikipedia --resume --extract-people
   run_self_tracked_pipeline "judicial.cgpj" python -m src.judicial.cgpj --resume
   run_self_tracked_pipeline "judicial.contract_links" python -m src.judicial.contract_links
-  run_pipeline "ine.indicadores_ampliados" python -m src.ine.indicadores_ampliados
-  run_pipeline "ine.ipc_subgrupos" python -m src.ine.ipc_subgrupos
-  run_pipeline "ine.bde" python -m src.ine.bde
+  run_self_tracked_pipeline "ine.indicadores_ampliados" python -m src.ine.indicadores_ampliados
+  run_self_tracked_pipeline "ine.ipc_subgrupos" python -m src.ine.ipc_subgrupos
+  run_self_tracked_pipeline "ine.bde" python -m src.ine.bde
   run_pipeline "elections.ingest" python -m src.elections.ingest
   run_self_tracked_pipeline "common.search_refresh" python -m common.search_refresh
 }

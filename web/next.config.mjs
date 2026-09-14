@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
+import { execFileSync } from "node:child_process";
+
+const revision = process.env.APP_REVISION || execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+
 const nextConfig = {
+  env: { APP_REVISION: revision },
   async redirects() {
     return [
       { source: "/poder", destination: "/personas", permanent: true },

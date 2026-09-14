@@ -58,6 +58,7 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      - run: npm test
       - run: npm run lint
       - run: npm run ui:audit
       - run: npm run content:audit
@@ -65,7 +66,7 @@ jobs:
 
   deploy-web:
     name: Deploy web to VPS
-    needs: web
+    needs: [web, etl-check, database-migrate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -79,10 +80,13 @@ jobs:
           command_timeout: "20m"
           script: |
             set -e
+            exec 9>/var/lock/espana-transparente-deploy.lock
+            flock -w 600 9
+            export ET_DEPLOY_REVISION="${{ github.sha }}"
             cd /root/Proyectos/espana-transparente
             # Bootstrap: update the checkout (and the deploy script itself) first.
             git fetch origin main
-            git reset --hard origin/main
+            git reset --hard "$ET_DEPLOY_REVISION"
             chmod +x scripts/deploy-vps.sh
             # Run the build+restart DETACHED so a dropped SSH session can't kill it
             # (the previous inline pattern died with SIGTERM on transient drops).
@@ -105,7 +109,10 @@ jobs:
           curl --fail --show-error --silent \
             --retry 5 --retry-delay 10 --retry-all-errors \
             --connect-timeout 10 --max-time 30 \
-            "https://spaintransparencia.info/api/health"
+            "https://spaintransparencia.info/api/health" > /tmp/deployed-health.json
+          node -e 'const h=require("/tmp/deployed-health.json"); if(h.revision!==process.env.EXPECTED_REVISION) throw new Error(`Wrong revision: ${h.revision}`); console.log(h)'
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
 
   data-health:
     name: Data health (live Supabase)
@@ -168,7 +175,7 @@ jobs:
                 error_summary = 'Execution ended without reporting completion',
                 finished_at = now()
             WHERE status = 'running'
-              AND started_at < now() - interval '2 hours';
+              AND started_at < now() - interval '8 hours';
           "
 
   etl-daily:

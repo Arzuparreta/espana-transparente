@@ -1,8 +1,8 @@
 """ETL: ingest IPC (Consumer Price Index) data from INE API."""
 
 import json
-import subprocess
 from common.db import get_pg_conn
+from ine.client import fetch_json, require_observations
 from common.etl_runs import finish_run, start_run
 
 # Current INE IPC series, base 2025. nult=360 (~30 years of monthly history);
@@ -30,20 +30,6 @@ INDICATORS = {
         "metadata_url": "https://servicios.ine.es/wstempus/js/ES/SERIE/IPC290750?det=2&tip=A",
     },
 }
-
-
-def fetch_json(url: str):
-    result = subprocess.run(
-        ["curl", "-sL", url],
-        capture_output=True,
-        timeout=30,
-        check=True,
-    )
-    try:
-        payload = result.stdout.decode("utf-8")
-    except UnicodeDecodeError:
-        payload = result.stdout.decode("latin-1")
-    return json.loads(payload)
 
 
 def parse_period(point: dict) -> str | None:
@@ -78,7 +64,7 @@ def run():
             metadata = fetch_json(meta["metadata_url"])
 
             inserted = 0
-            data_points = series.get("Data", [])
+            data_points = require_observations(series, key)
             total_read += len(data_points)
             for d in data_points:
                 period_str = parse_period(d)

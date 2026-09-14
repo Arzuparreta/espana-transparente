@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 from typing import Any
 
 from common.db import get_pg_conn
+from ine.client import fetch_json, require_observations
 from common.etl_runs import finish_run, start_run
 
 # INE Tempus3 series codes for COICOP subgroups (table 76125, base 2025).
@@ -38,20 +38,6 @@ SUBGROUPS: dict[str, dict[str, str]] = {
 }
 
 
-def fetch_json(url: str) -> Any:
-    result = subprocess.run(
-        ["curl", "-sL", url],
-        capture_output=True,
-        timeout=30,
-        check=True,
-    )
-    try:
-        payload = result.stdout.decode("utf-8")
-    except UnicodeDecodeError:
-        payload = result.stdout.decode("latin-1")
-    return json.loads(payload)
-
-
 def parse_period(point: dict) -> str | None:
     year = point.get("Anyo")
     period = point.get("FK_Periodo")
@@ -72,6 +58,7 @@ def run(dry_run: bool = False) -> int:
     cur = conn.cursor() if conn else None
     total_inserted = 0
     total_read = 0
+    failures = []
     run_id = None
 
     try:
@@ -87,12 +74,13 @@ def run(dry_run: bool = False) -> int:
             url = f"https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/{series_key}?nult=240&tip=A"
             try:
                 series = fetch_json(url)
+                data_points = require_observations(series, series_key)
             except Exception as exc:
                 print(f"  ERROR fetching {series_key}: {exc}")
+                failures.append(f"{series_key}: {exc}")
                 continue
 
             inserted = 0
-            data_points = series.get("Data", [])
             total_read += len(data_points)
             for d in data_points:
                 period_str = parse_period(d)
@@ -129,6 +117,8 @@ def run(dry_run: bool = False) -> int:
             print(f"  {inserted} data points")
             total_inserted += inserted
 
+        if failures:
+            raise RuntimeError("INE series failed: " + "; ".join(failures))
         if conn and cur and run_id:
             finish_run(cur, run_id=run_id, status="succeeded",
                        rows_read=total_read, rows_inserted=total_inserted)

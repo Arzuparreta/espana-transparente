@@ -18,8 +18,9 @@ EUROSTAT_URL = (
 def fetch_deuda_json(url: str = EUROSTAT_URL) -> dict:
     """Download the Eurostat JSON for Spanish government debt."""
     result = subprocess.run(
-        ["curl", "-sL", "--max-time", "30", url],
-        capture_output=True, text=True, timeout=35,
+        ["curl", "-fsSL", "--max-time", "30", "--retry", "3",
+         "--retry-delay", "2", "--retry-all-errors", url],
+        capture_output=True, text=True, timeout=150,
     )
     if result.returncode != 0:
         raise RuntimeError(f"curl failed: {result.stderr}")
@@ -55,12 +56,6 @@ def build_raw_data(period: str, value: float) -> dict:
 
 
 def run():
-    data = fetch_deuda_json()
-    records = parse_deuda_records(data)
-    if not records:
-        print("No records parsed from Eurostat API — check URL or response format")
-        return
-
     conn = get_pg_conn()
     run_id = None
     try:
@@ -68,6 +63,10 @@ def run():
             run_id = start_run(cur, pipeline="ine.bde")
             conn.commit()
 
+        data = fetch_deuda_json()
+        records = parse_deuda_records(data)
+        if not records:
+            raise RuntimeError("Eurostat returned no debt observations")
         cur = conn.cursor()
         inserted = 0
         for period_str, value in records:

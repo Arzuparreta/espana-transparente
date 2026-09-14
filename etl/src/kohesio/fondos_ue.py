@@ -307,6 +307,7 @@ def run(dry_run: bool = False, limit: int | None = None,
             conn.commit()
     except Exception as exc:
         if run_id:
+            conn.rollback()
             with conn.cursor() as cur:
                 finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
                 conn.commit()

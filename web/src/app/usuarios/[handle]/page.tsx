@@ -7,11 +7,11 @@ import { getPublicUserProfile } from "@/lib/data/user-profiles"
 export const dynamic = "force-dynamic"
 
 interface PageProps {
-  params: { handle: string }
+  params: Promise<{ handle: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const data = await getPublicUserProfile(params.handle)
+  const data = await getPublicUserProfile((await params).handle)
   if (!data) return { title: "Usuario no encontrado" }
   const name = data.profile.display_name ?? `@${data.profile.handle}`
   return {
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function UsuarioPage({ params }: PageProps) {
-  const data = await getPublicUserProfile(params.handle)
+  const data = await getPublicUserProfile((await params).handle)
   if (!data) notFound()
 
   return (

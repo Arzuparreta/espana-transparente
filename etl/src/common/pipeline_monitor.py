@@ -80,7 +80,7 @@ def cleanup_stale_runs() -> int:
                 error_summary = 'Scheduled execution ended without reporting completion',
                 finished_at = now()
             WHERE status = 'running'
-              AND started_at < now() - interval '2 hours'
+              AND started_at < now() - interval '8 hours'
             """
         )
         updated = cur.rowcount

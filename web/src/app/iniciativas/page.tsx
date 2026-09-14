@@ -14,9 +14,9 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string
-  }
+  }>
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -39,7 +39,7 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 export default async function IniciativasPage({ searchParams }: PageProps) {
-  const page = parsePage(searchParams?.page)
+  const page = parsePage((await searchParams)?.page)
   const { initiatives, total } = await getInitiativesPage(page)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.initiatives))
 

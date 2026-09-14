@@ -1,4 +1,4 @@
-import { ImageResponse } from "@vercel/og"
+import { ImageResponse } from "next/og"
 import { getContractDetail } from "@/lib/data"
 import { BRAND_NAME, BRAND_URL } from "@/lib/brand"
 import { formatEuroCompact } from "@/lib/format"

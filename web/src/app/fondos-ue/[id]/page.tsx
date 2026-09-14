@@ -6,19 +6,19 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { getEuFundBySlug } from "@/lib/data"
 import { formatEuroCompact } from "@/lib/format"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const fund = await getEuFundBySlug(decodeURIComponent(params.id))
+  const fund = await getEuFundBySlug(decodeURIComponent((await params).id))
   return { title: fund?.label ?? "Fondo UE" }
 }
 
 export default async function EuFundDetailPage({ params }: PageProps) {
-  const slug = decodeURIComponent(params.id)
+  const slug = decodeURIComponent((await params).id)
   const fund = await getEuFundBySlug(slug)
   if (!fund) notFound()
 

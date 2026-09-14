@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 import os
 import xml.etree.ElementTree as ET
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 
 import psycopg2.extras
 from common.db import get_pg_conn
@@ -370,13 +370,20 @@ def upsert(conn, records: list[dict]) -> int:
     return upserted
 
 
-def run_feed(*, max_pages: int | None, dry_run: bool) -> tuple[int, int]:
+def run_feed(*, max_pages: int | None, dry_run: bool, since_days: int | None = None) -> tuple[int, int]:
     """Download the paginated ATOM feed and upsert all entries."""
     pipeline = "contracts_daily"
     chunk_key = f"feed-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M')}"
     conn = None if dry_run else get_pg_conn()
     cur = conn.cursor() if conn else None
 
+    since = date.today() - timedelta(days=since_days) if since_days is not None else None
+    if cur and since is not None:
+        cur.execute("SELECT max(started_at)::date FROM etl_runs "
+                    "WHERE pipeline = 'contracts_daily' AND status = 'succeeded'")
+        last_success = cur.fetchone()[0]
+        if last_success:
+            since = min(since, last_success - timedelta(days=1))
     run_id = None
     if cur:
         run_id = start_run(
@@ -406,6 +413,15 @@ def run_feed(*, max_pages: int | None, dry_run: bool) -> tuple[int, int]:
                 total_upserted += upserted
 
             url = next_url
+            # Feeds are sorted by update date, not award date. Traverse through
+            # the overlap boundary so a busy day can never be truncated at page 3.
+            dates = [r["date"] for r in records if r.get("date")]
+            if since is not None and dates and len(dates) == len(records) and max(dates) < since:
+                url = None
+        if since is not None and url:
+            raise RuntimeError(f"PCSP exceeded {max_pages} pages before covering {since}; incomplete update")
+        if not total_parsed:
+            raise RuntimeError("PCSP feed returned no contract records")
 
         if cur:
             finish_run(
@@ -424,6 +440,7 @@ def run_feed(*, max_pages: int | None, dry_run: bool) -> tuple[int, int]:
 
     except Exception as exc:
         if conn and run_id:
+            conn.rollback()
             cur = conn.cursor()
             finish_run(
                 cur,
@@ -444,11 +461,12 @@ def main() -> None:
                         help="Fetch all available pages (no page limit)")
     parser.add_argument("--max-pages", type=int, default=3,
                         help="Maximum number of feed pages to fetch (default: 3)")
+    parser.add_argument("--since-days", type=int, help="Read through this overlap window; recover missed runs automatically")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     max_pages = None if args.backfill else args.max_pages
-    run_feed(max_pages=max_pages, dry_run=args.dry_run)
+    run_feed(max_pages=max_pages, dry_run=args.dry_run, since_days=args.since_days)
 
 
 if __name__ == "__main__":

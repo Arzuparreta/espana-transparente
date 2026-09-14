@@ -10,11 +10,11 @@ import type { RDCase, RDSource } from "@/app/puertas-giratorias/page"
 export const revalidate = 3600
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const data = (await getRevolvingDoorCaseById(params.id)) as RDCase | null
+  const data = (await getRevolvingDoorCaseById((await params).id)) as RDCase | null
   return { title: data?.person_name ?? "Puerta giratoria" }
 }
 
@@ -44,7 +44,7 @@ const SOURCE_LABEL: Record<RDSource["source_type"], string> = {
 
 export default async function RevolvingDoorDetailPage({ params }: PageProps) {
   const [item, partyMap] = await Promise.all([
-    getRevolvingDoorCaseById(params.id) as Promise<RDCase | null>,
+    getRevolvingDoorCaseById((await params).id) as Promise<RDCase | null>,
     getPartyAcronymMap(),
   ])
   if (!item) notFound()

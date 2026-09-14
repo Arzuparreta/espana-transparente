@@ -18,7 +18,7 @@ export async function GET() {
   }
 
   return NextResponse.json(
-    { status: "ok", database: "ok" },
+    { status: "ok", database: "ok", revision: process.env.APP_REVISION ?? "unknown" },
     { headers: { "Cache-Control": "no-store" } }
   )
 }

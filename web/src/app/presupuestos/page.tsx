@@ -16,9 +16,9 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     year?: string
-  }
+  }>
 }
 
 function pensionProgramCode(year: number) {
@@ -31,7 +31,7 @@ function clasesPasivasProgramCode(year: number) {
 
 export default async function PresupuestosPage({ searchParams }: PageProps) {
   const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
-  const requestedYear = Number.parseInt(searchParams?.year ?? String(latestYear), 10)
+  const requestedYear = Number.parseInt((await searchParams)?.year ?? String(latestYear), 10)
   const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
   const meta = getBudgetYearMeta(year)
 

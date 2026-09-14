@@ -8,7 +8,7 @@ import { getOfficialDetail, getPartyAcronymMap } from "@/lib/data"
 import type { PublicOfficialPosition } from "@/lib/data"
 import { getResponsivePhoto } from "@/lib/photos"
 
-export const revalidate = 3600 * 24
+export const revalidate = 86400
 
 interface PageProps {
   params: Promise<{ id: string }>

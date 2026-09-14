@@ -58,3 +58,16 @@ describe("getEtlPipelineLabel", () => {
     expect(getPipelineDisplayStatus(row, new Date("2026-06-09T12:00:00Z"))).toBe("failed")
   })
 })
+
+it("does not call an unmonitored historical run current", () => {
+  expect(getPipelineDisplayStatus({
+    pipeline: "subsidies_backfill", last_status: "succeeded",
+    last_finished_at: "2020-01-01T00:00:00Z",
+  })).toBe("unknown")
+})
+
+it("monitors declarations and government updates", () => {
+  const statuses = getCriticalPipelineStatuses([])
+  expect(statuses.find((r) => r.key === "declarations")?.status).toBe("missing")
+  expect(statuses.find((r) => r.key === "government")?.status).toBe("missing")
+})

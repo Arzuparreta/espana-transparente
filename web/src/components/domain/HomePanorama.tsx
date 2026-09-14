@@ -69,7 +69,7 @@ export function HomePanorama({
       <AnchorCard
         key="ipc"
         variant="compact"
-        label={`IPC · ${periodLabel}`}
+        label={`IPC · ${periodLabel}${inflation.dataType === "Avance" ? " · avance" : ""}`}
         value={valueLabel}
         description={`Variación mensual del índice general de precios al consumo.${annualSuffix}`}
         source="Fuente: INE · serie nacional del IPC."

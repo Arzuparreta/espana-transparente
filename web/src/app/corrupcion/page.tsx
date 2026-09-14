@@ -14,7 +14,7 @@ export const metadata = {
 }
 
 interface PageProps {
-  searchParams?: { page?: string }
+  searchParams?: Promise<{ page?: string }>
 }
 
 function formatDate(value: string | null): string {
@@ -29,7 +29,7 @@ function formatDate(value: string | null): string {
 }
 
 export default async function CorrupcionPage({ searchParams }: PageProps) {
-  const page = parsePage(searchParams?.page)
+  const page = parsePage((await searchParams)?.page)
   const { cases, total } = await getJudicialCasesPage(page)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE.judicialCases))
   const latestRecordDate =

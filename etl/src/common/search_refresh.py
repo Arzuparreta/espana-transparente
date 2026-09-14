@@ -18,31 +18,24 @@ CORPUS_ENTITY_TYPES = [
     "revolving_door", "source_document",
 ]
 
-# These tables are large enough that a single-shot tsvector INSERT can OOM the
-# free-tier DB (512 MB).  They are processed in row-ID-ordered batches instead.
+# Keyset batches bound memory while indexing every source row. Existing
+# documents stay searchable throughout retries and refreshes.
 LARGE_ENTITY_TYPES = {"organization", "contract", "subsidy"}
-LARGE_ENTITY_LIMITS = {
-    "organization": 10_000,
-    "contract": 10_000,
-    "subsidy": 10_000,
-}
 
 _BATCH_SQL: dict[str, str] = {
     "organization": """
-        WITH candidates AS (
-          SELECT o.*
-          FROM organizations o
-          LEFT JOIN organization_counts oc ON oc.id = o.id
-          ORDER BY (
-            coalesce(oc.contract_count, 0) +
-            coalesce(oc.subsidy_beneficiary_count, 0) +
-            coalesce(oc.subsidy_granting_count, 0) +
-            coalesce(oc.revolving_door_count, 0) +
-            coalesce(oc.eu_fund_count, 0) +
-            coalesce(oc.judicial_case_count, 0)
-          ) DESC, o.id
-          LIMIT %(limit)s
-        )
+        WITH candidates AS MATERIALIZED (
+          SELECT o.* FROM organizations o
+          WHERE o.id > %(last_id)s
+            AND o.name IS NOT NULL AND trim(o.name) <> ''
+            AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'organization' AND d.entity_id = o.id::text
+                AND d.updated_at >= o.updated_at
+            )
+          ORDER BY o.id
+          LIMIT %(batch)s
+        ), written AS (
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -69,14 +62,22 @@ _BATCH_SQL: dict[str, str] = {
           route = EXCLUDED.route, metadata = EXCLUDED.metadata,
           search_vector = EXCLUDED.search_vector,
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
+        RETURNING entity_id
+        )
+        SELECT count(*), max(entity_id) FROM written
     """,
     "contract": """
-        WITH candidates AS (
-          SELECT c.*
-          FROM contracts c
-          ORDER BY c.date DESC NULLS LAST, c.amount DESC NULLS LAST, c.id
-          LIMIT %(limit)s
-        )
+        WITH candidates AS MATERIALIZED (
+          SELECT c.* FROM contracts c
+          WHERE c.id > %(last_id)s
+            AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'contract' AND d.entity_id = c.id::text
+                AND d.updated_at >= c.updated_at
+            )
+          ORDER BY c.id
+          LIMIT %(batch)s
+        ), written AS (
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -113,14 +114,22 @@ _BATCH_SQL: dict[str, str] = {
           document_date = EXCLUDED.document_date, amount = EXCLUDED.amount,
           metadata = EXCLUDED.metadata, search_vector = EXCLUDED.search_vector,
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
+        RETURNING entity_id
+        )
+        SELECT count(*), max(entity_id) FROM written
     """,
     "subsidy": """
-        WITH candidates AS (
-          SELECT s.*
-          FROM subsidies s
-          ORDER BY s.fecha_concesion DESC NULLS LAST, s.importe DESC NULLS LAST, s.id
-          LIMIT %(limit)s
-        )
+        WITH candidates AS MATERIALIZED (
+          SELECT s.* FROM subsidies s
+          WHERE s.id > %(last_id)s
+            AND NOT EXISTS (
+              SELECT 1 FROM search_documents d
+              WHERE d.entity_type = 'subsidy' AND d.entity_id = s.id::text
+                AND d.updated_at >= s.updated_at
+            )
+          ORDER BY s.id
+          LIMIT %(batch)s
+        ), written AS (
         INSERT INTO search_documents (
           entity_type, entity_id, title, display_title, subtitle, body, key_fact,
           route, source_url, document_date, amount, weight, metadata,
@@ -156,48 +165,39 @@ _BATCH_SQL: dict[str, str] = {
           document_date = EXCLUDED.document_date, amount = EXCLUDED.amount,
           metadata = EXCLUDED.metadata, search_vector = EXCLUDED.search_vector,
           corpus_version = EXCLUDED.corpus_version, updated_at = EXCLUDED.updated_at
+        RETURNING entity_id
+        )
+        SELECT count(*), max(entity_id) FROM written
     """,
 }
 
 
 def _refresh_large_entity_type(conn, entity_type: str, batch_size: int = 1500) -> int:
-    """Process a large table in ID-ordered batches to stay within free-tier RAM."""
+    """Upsert missing/changed documents; commit each bounded, resumable batch."""
     sql = _BATCH_SQL[entity_type]
-    # DELETE first so we don't accumulate stale rows across runs.
-    with conn.cursor() as cur:
-        cur.execute("DELETE FROM search_documents WHERE entity_type = %s", (entity_type,))
-    conn.commit()
-
     total = 0
-    limit = LARGE_ENTITY_LIMITS[entity_type]
-    last_id = "00000000-0000-0000-0000-000000000000"  # UUID that sorts before all real UUIDs
-    batch_num = 0
+    last_id = "00000000-0000-0000-0000-000000000000"
     while True:
         with conn.cursor() as cur:
-            cur.execute("SET statement_timeout = '20min'")
-            cur.execute(
-                sql,
-                {
-                    "last_id": last_id,
-                    "batch": min(batch_size, limit - total),
-                    "limit": limit,
-                },
-            )
-            n = cur.rowcount
+            cur.execute("SET statement_timeout = '5min'")
+            cur.execute(sql, {"last_id": last_id, "batch": batch_size})
+            n, newest_id = cur.fetchone()
         conn.commit()
         total += n
-        batch_num += 1
-        if n < batch_size or total >= limit:
+        if n < batch_size:
             break
-        # Fetch the highest entity_id we just inserted to use as the cursor.
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT max(entity_id) FROM search_documents WHERE entity_type = %s",
-                (entity_type,),
-            )
-            last_id = cur.fetchone()[0] or "00000000-0000-0000-0000-000000000000"
-        print(f"  {entity_type} batch {batch_num}: {total} so far", flush=True)
-    print(f"  {entity_type}: {total}", flush=True)
+        last_id = newest_id
+        print(f"  {entity_type}: {total} updated so far", flush=True)
+    # Only remove documents whose source row was actually deleted.
+    table = {"organization": "organizations", "contract": "contracts", "subsidy": "subsidies"}[entity_type]
+    with conn.cursor() as cur:
+        cur.execute(
+            f"DELETE FROM search_documents d WHERE entity_type = %s "
+            f"AND NOT EXISTS (SELECT 1 FROM {table} s WHERE s.id::text = d.entity_id)",
+            (entity_type,),
+        )
+    conn.commit()
+    print(f"  {entity_type}: {total} updated", flush=True)
     return total
 
 
@@ -337,6 +337,8 @@ def refresh_all() -> tuple[int, int]:
             try:
                 if conn.closed:
                     conn = get_pg_conn()
+                else:
+                    conn.rollback()
                 with conn.cursor() as cur:
                     finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
                     conn.commit()
