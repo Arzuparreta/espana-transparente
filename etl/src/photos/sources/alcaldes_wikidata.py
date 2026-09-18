@@ -15,17 +15,17 @@ from typing import Optional
 
 from ..validate import PhotoValidationError, download_with_final_url, to_webp_square
 from .base import PhotoSource, PoliticianRow, SourceMatch
-from .wikidata import SPARQL_URL, USER_AGENT, _fetch_sparql, _normalize, _jaccard, _qid_from_iri
+from .wikidata import LABEL_ES_EN, SPARQL_PREFIXES, _fetch_sparql, _normalize, _jaccard, _qid_from_iri
 
 # Q30185 = mayor. P39 = position held; the office is itself an instance of
 # 'mayor' so we can fetch every Spanish mayor in one query.
-SPARQL_QUERY = """
+SPARQL_QUERY = SPARQL_PREFIXES + """
 SELECT DISTINCT ?person ?personLabel ?photo WHERE {
   ?person wdt:P27 wd:Q29 .
   ?person wdt:P18 ?photo .
   ?person wdt:P39 ?pos .
   ?pos wdt:P279* wd:Q30185 .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en" . }
+""" + LABEL_ES_EN + """
 }
 """
 

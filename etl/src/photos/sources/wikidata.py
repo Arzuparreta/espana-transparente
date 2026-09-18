@@ -22,27 +22,49 @@ from typing import Optional
 from ..validate import to_webp_square, download_with_final_url, PhotoValidationError
 from .base import PhotoSource, PoliticianRow, SourceMatch
 
-SPARQL_URL = "https://query.wikidata.org/sparql"
+# QLever first, WDQS as fallback. The index query below returns ~13K rows and
+# WDQS serves it right at its 60s server limit: under load it cuts the stream
+# mid-body (truncated JSON surfacing as "Invalid control character") or 502s,
+# and every such timeout earns the caller 429s afterwards. QLever runs the same
+# query in ~2s over the same Wikidata graph.
+SPARQL_ENDPOINTS = (
+    "https://qlever.dev/api/wikidata",
+    "https://query.wikidata.org/sparql",
+)
+
+# Explicit prefixes and plain rdfs:label instead of WDQS's implicit prefixes and
+# `SERVICE wikibase:label`, so the same query runs on either endpoint (QLever
+# has neither) — and the label service was the costly part on WDQS anyway.
+SPARQL_PREFIXES = """
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+"""
+
+# `?personLabel` with the same es → en preference the label service applied.
+LABEL_ES_EN = """
+  OPTIONAL { ?person rdfs:label ?labelEs . FILTER(LANG(?labelEs) = "es") }
+  OPTIONAL { ?person rdfs:label ?labelEn . FILTER(LANG(?labelEn) = "en") }
+  BIND(COALESCE(?labelEs, ?labelEn) AS ?personLabel)
+"""
 
 # P106 occupations that cover deputies, senators, ministers, mayors, autonomic MPs.
 # Wide on purpose: we filter further client-side by name/QID/cod_parlamentario.
-SPARQL_QUERY = """
+SPARQL_QUERY = SPARQL_PREFIXES + """
 SELECT DISTINCT ?person ?personLabel ?photo ?congressId WHERE {
-  ?person wdt:P27 wd:Q29 .
-  ?person wdt:P18 ?photo .
-  OPTIONAL { ?person wdt:P1768 ?congressId }
-  {
-    VALUES ?occ {
-      wd:Q82955    # politician
-      wd:Q1930187  # diputado (member of parliament)
-      wd:Q486839   # member of a national parliament
-      wd:Q4175034  # senator of Spain
-      wd:Q83307    # minister
-      wd:Q30185    # mayor
-    }
-    ?person wdt:P106 ?occ .
+  VALUES ?occ {
+    wd:Q82955    # politician
+    wd:Q1930187  # diputado (member of parliament)
+    wd:Q486839   # member of a national parliament
+    wd:Q4175034  # senator of Spain
+    wd:Q83307    # minister
+    wd:Q30185    # mayor
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en" . }
+  ?person wdt:P106 ?occ ;
+          wdt:P27 wd:Q29 ;
+          wdt:P18 ?photo .
+  OPTIONAL { ?person wdt:P1768 ?congressId }
+""" + LABEL_ES_EN + """
 }
 """
 
@@ -68,23 +90,34 @@ def _qid_from_iri(iri: str) -> Optional[str]:
     return m.group(1) if m else None
 
 
+def _query_endpoint(endpoint: str, query: str) -> list[dict]:
+    # POST: the query is long, and some front-ends cap GET URLs.
+    req = urllib.request.Request(
+        endpoint,
+        data=urllib.parse.urlencode({"query": query}).encode(),
+        headers={"Accept": "application/sparql-results+json", "User-Agent": USER_AGENT},
+    )
+    with urllib.request.urlopen(req, timeout=90) as resp:
+        data = json.loads(resp.read())
+    return data["results"]["bindings"]
+
+
 def _fetch_sparql(query: str) -> list[dict]:
     last_exc: Optional[Exception] = None
-    for attempt in range(RETRIES):
-        try:
-            req = urllib.request.Request(
-                SPARQL_URL + "?query=" + urllib.parse.quote(query),
-                headers={"Accept": "application/json", "User-Agent": USER_AGENT},
-            )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                data = json.loads(resp.read())
-            return data["results"]["bindings"]
-        except Exception as exc:  # noqa: BLE001 — third-party transient errors
-            last_exc = exc
-            backoff = 2 ** attempt
-            print(f"  ! Wikidata SPARQL attempt {attempt + 1}/{RETRIES} failed: {exc} (retry in {backoff}s)")
-            time.sleep(backoff)
-    raise RuntimeError(f"Wikidata SPARQL failed after {RETRIES} retries: {last_exc}")
+    for endpoint in SPARQL_ENDPOINTS:
+        host = urllib.parse.urlsplit(endpoint).hostname
+        for attempt in range(RETRIES):
+            try:
+                return _query_endpoint(endpoint, query)
+            except Exception as exc:  # noqa: BLE001 — third-party transient errors
+                last_exc = exc
+                backoff = 2 ** attempt
+                print(f"  ! SPARQL {host} attempt {attempt + 1}/{RETRIES} failed: {exc} (retry in {backoff}s)")
+                time.sleep(backoff)
+    raise RuntimeError(
+        f"Wikidata SPARQL failed on {len(SPARQL_ENDPOINTS)} endpoints "
+        f"after {RETRIES} retries each: {last_exc}"
+    )
 
 
 class WikidataSource:
