@@ -61,8 +61,16 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
     shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/brand/espana-transparente-mark.svg", color: "#1A1612" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/brand/espana-transparente-mark.svg",
+        color: "#1A1612",
+      },
+    ],
   },
   openGraph: {
     title: BRAND_NAME,
@@ -92,12 +100,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={cn("dark font-sans", geistSans.variable, geistMono.variable)}>
-      <body
-        className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased"
-      >
+    <html
+      lang="es"
+      className={cn("dark font-sans", geistSans.variable, geistMono.variable)}
+    >
+      <body className="min-h-screen overflow-x-hidden bg-background text-foreground antialiased">
         <ClientProviders>
           <NavigationProgress />
+          <a
+            href="#contenido"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-background focus:p-3"
+          >
+            Saltar al contenido
+          </a>
           <Header />
           <SiteFrame>{children}</SiteFrame>
         </ClientProviders>

@@ -5,8 +5,15 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { RecordLayout } from "@/components/domain/RecordLayout"
 import { RecordSection } from "@/components/domain/RecordSection"
-import { BudgetProvenanceBadge, BudgetProvenanceNote } from "@/components/presupuestos/BudgetProvenanceBadge"
-import { getBudgetProgram, getBudgetSourceNote, getBudgetYearMeta } from "@/lib/data"
+import {
+  BudgetProvenanceBadge,
+  BudgetProvenanceNote,
+} from "@/components/presupuestos/BudgetProvenanceBadge"
+import {
+  getBudgetProgram,
+  getBudgetSourceNote,
+  getBudgetYearMeta,
+} from "@/lib/data"
 import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
@@ -39,7 +46,10 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function BudgetProgramDetailPage({ params, searchParams }: PageProps) {
+export default async function BudgetProgramDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const sectionCode = decodeURIComponent((await params).section)
   const programCode = decodeURIComponent((await params).program)
   const rows = await getBudgetProgram(sectionCode, programCode)
@@ -58,6 +68,12 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
     <div className="ui-page">
       <ContextTrail
         section={{ href: "/presupuestos", label: "Presupuestos" }}
+        ancestors={[
+          {
+            href: `/presupuestos/${encodeURIComponent(sectionCode)}`,
+            label: sectionName,
+          },
+        ]}
         current={programName}
         meta={`Programa ${programCode}`}
         fallbackHref={`/presupuestos/${encodeURIComponent(sectionCode)}`}
@@ -93,9 +109,10 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
         }
         aside={
           <InfoPanel title="Fuente">
-            SEPG · Ministerio de Hacienda. Programa {programCode} dentro de la sección {sectionCode}
-            ({sectionName}). Los capítulos muestran la clasificación económica del gasto (personal,
-            corrientes, inversiones, transferencias).
+            SEPG · Ministerio de Hacienda. Programa {programCode} dentro de la
+            sección {sectionCode}({sectionName}). Los capítulos muestran la
+            clasificación económica del gasto (personal, corrientes,
+            inversiones, transferencias).
           </InfoPanel>
         }
       >
@@ -103,35 +120,54 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
           variant="flat"
           items={[
             { label: "Años con datos", value: rows.length.toString() },
-            { label: "Último crédito inicial", value: formatEuroCompact(latest.total_credit_initial) },
-            { label: "Último año", value: latest.year != null ? String(latest.year) : "—" },
+            {
+              label: "Último crédito inicial",
+              value: formatEuroCompact(latest.total_credit_initial),
+            },
+            {
+              label: "Último año",
+              value: latest.year != null ? String(latest.year) : "—",
+            },
           ]}
         />
 
         <RecordSection title="Histórico anual" count={rows.length}>
           <div>
             {rows.map((row) => {
-              const byChapter = (row.by_chapter ?? {}) as Record<string, { initial: number | null; final: number | null }>
+              const byChapter = (row.by_chapter ?? {}) as Record<
+                string,
+                { initial: number | null; final: number | null }
+              >
               const chapters = Object.entries(byChapter)
                 .filter(([, v]) => v.initial != null && v.initial > 0)
                 .sort(([a], [b]) => Number(a) - Number(b))
               const meta = getBudgetYearMeta(row.year as number)
               const sourceNote = getBudgetSourceNote(row)
-              const isProrroga = row.source_kind === "carried_forward" || row.source_kind === "published_prorroga"
+              const isProrroga =
+                row.source_kind === "carried_forward" ||
+                row.source_kind === "published_prorroga"
 
               return (
                 <div
                   key={row.year}
                   className={
                     "border-t border-border/50 py-3 first:border-t-0 " +
-                    (isProrroga ? "border-l-2 border-l-amber-400/70 pl-3 dark:border-l-amber-600/60" : "")
+                    (isProrroga
+                      ? "border-l-2 border-l-amber-400/70 pl-3 dark:border-l-amber-600/60"
+                      : "")
                   }
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-mono text-sm font-semibold">{row.year}</p>
-                        {meta ? <span className="text-xs font-normal text-muted-foreground">· {meta.label}</span> : null}
+                        <p className="font-mono text-sm font-semibold">
+                          {row.year}
+                        </p>
+                        {meta ? (
+                          <span className="text-xs font-normal text-muted-foreground">
+                            · {meta.label}
+                          </span>
+                        ) : null}
                         <BudgetProvenanceBadge
                           sourceKind={row.source_kind}
                           sourceYear={row.source_year}
@@ -141,20 +177,38 @@ export default async function BudgetProgramDetailPage({ params, searchParams }: 
                       {chapters.length > 0 ? (
                         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                           {chapters.map(([ch, v]) => (
-                            <span key={ch} className="text-xs text-muted-foreground">
-                              {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}: {formatEuroCompact(v.initial)}
+                            <span
+                              key={ch}
+                              className="text-xs text-muted-foreground"
+                            >
+                              {CHAPTER_NAMES[ch] ?? `Cap. ${ch}`}:{" "}
+                              {formatEuroCompact(v.initial)}
                             </span>
                           ))}
                         </div>
                       ) : null}
-                      {sourceNote ? <p className="mt-1 text-xs text-muted-foreground">{sourceNote}</p> : null}
-                      <BudgetProvenanceNote sourceKind={row.source_kind} className="mt-1.5" />
+                      {sourceNote ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {sourceNote}
+                        </p>
+                      ) : null}
+                      <BudgetProvenanceNote
+                        sourceKind={row.source_kind}
+                        className="mt-1.5"
+                      />
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-mono text-base font-semibold">{formatEuroCompact(row.total_credit_initial)}</p>
+                      <p className="font-mono text-base font-semibold">
+                        {formatEuroCompact(row.total_credit_initial)}
+                      </p>
                       {row.total_credit_final != null &&
-                      Math.abs(row.total_credit_final - (row.total_credit_initial ?? 0)) > 1 ? (
-                        <p className="text-xs text-muted-foreground">def: {formatEuroCompact(row.total_credit_final)}</p>
+                      Math.abs(
+                        row.total_credit_final -
+                          (row.total_credit_initial ?? 0),
+                      ) > 1 ? (
+                        <p className="text-xs text-muted-foreground">
+                          def: {formatEuroCompact(row.total_credit_final)}
+                        </p>
                       ) : null}
                     </div>
                   </div>

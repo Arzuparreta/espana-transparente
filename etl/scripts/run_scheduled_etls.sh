@@ -125,6 +125,7 @@ run_weekly_links() {
   run_self_tracked_pipeline "ine.indicadores_ampliados" python -m src.ine.indicadores_ampliados
   run_self_tracked_pipeline "ine.ipc_subgrupos" python -m src.ine.ipc_subgrupos
   run_self_tracked_pipeline "ine.bde" python -m src.ine.bde
+  run_self_tracked_pipeline "ine.fiscal" python -m src.ine.fiscal
   run_pipeline "elections.ingest" python -m src.elections.ingest
   run_self_tracked_pipeline "common.search_refresh" python -m common.search_refresh
 }

@@ -58,7 +58,7 @@ export const getIndicators = unstable_cache(
     return rows
   },
   ["indicators"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export const getIndicatorSectionFacts = unstable_cache(
@@ -81,14 +81,14 @@ export const getIndicatorSectionFacts = unstable_cache(
     }
   },
   ["indicator-section-facts"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export const getIndicatorPoints = unstable_cache(
   async (code: string) => {
     const { data, error } = await supabase
       .from("economic_indicators")
-      .select("period, value, unit, indicator_name")
+      .select("period, value, unit, indicator_name, raw_data")
       .eq("indicator_code", code)
       .order("period", { ascending: false })
       .limit(120)
@@ -96,7 +96,7 @@ export const getIndicatorPoints = unstable_cache(
     return data ?? []
   },
   ["indicator-points"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 /**
@@ -118,7 +118,7 @@ export const getIpcIndexSeries = unstable_cache(
     }))
   },
   ["ipc-index-series"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export type InitiativeListRow = {
@@ -152,7 +152,9 @@ export const getInitiativesPage = unstable_cache(
     const to = from + pageSize - 1
     const { data, count, error } = await supabase
       .from("initiatives")
-      .select("id, type, number, title, proposer_group, status, source_url", { count: "exact" })
+      .select("id, type, number, title, proposer_group, status, source_url", {
+        count: "exact",
+      })
       .order("number", { ascending: false, nullsFirst: false })
       .range(from, to)
     throwDataError(error, "initiatives page")
@@ -162,14 +164,16 @@ export const getInitiativesPage = unstable_cache(
     }
   },
   ["initiatives-page"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export const getInitiativeDetail = unstable_cache(
   async (id: string) => {
     const { data: initiative } = await supabase
       .from("initiatives")
-      .select("id, type, number, title, proposer_group, status, source_url, legislature_id, origin_type, eu_directive_ref, budget_veto_used")
+      .select(
+        "id, type, number, title, proposer_group, status, source_url, legislature_id, origin_type, eu_directive_ref, budget_veto_used",
+      )
       .eq("id", id)
       .single()
 
@@ -178,12 +182,16 @@ export const getInitiativeDetail = unstable_cache(
     const [sessions, proposers] = await Promise.all([
       supabase
         .from("v_voting_session_summary")
-        .select("id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count")
+        .select(
+          "id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count",
+        )
         .eq("initiative_number", initiative.number)
         .order("date", { ascending: false }),
       supabase
         .from("v_initiative_proposers_public")
-        .select("id, proposer_label, proposer_role, politician_id, politician_name, party_id, party_name, party_acronym, organization_id, organization_name, match_method")
+        .select(
+          "id, proposer_label, proposer_role, politician_id, politician_name, party_id, party_name, party_acronym, organization_id, organization_name, match_method",
+        )
         .eq("initiative_id", id)
         .order("proposer_role")
         .order("proposer_label"),
@@ -196,7 +204,7 @@ export const getInitiativeDetail = unstable_cache(
     }
   },
   ["initiative-detail"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export interface SubgroupPoint {
@@ -262,5 +270,5 @@ export const getIpcSubgroupSeries = unstable_cache(
     return Array.from(byCode.values())
   },
   ["ipc-subgroup-series"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )

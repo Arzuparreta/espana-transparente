@@ -10,7 +10,7 @@ const APP_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../app")
 describe("section navigation", () => {
   it("uses canonical pages instead of hub query views", () => {
     const hrefs = getSectionsByHub().flatMap(({ sections }) =>
-      sections.map((section) => section.href)
+      sections.map((section) => section.href),
     )
 
     expect(hrefs).toContain("/calculadoras")
@@ -21,7 +21,7 @@ describe("section navigation", () => {
     // Regression: the "Ministerios" nav link pointed at /ministerios, which had
     // only a [id] detail route and no index page.tsx — so the bare path 404'd.
     const navHrefs = getSectionsByHub().flatMap(({ sections }) =>
-      sections.map((section) => section.href)
+      sections.map((section) => section.href),
     )
 
     const missing = navHrefs.filter((href) => {
@@ -43,30 +43,42 @@ describe("section navigation", () => {
     expect(getSectionForPath("/calculadoras")?.key).toBe("calculadoras")
   })
 
-  it("surfaces electoral distortion under Personas decisions", () => {
-    const personas = getThread("personas")
+  it("surfaces electoral distortion under Decisiones", () => {
+    const personas = getThread("decisiones")
     const source = personas.sources.find((item) => item.href === "/distorsion")
 
     expect(source).toMatchObject({
-      label: "Distorsión electoral",
-      section: "Decisiones",
-      icon: "distorsion",
+      label: "Representación electoral",
+      section: "Elecciones",
     })
 
-    const personasHub = getSectionsByHub().find((g) => g.hub.href === "/personas")
+    const personasHub = getSectionsByHub().find(
+      (g) => g.hub.href === "/decisiones",
+    )
     expect(personasHub?.sections.map((s) => s.key)).toContain("distorsion")
   })
 
   it("resolves unified territorial detail routes to the territorio hub section", () => {
     // /ccaa and /municipios collapsed into /territorio/[scope]/[key]
-    expect(getSectionForPath("/territorio/ccaa/ANDALUCIA")?.key).toBe("territorio")
-    expect(getSectionForPath("/territorio/municipio/madrid")?.key).toBe("territorio")
+    expect(getSectionForPath("/territorio/ccaa/ANDALUCIA")?.key).toBe(
+      "territorio",
+    )
+    expect(getSectionForPath("/territorio/municipio/madrid")?.key).toBe(
+      "territorio",
+    )
   })
 
   it("groups the Territorio hub under its own label with Mapa + Tu zona sections", () => {
-    const territorioHub = getSectionsByHub().find((g) => g.hub.href === "/territorio")
+    const territorioHub = getSectionsByHub().find(
+      (g) => g.hub.href === "/territorio",
+    )
     expect(territorioHub?.hub.label).toBe("Territorio")
-    expect(territorioHub?.sections.map((s) => s.key)).toEqual(["territorio", "tu-zona"])
-    expect(territorioHub?.sections.every((s) => s.groupLabel === "Territorio")).toBe(true)
+    expect(territorioHub?.sections.map((s) => s.key)).toEqual([
+      "territorio",
+      "tu-zona",
+    ])
+    expect(
+      territorioHub?.sections.every((s) => s.groupLabel === "Territorio"),
+    ).toBe(true)
   })
 })

@@ -1,12 +1,17 @@
 "use client"
+import { useSearchParams } from "next/navigation"
+import { collectionHref } from "@/lib/exploration"
+import { CollectionFilters } from "@/components/navigation/CollectionFilters"
 
 import { EmptyState } from "@/components/domain/EmptyState"
-import { FilterChip } from "@/components/domain/FilterChip"
 import { LinkTabs } from "@/components/domain/LinkTabs"
 import { Pagination } from "@/components/domain/Pagination"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { ResponsibleChip, type Responsible } from "@/components/domain/ResponsibleChip"
+import {
+  ResponsibleChip,
+  type Responsible,
+} from "@/components/domain/ResponsibleChip"
 
 interface Subvencion {
   id: string
@@ -27,6 +32,8 @@ interface Subvencion {
 }
 
 interface SubvencionesClientProps {
+  organizationLabel?: string | null
+  territoryLabels?: Record<string, string>
   activeNivel: string
   activeMinistry?: string | null
   activeTerritory?: string | null
@@ -52,7 +59,8 @@ const NIVEL_TABS = [
 
 function formatAmount(eur: number | null): string {
   if (eur == null) return "—"
-  if (eur >= 1_000_000_000) return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
+  if (eur >= 1_000_000_000)
+    return `${(eur / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
   if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(1)}M €`
   if (eur >= 1_000) return `${Math.round(eur / 1_000)}K €`
   return `${Math.round(eur).toLocaleString("es-ES")} €`
@@ -71,24 +79,13 @@ function nivelClass(nivel1: string | null): string {
   }
 }
 
-function subvencionesHref(
-  nivel: string,
-  page = 1,
-  ministry?: string | null,
-  territory?: string | null,
-  year?: number | null
-) {
-  const params = new URLSearchParams()
-  if (nivel !== "all") params.set("nivel", nivel)
-  if (page > 1) params.set("page", String(page))
-  if (ministry) params.set("ministry", ministry)
-  if (territory) params.set("territory", territory)
-  if (year) params.set("year", String(year))
-  const query = params.toString()
-  return query ? `/subvenciones?${query}` : "/subvenciones"
-}
-
-function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?: string | null }) {
+function SubvencionCard({
+  s,
+  activeMinistry,
+}: {
+  s: Subvencion
+  activeMinistry?: string | null
+}) {
   const dateStr = s.fecha_concesion
     ? new Date(s.fecha_concesion).toLocaleDateString("es-ES", {
         day: "numeric",
@@ -105,12 +102,18 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
       <CardContent className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:gap-4">
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-start gap-2">
-            <span className={`shrink-0 rounded-[2px] px-2 py-0.5 text-xs font-medium ${nivelClass(s.nivel1)}`}>
+            <span
+              className={`shrink-0 rounded-[2px] px-2 py-0.5 text-xs font-medium ${nivelClass(s.nivel1)}`}
+            >
               {nivelLabel}
             </span>
             <ResponsibleChip
               responsible={s.responsible}
-              ministryHref={s.responsible?.ministry && !activeMinistry ? `/subvenciones?ministry=${encodeURIComponent(s.responsible.ministry)}` : null}
+              ministryHref={
+                s.responsible?.ministry && !activeMinistry
+                  ? `/subvenciones?ministry=${encodeURIComponent(s.responsible.ministry)}`
+                  : null
+              }
             />
           </div>
           <div className="text-sm font-medium leading-snug">
@@ -122,7 +125,7 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
                 {s.beneficiario ?? "—"}
               </ResponsiveLink>
             ) : (
-              s.beneficiario ?? "—"
+              (s.beneficiario ?? "—")
             )}
           </div>
           <div className="text-xs text-muted-foreground">
@@ -138,9 +141,13 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
             )}
           </div>
           {s.convocatoria ? (
-            <div className="text-xs text-muted-foreground line-clamp-1">{s.convocatoria}</div>
+            <div className="text-xs text-muted-foreground line-clamp-1">
+              {s.convocatoria}
+            </div>
           ) : null}
-          {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
+          {dateStr ? (
+            <div className="text-xs text-muted-foreground">{dateStr}</div>
+          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
           <ResponsiveLink
@@ -173,6 +180,8 @@ function SubvencionCard({ s, activeMinistry }: { s: Subvencion; activeMinistry?:
 }
 
 export function SubvencionesClient({
+  organizationLabel,
+  territoryLabels,
   activeNivel,
   activeMinistry,
   activeTerritory,
@@ -182,41 +191,43 @@ export function SubvencionesClient({
   total,
   totalPages,
 }: SubvencionesClientProps) {
+  const params = useSearchParams()
+  const subvencionesHref = (
+    nivel: string,
+    page = 1,
+    ministry?: string | null,
+    territory?: string | null,
+    year?: number | null,
+  ) =>
+    collectionHref("/subvenciones", params.toString(), {
+      nivel,
+      page,
+      ministry,
+      territory,
+      year,
+    })
   return (
     <div className="space-y-6">
+      <CollectionFilters
+        territoryLabels={territoryLabels}
+        organizationLabel={organizationLabel}
+        path="/subvenciones"
+      />
       <LinkTabs
         ariaLabel="Nivel administrativo"
         scroll={false}
         tabs={NIVEL_TABS.map((tab) => ({
-          href: subvencionesHref(tab.value, 1, activeMinistry, activeTerritory, activeYear),
+          href: subvencionesHref(
+            tab.value,
+            1,
+            activeMinistry,
+            activeTerritory,
+            activeYear,
+          ),
           label: tab.label,
           active: activeNivel === tab.value,
         }))}
       />
-
-      {activeMinistry && (
-        <FilterChip
-          label="Ministerio"
-          value={activeMinistry}
-          clearHref={subvencionesHref(activeNivel, 1, null, activeTerritory, activeYear)}
-        />
-      )}
-
-      {activeTerritory && (
-        <FilterChip
-          label="Territorio"
-          value={activeTerritory.replaceAll("_", " ")}
-          clearHref={subvencionesHref(activeNivel, 1, activeMinistry, null, activeYear)}
-        />
-      )}
-
-      {activeYear && (
-        <FilterChip
-          label="Año"
-          value={String(activeYear)}
-          clearHref={subvencionesHref(activeNivel, 1, activeMinistry, activeTerritory, null)}
-        />
-      )}
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
@@ -225,10 +236,17 @@ export function SubvencionesClient({
         {subsidies.length === 0 ? (
           <EmptyState
             title="Sin concesiones"
-            description={<>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.bdns.subvenciones</code></>}
+            description={
+              <>
+                Ejecuta el ETL:{" "}
+                <code>PYTHONPATH=src python -m src.bdns.subvenciones</code>
+              </>
+            }
           />
         ) : (
-          subsidies.map((s) => <SubvencionCard key={s.id} s={s} activeMinistry={activeMinistry} />)
+          subsidies.map((s) => (
+            <SubvencionCard key={s.id} s={s} activeMinistry={activeMinistry} />
+          ))
         )}
       </div>
 
@@ -236,7 +254,13 @@ export function SubvencionesClient({
         page={page}
         totalPages={totalPages}
         hrefForPage={(nextPage) =>
-          subvencionesHref(activeNivel, nextPage, activeMinistry, activeTerritory, activeYear)
+          subvencionesHref(
+            activeNivel,
+            nextPage,
+            activeMinistry,
+            activeTerritory,
+            activeYear,
+          )
         }
       />
     </div>

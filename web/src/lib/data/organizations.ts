@@ -1,5 +1,12 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, PAGE_SIZE, throwDataError, type EntitySummaryRow, type OrganizationPublicRow } from "./shared"
+import {
+  unstable_cache,
+  HOUR,
+  PAGE_SIZE,
+  throwDataError,
+  type EntitySummaryRow,
+  type OrganizationPublicRow,
+} from "./shared"
 
 const SEPI_SUBSIDIARY_NAMES = [
   "SEPI-NAVANTIA",
@@ -21,94 +28,134 @@ export const getOrganizationsList = unstable_cache(
     const offset = (page - 1) * PAGE_SIZE.organizations
     const { data, count, error } = await supabase
       .from("v_organization_public")
-      .select("id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count, judicial_case_count", { count: "exact" })
+      .select(
+        "id, name, organization_type, sector, country, contract_count, subsidy_beneficiary_count, subsidy_granting_count, revolving_door_count, eu_fund_count, judicial_case_count",
+        { count: "exact" },
+      )
       .order("contract_count", { ascending: false, nullsFirst: false })
       .range(offset, offset + 49)
     throwDataError(error, "organization list")
     return { organizations: data ?? [], total: count ?? 0 }
   },
   ["organizations-list"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
 )
 
 export const getOrganizationPageData = unstable_cache(
   async (id: string) => {
-    const [organization, entitySummary, contracts, beneficiarySubsidies, grantingSubsidies, revolvingDoorCases, euFunds, appointments, bormeOfficers, judicialLinks, lobbyingLinks] =
-      await Promise.all([
-        supabase.from("v_organization_public").select("*").eq("id", id).maybeSingle(),
-        supabase
-          .from("v_entity_summary")
-          .select("*")
-          .eq("entity_type", "organization")
-          .eq("entity_id", id)
-          .maybeSingle(),
-        supabase
-          .from("contracts")
-          .select("id, title, amount, date, source_url")
-          .or(`awarding_body_organization_id.eq.${id},contractor_organization_id.eq.${id}`)
-          .order("date", { ascending: false })
-          .limit(20),
-        supabase
-          .from("subsidies")
-          .select("id, beneficiario, importe, fecha_concesion, source_url")
-          .eq("beneficiary_organization_id", id)
-          .order("fecha_concesion", { ascending: false })
-          .limit(20),
-        supabase
-          .from("subsidies")
-          .select("id, nivel3, beneficiario, importe, fecha_concesion, source_url")
-          .eq("granting_body_organization_id", id)
-          .order("fecha_concesion", { ascending: false })
-          .limit(20),
-        supabase
-          .from("v_revolving_door_public")
-          .select("id, person_name, person_id, private_role, private_organization, public_role, public_organization, private_start_date, primary_source_url, source_url")
-          .eq("organization_id", id)
-          .order("private_start_date", { ascending: false, nullsFirst: false })
-          .limit(20),
-        supabase
-          .from("eu_funds")
-          .select("id, label, eu_budget, total_budget, cofinancing_rate, number_projects, wikidata_link")
-          .eq("beneficiary_organization_id", id)
-          .order("eu_budget", { ascending: false, nullsFirst: false })
-          .limit(20),
-        supabase
-          .from("borme_officers")
-          .select("person_name, role, since, source_url")
-          .eq("organization_id", id)
-          .eq("is_current", true)
-          .order("role")
-          .order("person_name")
-          .limit(30),
-        supabase
-          .from("institutional_appointments")
-          .select("institution, position_title, person_name, political_party, appointment_date, source_url")
-          .or(
-            SEPI_SUBSIDIARY_NAMES.map((n) => `institution.eq.${n}`).join(","),
-          )
-          .limit(100),
-        supabase
-          .from("v_corruption_contract_links_public")
-          .select("id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url")
-          .eq("organization_id", id)
-          .order("last_verified_at", { ascending: false, nullsFirst: false })
-          .limit(10),
-        supabase
-          .from("lobbying_organization_links")
-          .select("id, confidence, match_method, lobbying_groups(name, category, subcategory, source_url)")
-          .eq("organization_id", id)
-          .eq("reviewed", true)
-          .order("created_at", { ascending: false })
-          .limit(10),
-      ])
+    const [
+      organization,
+      entitySummary,
+      contracts,
+      beneficiarySubsidies,
+      grantingSubsidies,
+      revolvingDoorCases,
+      euFunds,
+      appointments,
+      bormeOfficers,
+      judicialLinks,
+      lobbyingLinks,
+    ] = await Promise.all([
+      supabase
+        .from("v_organization_public")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("v_entity_summary")
+        .select("*")
+        .eq("entity_type", "organization")
+        .eq("entity_id", id)
+        .maybeSingle(),
+      supabase
+        .from("contracts")
+        .select("id, title, amount, date, source_url")
+        .or(
+          `awarding_body_organization_id.eq.${id},contractor_organization_id.eq.${id}`,
+        )
+        .order("date", { ascending: false })
+        .limit(20),
+      supabase
+        .from("subsidies")
+        .select("id, beneficiario, importe, fecha_concesion, source_url")
+        .eq("beneficiary_organization_id", id)
+        .order("fecha_concesion", { ascending: false })
+        .limit(20),
+      supabase
+        .from("subsidies")
+        .select(
+          "id, nivel3, beneficiario, importe, fecha_concesion, source_url",
+        )
+        .eq("granting_body_organization_id", id)
+        .order("fecha_concesion", { ascending: false })
+        .limit(20),
+      supabase
+        .from("v_revolving_door_public")
+        .select(
+          "id, person_name, person_id, private_role, private_organization, public_role, public_organization, private_start_date, primary_source_url, source_url",
+        )
+        .eq("organization_id", id)
+        .order("private_start_date", { ascending: false, nullsFirst: false })
+        .limit(20),
+      supabase
+        .from("eu_funds")
+        .select(
+          "id, label, eu_budget, total_budget, cofinancing_rate, number_projects, wikidata_link",
+        )
+        .eq("beneficiary_organization_id", id)
+        .order("eu_budget", { ascending: false, nullsFirst: false })
+        .limit(20),
+      supabase
+        .from("borme_officers")
+        .select("person_name, role, since, source_url")
+        .eq("organization_id", id)
+        .eq("is_current", true)
+        .order("role")
+        .order("person_name")
+        .limit(30),
+      supabase
+        .from("institutional_appointments")
+        .select(
+          "institution, position_title, person_name, political_party, appointment_date, source_url",
+        )
+        .or(SEPI_SUBSIDIARY_NAMES.map((n) => `institution.eq.${n}`).join(","))
+        .limit(100),
+      supabase
+        .from("v_corruption_contract_links_public")
+        .select(
+          "id, case_id, case_title, procedural_status, offence_category, case_source_url, last_verified_at, actor_label, organization_id, contract_id, subsidy_id, link_reason, evidence_url",
+        )
+        .eq("organization_id", id)
+        .order("last_verified_at", { ascending: false, nullsFirst: false })
+        .limit(10),
+      supabase
+        .from("lobbying_organization_links")
+        .select(
+          "id, confidence, match_method, lobbying_groups(name, category, subcategory, source_url)",
+        )
+        .eq("organization_id", id)
+        .eq("reviewed", true)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ])
 
     // Filter appointments to those whose institution matches the org name
     const orgName = (organization.data as { name?: string } | null)?.name ?? ""
-    const appts = (appointments.data ?? []) as unknown as { institution: string }[]
+    const appts = (appointments.data ?? []) as unknown as {
+      institution: string
+    }[]
     const orgAppointments = appts.filter((a) => {
       const instName = a.institution.replace("SEPI-", "")
-      return orgName.toUpperCase().includes(instName) || instName.includes(
-        orgName.toUpperCase().split(/[\s,.]/).filter(Boolean).slice(0, 2).join(" "),
+      return (
+        orgName.toUpperCase().includes(instName) ||
+        instName.includes(
+          orgName
+            .toUpperCase()
+            .split(/[\s,.]/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .join(" "),
+        )
       )
     })
 
@@ -127,5 +174,35 @@ export const getOrganizationPageData = unstable_cache(
     }
   },
   ["organization-page-data"],
-  { revalidate: HOUR }
+  { revalidate: HOUR },
+)
+
+export const getOrganizationFilterName = unstable_cache(
+  async (id: string | null) => {
+    if (!id) return null
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", id)
+      .maybeSingle()
+    throwDataError(error, "organization filter name")
+    return data?.name ?? null
+  },
+  ["organization-filter-name"],
+  { revalidate: HOUR },
+)
+
+export const getExplorationTerritoryLabels = unstable_cache(
+  async (keys: string[]) => {
+    if (!keys.length) return {} as Record<string, string>
+    const { data } = await supabase
+      .from("territory_catalog")
+      .select("territory_key,territory_name")
+      .in("territory_key", keys)
+    return Object.fromEntries(
+      (data ?? []).map((row) => [row.territory_key, row.territory_name]),
+    ) as Record<string, string>
+  },
+  ["exploration-territory-labels"],
+  { revalidate: HOUR },
 )

@@ -1,3 +1,7 @@
+import {
+  getOrganizationFilterName,
+  getExplorationTerritoryLabels,
+} from "@/lib/data/organizations"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
@@ -17,7 +21,8 @@ export const revalidate = 3600
 
 export const metadata = {
   title: "Contratos públicos",
-  description: "Adjudicaciones del sector público español: importe, contratista, tipo y administración responsable.",
+  description:
+    "Adjudicaciones del sector público español: importe, contratista, tipo y administración responsable.",
 }
 
 const VALID_LEVELS = ["state", "autonomic", "municipal"] as const
@@ -32,6 +37,8 @@ interface PageProps {
     year?: string
     province?: string
     municipio?: string
+    organization?: string
+    role?: string
     flow?: string
   }>
 }
@@ -39,12 +46,16 @@ interface PageProps {
 export default async function ContratosPage({ searchParams }: PageProps) {
   const page = parsePage((await searchParams)?.page)
   const requestedType = (await searchParams)?.type || "all"
-  const activeType = ["all", "Servicios", "Obras", "Suministros"].includes(requestedType)
+  const activeType = ["all", "Servicios", "Obras", "Suministros"].includes(
+    requestedType,
+  )
     ? requestedType
     : "all"
   const activeMinistry = (await searchParams)?.ministry?.trim() || null
   const requestedLevel = (await searchParams)?.level?.trim() || null
-  const activeLevel = VALID_LEVELS.includes(requestedLevel as (typeof VALID_LEVELS)[number])
+  const activeLevel = VALID_LEVELS.includes(
+    requestedLevel as (typeof VALID_LEVELS)[number],
+  )
     ? (requestedLevel as (typeof VALID_LEVELS)[number])
     : null
   const activeTerritory = (await searchParams)?.territory?.trim() || null
@@ -52,27 +63,77 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const activeMunicipio = (await searchParams)?.municipio?.trim() || null
   const activeFlow = (await searchParams)?.flow === "to" ? "to" : "by"
   const requestedYear = Number.parseInt((await searchParams)?.year ?? "", 10)
-  const activeYear = Number.isFinite(requestedYear) ? requestedYear : null
+  const activeYear =
+    Number.isInteger(requestedYear) &&
+    requestedYear >= 1900 &&
+    requestedYear <= 2100
+      ? requestedYear
+      : null
 
+  const organizationInput = (await searchParams)?.organization ?? ""
+  const organization =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      organizationInput,
+    )
+      ? organizationInput
+      : null
+  const roleInput = (await searchParams)?.role
+  const role =
+    roleInput === "awarding" || roleInput === "recipient" ? roleInput : "all"
   const hasFilter = Boolean(
-    activeMinistry || activeLevel || activeTerritory || activeYear || activeProvince || activeMunicipio
+    activeMinistry ||
+    activeLevel ||
+    activeTerritory ||
+    activeYear ||
+    activeProvince ||
+    activeMunicipio ||
+    organization,
   )
 
-  const [baseData, filteredData, summary, lastChecked] = await Promise.all([
-    getContractPage(page, activeType),
+  const [
+    baseData,
+    filteredData,
+    summary,
+    lastChecked,
+    organizationLabel,
+    territoryLabels,
+  ] = await Promise.all([
+    hasFilter
+      ? Promise.resolve({ contracts: [], total: 0, statsRows: [] })
+      : getContractPage(page, activeType),
     hasFilter
       ? getContractPageFiltered(
-          page, activeType, activeMinistry, activeLevel, activeTerritory, activeYear,
-          activeProvince, activeMunicipio, activeFlow
+          page,
+          activeType,
+          activeMinistry,
+          activeLevel,
+          activeTerritory,
+          activeYear,
+          activeProvince,
+          activeMunicipio,
+          activeFlow,
+          organization,
+          role,
         )
       : Promise.resolve(null),
     getMoneyDatasetSummary("contracts"),
     getEtlLastFinished(["contracts_daily", "contracts_backfill"]),
+    getOrganizationFilterName(organization),
+    getExplorationTerritoryLabels(
+      [activeTerritory, activeProvince, activeMunicipio].filter(
+        (key): key is string => Boolean(key),
+      ),
+    ),
   ])
 
-  const { contracts, total, statsRows } = hasFilter && filteredData
-    ? { contracts: filteredData.contracts, total: filteredData.total, statsRows: baseData.statsRows }
-    : baseData
+  const { contracts, total, statsRows } =
+    hasFilter && filteredData
+      ? {
+          contracts: filteredData.contracts,
+          total: filteredData.total,
+          statsRows: baseData.statsRows,
+        }
+      : baseData
 
   const topAmount = statsRows[0]?.amount ?? null
   const topSum = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
@@ -84,12 +145,15 @@ export default async function ContratosPage({ searchParams }: PageProps) {
         description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí ves quién compra, a qué empresa, y por cuánto. Ordenados por importe sin IVA."
       />
 
-      {statsRows.length > 0 ? (
+      {!hasFilter && activeType === "all" && statsRows.length > 0 ? (
         <StatGrid
           items={[
-            { label: "Licitaciones publicadas", value: total.toLocaleString("es-ES") },
             {
-              label: "Mayor adjudicación",
+              label: "Licitaciones publicadas",
+              value: total.toLocaleString("es-ES"),
+            },
+            {
+              label: "Mayor importe de licitación",
               value: formatEuroCompact(topAmount),
               hint: "El contrato de mayor importe publicado en la PCSP.",
             },
@@ -111,6 +175,8 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       />
 
       <ContratosClient
+        territoryLabels={territoryLabels}
+        organizationLabel={organizationLabel}
         activeType={activeType}
         activeMinistry={activeMinistry}
         activeLevel={activeLevel}
@@ -123,8 +189,10 @@ export default async function ContratosPage({ searchParams }: PageProps) {
       />
 
       <InfoPanel title="Fuente">
-        Plataforma de Contratación del Sector Público (PCSP) · Ministerio de Hacienda.
-        Consulta automática diaria de las licitaciones publicadas en la PCSP. La fecha de cada registro corresponde a su actualización en la fuente.
+        Plataforma de Contratación del Sector Público (PCSP) · Ministerio de
+        Hacienda. Consulta automática diaria de las licitaciones publicadas en
+        la PCSP. La fecha de cada registro corresponde a su actualización en la
+        fuente.
       </InfoPanel>
     </div>
   )

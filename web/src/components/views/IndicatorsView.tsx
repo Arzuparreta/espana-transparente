@@ -1,7 +1,12 @@
+import Link from "next/link"
+import { FISCAL_SERIES } from "@/lib/fiscal"
 import { AnnualSeriesChart } from "@/components/chain/AnnualSeriesChart"
 import { EmptyState } from "@/components/domain/EmptyState"
 import { InfoPanel } from "@/components/domain/InfoPanel"
-import { IndicatorsDashboard, type IndicatorSummary } from "@/components/indicators/IndicatorsDashboard"
+import {
+  IndicatorsDashboard,
+  type IndicatorSummary,
+} from "@/components/indicators/IndicatorsDashboard"
 import {
   annualMeanVariation,
   CHAIN_SOURCES,
@@ -53,7 +58,10 @@ export async function IndicatorsView() {
       const latest = points[points.length - 1]
       const previous = points[points.length - 2]
       const deltaAbs = previous ? latest.value - previous.value : null
-      const deltaPct = previous && previous.value !== 0 ? (deltaAbs! / previous.value) * 100 : null
+      const deltaPct =
+        previous && previous.value !== 0
+          ? (deltaAbs! / previous.value) * 100
+          : null
 
       return {
         ...indicator,
@@ -68,18 +76,25 @@ export async function IndicatorsView() {
     .sort((a, b) => a.name.localeCompare(b.name, "es"))
 
   // Chain charts: annual aggregation of series already loaded above.
-  const byCode = new Map(indicators.map((indicator) => [indicator.code, indicator.points]))
+  const byCode = new Map(
+    indicators.map((indicator) => [indicator.code, indicator.points]),
+  )
   const pointsOf = (code: string) => byCode.get(code) ?? []
 
   const ipcMeans = toAnnualMeans(pointsOf("IPC"))
   const ipcAnnual = annualMeanVariation(ipcMeans)
   // Latest COMPLETE year of the IPC index — never hardcode the base year.
-  const baseYear = ipcMeans.length > 0 ? ipcMeans[ipcMeans.length - 1].year : null
+  const baseYear =
+    ipcMeans.length > 0 ? ipcMeans[ipcMeans.length - 1].year : null
   const salaryNominal = extractAnnualPoints(pointsOf("SALARIO_MEDIO"))
   const salaryReal =
-    baseYear !== null ? deflateToBaseYear(salaryNominal, ipcMeans, baseYear) : []
+    baseYear !== null
+      ? deflateToBaseYear(salaryNominal, ipcMeans, baseYear)
+      : []
   const salaryYears = new Set(salaryReal.map((point) => point.year))
-  const salaryNominalAligned = salaryNominal.filter((point) => salaryYears.has(point.year))
+  const salaryNominalAligned = salaryNominal.filter((point) =>
+    salaryYears.has(point.year),
+  )
   const debt = extractAnnualPoints(pointsOf("DEUDA_PUBLICA"))
 
   const [ipcChecked, salaryChecked, debtChecked] = await Promise.all([
@@ -90,83 +105,101 @@ export async function IndicatorsView() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-        {ipcAnnual.length >= 2 ? (
+      {ipcAnnual.length >= 2 ? (
+        <AnnualSeriesChart
+          title="IPC general anual: lo que suben los precios cada año"
+          subtitle="Variación de medias anuales del índice general (convención INE, base 2025). Solo años completos: el año en curso no aparece hasta cerrar sus 12 meses."
+          kind="bars"
+          valueFormat="percent"
+          unitLabel="% anual"
+          highlightLatest
+          detailHref="/indicadores/IPC"
+          series={[
+            { id: "ipc-anual", label: "IPC general", points: ipcAnnual },
+          ]}
+          source={{
+            ...CHAIN_SOURCES["ipc-anual"],
+            lastChecked: ipcChecked,
+            coverageLabel: `Años completos ${ipcAnnual[0].year}–${ipcAnnual[ipcAnnual.length - 1].year}`,
+          }}
+        />
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {salaryReal.length >= 2 && baseYear !== null ? (
           <AnnualSeriesChart
-            title="IPC general anual: lo que suben los precios cada año"
-            subtitle="Variación de medias anuales del índice general (convención INE, base 2025). Solo años completos: el año en curso no aparece hasta cerrar sus 12 meses."
-            kind="bars"
-            valueFormat="percent"
-            unitLabel="% anual"
-            highlightLatest
-            detailHref="/indicadores/IPC"
-            series={[{ id: "ipc-anual", label: "IPC general", points: ipcAnnual }]}
+            title="Salario medio: nominal vs real"
+            subtitle={`Salario bruto anual (EAES) deflactado por el IPC medio anual, en euros constantes de ${baseYear}. La EAES se publica con unos dos años de retraso.`}
+            kind="lines"
+            valueFormat="eurosYear"
+            unitLabel={`€/año (euros de ${baseYear})`}
+            detailHref="/indicadores/SALARIO_MEDIO"
+            series={[
+              {
+                id: "salario-real",
+                label: `Salario real (euros de ${baseYear})`,
+                points: salaryReal,
+                role: "primary",
+              },
+              {
+                id: "salario-nominal",
+                label: "Salario nominal",
+                points: salaryNominalAligned,
+                role: "secondary",
+              },
+            ]}
             source={{
-              ...CHAIN_SOURCES["ipc-anual"],
-              lastChecked: ipcChecked,
-              coverageLabel: `Años completos ${ipcAnnual[0].year}–${ipcAnnual[ipcAnnual.length - 1].year}`,
+              ...CHAIN_SOURCES["salario-real"],
+              lastChecked: salaryChecked,
+              coverageLabel: `Serie anual ${salaryReal[0].year}–${salaryReal[salaryReal.length - 1].year}`,
             }}
           />
         ) : null}
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {salaryReal.length >= 2 && baseYear !== null ? (
-            <AnnualSeriesChart
-              title="Salario medio: nominal vs real"
-              subtitle={`Salario bruto anual (EAES) deflactado por el IPC medio anual, en euros constantes de ${baseYear}. La EAES se publica con unos dos años de retraso.`}
-              kind="lines"
-              valueFormat="eurosYear"
-              unitLabel={`€/año (euros de ${baseYear})`}
-              detailHref="/indicadores/SALARIO_MEDIO"
-              series={[
-                {
-                  id: "salario-real",
-                  label: `Salario real (euros de ${baseYear})`,
-                  points: salaryReal,
-                  role: "primary",
-                },
-                {
-                  id: "salario-nominal",
-                  label: "Salario nominal",
-                  points: salaryNominalAligned,
-                  role: "secondary",
-                },
-              ]}
-              source={{
-                ...CHAIN_SOURCES["salario-real"],
-                lastChecked: salaryChecked,
-                coverageLabel: `Serie anual ${salaryReal[0].year}–${salaryReal[salaryReal.length - 1].year}`,
-              }}
-            />
-          ) : null}
+        {debt.length >= 2 ? (
+          <AnnualSeriesChart
+            title="Deuda pública: lo que debe el Estado"
+            subtitle="Stock de deuda consolidada de las Administraciones Públicas, criterio de Maastricht."
+            kind="lines"
+            valueFormat="millionsEurBn"
+            unitLabel="billones de €"
+            detailHref="/indicadores/DEUDA_PUBLICA"
+            series={[{ id: "deuda", label: "Deuda viva", points: debt }]}
+            source={{
+              ...CHAIN_SOURCES.deuda,
+              lastChecked: debtChecked,
+              coverageLabel: `Serie anual ${debt[0].year}–${debt[debt.length - 1].year}`,
+            }}
+          />
+        ) : null}
+      </div>
 
-          {debt.length >= 2 ? (
-            <AnnualSeriesChart
-              title="Deuda pública: lo que debe el Estado"
-              subtitle="Stock de deuda consolidada de las Administraciones Públicas, criterio de Maastricht."
-              kind="lines"
-              valueFormat="millionsEurBn"
-              unitLabel="billones de €"
-              detailHref="/indicadores/DEUDA_PUBLICA"
-              series={[{ id: "deuda", label: "Deuda viva", points: debt }]}
-              source={{
-                ...CHAIN_SOURCES.deuda,
-                lastChecked: debtChecked,
-                coverageLabel: `Serie anual ${debt[0].year}–${debt[debt.length - 1].year}`,
-              }}
-            />
-          ) : null}
-        </div>
+      {indicators.length === 0 ? (
+        <EmptyState
+          title="Sin indicadores"
+          description="Las series económicas todavía no están disponibles."
+        />
+      ) : (
+        <IndicatorsDashboard
+          indicators={indicators.filter(
+            (item) => !(item.code in FISCAL_SERIES),
+          )}
+          totalObservations={
+            rows.filter((row) => !(row.indicator_code in FISCAL_SERIES)).length
+          }
+        />
+      )}
 
-        {indicators.length === 0 ? (
-          <EmptyState title="Sin indicadores" description="Ejecuta el ETL del INE." />
-        ) : (
-          <IndicatorsDashboard indicators={indicators} totalObservations={rows.length} />
-        )}
-
-        <InfoPanel title="Fuente">
-          INE (IPC, EPA, EAES, Contabilidad Nacional) y Eurostat (deuda pública, criterio de
-          Maastricht). Datos actualizados vía API JSON.
-        </InfoPanel>
+      <Link
+        href="/cuentas-publicas"
+        className="block text-sm underline underline-offset-4"
+      >
+        Ingresos, gasto, déficit, deuda e intereses: explorar Cuentas públicas →
+      </Link>
+      <InfoPanel title="Fuente">
+        INE (IPC, EPA, EAES, Contabilidad Nacional) y Eurostat (deuda pública,
+        criterio de Maastricht). Datos actualizados vía API JSON.
+      </InfoPanel>
     </div>
   )
 }

@@ -1,4 +1,7 @@
-import { ThreadAnchorCard, ThreadLanding } from "@/components/domain/ThreadLanding"
+import {
+  ThreadAnchorCard,
+  ThreadLanding,
+} from "@/components/domain/ThreadLanding"
 import {
   getGobiernoActual,
   getInitiativesPage,
@@ -10,19 +13,22 @@ import { getThread } from "@/lib/thread-config"
 export const revalidate = 3600
 
 export const metadata = {
-  title: "Personas",
+  title: "Personas y entidades",
   description:
     "Cargos públicos, sus decisiones y su conducta: gobierno, cámaras, partidos, votaciones, declaraciones y procesos.",
 }
 
 export default async function PersonasThreadPage() {
-  const [sectionIndex, gobierno, initiatives, revolvingDoors] = await Promise.all([
-    getSectionIndex(),
-    getGobiernoActual(),
-    getInitiativesPage(1),
-    getRevolvingDoorCases(),
-  ])
-  const ministers = gobierno.filter((member) => member.position_type === "ministro").length
+  const [sectionIndex, gobierno, initiatives, revolvingDoors] =
+    await Promise.all([
+      getSectionIndex(),
+      getGobiernoActual(),
+      getInitiativesPage(1),
+      getRevolvingDoorCases(),
+    ])
+  const ministers = gobierno.filter(
+    (member) => member.position_type === "ministro",
+  ).length
 
   return (
     <ThreadLanding

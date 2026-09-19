@@ -29,6 +29,55 @@ export interface IndicatorExplanation {
  *   IPC_VAR_ANUAL   — IPC — Variación anual (%)
  */
 const EXPLANATIONS: Record<string, IndicatorExplanation> = {
+  INGRESOS_PUBLICOS: {
+    short: "Ingresos públicos en contabilidad nacional.",
+    long: "Ingresos del conjunto de las administraciones públicas (S13), según Eurostat y SEC 2010. No son únicamente impuestos ni cobros de caja.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+  GASTO_PUBLICO: {
+    short: "Gasto realizado en contabilidad nacional.",
+    long: "Gasto del conjunto de las administraciones públicas (S13), según Eurostat y SEC 2010. No equivale a créditos aprobados en presupuestos.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+  SALDO_PUBLICO: {
+    short: "Ingresos menos gasto: superávit positivo, déficit negativo.",
+    long: "El saldo público B9 mide capacidad o necesidad de financiación. No coincide necesariamente con la variación de deuda, que incluye otros ajustes.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+  INTERESES_PUBLICOS: {
+    short: "Intereses devengados por las administraciones públicas.",
+    long: "La partida D41PAY de Eurostat mide intereses como gasto, no devolución de principal. Forma parte del gasto público total.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+  IMPUESTOS_PUBLICOS: {
+    short: "Impuestos devengados antes del ajuste por incobrables.",
+    long: "Suma de D2REC, D5REC y D91REC de Eurostat: impuestos sobre producción e importaciones, renta y patrimonio, y capital. No descuenta D995 ni representa cobros de caja.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+  COTIZACIONES_SOCIALES: {
+    short: "Cotizaciones sociales netas, incluidas las imputadas.",
+    long: "D61REC de Eurostat, conjunto de las administraciones públicas. Incluye cotizaciones imputadas y no equivale exclusivamente a ingresos de caja de la Seguridad Social.",
+    implications: [
+      "Unidad: millones de euros corrientes. Compara periodos y perímetros equivalentes.",
+      "Los datos agregados no describen tu aportación fiscal individual.",
+    ],
+  },
+
   PIB: {
     short:
       "Mide el valor total de los bienes y servicios finales producidos en España durante un trimestre, a precios de mercado.",
@@ -160,7 +209,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_ALIMENTOS: {
-    short: "Índice de precios de alimentos y bebidas no alcohólicas: pan, carne, pescado, leche, fruta, verdura, aceites y bebidas no alcohólicas.",
+    short:
+      "Índice de precios de alimentos y bebidas no alcohólicas: pan, carne, pescado, leche, fruta, verdura, aceites y bebidas no alcohólicas.",
     long: "Subgrupo COICOP que incluye los productos de alimentación y bebidas sin alcohol que consume un hogar medio. Es uno de los grupos con mayor peso en la cesta del IPC y suele ser volátil por factores estacionales, climáticos y de costes agrícolas.",
     implications: [
       "Los precios de alimentos frescos (frutas, verduras, pescado) varían mucho según la temporada y el clima.",
@@ -170,7 +220,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_BEBIDAS_TABACO: {
-    short: "Índice de precios de bebidas alcohólicas y tabaco: vino, cerveza, destilados y productos de tabaco.",
+    short:
+      "Índice de precios de bebidas alcohólicas y tabaco: vino, cerveza, destilados y productos de tabaco.",
     long: "Subgrupo COICOP que mide la evolución de precios de bebidas con alcohol y productos de tabaco. Estos productos están sujetos a impuestos especiales (IEPS) que pueden cambiar con los presupuestos.",
     implications: [
       "Los impuestos especiales sobre alcohol y tabaco pueden subir sin aviso en los Presupuestos Generales del Estado.",
@@ -179,7 +230,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_VESTIDO: {
-    short: "Índice de precios de vestido y calzado: prendas de vestir, calzado y accesorios.",
+    short:
+      "Índice de precios de vestido y calzado: prendas de vestir, calzado y accesorios.",
     long: "Subgrupo COICOP que cubre ropa, zapatos y complementos. Es muy sensible a campañas de rebajas y temporadas, por lo que la variación mensual puede oscilar fuertemente.",
     implications: [
       "Las rebajas de enero y julio hacen que este subgrupo tenga variaciones mensuales muy marcadas.",
@@ -188,7 +240,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_VIVIENDA: {
-    short: "Índice de precios de vivienda, agua, electricidad, gas y otros combustibles: alquileres, suministros y combustibles para el hogar.",
+    short:
+      "Índice de precios de vivienda, agua, electricidad, gas y otros combustibles: alquileres, suministros y combustibles para el hogar.",
     long: "Subgrupo COICOP que incluye alquileres reales (no hipotecas), gastos de comunidad, suministros (electricidad, gas, agua), combustibles para calefacción y otros servicios relacionados con la vivienda. Es uno de los grupos con mayor peso en la cesta.",
     implications: [
       "Los precios de electricidad y gas dependen del mercado mayorista y de las políticas regulatorias.",
@@ -198,7 +251,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_HOGAR: {
-    short: "Índice de precios de muebles, artículos del hogar y mantenimiento corriente: mobiliario, electrodomésticos, utensilios y reparaciones.",
+    short:
+      "Índice de precios de muebles, artículos del hogar y mantenimiento corriente: mobiliario, electrodomésticos, utensilios y reparaciones.",
     long: "Subgrupo COICOP que cubre mobiliario, electrodomésticos, cristalería, utensilios de cocina, productos de limpieza y servicios de reparación para el hogar.",
     implications: [
       "Muchos de estos productos son de consumo duradero, por lo que las compras se pueden aplazar.",
@@ -207,7 +261,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_SANIDAD: {
-    short: "Índice de precios de sanidad: medicamentos, productos farmacéuticos, servicios médicos y dentales.",
+    short:
+      "Índice de precios de sanidad: medicamentos, productos farmacéuticos, servicios médicos y dentales.",
     long: "Subgrupo COICOP que incluye productos farmacéuticos, aparatos médicos, servicios médicos y dentales no cubiertos por la sanidad pública. Los medicamentos con receta están parcialmente subvencionados.",
     implications: [
       "El copago farmacéutico afecta directamente al bolsillo de quienes consumen medicamentos crónicos.",
@@ -216,7 +271,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_TRANSPORTE: {
-    short: "Índice de precios de transporte: compra de vehículos, combustibles, transporte público, piezas y reparaciones.",
+    short:
+      "Índice de precios de transporte: compra de vehículos, combustibles, transporte público, piezas y reparaciones.",
     long: "Subgrupo COICOP que mide la evolución de precios relacionados con el transporte: compra de coches y motos, carburantes, transporte público (autobús, tren, avión), seguros de vehículos y reparaciones.",
     implications: [
       "Los carburantes son muy volátiles y dependen del precio del petróleo y de los tipos de cambio.",
@@ -226,7 +282,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_COMUNICACIONES: {
-    short: "Índice de precios de información y comunicaciones: equipos telefónicos, servicios de internet, telefonía y correos.",
+    short:
+      "Índice de precios de información y comunicaciones: equipos telefónicos, servicios de internet, telefonía y correos.",
     long: "Subgrupo COICOP que incluye teléfonos móviles, ordenadores, servicios de telefonía fija y móvil, internet, televisiones de pago y servicios postales.",
     implications: [
       "La competencia entre operadoras de telecomunicaciones ha mantenido los precios estables o a la baja en los últimos años.",
@@ -235,7 +292,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_OCIO: {
-    short: "Índice de precios de actividades recreativas, deporte y cultura: aparatos audiovisuales, eventos, periódicos, libros, viajes organizados.",
+    short:
+      "Índice de precios de actividades recreativas, deporte y cultura: aparatos audiovisuales, eventos, periódicos, libros, viajes organizados.",
     long: "Subgrupo COICOP que cubre equipos de audio, foto, vídeo y ordenadores; eventos culturales y deportivos; suscripciones a periódicos y revistas; libros; viajes organizados; y mascotas.",
     implications: [
       "Es un gasto discrecional que suele ser el primero que se recorta cuando aprieta el presupuesto.",
@@ -244,7 +302,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_ENSENANZA: {
-    short: "Índice de precios de enseñanza: matrículas, material escolar, cursos y servicios educativos.",
+    short:
+      "Índice de precios de enseñanza: matrículas, material escolar, cursos y servicios educativos.",
     long: "Subgrupo COICOP que incluye matrículas de enseñanza reglada (guardería, primaria, secundaria, universidad), cursos no reglados, material escolar y otros servicios educativos.",
     implications: [
       "Las matrículas universitarias y los precios de guarderías varían según la comunidad autónoma.",
@@ -253,7 +312,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_RESTAURANTES: {
-    short: "Índice de precios de restaurantes y servicios de alojamiento: comidas fuera de casa, cafeterías, hoteles y albergues.",
+    short:
+      "Índice de precios de restaurantes y servicios de alojamiento: comidas fuera de casa, cafeterías, hoteles y albergues.",
     long: "Subgrupo COICOP que mide la evolución de precios de restaurantes, bares, cafeterías, comedores, caterings, hoteles, albergues y alquileres vacacionales.",
     implications: [
       "Los menús del día y las comidas fuera de casa son un gasto frecuente que puede acumularse rápidamente.",
@@ -262,7 +322,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_SEGUROS: {
-    short: "Índice de precios de seguros y servicios financieros: seguros de vida, hogar, vehículo y servicios bancarios.",
+    short:
+      "Índice de precios de seguros y servicios financieros: seguros de vida, hogar, vehículo y servicios bancarios.",
     long: "Subgrupo COICOP que incluye primas de seguros de vida, accidentes, salud, hogar, vehículo y viaje, así como ciertos servicios financieros.",
     implications: [
       "Las primas de seguros de hogar y vehículo suelen revisarse anualmente y pueden subir sin aviso previo.",
@@ -271,7 +332,8 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
   },
 
   IPC_DIVERSOS: {
-    short: "Índice de precios de cuidado personal, protección social y bienes y servicios diversos: peluquería, joyería, funerarios y organizaciones.",
+    short:
+      "Índice de precios de cuidado personal, protección social y bienes y servicios diversos: peluquería, joyería, funerarios y organizaciones.",
     long: "Subgrupo COICOP que agrupa servicios personales (peluquería, spas, gimnasios), joyería, relojería, productos de funeraria, y cuotas de sindicatos y organizaciones.",
     implications: [
       "Incluye gastos poco frecuentes pero que pueden ser significativos cuando ocurren (funerarias, joyería).",
@@ -283,9 +345,7 @@ const EXPLANATIONS: Record<string, IndicatorExplanation> = {
 /**
  * Returns the explanation for a given indicator code, or a fallback.
  */
-export function getIndicatorExplanation(
-  code: string,
-): IndicatorExplanation {
+export function getIndicatorExplanation(code: string): IndicatorExplanation {
   return (
     EXPLANATIONS[code] ?? {
       short: "",

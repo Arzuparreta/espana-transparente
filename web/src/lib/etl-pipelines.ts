@@ -3,7 +3,8 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "congreso.asistencia": "Asistencia y votaciones",
   "congreso.cods": "Expedientes (CODs)",
   "congreso.declaraciones": "Declaraciones económicas",
-  "congreso.declaraciones_ocr_retry": "Declaraciones OCR (recuperación histórica)",
+  "congreso.declaraciones_ocr_retry":
+    "Declaraciones OCR (recuperación histórica)",
   "congreso.declaraciones_ocr": "Declaraciones OCR",
   "congreso.gobierno": "Gobierno",
   "congreso.iniciativas": "Iniciativas legislativas",
@@ -14,19 +15,20 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "ine.indicadores": "Indicadores INE",
   "ine.indicadores_ampliados": "Indicadores ampliados INE",
   "ine.ipc_subgrupos": "IPC por subgrupos",
+  "ine.fiscal": "Cuentas públicas Eurostat",
   "ine.bde": "Deuda pública Eurostat",
   "contratacion.contratos": "Contratos PCSP",
-  "contracts_daily": "Contratos PCSP",
-  "contracts_backfill": "Contratos PCSP (histórico)",
+  contracts_daily: "Contratos PCSP",
+  contracts_backfill: "Contratos PCSP (histórico)",
   "bdns.subvenciones": "Subvenciones BDNS",
-  "subsidies_daily": "Subvenciones BDNS",
-  "subsidies_backfill": "Subvenciones BDNS (histórico)",
+  subsidies_daily: "Subvenciones BDNS",
+  subsidies_backfill: "Subvenciones BDNS (histórico)",
   "photos.run": "Fotos",
   "photos.public_officials_wikidata": "Fotos de cargos públicos",
   "puertas_giratorias.ingest": "Puertas giratorias",
   "kohesio.fondos_ue": "Fondos UE",
   "presupuestos.presupuestos": "Presupuestos",
-  "presupuestos": "Presupuestos",
+  presupuestos: "Presupuestos",
   "territorio.atlas": "Atlas territorial",
   "territorio.municipios": "Catálogo municipal",
   "territorio.org_geolocation": "Geolocalización de receptores",
@@ -65,6 +67,13 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {
+    key: "fiscal",
+    label: "Cuentas públicas Eurostat",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["ine.fiscal"],
+  },
   {
     key: "deputies",
     label: "Diputados",
@@ -205,46 +214,160 @@ export const CRITICAL_ETL_PIPELINES = [
     maxAgeHours: 24 * 9,
     pipelines: ["elections.ingest"],
   },
-  { key: "declarations", label: "Declaraciones económicas", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.declaraciones"] },
-  { key: "government", label: "Gobierno", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.gobierno"] },
-  { key: "officials", label: "Cargos públicos", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.public_officials"] },
-  { key: "responsibles", label: "Responsables", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.responsables"] },
-  { key: "power", label: "Relaciones de poder", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.power_relationships"] },
-  { key: "institutions", label: "Instituciones", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["instituciones.instituciones"] },
-  { key: "appointments", label: "Nombramientos BOE", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["public_bodies.boe_nombramientos"] },
-  { key: "lobbying", label: "Registro de lobbies", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["lobbying.rgi"] },
-  { key: "interests", label: "Intereses OpenData", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.opendata_intereses"] },
-  { key: "revolving", label: "Puertas giratorias", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["puertas_giratorias.ingest"] },
-  { key: "municipalities", label: "Catálogo municipal", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["territorio.municipios"] },
-  { key: "cods", label: "Expedientes", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.cods"] },
-  { key: "ocr", label: "Declaraciones OCR", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.declaraciones_ocr"] },
-  { key: "borme", label: "Administradores BORME", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["borme.officers"] },
-  { key: "photos", label: "Fotos", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["photos.run"] },
-  { key: "official-photos", label: "Fotos de cargos", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["photos.public_officials_wikidata"] },
-  { key: "senate-leavers", label: "Bajas Senado", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["senado.bajas"] },
+  {
+    key: "declarations",
+    label: "Declaraciones económicas",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.declaraciones"],
+  },
+  {
+    key: "government",
+    label: "Gobierno",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.gobierno"],
+  },
+  {
+    key: "officials",
+    label: "Cargos públicos",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.public_officials"],
+  },
+  {
+    key: "responsibles",
+    label: "Responsables",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.responsables"],
+  },
+  {
+    key: "power",
+    label: "Relaciones de poder",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.power_relationships"],
+  },
+  {
+    key: "institutions",
+    label: "Instituciones",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["instituciones.instituciones"],
+  },
+  {
+    key: "appointments",
+    label: "Nombramientos BOE",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["public_bodies.boe_nombramientos"],
+  },
+  {
+    key: "lobbying",
+    label: "Registro de lobbies",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["lobbying.rgi"],
+  },
+  {
+    key: "interests",
+    label: "Intereses OpenData",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.opendata_intereses"],
+  },
+  {
+    key: "revolving",
+    label: "Puertas giratorias",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["puertas_giratorias.ingest"],
+  },
+  {
+    key: "municipalities",
+    label: "Catálogo municipal",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["territorio.municipios"],
+  },
+  {
+    key: "cods",
+    label: "Expedientes",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.cods"],
+  },
+  {
+    key: "ocr",
+    label: "Declaraciones OCR",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["congreso.declaraciones_ocr"],
+  },
+  {
+    key: "borme",
+    label: "Administradores BORME",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["borme.officers"],
+  },
+  {
+    key: "photos",
+    label: "Fotos",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["photos.run"],
+  },
+  {
+    key: "official-photos",
+    label: "Fotos de cargos",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["photos.public_officials_wikidata"],
+  },
+  {
+    key: "senate-leavers",
+    label: "Bajas Senado",
+    cadence: "weekly",
+    maxAgeHours: 24 * 9,
+    pipelines: ["senado.bajas"],
+  },
 ] as const
 
 function newestRow(rows: EtlPipelineRow[], pipelines: readonly string[]) {
-  return rows
-    .filter((row) => pipelines.includes(row.pipeline))
-    .sort((a, b) => {
-      const aTime = a.last_finished_at ? Date.parse(a.last_finished_at) : 0
-      const bTime = b.last_finished_at ? Date.parse(b.last_finished_at) : 0
-      return bTime - aTime
-    })[0] ?? null
+  return (
+    rows
+      .filter((row) => pipelines.includes(row.pipeline))
+      .sort((a, b) => {
+        const aTime = a.last_finished_at ? Date.parse(a.last_finished_at) : 0
+        const bTime = b.last_finished_at ? Date.parse(b.last_finished_at) : 0
+        return bTime - aTime
+      })[0] ?? null
+  )
 }
 
 export function getCriticalPipelineStatuses(
   rows: EtlPipelineRow[],
-  now = new Date()
+  now = new Date(),
 ): CriticalPipelineStatus[] {
   return CRITICAL_ETL_PIPELINES.map((spec) => {
     const row = newestRow(rows, spec.pipelines)
     if (!row?.last_finished_at) {
-      return { ...spec, status: "missing", pipeline: row?.pipeline ?? null, finishedAt: null }
+      return {
+        ...spec,
+        status: "missing",
+        pipeline: row?.pipeline ?? null,
+        finishedAt: null,
+      }
     }
     if (row.last_status === "failed") {
-      return { ...spec, status: "failed", pipeline: row.pipeline, finishedAt: row.last_finished_at }
+      return {
+        ...spec,
+        status: "failed",
+        pipeline: row.pipeline,
+        finishedAt: row.last_finished_at,
+      }
     }
 
     const finishedAt = Date.parse(row.last_finished_at)
@@ -256,22 +379,30 @@ export function getCriticalPipelineStatuses(
         ? "fresh"
         : "delayed"
 
-    return { ...spec, status, pipeline: row.pipeline, finishedAt: row.last_finished_at }
+    return {
+      ...spec,
+      status,
+      pipeline: row.pipeline,
+      finishedAt: row.last_finished_at,
+    }
   })
 }
 
 export function getPipelineDisplayStatus(
   row: EtlPipelineRow,
-  now = new Date()
+  now = new Date(),
 ): "ok" | "delayed" | "failed" | "unknown" {
   if (row.last_status === "failed") return "failed"
   if (row.last_status !== "succeeded") return "unknown"
 
   const spec = CRITICAL_ETL_PIPELINES.find((item) =>
-    item.pipelines.some((pipeline) => pipeline === row.pipeline)
+    item.pipelines.some((pipeline) => pipeline === row.pipeline),
   )
   if (!spec || !row.last_finished_at) return "unknown"
 
-  const ageHours = (now.getTime() - Date.parse(row.last_finished_at)) / 3_600_000
-  return Number.isFinite(ageHours) && ageHours <= spec.maxAgeHours ? "ok" : "delayed"
+  const ageHours =
+    (now.getTime() - Date.parse(row.last_finished_at)) / 3_600_000
+  return Number.isFinite(ageHours) && ageHours <= spec.maxAgeHours
+    ? "ok"
+    : "delayed"
 }

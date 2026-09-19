@@ -5,6 +5,7 @@ import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 export interface Responsible {
   person_name: string | null
   politician_id: string | null
+  official_id?: string | null
   ministry: string | null
   government: string | null
   political_party: string | null
@@ -15,7 +16,10 @@ interface ResponsibleChipProps {
   ministryHref?: string | null
 }
 
-export function ResponsibleChip({ responsible, ministryHref }: ResponsibleChipProps) {
+export function ResponsibleChip({
+  responsible,
+  ministryHref,
+}: ResponsibleChipProps) {
   if (!responsible?.person_name) return null
 
   const name = responsible.person_name
@@ -28,14 +32,20 @@ export function ResponsibleChip({ responsible, ministryHref }: ResponsibleChipPr
           className="shrink-0 text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-300"
           title={responsible.ministry}
         >
-          Responsable:
+          Cargo vinculado:
         </ResponsiveLink>
       ) : (
-        <span className="shrink-0 text-emerald-700 dark:text-emerald-300">Responsable:</span>
+        <span className="shrink-0 text-emerald-700 dark:text-emerald-300">
+          Cargo vinculado:
+        </span>
       )}
-      {responsible.politician_id ? (
+      {responsible.politician_id || responsible.official_id ? (
         <ResponsiveLink
-          href={`/diputados/${responsible.politician_id}`}
+          href={
+            responsible.politician_id
+              ? `/diputados/${responsible.politician_id}`
+              : `/cargos/${responsible.official_id}`
+          }
           className="min-w-0 truncate font-medium underline-offset-2 hover:underline"
         >
           {name}

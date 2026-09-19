@@ -26,38 +26,44 @@ export const revalidate = 86400
 // the production build so a deploy never depends on production DB availability.
 export const dynamic = "force-dynamic"
 
-const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]; priority: number }[] = [
-  { path: "/",                   changeFrequency: "daily",   priority: 1.0 },
-  { path: "/personas",           changeFrequency: "daily",   priority: 0.9 },
-  { path: "/dinero",             changeFrequency: "daily",   priority: 0.9 },
-  { path: "/economia",           changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/indicadores",        changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/calculadoras",       changeFrequency: "monthly", priority: 0.6 },
-  { path: "/territorio",         changeFrequency: "weekly",  priority: 0.7 },
+const STATIC_ROUTES: {
+  path: string
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]
+  priority: number
+}[] = [
+  { path: "/", changeFrequency: "daily", priority: 1.0 },
+  { path: "/decisiones", changeFrequency: "daily", priority: 0.9 },
+  { path: "/cuentas-publicas", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/personas", changeFrequency: "daily", priority: 0.9 },
+  { path: "/dinero", changeFrequency: "daily", priority: 0.9 },
+  { path: "/economia", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/indicadores", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/calculadoras", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/territorio", changeFrequency: "weekly", priority: 0.7 },
   { path: "/territorio/tu-zona", changeFrequency: "monthly", priority: 0.5 },
-  { path: "/diputados",          changeFrequency: "daily",   priority: 0.9 },
-  { path: "/asistencia",         changeFrequency: "daily",   priority: 0.8 },
-  { path: "/divergencias",       changeFrequency: "daily",   priority: 0.7 },
-  { path: "/votaciones",         changeFrequency: "daily",   priority: 0.9 },
-  { path: "/distorsion",         changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/gobierno",           changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/ministerios",        changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/senado",             changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/instituciones",      changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/partidos",           changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/puertas-giratorias", changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/corrupcion",         changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/grupos-de-interes",  changeFrequency: "weekly",  priority: 0.6 },
-  { path: "/contratos",          changeFrequency: "daily",   priority: 0.8 },
-  { path: "/subvenciones",       changeFrequency: "daily",   priority: 0.8 },
-  { path: "/presupuestos",       changeFrequency: "monthly", priority: 0.7 },
-  { path: "/dinero-publico",     changeFrequency: "weekly",  priority: 0.8 },
-  { path: "/fondos-ue",          changeFrequency: "weekly",  priority: 0.7 },
-  { path: "/organizaciones",     changeFrequency: "weekly",  priority: 0.6 },
-  { path: "/estado-datos",       changeFrequency: "weekly",  priority: 0.5 },
-  { path: "/buscar",             changeFrequency: "monthly", priority: 0.4 },
-  { path: "/iniciativas",        changeFrequency: "weekly",  priority: 0.6 },
-  { path: "/declaraciones",      changeFrequency: "weekly",  priority: 0.6 },
+  { path: "/diputados", changeFrequency: "daily", priority: 0.9 },
+  { path: "/asistencia", changeFrequency: "daily", priority: 0.8 },
+  { path: "/divergencias", changeFrequency: "daily", priority: 0.7 },
+  { path: "/votaciones", changeFrequency: "daily", priority: 0.9 },
+  { path: "/distorsion", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/gobierno", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/ministerios", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/senado", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/instituciones", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/partidos", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/puertas-giratorias", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/corrupcion", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/grupos-de-interes", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/contratos", changeFrequency: "daily", priority: 0.8 },
+  { path: "/subvenciones", changeFrequency: "daily", priority: 0.8 },
+  { path: "/presupuestos", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/dinero-publico", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/fondos-ue", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/organizaciones", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/estado-datos", changeFrequency: "weekly", priority: 0.5 },
+  { path: "/buscar", changeFrequency: "monthly", priority: 0.4 },
+  { path: "/iniciativas", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/declaraciones", changeFrequency: "weekly", priority: 0.6 },
 ]
 
 function url(path: string) {
@@ -112,61 +118,97 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ] = await Promise.all([
     tryGet(
       async () =>
-        ((await getDeputyCards()) as unknown as { id: string }[]).map((d) => ({ id: d.id })),
-      [] as { id: string }[]
+        ((await getDeputyCards()) as unknown as { id: string }[]).map((d) => ({
+          id: d.id,
+        })),
+      [] as { id: string }[],
     ),
     tryGet(
       async () =>
-        ((await getParties()) as unknown as { id: string }[]).map((p) => ({ id: p.id })),
-      [] as { id: string }[]
+        ((await getParties()) as unknown as { id: string }[]).map((p) => ({
+          id: p.id,
+        })),
+      [] as { id: string }[],
     ),
-    tryGet(() => getSitemapVotingSessionIds(), [] as { id: string; date: string | null }[]),
-    tryGet(() => getSitemapContractIds(), [] as { id: string; date: string | null }[]),
-    tryGet(() => getSitemapSubsidyIds(), [] as { id: string; date: string | null }[]),
+    tryGet(
+      () => getSitemapVotingSessionIds(),
+      [] as { id: string; date: string | null }[],
+    ),
+    tryGet(
+      () => getSitemapContractIds(),
+      [] as { id: string; date: string | null }[],
+    ),
+    tryGet(
+      () => getSitemapSubsidyIds(),
+      [] as { id: string; date: string | null }[],
+    ),
     tryGet(() => getSitemapEuFundSlugs(), [] as { slug: string }[]),
     tryGet(() => getSitemapRevolvingDoorIds(), [] as { id: string }[]),
-    tryGet(() => getSitemapJudicialCaseIds(), [] as { id: string; date: string | null }[]),
+    tryGet(
+      () => getSitemapJudicialCaseIds(),
+      [] as { id: string; date: string | null }[],
+    ),
     tryGet(() => getSitemapLobbyingGroupIds(), [] as { id: string }[]),
     tryGet(() => getSitemapOrganizationIds(), [] as { id: string }[]),
     tryGet(() => getSitemapIndicatorCodes(), [] as { code: string }[]),
     tryGet(() => getSitemapInstitucionIds(), [] as { id: string }[]),
     tryGet(() => getSitemapOfficialIds(), [] as { id: string }[]),
-    tryGet(() => getSitemapBudgetSectionPaths(), [] as { year: number; section_code: string }[]),
-    tryGet(() => getSitemapBudgetProgramPaths(), [] as { section_code: string; program_code: string }[]),
+    tryGet(
+      () => getSitemapBudgetSectionPaths(),
+      [] as { year: number; section_code: string }[],
+    ),
+    tryGet(
+      () => getSitemapBudgetProgramPaths(),
+      [] as { section_code: string; program_code: string }[],
+    ),
     tryGet(() => getSitemapInitiativeIds(), [] as { id: string }[]),
-    tryGet(() => getTerritoryKeys("autonomic"), [] as { territoryKey: string }[]),
-    tryGet(() => getTerritoryKeys("municipal"), [] as { territoryKey: string }[]),
+    tryGet(
+      () => getTerritoryKeys("autonomic"),
+      [] as { territoryKey: string }[],
+    ),
+    tryGet(
+      () => getTerritoryKeys("municipal"),
+      [] as { territoryKey: string }[],
+    ),
     tryGet(() => getSitemapSenatorIds(), [] as { id: string }[]),
     tryGet(() => getSitemapGobiernoIds(), [] as { id: string }[]),
   ])
 
-  const deputyEntries: MetadataRoute.Sitemap = (deputies as { id: string }[]).map((d) => ({
+  const deputyEntries: MetadataRoute.Sitemap = (
+    deputies as { id: string }[]
+  ).map((d) => ({
     url: url(`/diputados/${d.id}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.6,
   }))
 
-  const senatorEntries: MetadataRoute.Sitemap = (senators as { id: string }[]).map((s) => ({
+  const senatorEntries: MetadataRoute.Sitemap = (
+    senators as { id: string }[]
+  ).map((s) => ({
     url: url(`/diputados/${s.id}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.5,
   }))
 
-  const gobiernoEntries: MetadataRoute.Sitemap = (gobiernoIds as { id: string }[]).map((g) => ({
+  const gobiernoEntries: MetadataRoute.Sitemap = (
+    gobiernoIds as { id: string }[]
+  ).map((g) => ({
     url: url(`/ministerios/${g.id}`),
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.6,
   }))
 
-  const partyEntries: MetadataRoute.Sitemap = (parties as { id: string }[]).map((p) => ({
-    url: url(`/partidos/${p.id}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.6,
-  }))
+  const partyEntries: MetadataRoute.Sitemap = (parties as { id: string }[]).map(
+    (p) => ({
+      url: url(`/partidos/${p.id}`),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }),
+  )
 
   const votingEntries: MetadataRoute.Sitemap = votingSessions.map((s) => ({
     url: url(`/votaciones/${s.id}`),
@@ -196,21 +238,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }))
 
-  const revolvingDoorEntries: MetadataRoute.Sitemap = revolvingDoor.map((r) => ({
-    url: url(`/puertas-giratorias/${r.id}`),
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }))
+  const revolvingDoorEntries: MetadataRoute.Sitemap = revolvingDoor.map(
+    (r) => ({
+      url: url(`/puertas-giratorias/${r.id}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }),
+  )
 
-  const judicialCaseEntries: MetadataRoute.Sitemap = judicialCases.map((item) => ({
-    url: url(`/corrupcion/${item.id}`),
-    lastModified: lastModified(item.date, now),
-    changeFrequency: "monthly",
-    priority: 0.4,
-  }))
+  const judicialCaseEntries: MetadataRoute.Sitemap = judicialCases.map(
+    (item) => ({
+      url: url(`/corrupcion/${item.id}`),
+      lastModified: lastModified(item.date, now),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    }),
+  )
 
-  const lobbyingGroupEntries: MetadataRoute.Sitemap = (lobbyingGroups as { id: string }[]).map((g) => ({
+  const lobbyingGroupEntries: MetadataRoute.Sitemap = (
+    lobbyingGroups as { id: string }[]
+  ).map((g) => ({
     url: url(`/grupos-de-interes/${g.id}`),
     lastModified: now,
     changeFrequency: "monthly",
@@ -245,19 +293,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }))
 
-  const budgetSectionEntries: MetadataRoute.Sitemap = budgetSections.map((s) => ({
-    url: url(`/presupuestos/${s.section_code}?year=${s.year}`),
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }))
+  const budgetSectionEntries: MetadataRoute.Sitemap = budgetSections.map(
+    (s) => ({
+      url: url(`/presupuestos/${s.section_code}?year=${s.year}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }),
+  )
 
-  const budgetProgramEntries: MetadataRoute.Sitemap = budgetPrograms.map((p) => ({
-    url: url(`/presupuestos/${p.section_code}/${p.program_code}`),
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.4,
-  }))
+  const budgetProgramEntries: MetadataRoute.Sitemap = budgetPrograms.map(
+    (p) => ({
+      url: url(`/presupuestos/${p.section_code}/${p.program_code}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    }),
+  )
 
   const initiativeEntries: MetadataRoute.Sitemap = initiatives.map((i) => ({
     url: url(`/iniciativas/${i.id}`),
@@ -266,19 +318,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }))
 
-  const autonomicTerritoryEntries: MetadataRoute.Sitemap = autonomicTerritories.map((territory) => ({
-    url: url(`/territorio/ccaa/${encodeURIComponent(territory.territoryKey)}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }))
+  const autonomicTerritoryEntries: MetadataRoute.Sitemap =
+    autonomicTerritories.map((territory) => ({
+      url: url(
+        `/territorio/ccaa/${encodeURIComponent(territory.territoryKey)}`,
+      ),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.5,
+    }))
 
-  const municipalTerritoryEntries: MetadataRoute.Sitemap = municipalTerritories.map((territory) => ({
-    url: url(`/territorio/municipio/${encodeURIComponent(territory.territoryKey)}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }))
+  const municipalTerritoryEntries: MetadataRoute.Sitemap =
+    municipalTerritories.map((territory) => ({
+      url: url(
+        `/territorio/municipio/${encodeURIComponent(territory.territoryKey)}`,
+      ),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.5,
+    }))
 
   return [
     ...staticEntries,

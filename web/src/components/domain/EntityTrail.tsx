@@ -1,4 +1,10 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getEntityTrail, type TrailConnection } from "@/lib/data/entity-trail"
 
@@ -24,6 +30,15 @@ function ConnectionGroup({
 }) {
   if (connections.length === 0) return null
 
+  const relationshipLabels: Record<string, string> = {
+    contracts: "Contratos vinculados",
+    subsidies: "Subvenciones vinculadas",
+    appointments: "Nombramientos",
+    borme_officers: "Cargos inscritos en BORME",
+    revolving_doors: "Trayectoria pública y privada",
+    politician_memberships: "Representación",
+    judicial_case_people: "Vínculo documentado al procedimiento",
+  }
   // Group by connection type
   const grouped: Record<string, TrailConnection[]> = {}
   for (const conn of connections) {
@@ -36,11 +51,11 @@ function ConnectionGroup({
       <h3 className="text-sm font-semibold">{title}</h3>
       {Object.entries(grouped).map(([source, items]) => (
         <div key={source} className="space-y-1">
-          {Object.keys(grouped).length > 1 && (
+          {
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              {source}
+              {relationshipLabels[source] ?? source}
             </div>
-          )}
+          }
           <div className="flex flex-wrap gap-1.5">
             {items.map((conn, i) =>
               external || conn.external ? (
@@ -53,7 +68,9 @@ function ConnectionGroup({
                 >
                   <span className="truncate">{conn.label}</span>
                   {conn.meta ? (
-                    <span className="shrink-0 text-muted-foreground">· {conn.meta}</span>
+                    <span className="shrink-0 text-muted-foreground">
+                      · {conn.meta}
+                    </span>
                   ) : null}
                 </a>
               ) : (
@@ -64,10 +81,12 @@ function ConnectionGroup({
                 >
                   <span className="truncate">{conn.label}</span>
                   {conn.meta && (
-                    <span className="shrink-0 text-muted-foreground">· {conn.meta}</span>
+                    <span className="shrink-0 text-muted-foreground">
+                      · {conn.meta}
+                    </span>
                   )}
                 </ResponsiveLink>
-              )
+              ),
             )}
           </div>
         </div>
@@ -80,7 +99,12 @@ export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
   const trail = await getEntityTrail(entityType, entityId)
 
   const { people, organizations, judicial, external } = trail.connections
-  if (people.length === 0 && organizations.length === 0 && judicial.length === 0 && external.length === 0) {
+  if (
+    people.length === 0 &&
+    organizations.length === 0 &&
+    judicial.length === 0 &&
+    external.length === 0
+  ) {
     return null
   }
 
@@ -89,12 +113,16 @@ export async function EntityTrail({ entityType, entityId }: EntityTrailProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Conexiones</CardTitle>
+        <CardTitle className="text-base">Relaciones documentadas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <ConnectionGroup title="Personas" connections={people} />
         <ConnectionGroup title="Organizaciones" connections={organizations} />
-        <ConnectionGroup title="Grupos de interés" connections={external} external />
+        <ConnectionGroup
+          title="Grupos de interés"
+          connections={external}
+          external
+        />
         <ConnectionGroup title="Casos judiciales" connections={judicial} />
       </CardContent>
       <CardFooter className="border-t border-border pt-3">
@@ -114,7 +142,7 @@ export function EntityTrailSkeleton() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Conexiones</CardTitle>
+        <CardTitle className="text-base">Relaciones documentadas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="h-4 w-24 animate-pulse rounded bg-muted" />

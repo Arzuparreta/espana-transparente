@@ -1,8 +1,16 @@
 import type { Metadata } from "next"
 import { permanentRedirect } from "next/navigation"
-import { ThreadLanding, ThreadAnchorCard } from "@/components/domain/ThreadLanding"
+import {
+  ThreadLanding,
+  ThreadAnchorCard,
+} from "@/components/domain/ThreadLanding"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
-import { getSectionIndex, getTopContractOfMonth, getEuFundsSummary, getMoneyDataOverview } from "@/lib/data"
+import {
+  getSectionIndex,
+  getTopContractOfMonth,
+  getEuFundsSummary,
+  getMoneyDataOverview,
+} from "@/lib/data"
 import { MONEY_VIEWS, parseView } from "@/lib/section-views"
 import { getThread } from "@/lib/thread-config"
 import type { ReactNode } from "react"
@@ -18,7 +26,9 @@ interface PageProps {
   }>
 }
 
-export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: PageProps): Promise<Metadata> {
   const params = await searchParams
   const view = parseView(params?.view, MONEY_VIEWS, "resumen")
   return view === "trazabilidad"
@@ -29,8 +39,9 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
         alternates: { canonical: "/dinero-publico" },
       }
     : {
-        title: "Dinero",
-        description: "Presupuestos, contratos, subvenciones y fondos europeos conectados por fuente pública.",
+        title: "Dinero público",
+        description:
+          "Presupuestos, contratos, subvenciones y fondos europeos conectados por fuente pública.",
         alternates: { canonical: "/dinero" },
       }
 }
@@ -70,7 +81,11 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
       active={view}
       items={[
         { value: "resumen", label: "Explorar", href: "/dinero" },
-        { value: "trazabilidad", label: "Trazabilidad", href: "/dinero-publico" },
+        {
+          value: "trazabilidad",
+          label: "Trazabilidad",
+          href: "/dinero-publico",
+        },
       ]}
     />
   )
@@ -81,7 +96,10 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
     getEuFundsSummary(),
     getMoneyDataOverview(),
   ])
-  const totalMoneyRows = overview.coverage.reduce((sum, row) => sum + Number(row.total_rows ?? 0), 0)
+  const totalMoneyRows = overview.coverage.reduce(
+    (sum, row) => sum + Number(row.total_rows ?? 0),
+    0,
+  )
   const anchors: ReactNode[] = []
 
   if (totalMoneyRows > 0) {
@@ -93,7 +111,7 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
         description="Contratos, subvenciones y fondos europeos normalizados para consulta transversal."
         href="/dinero-publico"
         linkLabel="Ver trazabilidad →"
-      />
+      />,
     )
   }
 
@@ -117,7 +135,7 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
         }
         href={`/contratos/${topContract.id}`}
         linkLabel="Ver contrato →"
-      />
+      />,
     )
   }
 
@@ -131,7 +149,7 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
         source="Fuente: Comisión Europea · Kohesio."
         href="/fondos-ue"
         linkLabel="Ver fondos UE →"
-      />
+      />,
     )
   }
 

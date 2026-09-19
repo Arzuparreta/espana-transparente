@@ -1,12 +1,17 @@
 "use client"
+import { useSearchParams } from "next/navigation"
+import { collectionHref } from "@/lib/exploration"
+import { CollectionFilters } from "@/components/navigation/CollectionFilters"
 
 import { EmptyState } from "@/components/domain/EmptyState"
-import { FilterChip } from "@/components/domain/FilterChip"
 import { LinkTabs } from "@/components/domain/LinkTabs"
 import { Pagination } from "@/components/domain/Pagination"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
-import { ResponsibleChip, type Responsible } from "@/components/domain/ResponsibleChip"
+import {
+  ResponsibleChip,
+  type Responsible,
+} from "@/components/domain/ResponsibleChip"
 
 interface Contrato {
   id: string
@@ -31,13 +36,9 @@ interface Contrato {
   received_tender_quantity: number | null
 }
 
-const LEVEL_LABELS: Record<string, string> = {
-  state: "Estatal",
-  autonomic: "Autonómico",
-  municipal: "Municipal",
-}
-
 interface ContratosClientProps {
+  organizationLabel?: string | null
+  territoryLabels?: Record<string, string>
   activeType: string
   activeMinistry?: string | null
   activeLevel?: string | null
@@ -85,9 +86,19 @@ const TYPE_TABS = [
   { value: "Suministros", label: "Suministros" },
 ]
 
-function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: string | null }) {
+function ContratoCard({
+  c,
+  activeMinistry,
+}: {
+  c: Contrato
+  activeMinistry?: string | null
+}) {
   const dateStr = c.date
-    ? new Date(c.date).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(c.date).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     : null
 
   const tenderCount = c.received_tender_quantity
@@ -120,7 +131,11 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
             <div className="relative z-10">
               <ResponsibleChip
                 responsible={c.responsible}
-                ministryHref={c.responsible?.ministry && !activeMinistry ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}` : null}
+                ministryHref={
+                  c.responsible?.ministry && !activeMinistry
+                    ? `/contratos?ministry=${encodeURIComponent(c.responsible.ministry)}`
+                    : null
+                }
               />
             </div>
           </div>
@@ -139,15 +154,21 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
                 {c.awarding_body ?? "—"}
               </ResponsiveLink>
             ) : (
-              c.awarding_body ?? "—"
+              (c.awarding_body ?? "—")
             )}
             {c.region ? ` · ${c.region}` : ""}
-            {tenderCount != null && tenderCount >= 3 ? ` · ${tenderCount} ofertas` : ""}
+            {tenderCount != null && tenderCount >= 3
+              ? ` · ${tenderCount} ofertas`
+              : ""}
           </div>
-          {dateStr ? <div className="text-xs text-muted-foreground">{dateStr}</div> : null}
+          {dateStr ? (
+            <div className="text-xs text-muted-foreground">{dateStr}</div>
+          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
-          <div className="text-base font-mono font-semibold tabular-nums">{formatAmount(c.amount)}</div>
+          <div className="text-base font-mono font-semibold tabular-nums">
+            {formatAmount(c.amount)}
+          </div>
           {c.source_url ? (
             <a
               href={c.source_url}
@@ -164,26 +185,9 @@ function ContratoCard({ c, activeMinistry }: { c: Contrato; activeMinistry?: str
   )
 }
 
-function contractsHref(
-  type: string,
-  page = 1,
-  ministry?: string | null,
-  level?: string | null,
-  territory?: string | null,
-  year?: number | null
-) {
-  const params = new URLSearchParams()
-  if (type !== "all") params.set("type", type)
-  if (page > 1) params.set("page", String(page))
-  if (ministry) params.set("ministry", ministry)
-  if (level) params.set("level", level)
-  if (territory) params.set("territory", territory)
-  if (year) params.set("year", String(year))
-  const query = params.toString()
-  return query ? `/contratos?${query}` : "/contratos"
-}
-
 export function ContratosClient({
+  organizationLabel,
+  territoryLabels,
   activeType,
   activeMinistry,
   activeLevel,
@@ -194,50 +198,47 @@ export function ContratosClient({
   total,
   totalPages,
 }: ContratosClientProps) {
-  const clearLevelHref = contractsHref(activeType, 1, activeMinistry, null, activeTerritory, activeYear)
-  const clearMinistryHref = contractsHref(activeType, 1, null, activeLevel, activeTerritory, activeYear)
-  const clearTerritoryHref = contractsHref(activeType, 1, activeMinistry, activeLevel, null, activeYear)
-  const clearYearHref = contractsHref(activeType, 1, activeMinistry, activeLevel, activeTerritory, null)
+  const params = useSearchParams()
+  const contractsHref = (
+    type: string,
+    page = 1,
+    ministry?: string | null,
+    level?: string | null,
+    territory?: string | null,
+    year?: number | null,
+  ) =>
+    collectionHref("/contratos", params.toString(), {
+      type,
+      page,
+      ministry,
+      level,
+      territory,
+      year,
+    })
 
   return (
     <div className="space-y-6">
+      <CollectionFilters
+        territoryLabels={territoryLabels}
+        organizationLabel={organizationLabel}
+        path="/contratos"
+      />
       <LinkTabs
         ariaLabel="Tipo de contrato"
         scroll={false}
         tabs={TYPE_TABS.map((tab) => ({
-          href: contractsHref(tab.value, 1, activeMinistry, activeLevel, activeTerritory, activeYear),
+          href: contractsHref(
+            tab.value,
+            1,
+            activeMinistry,
+            activeLevel,
+            activeTerritory,
+            activeYear,
+          ),
           label: tab.label,
           active: activeType === tab.value,
         }))}
       />
-
-      {activeMinistry && (
-        <FilterChip
-          label="Ministerio"
-          value={activeMinistry}
-          clearHref={clearMinistryHref}
-        />
-      )}
-
-      {activeLevel && (
-        <FilterChip
-          label="Nivel"
-          value={LEVEL_LABELS[activeLevel] ?? activeLevel}
-          clearHref={clearLevelHref}
-        />
-      )}
-
-      {activeTerritory && (
-        <FilterChip
-          label="Territorio"
-          value={activeTerritory.replaceAll("_", " ")}
-          clearHref={clearTerritoryHref}
-        />
-      )}
-
-      {activeYear && (
-        <FilterChip label="Año" value={String(activeYear)} clearHref={clearYearHref} />
-      )}
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
@@ -257,7 +258,9 @@ export function ContratosClient({
             }
           />
         ) : (
-          contracts.map((c) => <ContratoCard key={c.id} c={c} activeMinistry={activeMinistry} />)
+          contracts.map((c) => (
+            <ContratoCard key={c.id} c={c} activeMinistry={activeMinistry} />
+          ))
         )}
       </div>
 
@@ -265,7 +268,14 @@ export function ContratosClient({
         page={page}
         totalPages={totalPages}
         hrefForPage={(nextPage) =>
-          contractsHref(activeType, nextPage, activeMinistry, activeLevel, activeTerritory, activeYear)
+          contractsHref(
+            activeType,
+            nextPage,
+            activeMinistry,
+            activeLevel,
+            activeTerritory,
+            activeYear,
+          )
         }
       />
     </div>

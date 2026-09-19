@@ -95,9 +95,13 @@ export function SearchResults({ query, results }: Props) {
                     href={result.url}
                     className="flex min-w-0 flex-col gap-0.5 rounded-[2px] border border-border/60 bg-card px-4 py-3 text-sm transition-colors hover:border-foreground/40 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
                   >
-                    <span className="min-w-0 truncate font-medium">{result.title}</span>
+                    <span className="min-w-0 truncate font-medium">
+                      {result.title}
+                    </span>
                     {secondary ? (
-                      <span className="shrink-0 text-xs text-muted-foreground sm:text-right">{secondary}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground sm:text-right">
+                        {secondary}
+                      </span>
                     ) : null}
                   </ResponsiveLink>
                 </li>
@@ -107,8 +111,8 @@ export function SearchResults({ query, results }: Props) {
         </section>
       ))}
       <p className="text-xs text-muted-foreground">
-        {results.length} resultado{results.length !== 1 ? "s" : ""} para{" "}
-        <span className="font-medium">&ldquo;{query}&rdquo;</span>
+        {results.length} resultado{results.length !== 1 ? "s" : ""} en esta
+        página para <span className="font-medium">&ldquo;{query}&rdquo;</span>
       </p>
     </div>
   )
