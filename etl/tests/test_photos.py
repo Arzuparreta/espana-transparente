@@ -414,3 +414,22 @@ def test_wikidata_recovers_index_before_skipping_first_candidate(monkeypatch):
     source._ensure_index()
     assert source._index == []
     assert len(calls) == 2
+
+
+def test_commons_download_url_requests_bounded_thumbnail():
+    from photos.sources.wikidata import commons_download_url
+
+    fp = "https://commons.wikimedia.org/wiki/Special:FilePath/Retrato.jpg"
+    assert commons_download_url(fp) == fp + "?width=1024"
+    # Already parameterised or not a FilePath URL: left alone.
+    assert commons_download_url(fp + "?width=300") == fp + "?width=300"
+    other = "https://www.senado.es/legis15/senadores/fotos/S1.jpg"
+    assert commons_download_url(other) == other
+
+
+def test_wikidata_sources_import_cleanly():
+    import importlib
+
+    for mod in ("wikidata", "alcaldes_wikidata", "public_officials_wikidata"):
+        m = importlib.import_module(f"photos.sources.{mod}")
+        assert m.USER_AGENT

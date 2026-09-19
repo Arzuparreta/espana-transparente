@@ -15,7 +15,7 @@ from typing import Optional
 
 from ..validate import PhotoValidationError, download_with_final_url, to_webp_square
 from .base import PhotoSource, PoliticianRow, SourceMatch
-from .wikidata import LABEL_ES_EN, SPARQL_PREFIXES, _fetch_sparql, _normalize, _jaccard, _qid_from_iri
+from .wikidata import USER_AGENT, LABEL_ES_EN, SPARQL_PREFIXES, commons_download_url, _fetch_sparql, _normalize, _jaccard, _qid_from_iri
 
 # Q30185 = mayor. P39 = position held; the office is itself an instance of
 # 'mayor' so we can fetch every Spanish mayor in one query.
@@ -87,7 +87,9 @@ class AlcaldesWikidataSource:
               f"(jaccard={best_score:.2f} → {best_entry['qid']} '{best_entry['label']}')")
 
         try:
-            downloaded = download_with_final_url(best_entry["photo"], user_agent=USER_AGENT)
+            downloaded = download_with_final_url(
+                commons_download_url(best_entry["photo"]), user_agent=USER_AGENT
+            )
             normalized = to_webp_square(downloaded.data)
         except PhotoValidationError as exc:
             print(f"[alcaldes_wikidata] {politician.full_name}: download/validate failed: {exc}")

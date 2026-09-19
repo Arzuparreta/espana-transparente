@@ -71,6 +71,19 @@ SELECT DISTINCT ?person ?personLabel ?photo ?congressId WHERE {
 USER_AGENT = "EspanaTransparente/1.0 (transparency portal; rubenpenarubio02@gmail.com)"
 RETRIES = 3
 
+# P18 values are Commons `Special:FilePath` URLs, which serve the original file
+# — some are 10MB+ press portraits that `validate.MAX_BYTES` rightly refuses.
+# `?width=` makes Commons redirect to a thumbnail instead; 1024 is twice the
+# largest variant we build, so nothing is lost by not fetching the original.
+COMMONS_FETCH_WIDTH = 1024
+
+
+def commons_download_url(photo_url: str) -> str:
+    """Ask Commons for a bounded-size rendition of a `Special:FilePath` image."""
+    if "/Special:FilePath/" not in photo_url or "?" in photo_url:
+        return photo_url
+    return f"{photo_url}?width={COMMONS_FETCH_WIDTH}"
+
 
 def _normalize(name: str) -> frozenset[str]:
     nfkd = unicodedata.normalize("NFKD", name.lower())
@@ -216,7 +229,9 @@ class WikidataSource:
             return None
 
         try:
-            downloaded = download_with_final_url(entry["photo"], user_agent=USER_AGENT)
+            downloaded = download_with_final_url(
+                commons_download_url(entry["photo"]), user_agent=USER_AGENT
+            )
             normalized = to_webp_square(downloaded.data)
         except PhotoValidationError as exc:
             print(f"[wikidata] {politician.full_name}: download/validate failed: {exc}")

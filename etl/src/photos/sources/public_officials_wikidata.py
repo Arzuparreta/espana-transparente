@@ -24,6 +24,7 @@ from ..validate import (
     download_with_final_url,
     sha256_hex,
 )
+from .wikidata import commons_download_url
 
 SPARQL_URL = "https://query.wikidata.org/sparql"
 USER_AGENT = "EspanaTransparente/1.0 (transparency portal; rubenpenarubio02@gmail.com)"
@@ -109,7 +110,7 @@ def run(dry_run: bool) -> int:
             continue
 
         try:
-            downloaded = download_with_final_url(photo_url, user_agent=USER_AGENT)
+            downloaded = download_with_final_url(commons_download_url(photo_url), user_agent=USER_AGENT)
             variants = build_responsive_variants(downloaded.data)
         except PhotoValidationError as exc:
             print(f"[wikidata] {full_name}: download/validate failed: {exc}")
