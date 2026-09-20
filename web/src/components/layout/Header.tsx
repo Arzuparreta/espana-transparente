@@ -17,7 +17,7 @@ const triggerActive =
 
 export function Header() {
   const pathname = usePathname()
-  const { user, loading: authLoading, openModal, signOut } = useAuth()
+  const { user, openModal, signOut } = useAuth()
 
   function isItemActive(href: string) {
     return pathname === href || (href !== "/" && pathname?.startsWith(href))
@@ -83,34 +83,38 @@ export function Header() {
           <div className="flex">
             <SearchTrigger variant="icon" />
           </div>
-          {!authLoading &&
-            (user ? (
-              <div className="hidden xl:flex items-center gap-2">
-                <ResponsiveLink
-                  href="/perfil"
-                  prefetch
-                  aria-label="Abrir perfil"
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-secondary border border-border font-mono text-[11px] font-semibold text-primary select-none"
-                >
-                  {(user.email ?? "?")[0].toUpperCase()}
-                </ResponsiveLink>
-                <button
-                  type="button"
-                  onClick={() => signOut()}
-                  className="text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Salir
-                </button>
-              </div>
-            ) : (
+          {/* Sin puerta por `loading`: el servidor no conoce la sesión (vive en
+              el navegador), así que la cabecera se sirve con el botón anónimo y
+              solo cambia para quien tiene sesión. Esperar a que resuelva hacía
+              que el primer render del cliente añadiera ese botón en mitad de la
+              hidratación y React rehiciera la página. */}
+          {user ? (
+            <div className="hidden xl:flex items-center gap-2">
+              <ResponsiveLink
+                href="/perfil"
+                prefetch
+                aria-label="Abrir perfil"
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-secondary border border-border font-mono text-[11px] font-semibold text-primary select-none"
+              >
+                {(user.email ?? "?")[0].toUpperCase()}
+              </ResponsiveLink>
               <button
                 type="button"
-                onClick={() => openModal("login")}
-                className="hidden xl:inline-flex h-9 items-center rounded-[2px] border border-border bg-transparent px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                onClick={() => signOut()}
+                className="text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                Iniciar sesión
+                Salir
               </button>
-            ))}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => openModal("login")}
+              className="hidden xl:inline-flex h-9 items-center rounded-[2px] border border-border bg-transparent px-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              Iniciar sesión
+            </button>
+          )}
           <MobileNavDropdown />
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  startTransition,
   useCallback,
   useContext,
   useEffect,
@@ -34,17 +35,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [modalMode, setModalMode] = useState<AuthModalMode>("login")
 
   useEffect(() => {
+    // La sesión se resuelve en el navegador, así que llega siempre después del
+    // HTML servido. Como transición queda por debajo de la hidratación en
+    // prioridad y no puede colarse en mitad de ella, que es lo que hacía a
+    // React descartar el árbol servido y rehacerlo (error recuperable #418).
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+      startTransition(() => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
     })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+      startTransition(() => {
+        setSession(session)
+        setUser(session?.user ?? null)
+      })
     })
 
     return () => subscription.unsubscribe()
