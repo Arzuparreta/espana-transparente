@@ -51,4 +51,12 @@ Reversión: el frontend anterior puede seguir usando su RPC de búsqueda. La mig
 - Eurostat real: 70 observaciones anuales validadas. Dos ingestas en base temporal mantienen 70 filas; fallo de descarga simulado conserva el snapshot y registra estado fallido.
 - Chromium local: móvil de 390 px y escritorio de 1440 px, navegación y mapa sin desbordamiento de página. La Cadena probada con observaciones Eurostat servidas por un adaptador temporal, cinco gráficos, tablas, descarga SVG y menú móvil. No se añadieron fixtures al producto.
 - Regreso desde una serie: conserva `desde/hasta` y posición de desplazamiento. Recorrido contractual con lecturas reales: listado municipal → contrato → adjudicatario conserva el regreso municipal; contratos de la entidad se consultan por UUID.
-- No se han aplicado cambios a la base pública, hecho push ni desplegado. La aceptación humana y la verificación del corpus completo en producción permanecen pendientes.
+
+## Verificación en producción
+
+- Publicado `13ed622`; migración inicial aplicada y 70 observaciones fiscales cargadas (2016–2025). Los 38 controles de `/api/data-health` están sanos.
+- Chromium a 390 y 1440 px: cinco gráficos, tablas de siete años para 2018–2024, descarga SVG y directorio móvil. Recorrido municipal → contrato → empresa → listado filtrado conserva el municipio.
+- Una primera carga móvil mostró el error intermitente de hidratación React #418; las comprobaciones posteriores pasaron sin errores. No se da por resuelta esa incidencia previa.
+- El corpus completo reveló que las búsquedas amplias leían más de 1 GB de documentos. `20260919010000_exploration_search_indexed.sql` añade una proyección sin cuerpos ni metadatos extensos, sincronizada mediante trigger y borrado en cascada. La búsqueda usa texto y alias por separado y carga los detalles después de paginar. Conserva recuento completo, filtros explícitos y prioridad por título, peso e intención; no trunca los candidatos.
+- La RPC con rol público devuelve las 229.916 coincidencias de «Madrid» en 5,6 s y las 158 de «deuda» en 26 ms en la medición de producción. Las pruebas transaccionales de recuento, filtros, alias, orden, actualización y borrado pasan. Estos tiempos son mediciones puntuales, no un SLA.
+- La aceptación con una persona ajena al desarrollo sigue pendiente.
