@@ -119,10 +119,12 @@ function scrollToElementStart(target: HTMLElement, behavior: ScrollBehavior = "a
 }
 
 function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false
-    return !window.matchMedia("(min-width: 1024px)").matches
-  })
+  // Starts false on both sides: reading the media query while rendering made
+  // the first client render disagree with the server HTML on narrow screens
+  // (the mobile panel and its aria wiring), which React reports as a
+  // hydration failure and repairs by re-rendering the page. The effect below
+  // applies the real value right after mounting.
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 1024px)")

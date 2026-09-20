@@ -63,7 +63,11 @@ El cursor de cada lote se calcula ahora tomando la última fila por orden de `id
 de un máximo sobre su representación textual: el avance deja de depender de la
 intercalación de la base de datos.
 
-## Aviso de hidratación en producción (abierto, sin impacto funcional)
+## Aviso de hidratación en producción (cerrado el 20 de septiembre)
+
+> Causa y corrección en [`2026-09-20-hidratacion.md`](2026-09-20-hidratacion.md):
+> era la frontera `loading.tsx` raíz solapándose con la de cada ruta. El resto de
+> esta sección queda como lo comprobado aquel día.
 
 React registra de forma intermitente `error #418` («el HTML del servidor no coincide con
 el cliente») en aproximadamente el 12-25 % de las cargas, en cualquier página. Es un error
@@ -99,6 +103,10 @@ se ejecuta sin un solo error de página.
 Queda anotado como pendiente de seguimiento: si se decide cerrarlo, el camino es revisar
 las fronteras `loading.tsx` (56 rutas más una global) frente al comportamiento de
 transmisión de React 19, no seguir tocando la aplicación a ciegas.
+
+*(Seguimiento del 20 de septiembre: era ese camino. La frontera global y la de cada ruta
+se solapaban sobre la misma región del documento; la lectura de arriba acertaba el terreno
+pero no el momento — el error llega después de los intercambios de frontera, no durante.)*
 
 ## `/divergencias` devolvía "datos no disponibles"
 

@@ -80,6 +80,17 @@ for (const file of pageFiles) {
   }
 }
 
+// A root loading.tsx wraps the whole layout in a Suspense boundary that
+// overlaps the one each route declares. On a cold load the outer swap lands on
+// top of hydration and React regenerates the page body (recoverable error
+// #418, ~15% of first loads). The home page keeps its own boundary under
+// src/app/(home)/.
+if (existsSync(join(root, "app", "loading.tsx"))) {
+  violations.push(
+    "src/app/loading.tsx: la frontera de carga raíz rompe la hidratación; cada ruta declara la suya (la portada, en src/app/(home)/loading.tsx).",
+  )
+}
+
 if (violations.length > 0) {
   console.error("UI audit failed:\n")
   for (const violation of violations) {
