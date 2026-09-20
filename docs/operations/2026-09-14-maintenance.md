@@ -63,11 +63,13 @@ El cursor de cada lote se calcula ahora tomando la última fila por orden de `id
 de un máximo sobre su representación textual: el avance deja de depender de la
 intercalación de la base de datos.
 
-## Aviso de hidratación en producción (cerrado el 20 de septiembre)
+## Aviso de hidratación en producción (sigue abierto, sin impacto funcional)
 
-> Causa y corrección en [`2026-09-20-hidratacion.md`](2026-09-20-hidratacion.md):
-> era la frontera `loading.tsx` raíz solapándose con la de cada ruta. El resto de
-> esta sección queda como lo comprobado aquel día.
+> Seguimiento del 20 de septiembre en
+> [`2026-09-20-hidratacion.md`](2026-09-20-hidratacion.md): se corrigieron tres
+> desajustes reales de la aplicación, pero el aviso sigue apareciendo con el
+> árbol servido y el hidratado idénticos, lo que apunta a React y no al marcado
+> del sitio. El resto de esta sección queda como lo comprobado aquel día.
 
 React registra de forma intermitente `error #418` («el HTML del servidor no coincide con
 el cliente») en aproximadamente el 12-25 % de las cargas, en cualquier página. Es un error
@@ -104,9 +106,10 @@ Queda anotado como pendiente de seguimiento: si se decide cerrarlo, el camino es
 las fronteras `loading.tsx` (56 rutas más una global) frente al comportamiento de
 transmisión de React 19, no seguir tocando la aplicación a ciegas.
 
-*(Seguimiento del 20 de septiembre: era ese camino. La frontera global y la de cada ruta
-se solapaban sobre la misma región del documento; la lectura de arriba acertaba el terreno
-pero no el momento — el error llega después de los intercambios de frontera, no durante.)*
+*(Seguimiento del 20 de septiembre: ese camino dio fruto en local —la frontera global y la
+de cada ruta se solapaban sobre la misma región del documento— y se corrigió, junto con
+otros dos desajustes reales, pero en producción el aviso continúa. El error llega después
+de los intercambios de frontera, no durante, y sobre un árbol idéntico al servido.)*
 
 ## `/divergencias` devolvía "datos no disponibles"
 
