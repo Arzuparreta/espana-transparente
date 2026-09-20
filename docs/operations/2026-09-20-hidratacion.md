@@ -88,16 +88,19 @@ equipo de React): la hidratación falla sobre un árbol idéntico cuando un chun
 Flight se resuelve dentro de la ventana de cesión de React. Es lo que observamos.
 No hay corrección publicada; el proyecto va con React 19.3.0 y Next 15.5.25.
 
-Opciones, si se decide seguir:
+**Decisión (20 de septiembre): se deja anotado.** Impacto comprobado: ninguno —el
+error es recuperable y la página final es correcta—, así que no se paga por él ni
+el esqueleto de carga ni el TTFB. Queda registrado en `NEXT.md` (Open Questions).
 
-1. **Dejarlo anotado.** Impacto comprobado: ninguno. El error es recuperable y la
-   página final es correcta.
-2. **Renunciar a la emisión por partes** (quitar todas las `loading.tsx` y servir
-   metadata bloqueante) para que no queden chunks resolviéndose tarde. Sin medir
-   todavía; cuesta el esqueleto de carga en todas las rutas y mueve el TTFB al
-   tiempo de render completo.
-3. **Esperar a React.** Revisar la incidencia de arriba al actualizar React o
-   Next y repetir el barrido.
+Las dos alternativas se descartan por ahora, no por imposibles:
+
+- **Renunciar a la emisión por partes** (quitar todas las `loading.tsx` y servir
+  metadata bloqueante) para que no queden chunks resolviéndose tarde. Sin medir;
+  cuesta el esqueleto de carga en todas las rutas y mueve el TTFB al tiempo de
+  render completo. Retrasar el JavaScript 1,5 s solo bajó a 1/12, así que
+  tampoco hay garantía de que lo elimine.
+- **Esperar a React.** Revisar la incidencia de arriba al actualizar React o Next
+  y repetir el barrido descrito abajo antes de dar nada por corregido.
 
 ## Cómo repetir la medición
 

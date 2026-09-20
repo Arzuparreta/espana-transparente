@@ -575,6 +575,7 @@ tab (conditional on data) + `EntityTrail` with `EntityTrailSkeleton` fallback. D
 2. **Supabase Free storage:** ✅ Audited during Phase B. OCR stores extracted text (not PDFs). Within limits.
 3. **Economic explanations authorship:** Reviewed by GPT-5.5. `content:audit` checks indicator explanation coverage and legal-risk terms; D5 replaced neutrality with explicit thesis + source-backed defensibility.
 4. **Phase C performance:** ✅ Resolved — `v_entity_summary` materialized view implemented. Cold starts handled with loading skeletons.
+5. **Aviso de hidratación React #418:** 🟡 Anotado, no cerrado (decisión del 20-09-2026). Se corrigieron tres desajustes reales del marcado; el aviso residual aparece con el árbol servido y el hidratado idénticos y encaja con [react/react#37584](https://github.com/react/react/issues/37584), sin corrección publicada. Impacto comprobado: ninguno. Medición y opciones descartadas en [`docs/operations/2026-09-20-hidratacion.md`](docs/operations/2026-09-20-hidratacion.md); repetir el barrido al actualizar React o Next.
 
 ---
 
