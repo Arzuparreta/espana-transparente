@@ -349,7 +349,7 @@ Three-thread IA validated. See table above.
 
 ### ✅ DONE: Merge dev → main (2026-06-01)
 
-Fast-forward merge to `main` pushed; Vercel production deploy triggered. Supabase migrations applied (`20260701000000`, `20260703000000`). Entity summary refreshed; **28 CNMC lobbying links reviewed**.
+Fast-forward merge to `main` pushed; production deploy triggered. Supabase migrations applied (`20260701000000`, `20260703000000`). Entity summary refreshed; **28 CNMC lobbying links reviewed**.
 
 ### ✅ DONE: Judicial entity graph connection (Steps 1-4)
 
