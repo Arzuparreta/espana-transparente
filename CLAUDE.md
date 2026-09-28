@@ -17,7 +17,7 @@ cd web
 npm install
 npm run dev          # local dev server
 npm run build        # production build
-npm run lint         # next lint
+npm run lint         # eslint (flat config in eslint.config.mjs)
 npm run ui:audit     # enforces layout primitives & responsive rules
 npm run content:audit # enforces editorial rules (see "Hard rules" below)
 ```

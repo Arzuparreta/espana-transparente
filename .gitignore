@@ -28,6 +28,5 @@ supabase/.temp/
 Thumbs.db
 .gstack/
 ~/
-.vercel
 .actions-runner/
 .claude/scheduled_tasks.lock

@@ -24,7 +24,7 @@ jobs:
       - uses: ./.github/actions/setup-etl
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version-file: web/.node-version
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
