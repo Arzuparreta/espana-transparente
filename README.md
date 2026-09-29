@@ -60,12 +60,12 @@ cd web
 npm install
 npm run dev            # http://localhost:3000
 npm run build          # build de producción
-npm run lint           # next lint
+npm run lint           # eslint (flat config)
 npm run ui:audit       # primitives de layout y reglas responsive
 npm run content:audit  # reglas editoriales (ver AGENTS.md)
 ```
 
-Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (formato `sb_publishable_…`; los JWT legacy no funcionan).
+Variables requeridas: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (producción sirve la clave publishable `sb_publishable_…`; la instancia self-hosted también acepta la anon JWT legacy, que es la que usa CI).
 
 ### ETL
 

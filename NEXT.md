@@ -349,7 +349,7 @@ Three-thread IA validated. See table above.
 
 ### ✅ DONE: Merge dev → main (2026-06-01)
 
-Fast-forward merge to `main` pushed; Vercel production deploy triggered. Supabase migrations applied (`20260701000000`, `20260703000000`). Entity summary refreshed; **28 CNMC lobbying links reviewed**.
+Fast-forward merge to `main` pushed; production deploy triggered. Supabase migrations applied (`20260701000000`, `20260703000000`). Entity summary refreshed; **28 CNMC lobbying links reviewed**.
 
 ### ✅ DONE: Judicial entity graph connection (Steps 1-4)
 
@@ -376,7 +376,7 @@ IPC general-index series ("IPC", 20y history via `nult=240`), so it passes the s
 ("deepens an existing thread").
 
 - `web/src/lib/purchasing-power.ts` — pure CPI-ratio adjustment helper + `web/src/lib/purchasing-power.test.ts` (6 vitest cases).
-- `web/src/components/indicators/PurchasingPowerCalculator.tsx` — client tool: "¿Cuánto vale hoy el dinero de antes?" Importe + año → equivalente hoy, inflación acumulada, inflación media anual, poder de compra perdido. 100% client-side (Vercel Hobby-safe). Geist Mono on all numbers, signal color on the hero figure, factual labels only.
+- `web/src/components/indicators/PurchasingPowerCalculator.tsx` — client tool: "¿Cuánto vale hoy el dinero de antes?" Importe + año → equivalente hoy, inflación acumulada, inflación media anual, poder de compra perdido. 100% client-side (no server work per request). Geist Mono on all numbers, signal color on the hero figure, factual labels only.
 - `getIpcIndexSeries()` in `lib/data/conexiones.ts` — full IPC index series (the 120-pt `getIndicatorPoints` cap is too short for multi-decade spans).
 - `ThreadLanding` gained an optional `feature` slot (above the source index); calculator surfaces on `/economia` and embedded on `/indicadores/IPC`.
 - All web CI checks pass (lint, ui:audit, content:audit, build) + vitest.

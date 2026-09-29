@@ -170,7 +170,7 @@ iniciativa, votación, indicador, programa presupuestario, grupo de interés y s
 responden igualmente sin incidencias. El único ruido que queda es el aviso de hidratación
 descrito arriba, que cambia de ruta en cada pasada porque depende del momento de carga.
 
-Además: imagen Open Graph dinámica (1200×630 PNG tras migrar de `@vercel/og` a `next/og`),
+Además: imagen Open Graph dinámica (1200×630 PNG generada con `next/og`),
 `sitemap.xml`, `robots.txt`, manifiesto, sugerencias de búsqueda y las cuatro redirecciones
 permanentes (`/poder`, `/integridad`, `/ccaa`, `/municipios`) responden correctamente.
 

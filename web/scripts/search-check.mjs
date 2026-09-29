@@ -304,7 +304,6 @@ async function main() {
     limit_count: 12,
   })
   const fiscalTop = fiscal.rows.slice(0, 5)
-  const contractCount = fiscalTop.filter((r) => r.entity_type === "contract").length
   const personCount = fiscalTop.filter((r) => PERSON_TYPES.has(r.entity_type)).length
   const fiscalCount = fiscalTop.filter((r) =>
     ["contract", "subsidy", "budget", "budget_program"].includes(r.entity_type)
