@@ -208,3 +208,52 @@ class _FakeVotesConn:
 
     def close(self):
         return None
+
+
+def _fake_status(published: set[int], blocked: set[int] = frozenset()):
+    def status(url, delay=0):
+        n = int(url.rsplit("ses_", 1)[1].split(".")[0])
+        if n in blocked:
+            return 403
+        return 200 if n in published else 404
+    return status
+
+
+def test_discovery_probes_past_a_stale_catalog(monkeypatch):
+    """The open-data index stopped at ses_60 while ses_83 was published."""
+    from src.senado import votaciones as mod
+
+    catalog = "".join(f'<a href="/legis15/votaciones/ses_{n}.xml">' for n in range(1, 61))
+    monkeypatch.setattr(mod, "curl_text", lambda url, delay=0: catalog)
+    monkeypatch.setattr(mod, "curl_status", _fake_status(set(range(1, 84))))
+
+    urls = mod.discover_session_vote_urls()
+
+    assert len(urls) == 83
+    assert urls[-1].endswith("/ses_83.xml")
+
+
+def test_discovery_raises_when_probe_is_blocked(monkeypatch):
+    """A 403 is not a missing session; it used to end discovery silently."""
+    import pytest
+
+    from src.senado import votaciones as mod
+
+    monkeypatch.setattr(mod, "curl_text", lambda url, delay=0: '<a href="/legis15/votaciones/ses_60.xml">')
+    monkeypatch.setattr(mod, "curl_status", _fake_status(set(range(1, 84)), blocked={61}))
+
+    with pytest.raises(RuntimeError, match="blocked"):
+        mod.discover_session_vote_urls()
+
+
+def test_discovery_tolerates_a_single_gap(monkeypatch):
+    from src.senado import votaciones as mod
+
+    monkeypatch.setattr(mod, "curl_text", lambda url, delay=0: "")
+    published = set(range(1, 84)) - {40}
+    monkeypatch.setattr(mod, "curl_status", _fake_status(published))
+
+    urls = mod.discover_session_vote_urls()
+
+    assert len(urls) == 82
+    assert urls[-1].endswith("/ses_83.xml")
