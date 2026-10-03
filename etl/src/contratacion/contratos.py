@@ -245,13 +245,18 @@ def download_feed_page(url: str) -> bytes:
     with tempfile.NamedTemporaryFile(suffix=".atom", delete=False) as tmp:
         tmp_path = tmp.name
     try:
+        # Pages run ~15 MB and PCSP sometimes serves them at ~120 KB/s, so a flat
+        # 120s cap killed healthy-but-slow transfers five times in a row
+        # (2026-10-02). Abort on a stalled transfer instead, and keep a generous
+        # ceiling only as a backstop.
         result = subprocess.run(
             ["curl", "-sS", "-L", "--fail-with-body",
-             "--connect-timeout", "20", "--max-time", "120",
-             "--retry", "4", "--retry-delay", "5", "--retry-all-errors",
+             "--connect-timeout", "20", "--max-time", "600",
+             "--speed-limit", "20000", "--speed-time", "60",
+             "--retry", "4", "--retry-delay", "10", "--retry-all-errors",
              "-H", "User-Agent: Mozilla/5.0 (compatible; AccionHumana/1.0)",
              url, "-o", tmp_path],
-            capture_output=True, timeout=650,
+            capture_output=True, timeout=3200,
         )
         if result.returncode != 0:
             detail = result.stderr.decode(errors="replace").strip()

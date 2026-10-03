@@ -2,8 +2,9 @@
 
 The stable source is the Senate static XML export under
 /legis15/votaciones/ses_N.xml. Some catalog endpoints intermittently return
-maintenance HTML, so discovery accepts catalog links when available and falls
-back to probing the static session path at Senado request-delay speed.
+maintenance HTML, and all of them lag the static files, so discovery takes the
+catalog links as a starting point and then probes the static session path past
+the last one, at Senado request-delay speed, until sessions stop existing.
 
 Usage:
     PYTHONPATH=src python -m src.senado.votaciones --dry-run --limit 1
@@ -33,7 +34,9 @@ OPEN_DATA_CATALOG_URL = (
     "sesionesplenariascd/votacionescd/index.html"
 )
 REQUEST_DELAY = 1.5
-DEFAULT_MAX_SESSION = 120
+# Session numbers are contiguous, so the first missing number past the last
+# published one marks the end. Two in a row guards against a one-off hiccup.
+MISSING_SESSIONS_TO_STOP = 2
 
 MONTHS_ES = {
     "enero": 1,
@@ -150,13 +153,15 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
 
 
 def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+    # GET, not HEAD: from the VPS runner Akamai answers HEAD on /legisNN/ with
+    # 403 even when GET is served, and a 403 used to read as "no such session".
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sIL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
+        ["curl", "-sL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=60,
     )
     try:
         return int(result.stdout.strip()[-3:])
@@ -248,23 +253,44 @@ def parse_open_data_catalog_links(html: str, legis: int = 15) -> list[str]:
 def discover_static_session_xml_urls(
     legis: int = 15,
     from_session: int = 1,
-    max_session: int = DEFAULT_MAX_SESSION,
+    max_session: int | None = None,
     limit: int | None = None,
 ) -> list[str]:
+    """Probe /legisNN/votaciones/ses_N.xml upward until sessions stop existing.
+
+    Only 200 and 404 are answers. Anything else (403 from Akamai, a timeout)
+    means we cannot see the source, and treating it as "no more sessions" is
+    how Senate votes sat frozen for three months under a green run.
+    """
     urls: list[str] = []
-    for session_number in range(from_session, max_session + 1):
+    missing = 0
+    session_number = from_session
+    while max_session is None or session_number <= max_session:
         url = f"{BASE}/legis{legis}/votaciones/ses_{session_number}.xml"
-        if curl_status(url) == 200:
+        status = curl_status(url)
+        if status == 200:
             urls.append(url)
+            missing = 0
             if limit and len(urls) >= limit:
                 break
+        elif status == 404:
+            missing += 1
+            if missing >= MISSING_SESSIONS_TO_STOP:
+                break
+        else:
+            raise RuntimeError(
+                f"senado.es answered {status or 'nothing'} for {url} while probing "
+                "for new sessions — the source is blocked, so newer sessions "
+                "cannot be ruled out; refusing to report success"
+            )
+        session_number += 1
     return urls
 
 
 def discover_session_vote_urls(
     legis: int = 15,
     from_session: int = 1,
-    max_session: int = DEFAULT_MAX_SESSION,
+    max_session: int | None = None,
     limit: int | None = None,
 ) -> list[str]:
     html = curl_text(OPEN_DATA_CATALOG_URL, delay=0)
@@ -278,25 +304,33 @@ def discover_session_vote_urls(
         except ET.ParseError:
             urls = []
 
+    # The catalogs lag the static files by months (the open-data index stopped
+    # at ses_60 while ses_83 was already published), so they only tell us where
+    # to start probing, never where to stop.
+    catalog_numbers = [_session_number(u) for u in urls]
+    probe_from = max([from_session, *[n + 1 for n in catalog_numbers if n is not None]])
     static_urls = discover_static_session_xml_urls(
         legis=legis,
-        from_session=from_session,
+        from_session=probe_from,
         max_session=max_session,
-        limit=limit,
     )
     urls = list(dict.fromkeys(urls + static_urls))
 
     unique: dict[int, str] = {}
     for url in urls:
-        match = re.search(r"/ses_(\d+)\.xml$", url)
-        if not match:
+        session_number = _session_number(url)
+        if session_number is None:
             continue
-        session_number = int(match.group(1))
-        if from_session <= session_number <= max_session:
+        if session_number >= from_session and (max_session is None or session_number <= max_session):
             unique[session_number] = url
 
     ordered = [unique[k] for k in sorted(unique)]
     return ordered[:limit] if limit else ordered
+
+
+def _session_number(url: str) -> int | None:
+    match = re.search(r"/ses_(\d+)\.xml$", url)
+    return int(match.group(1)) if match else None
 
 
 def parse_initiative_vote_index(xml_text: str) -> list[tuple[str, str, str | None]]:
@@ -636,7 +670,7 @@ def run(
     resume: bool = False,
     limit: int | None = None,
     from_session: int = 1,
-    max_session: int = DEFAULT_MAX_SESSION,
+    max_session: int | None = None,
 ) -> None:
     urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
     print(f"Discovered {len(urls)} Senate session XML files")
@@ -751,7 +785,7 @@ def main() -> None:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--from-session", type=int, default=1)
-    parser.add_argument("--max-session", type=int, default=DEFAULT_MAX_SESSION)
+    parser.add_argument("--max-session", type=int, default=None)
     args = parser.parse_args()
     run(
         dry_run=args.dry_run,
