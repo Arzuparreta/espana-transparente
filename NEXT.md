@@ -2,7 +2,7 @@
 
 Trabajo aprobado: convertir los datos en respuestas ciudadanas, conservando las cinco áreas y La Cadena. [Criterio y auditoría de páginas](docs/designs/2026-10-11-criterio-ciudadano.md) · [Plan de cinco fases, dependencias y aceptación](docs/designs/2026-10-11-plan-ciudadano.md).
 
-Fase activa: **1 — primera respuesta con datos existentes**. Primer slice: entrada anual de `/dinero` con ingresos, gasto, saldo e intereses comparables, fuente/perímetro/periodo visibles y siguientes preguntas; implementación en esta rama. Después: destinos (COFOG/BDNS), ejecución y territorio, personas/decisiones/economía, fondos y resultados de servicios. La aceptación humana sigue pendiente y se registra aparte de los checks técnicos.
+Fase activa: **1 — primera respuesta con datos existentes**. Primer slice implementado: entrada anual de `/dinero` con ingresos, gasto, saldo e intereses comparables, fuente/perímetro/periodo visibles y siguientes preguntas. Evidencia técnica en el plan. Próximo slice: auditar titulares, periodos y relaciones en las páginas de operaciones y trazabilidad; después destinos (COFOG/BDNS), ejecución y territorio, personas/decisiones/economía, fondos y resultados de servicios. La aceptación humana sigue pendiente y se registra aparte de los checks técnicos.
 
 La [arquitectura del 19 de septiembre](docs/designs/2026-09-19-exploracion-y-cadena.md) sigue como base. El documento siguiente se conserva como histórico; los próximos trabajos se rigen por el plan del 11 de octubre.
 

@@ -15,6 +15,10 @@ interface ThreadLandingProps {
   feature?: ReactNode
   /** Local navigation between consolidated views inside the thread. */
   navigation?: ReactNode
+  /** First answer, before the source directory. */
+  introduction?: ReactNode
+  /** Keep coverage limits visible in question-led directories. */
+  fullDescriptions?: boolean
   children?: ReactNode
 }
 
@@ -51,6 +55,8 @@ export function ThreadLanding({
   anchors,
   feature,
   navigation,
+  introduction,
+  fullDescriptions,
   children,
 }: ThreadLandingProps) {
   const visibleAnchors = (anchors ?? []).filter(Boolean)
@@ -89,6 +95,8 @@ export function ThreadLanding({
 
       {navigation}
 
+      {introduction}
+
       <nav
           aria-label="Datos disponibles"
           className="space-y-3"
@@ -120,6 +128,7 @@ export function ThreadLanding({
                           href={source.href}
                           label={source.label}
                           description={source.description}
+                          fullDescription={fullDescriptions}
                           count={facts?.count ?? null}
                           countUnit={source.countUnit}
                           latestDate={facts?.latestDate ?? null}

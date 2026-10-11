@@ -83,9 +83,19 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 
 | Entrega | Estado |
 |---|---|
-| Criterio, auditoría y plan de cinco fases | Documentado; primera publicación en esta rama |
-| Fase 1, entrada anual `/dinero` | En implementación |
+| Criterio, auditoría y plan de cinco fases | Commit y push previos a implementar el primer slice |
+| Fase 1, entrada anual `/dinero` | Implementado y validado localmente; evidencia abajo |
 | Resto de slices y fases 2–5 | Pendientes; alcance con muestras oficiales |
 | Sesiones de comprensión | Pendientes; requieren participantes reales |
 
-`NEXT.md` mantiene la fase activa. El cierre del primer slice añadirá evidencia técnica y alcance servido; no marcará toda la fase 1 como terminada.
+`NEXT.md` mantiene la fase activa. Este slice no cierra toda la fase 1.
+
+### Evidencia del primer slice (11 de octubre)
+
+- `npm test`: 149 pruebas en 23 archivos. Incluye pruebas de la respuesta renderizada, estados fiscales y URL/redirect, además de los cálculos de selección y razón anual.
+- `npm run lint`, `npm run ui:audit`, `npm run content:audit`, `npm run build` y `git diff --check`: correctos. Build de producción de Next.js; checks locales con Node 26, versión de CI fijada por `web/.node-version` (22.23.2).
+- Navegador local con datos reales: revisión de escritorio y móvil de 390 × 844; fuente/ámbito visibles y límites sin recorte; sin desbordamiento horizontal en la entrada. Cambio de año a 2016 enviado mediante Tab/Enter, URL `?year=2016`, cifras y enlaces a cuentas del mismo ejercicio verificados.
+- Sin migraciones ni ingestas nuevas. El resumen reutiliza años completos y reconciliados de `getFiscalAccounts`; conserva las colecciones y el redirect antiguo de trazabilidad. La distinción presupuestaria se presenta sin insinuar que `/presupuestos` esté filtrado por el año fiscal seleccionado.
+- Integración: consultar los checks del último commit y el merge en la PR de `codex/criterio-ciudadano-dinero`. El despliegue de `main` tiene su propia comprobación de revisión en `/api/health`; un build local no acredita publicación.
+
+Pendiente: pruebas de comprensión con participantes reales; desgloses por finalidad, ejecución/pagos y financiación territorial; auditoría de agregados y cruces de las páginas profundas. La revisión de navegador cubre este recorrido de dinero, no certifica todas las áreas del portal.
