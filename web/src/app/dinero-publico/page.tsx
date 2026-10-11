@@ -5,9 +5,9 @@ import { MoneyTraceabilityView } from "@/components/views/MoneyTraceabilityView"
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: "Trazabilidad del gasto",
+  title: "¿Qué operaciones se asocian a cada ministerio?",
   description:
-    "Recorrido del presupuesto hasta los contratos y subvenciones publicados por ministerio.",
+    "Presupuesto anual y operaciones históricas asociadas por ministerio; alcance y evidencia de cada cruce.",
   alternates: { canonical: "/dinero-publico" },
 }
 

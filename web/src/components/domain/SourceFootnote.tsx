@@ -28,7 +28,7 @@ function Field({
       <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80">
         {label}
       </span>
-      <span className="min-w-0 truncate text-foreground">{children}</span>
+      <span className="min-w-0 break-words text-foreground">{children}</span>
     </div>
   )
 }

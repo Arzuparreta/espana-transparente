@@ -5,7 +5,7 @@ import {
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
-import { StatGrid } from "@/components/domain/StatGrid"
+import { OperationContext } from "@/components/domain/OperationContext"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
 import {
   PAGE_SIZE,
@@ -15,14 +15,13 @@ import {
   getMoneyDatasetSummary,
   parsePage,
 } from "@/lib/data"
-import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
 export const metadata = {
   title: "Contratos públicos",
   description:
-    "Adjudicaciones del sector público español: importe, contratista, tipo y administración responsable.",
+    "Licitaciones y adjudicaciones publicadas: presupuesto sin IVA, estado del expediente, órgano contratante y adjudicatario.",
 }
 
 const VALID_LEVELS = ["state", "autonomic", "municipal"] as const
@@ -62,7 +61,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
   const activeProvince = (await searchParams)?.province?.trim() || null
   const activeMunicipio = (await searchParams)?.municipio?.trim() || null
   const activeFlow = (await searchParams)?.flow === "to" ? "to" : "by"
-  const requestedYear = Number.parseInt((await searchParams)?.year ?? "", 10)
+  const requestedYear = Number((await searchParams)?.year ?? "")
   const activeYear =
     Number.isInteger(requestedYear) &&
     requestedYear >= 1900 &&
@@ -99,7 +98,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     territoryLabels,
   ] = await Promise.all([
     hasFilter
-      ? Promise.resolve({ contracts: [], total: 0, statsRows: [] })
+      ? Promise.resolve({ contracts: [], total: 0 })
       : getContractPage(page, activeType),
     hasFilter
       ? getContractPageFiltered(
@@ -126,52 +125,29 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     ),
   ])
 
-  const { contracts, total, statsRows } =
+  const { contracts, total } =
     hasFilter && filteredData
       ? {
           contracts: filteredData.contracts,
           total: filteredData.total,
-          statsRows: baseData.statsRows,
         }
       : baseData
-
-  const topAmount = statsRows[0]?.amount ?? null
-  const topSum = statsRows.reduce((sum, c) => sum + (c.amount ?? 0), 0)
 
   return (
     <div className="ui-page">
       <PageHeader
-        title="Contratos públicos"
-        description="Cada vez que el Estado compra algo —desde un bolígrafo hasta una autopista— tiene que publicarlo. Aquí ves quién compra, a qué empresa, y por cuánto. Ordenados por importe sin IVA."
+        title="¿Qué se compra y a quién se adjudica?"
+        description="Consulta las licitaciones registradas en la PCSP, su órgano contratante y su estado. El presupuesto de licitación y el importe adjudicado son medidas distintas; ninguno acredita un pago."
       />
 
-      {!hasFilter && activeType === "all" && statsRows.length > 0 ? (
-        <StatGrid
-          items={[
-            {
-              label: "Licitaciones publicadas",
-              value: total.toLocaleString("es-ES"),
-            },
-            {
-              label: "Mayor importe de licitación",
-              value: formatEuroCompact(topAmount),
-              hint: "El contrato de mayor importe publicado en la PCSP.",
-            },
-            {
-              label: `Suma · ${statsRows.length.toLocaleString("es-ES")} mayores`,
-              value: formatEuroCompact(topSum),
-              hint: `Importe agregado de los ${statsRows.length.toLocaleString("es-ES")} contratos más grandes.`,
-            },
-          ]}
-        />
-      ) : null}
+      <OperationContext kind="contratos" total={total} year={activeYear} />
 
       <SourceFootnote
         sourceLabel="PCSP · Ministerio de Hacienda"
         sourceHref="https://contrataciondelestado.es"
         lastChecked={lastChecked}
         latestRecordDate={summary.total.latest_record_date}
-        coverageLabel={`${total.toLocaleString("es-ES")} licitaciones publicadas`}
+        coverageLabel={`Histórico del portal · ${summary.total.total_rows.toLocaleString("es-ES")} licitaciones`}
       />
 
       <ContratosClient

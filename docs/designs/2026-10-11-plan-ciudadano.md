@@ -99,3 +99,21 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 - Integración: consultar los checks del último commit y el merge en la PR de `codex/criterio-ciudadano-dinero`. El despliegue de `main` tiene su propia comprobación de revisión en `/api/health`; un build local no acredita publicación.
 
 Pendiente: pruebas de comprensión con participantes reales; desgloses por finalidad, ejecución/pagos y financiación territorial; auditoría de agregados y cruces de las páginas profundas. La revisión de navegador cubre este recorrido de dinero, no certifica todas las áreas del portal.
+
+### Segundo slice: operaciones y asociaciones (11 de octubre)
+
+- Pregunta: ¿qué se licita, qué ayudas se conceden y qué relación tienen con un presupuesto?
+- Respuesta: registros consultables con su fase económica; presupuesto anual y asociaciones históricas por ministerio presentados como ámbitos distintos.
+- Medida: número de registros de la consulta, presupuesto de licitación sin IVA, importe de concesión y presupuesto UE registrado en Kohesio. No sumarlos como gasto ni pago.
+- Periodo/territorio: contratos por actualización PCSP, ayudas por fecha de concesión; el año de trazabilidad solo selecciona créditos presupuestarios. Kohesio mantiene cobertura plurianual. Los filtros territoriales describen administración o domicilio, no el lugar beneficiado.
+- Fuentes/cobertura: vistas existentes SEPG/PCSP/BDNS/Kohesio. Los agregados ministeriales no filtran por año y se repiten entre secciones; deduplicar por ministerio. La coincidencia de nombre de beneficiario en Kohesio es una asociación, no financiación probada.
+- Interpretación a impedir: ejecución presupuestaria, pago o decisión personal inferidos de una asociación; suma de presupuestos UE repetidos entre ministerios; mayor registro confundido con todo el gasto.
+- Siguiente paso: destinos por función/finalidad (fase 2); ejecución y mandatos documentados (fase 3). No se incorporan ingestas ni migraciones en esta entrega.
+
+Validación del segundo slice:
+
+- 165 pruebas en 29 archivos: recuentos deduplicados, cero/crédito ausente, fallos de las tres consultas de trazabilidad, año inválido, recuento filtrado frente a cobertura histórica, enlaces de periodo y contrato compartido.
+- Lint, tipos, auditorías UI/contenido y build correctos. Sin migraciones ni ingestas nuevas. Se eliminan las consultas extra de los 1.000/2.000 mayores registros al retirar esos titulares.
+- Navegador con datos reales en Kohesio a 390 × 844: pregunta, fuente y cobertura visibles sin recorte; anchura del documento 375 px, viewport 390 px.
+- Validación real de contratos (general y año 2024) y trazabilidad (2023) pendiente: la base devuelve `canceling statement due to statement timeout`; el límite no se aumenta ni se presentan errores como cero/ausencia de operaciones. El endpoint de salud confirma disponibilidad, pero no acredita esas consultas. Render y enlaces cubiertos con fixtures; no equivalen a aceptación de datos reales.
+- Sesiones de comprensión y publicación pendientes. Consultar checks y head en la PR de `codex/fase-1-operaciones-trazabilidad`. La siguiente fase es el piloto COFOG/BDNS; no se da por resuelta la ejecución ni la vigencia/evidencia personal de los mandatos.

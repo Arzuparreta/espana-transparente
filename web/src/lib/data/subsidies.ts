@@ -59,23 +59,12 @@ export const getSubvencionPage = unstable_cache(
       ),
     )
 
-    // Top subsidies by amount — a defined population ("las 2.000 mayores"),
-    // not an arbitrary sample presented as a total.
-    const stats = await supabase
-      .from("subsidies")
-      .select("id, nivel1, importe")
-      .order("importe", { ascending: false, nullsFirst: false })
-      .order("id")
-      .limit(2000)
-    throwDataError(stats.error, "subsidy stats")
-
     return {
       subsidies: (data ?? []).map((row) => ({
         ...row,
         responsible: responsibleBySubsidy.get(row.id) ?? null,
       })),
       total: count ?? 0,
-      statsRows: stats.data ?? [],
     }
   },
   ["subsidies-page"],

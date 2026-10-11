@@ -119,9 +119,9 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
             ? { href: `/organizaciones/${grantingOrg.id}`, label: grantingOrg.name, meta: "Concedente" }
             : null,
           responsible?.politician_id
-            ? { href: `/diputados/${responsible.politician_id}`, label: responsible.person_name ?? "Responsable", meta: "Responsable" }
+            ? { href: `/diputados/${responsible.politician_id}`, label: responsible.person_name ?? "Cargo vinculado", meta: "Cargo vinculado" }
             : responsible?.official_id
-              ? { href: `/cargos/${responsible.official_id}`, label: responsible.person_name ?? "Responsable", meta: "Responsable" }
+              ? { href: `/cargos/${responsible.official_id}`, label: responsible.person_name ?? "Cargo vinculado", meta: "Cargo vinculado" }
               : null,
           subsidy.ministry_normalized
             ? { href: `/subvenciones?ministry=${encodeURIComponent(subsidy.ministry_normalized)}`, label: subsidy.ministry_normalized, meta: "Ministerio" }
@@ -143,7 +143,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
               </span>
             }
             title={titleText}
-            description="Concesión pública enlazada a su beneficiario, órgano concedente y responsable."
+            description="Ayuda concedida a un beneficiario por un órgano concedente. El importe concedido no acredita un pago."
           />
         }
         aside={
@@ -151,7 +151,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
             {responsible && (
               <div className="rounded-[2px] border border-border bg-card px-5 py-4">
                 <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Responsable político
+                  Cargo político vinculado
                 </p>
                 <div className="flex min-w-0 items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -176,6 +176,10 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
               </div>
             )}
 
+            <p className="text-xs leading-5 text-muted-foreground">
+              La asociación con un cargo por órgano y fecha no acredita su intervención personal en la concesión.
+              Las actuaciones y firmas deben comprobarse en el expediente oficial.
+            </p>
             <InfoPanel title="Fuente">
               Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de la Administración del Estado (IGAE).
               {subsidy.source_url && (
@@ -190,7 +194,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
           </>
         }
       >
-        <StatGrid variant="flat" items={[{ label: "Importe", value: formatAmount(subsidy.importe) }]} />
+        <StatGrid variant="flat" items={[{ label: "Importe concedido", value: formatAmount(subsidy.importe) }]} />
 
         <RecordSection title="Datos de la concesión">
           <FieldList items={items} />

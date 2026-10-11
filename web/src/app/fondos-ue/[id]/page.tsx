@@ -43,9 +43,15 @@ export default async function EuFundDetailPage({ params }: PageProps) {
         description="Beneficiario de Fondos Estructurales y de Inversión Europeos (ESIF 2014-2027)."
       />
 
+      <p className="text-sm leading-6 text-muted-foreground">
+        Presupuesto plurianual registrado para este beneficiario, no importe pagado ni total de fondos europeos recibidos.
+        El presupuesto total incluye la contribución UE y la cofinanciación nacional; no se suman entre sí.
+        La ficha de Kohesio permite consultar los proyectos de origen.
+      </p>
+
       <StatGrid
         items={[
-          { label: "Fondos UE asignados", value: formatEuroCompact(fund.eu_budget) },
+          { label: "Presupuesto UE · Kohesio", value: formatEuroCompact(fund.eu_budget) },
           { label: "Presupuesto total", value: formatEuroCompact(fund.total_budget) },
           {
             label: "Proyectos",

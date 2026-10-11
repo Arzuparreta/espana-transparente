@@ -45,7 +45,7 @@ const SORTS: Array<{ value: FlowSort; label: string }> = [
 ]
 
 function formatAmount(value: number | null | undefined): string {
-  if (value == null || value === 0) return "-"
+  if (value == null) return "—"
   if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1).replace(".", ",")} mil M €`
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(0)}M €`
   if (value >= 1_000) return `${Math.round(value / 1_000)}K €`
@@ -163,7 +163,7 @@ function BeneficiaryList({ items, label }: { items: TopBeneficiary[]; label: str
               )}
               {b.eu_fund_total != null && b.eu_fund_total > 0 ? (
                 <span className="text-[10px] font-mono text-muted-foreground/60">
-                  +{formatAmount(b.eu_fund_total)} en fondos UE
+                  Kohesio: {formatAmount(b.eu_fund_total)} · presupuesto UE plurianual
                 </span>
               ) : null}
             </div>
@@ -192,7 +192,7 @@ function Metric({
         <Icon className="size-3" aria-hidden />
         {label}
       </div>
-      <div className="mt-1 truncate font-mono text-sm tabular-nums">{value}</div>
+      <div className="mt-1 break-words font-mono text-sm tabular-nums">{value}</div>
     </div>
   )
 }
@@ -232,7 +232,7 @@ function SectionDetail({
             <h2 className="mt-1 text-lg font-semibold leading-snug">{section.section_name}</h2>
             <div className="mt-2 flex min-w-0 flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="min-w-0 truncate">{section.ministry_normalized ?? "Sin ministerio asignado"}</span>
-              <span>{section.minister_name ?? "Responsable sin resolver"}</span>
+              <span>{section.minister_name ? `Cargo asociado al presupuesto: ${section.minister_name}` : "Cargo del presupuesto sin resolver"}</span>
             </div>
           </div>
           <div className="flex shrink-0 items-start gap-3">
@@ -256,10 +256,10 @@ function SectionDetail({
       <div className="space-y-4 px-4 py-4">
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <Metric label="Programas" value={section.programs.length.toLocaleString("es-ES")} icon={Landmark} />
-          <Metric label="Contratos" value={`${section.contract_count.toLocaleString("es-ES")} · ${formatAmount(section.contract_total)}`} icon={Building2} />
-          <Metric label="Subvenciones" value={`${section.subsidy_count.toLocaleString("es-ES")} · ${formatAmount(section.subsidy_total)}`} icon={CircleDollarSign} />
+          <Metric label="Licitaciones · histórico" value={`${section.contract_count.toLocaleString("es-ES")} · ${formatAmount(section.contract_total)}`} icon={Building2} />
+          <Metric label="Concesiones · histórico" value={`${section.subsidy_count.toLocaleString("es-ES")} · ${formatAmount(section.subsidy_total)}`} icon={CircleDollarSign} />
           <Metric
-            label="Fondos UE"
+            label="Kohesio · plurianual"
             value={
               section.eu_fund_summary
                 ? `${section.eu_fund_summary.orgs_with_eu_funds.toLocaleString("es-ES")} org. · ${formatAmount(section.eu_fund_summary.eu_fund_total)}`
@@ -270,6 +270,11 @@ function SectionDetail({
           <Metric label="Último dato" value={formatDate(section.latest_record_date)} icon={ArrowDownUp} />
         </div>
 
+        <p className="text-xs leading-5 text-muted-foreground">
+          Créditos del presupuesto {year}. Operaciones de todo el histórico por coincidencia de ministerio:
+          presupuestos de licitación sin IVA y concesiones, no pagos. No se asignan a programas concretos.
+          Kohesio se cruza por nombre del receptor y no prueba financiación de estas operaciones.
+        </p>
         <section className="space-y-2">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-mono text-[10px] uppercase text-muted-foreground">
@@ -316,11 +321,11 @@ function SectionDetail({
         <section className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-[2px] border border-border/70 bg-background/60 px-3 py-3">
             <div className="font-mono text-[10px] uppercase text-muted-foreground">
-              Contratos asociados
+              Licitaciones del ministerio · histórico
             </div>
             <div className="mt-1 font-mono text-sm tabular-nums">
               {section.contract_count === 0
-                ? "Sin datos"
+                ? "Sin registros asociados"
                 : `${section.contract_count.toLocaleString("es-ES")} · ${formatAmount(section.contract_total)}`}
             </div>
             {section.contract_count > 0 && ministryFilter ? (
@@ -335,11 +340,11 @@ function SectionDetail({
 
           <div className="rounded-[2px] border border-border/70 bg-background/60 px-3 py-3">
             <div className="font-mono text-[10px] uppercase text-muted-foreground">
-              Subvenciones asociadas
+              Concesiones del ministerio · histórico
             </div>
             <div className="mt-1 font-mono text-sm tabular-nums">
               {section.subsidy_count === 0
-                ? "Sin datos"
+                ? "Sin registros asociados"
                 : `${section.subsidy_count.toLocaleString("es-ES")} · ${formatAmount(section.subsidy_total)}`}
             </div>
             {section.subsidy_count > 0 && ministryFilter ? (
@@ -356,19 +361,19 @@ function SectionDetail({
         {section.eu_fund_summary && section.eu_fund_summary.eu_fund_count > 0 ? (
           <section className="rounded-[2px] border border-border/70 bg-background/60 px-3 py-3">
             <div className="font-mono text-[10px] uppercase text-muted-foreground">
-              Fondos UE vinculados a estas organizaciones
+              Coincidencias de nombre en Kohesio · plurianual
             </div>
             <div className="mt-1 font-mono text-sm tabular-nums">
               {section.eu_fund_summary.orgs_with_eu_funds.toLocaleString("es-ES")} organizaciones · {formatAmount(section.eu_fund_summary.eu_fund_total)}
             </div>
             <p className="mt-1 text-[11px] text-muted-foreground/80">
-              {section.eu_fund_summary.eu_fund_count.toLocaleString("es-ES")} fondos · Total con cofinanciación: {formatAmount(section.eu_fund_summary.eu_fund_total_with_cofinancing)}
+              {section.eu_fund_summary.eu_fund_count.toLocaleString("es-ES")} registros · Presupuesto total con cofinanciación: {formatAmount(section.eu_fund_summary.eu_fund_total_with_cofinancing)}
             </p>
             <ResponsiveLink
               href="/fondos-ue"
               className="mt-1 inline-flex text-xs underline-offset-2 hover:underline"
             >
-              Ver fondos UE
+              Ver beneficiarios en Kohesio
             </ResponsiveLink>
           </section>
         ) : null}
@@ -376,11 +381,11 @@ function SectionDetail({
         {(section.top_contractors.length > 0 || section.top_subsidy_beneficiaries.length > 0) ? (
           <section className="space-y-4 rounded-[2px] border border-border/50 bg-background/40 px-3 py-3">
             <div className="font-mono text-[10px] uppercase text-muted-foreground">
-              Principales beneficiarios
+              Principales receptores · histórico disponible
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <BeneficiaryList items={section.top_contractors} label="Contratos adjudicados a" />
-              <BeneficiaryList items={section.top_subsidy_beneficiaries} label="Subvenciones concedidas a" />
+              <BeneficiaryList items={section.top_contractors} label="Presupuestos de licitación con adjudicatario identificado" />
+              <BeneficiaryList items={section.top_subsidy_beneficiaries} label="Importes de concesiones" />
             </div>
           </section>
         ) : null}
@@ -460,7 +465,7 @@ export function MoneyFlowExplorer({
         if (sort === "section") return a.section_code.localeCompare(b.section_code, "es")
         if (sort === "contracts") return b.contract_total - a.contract_total
         if (sort === "subsidies") return b.subsidy_total - a.subsidy_total
-        return b.total_credit_initial - a.total_credit_initial
+        return (b.total_credit_initial ?? 0) - (a.total_credit_initial ?? 0)
       })
   }, [filter, query, sections, sort])
 
