@@ -260,6 +260,17 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
               Ver prioridades presupuestadas →
             </Link>
           </article>
+          <article className="space-y-3 rounded border border-border p-4">
+            <h3 className="font-semibold">Para qué se concedieron ayudas</h3>
+            <p className="text-sm leading-6 text-muted-foreground">
+              La finalidad procede de cada convocatoria BDNS verificada. El
+              reparto cubre las concesiones a organizaciones recopiladas por el
+              portal, separa instrumentos y muestra la clasificación pendiente.
+              No representa pagos ni todo el gasto público.
+            </p>
+            <Link href={selected ? `/ayudas-por-finalidad?year=${selected.year}` : "/ayudas-por-finalidad"}
+              className="inline-block text-sm underline underline-offset-4">Consultar las finalidades de las ayudas →</Link>
+          </article>
         </div>
         <p className="text-sm leading-6 text-muted-foreground">
           Para saber qué llegó a tu comunidad aún falta conectar ejecución,

@@ -22,6 +22,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   contracts_daily: "Contratos PCSP",
   contracts_backfill: "Contratos PCSP (histórico)",
   "bdns.subvenciones": "Subvenciones BDNS",
+  "bdns.convocatorias": "Finalidades de convocatorias BDNS",
   subsidies_daily: "Subvenciones BDNS",
   subsidies_backfill: "Subvenciones BDNS (histórico)",
   "photos.run": "Fotos",
@@ -68,6 +69,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  { key: "bdns-calls", label: "Finalidades de convocatorias BDNS", cadence: "daily", maxAgeHours: 72, pipelines: ["bdns.convocatorias"] },
   { key: "cofog", label: "Gasto por funciones COFOG", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.cofog"] },
   {
     key: "fiscal",

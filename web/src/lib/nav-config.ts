@@ -98,6 +98,14 @@ const COLLECTIONS: SectionMeta[] = [
     description: "Concesiones publicadas y sus beneficiarios.",
   },
   {
+    key: "ayudas-por-finalidad",
+    href: "/ayudas-por-finalidad",
+    label: "Ayudas por finalidad",
+    area: "dinero",
+    section: "Operaciones",
+    description: "Finalidades declaradas e instrumentos de las concesiones del portal.",
+  },
+  {
     key: "fondos-ue",
     href: "/fondos-ue",
     label: "Fondos europeos",

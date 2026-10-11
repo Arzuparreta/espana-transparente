@@ -10,6 +10,8 @@ import { FieldList, type FieldItem } from "@/components/domain/FieldList"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getPartyAcronymMap, getSubsidyDetail } from "@/lib/data"
+import { getBdnsCall } from "@/lib/data/subsidy-purposes"
+import { CallPurpose } from "@/components/subvenciones/CallPurpose"
 
 export const revalidate = 3600
 
@@ -47,6 +49,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
     getPartyAcronymMap(),
   ])
   if (!subsidy) notFound()
+  const callData = await getBdnsCall(subsidy.numero_convocatoria)
   const responsiblePartyId = responsible?.political_party
     ? partyMap[responsible.political_party.toLowerCase()] ?? null
     : null
@@ -198,6 +201,9 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
 
         <RecordSection title="Datos de la concesión">
           <FieldList items={items} />
+        </RecordSection>
+        <RecordSection title="¿Para qué se concedió?">
+          <CallPurpose {...callData} />
         </RecordSection>
       </RecordLayout>
     </div>

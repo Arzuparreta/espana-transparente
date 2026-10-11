@@ -38,10 +38,11 @@ def test_daily_batch_continues_after_a_pipeline_failure(tmp_path):
 
     invoked = calls.read_text().splitlines()
     assert result.returncode == 1
-    assert len(invoked) == 11
+    assert len(invoked) == 12
+    assert any("src.bdns.convocatorias --limit 100" in call for call in invoked)
     assert "src.contratacion.contratos" in invoked[3]
-    assert "src.territorio.atlas" in invoked[5]
-    assert "src.territorio.org_geolocation" in invoked[6]
+    assert "src.territorio.atlas" in invoked[6]
+    assert "src.territorio.org_geolocation" in invoked[7]
     assert "common.search_refresh" in invoked[-1]
     assert "contracts_daily (exit 7)" in result.stderr
 

@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { OperationContext } from "@/components/domain/OperationContext"
+import Link from "next/link"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
 import {
   PAGE_SIZE,
@@ -125,10 +126,14 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="¿Qué ayudas se concedieron y a quién?"
-        description="Consulta las concesiones a organizaciones registradas en la BDNS: importe concedido, beneficiario y órgano concedente. Concesión no equivale a pago. El desglose por finalidad aún está pendiente."
+        description="Consulta las concesiones a organizaciones registradas en la BDNS: importe concedido, beneficiario y órgano concedente. Concesión no equivale a pago. La finalidad procede de la convocatoria verificada."
       />
 
       <OperationContext kind="subvenciones" total={total} year={activeYear} />
+      <p className="my-4 text-sm"><Link className="underline underline-offset-4"
+        href={activeYear ? `/ayudas-por-finalidad?year=${activeYear}` : "/ayudas-por-finalidad"}>
+        Consultar finalidades e instrumentos del año →
+      </Link>{" "}El reparto anual tiene el ámbito del corpus del portal; no aplica los filtros de administración, territorio o beneficiario de esta lista.</p>
 
       <SourceFootnote
         sourceLabel="BDNS · IGAE"
