@@ -72,6 +72,7 @@ run_daily() {
   run_self_tracked_pipeline "contracts_daily" python -m src.contratacion.contratos --since-days 7 --max-pages 100
   run_self_tracked_pipeline "subsidies_daily" python -m src.bdns.subvenciones \
     --from-date "${since}" --to-date "${today}" --importe-min 0 --max-pages 500
+  run_self_tracked_pipeline "bdns.convocatorias" python -m src.bdns.convocatorias --limit 100
   run_pipeline "territorio.atlas" python -m src.territorio.atlas
   run_pipeline "territorio.org_geolocation" python -m src.territorio.org_geolocation --limit 500 --resume
   run_pipeline "photos.run" python -m src.photos.run --refresh-missing

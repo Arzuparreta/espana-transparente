@@ -87,6 +87,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 1, entrada anual `/dinero` | Implementado y validado localmente; evidencia abajo |
 | Fase 1, operaciones y asociaciones | Implementado; PR #57 mergeada |
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
+| Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
 | Resto de slices y fases 2–5 | Pendientes; alcance con muestras oficiales |
 | Sesiones de comprensión | Pendientes; requieren participantes reales |
 
