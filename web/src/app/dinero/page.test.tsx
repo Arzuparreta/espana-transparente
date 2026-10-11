@@ -79,6 +79,7 @@ describe("public money annual answer", () => {
     expect(html).toContain("Datos provisionales")
     expect(html).toContain("/cuentas-publicas?desde=2024&amp;hasta=2024")
     expect(html).toContain('href="/dinero?year=2024"')
+    expect(html).toContain('href="/gasto-por-funciones?year=2024"')
     expect(html).toContain('name="year"')
   })
   it.each([

@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  { key: "gasto-por-funciones", href: "/gasto-por-funciones", label: "Gasto por funciones", area: "dinero", section: "Cuentas", description: "¿En qué se gastó? Reparto COFOG del gasto realizado, con año y fuente." },
   {
     key: "cuentas-publicas",
     href: "/cuentas-publicas",
