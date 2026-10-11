@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  { key: "ejecucion-presupuestaria", href: "/ejecucion-presupuestaria", label: "Ejecución del Estado", area: "dinero", section: "Cuentas", description: "Créditos definitivos, obligaciones y pagos corrientes del presupuesto estatal." },
   { key: "cuentas-por-subsector", href: "/cuentas-por-subsector", label: "Cuentas por subsector", area: "dinero", section: "Cuentas", description: "Ingresos, gasto y saldo de cada nivel administrativo; sin sumar transferencias internas." },
   { key: "gasto-por-funciones", href: "/gasto-por-funciones", label: "Gasto por funciones", area: "dinero", section: "Cuentas", description: "¿En qué se gastó? Reparto COFOG del gasto realizado, con año y fuente." },
   {
