@@ -1,26 +1,19 @@
 import type { Metadata } from "next"
 import { permanentRedirect } from "next/navigation"
-import {
-  ThreadLanding,
-  ThreadAnchorCard,
-} from "@/components/domain/ThreadLanding"
+import { ThreadLanding } from "@/components/domain/ThreadLanding"
+import { PublicMoneyOverview } from "@/components/chain/PublicMoneyOverview"
+import { getFiscalAccounts } from "@/lib/data/fiscal"
 import { SectionViewNav } from "@/components/navigation/SectionViewNav"
-import {
-  getSectionIndex,
-  getTopContractOfMonth,
-  getEuFundsSummary,
-  getMoneyDataOverview,
-} from "@/lib/data"
+import { getSectionIndex } from "@/lib/data"
 import { MONEY_VIEWS, parseView } from "@/lib/section-views"
 import { getThread } from "@/lib/thread-config"
-import type { ReactNode } from "react"
 
 export const revalidate = 3600
 
 interface PageProps {
   searchParams?: Promise<{
     view?: string | string[]
-    year?: string
+    year?: string | string[]
     section?: string
     program?: string
   }>
@@ -41,25 +34,9 @@ export async function generateMetadata({
     : {
         title: "Dinero público",
         description:
-          "Presupuestos, contratos, subvenciones y fondos europeos conectados por fuente pública.",
+          "Cuánto ingresan y gastan las administraciones, qué saldo queda y cómo consultar presupuestos y operaciones con fuentes oficiales.",
         alternates: { canonical: "/dinero" },
       }
-}
-
-function formatAmount(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(value)) return "Sin dato"
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function windowLabel(days: 30 | 60 | 90 | null): string {
-  if (days === 30) return "últimos 30 días"
-  if (days === 60) return "últimos 60 días"
-  if (days === 90) return "últimos 90 días"
-  return "histórico"
 }
 
 export default async function DineroThreadPage({ searchParams }: PageProps) {
@@ -67,7 +44,8 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
   const view = parseView(params?.view, MONEY_VIEWS, "resumen")
   if (view === "trazabilidad") {
     const redirectParams = new URLSearchParams()
-    if (params?.year) redirectParams.set("year", params.year)
+    if (typeof params?.year === "string")
+      redirectParams.set("year", params.year)
     if (params?.section) redirectParams.set("section", params.section)
     if (params?.program) redirectParams.set("program", params.program)
     const query = redirectParams.toString()
@@ -90,74 +68,39 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
     />
   )
 
-  const [sectionIndex, topContract, euSummary, overview] = await Promise.all([
+  const [sectionIndex, accounts] = await Promise.all([
     getSectionIndex(),
-    getTopContractOfMonth(),
-    getEuFundsSummary(),
-    getMoneyDataOverview(),
+    getFiscalAccounts(),
   ])
-  const totalMoneyRows = overview.coverage.reduce(
-    (sum, row) => sum + Number(row.total_rows ?? 0),
-    0,
-  )
-  const anchors: ReactNode[] = []
-
-  if (totalMoneyRows > 0) {
-    anchors.push(
-      <ThreadAnchorCard
-        key="registros"
-        label="Registros de gasto"
-        value={totalMoneyRows.toLocaleString("es-ES")}
-        description="Contratos, subvenciones y fondos europeos normalizados para consulta transversal."
-        href="/dinero-publico"
-        linkLabel="Ver trazabilidad →"
-      />,
-    )
-  }
-
-  if (topContract?.amount != null) {
-    anchors.push(
-      <ThreadAnchorCard
-        key="contrato"
-        label={`Mayor contrato · ${windowLabel(topContract.windowDays)}`}
-        value={formatAmount(topContract.amount)}
-        description={
-          <>
-            <span className="line-clamp-2 font-medium">
-              {topContract.title}
-            </span>
-            {topContract.awarding_body ? (
-              <span className="mt-1 block text-xs line-clamp-1">
-                {topContract.awarding_body}
-              </span>
-            ) : null}
-          </>
-        }
-        href={`/contratos/${topContract.id}`}
-        linkLabel="Ver contrato →"
-      />,
-    )
-  }
-
-  if (euSummary) {
-    anchors.push(
-      <ThreadAnchorCard
-        key="ue"
-        label="Fondos europeos"
-        value={formatAmount(Number(euSummary.total_eu_budget))}
-        description={`${Number(euSummary.beneficiary_count).toLocaleString("es-ES")} beneficiarios españoles en Kohesio.`}
-        source="Fuente: Comisión Europea · Kohesio."
-        href="/fondos-ue"
-        linkLabel="Ver fondos UE →"
-      />,
-    )
+  const citizenThread = {
+    ...thread,
+    sources: thread.sources.map((source) => {
+      const descriptions: Record<string, string> = {
+        "/contratos":
+          "¿Qué se compra y a quién se adjudica? Operaciones publicadas; no equivalen a pagos.",
+        "/subvenciones":
+          "¿Qué ayudas se concedieron y a quién? Concesión no equivale a pago.",
+        "/fondos-ue":
+          "¿Qué beneficiarios figuran en Kohesio? Cobertura de cohesión, no el total de fondos europeos.",
+        "/dinero-publico":
+          "¿Qué operaciones se asocian a cada ministerio? Explora los vínculos documentados y sus límites.",
+      }
+      return {
+        ...source,
+        countUnit: "registros",
+        description: descriptions[source.href] ?? source.description,
+      }
+    }),
   }
 
   return (
     <ThreadLanding
-      thread={thread}
+      thread={citizenThread}
       sectionIndex={sectionIndex}
-      anchors={anchors}
+      fullDescriptions
+      introduction={
+        <PublicMoneyOverview accounts={accounts} year={params?.year} />
+      }
       navigation={navigation}
     />
   )

@@ -85,3 +85,32 @@ export function selectFiscalRange(
 export function fiscalNumber(value: number) {
   return value.toLocaleString("es-ES", { maximumFractionDigits: 1 })
 }
+
+/** Only select a published, reconciled year; gaps never become fabricated data. */
+export function selectFiscalYear(
+  years: FiscalYear[],
+  requested?: string | string[],
+) {
+  const matched =
+    typeof requested === "string" && /^\d{4}$/.test(requested)
+      ? years.find((row) => row.year === Number(requested))
+      : undefined
+  return {
+    selected: matched ?? years.at(-1),
+    unavailable: requested !== undefined && !matched,
+  }
+}
+
+export function fiscalYearSummary(row: FiscalYear) {
+  const income = row.values.INGRESOS_PUBLICOS
+  const spending = row.values.GASTO_PUBLICO
+  const balance = row.values.SALDO_PUBLICO
+  return {
+    income,
+    spending,
+    balance,
+    interest: row.values.INTERESES_PUBLICOS,
+    status: balance < 0 ? "deficit" : balance > 0 ? "surplus" : "balanced",
+    spendingPer100Income: income > 0 ? (100 * spending) / income : null,
+  } as const
+}

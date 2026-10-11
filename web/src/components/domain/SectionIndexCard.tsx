@@ -6,6 +6,7 @@ export interface SectionIndexCardProps {
   href: string
   label: string
   description: string
+  fullDescription?: boolean
   count?: number | null
   countUnit?: string
   latestDate?: string | null
@@ -32,6 +33,7 @@ export function SectionIndexCard({
   href,
   label,
   description,
+  fullDescription = false,
   count,
   countUnit,
   latestDate,
@@ -62,7 +64,7 @@ export function SectionIndexCard({
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground line-clamp-2">{description}</p>
+      <p className={cn("mt-1 text-xs leading-5 text-muted-foreground", !fullDescription && "line-clamp-2")}>{description}</p>
       {formattedDate ? (
         <span className="mt-auto pt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground/80">
           Último dato · <span className="tabular-nums">{formattedDate}</span>
