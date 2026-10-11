@@ -228,16 +228,21 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
           <article className="space-y-3 rounded border border-border p-4">
             <h3 className="font-semibold">En qué se gastó</h3>
             <p className="text-sm leading-6 text-muted-foreground">
-              Tenemos el gasto total de las cuentas públicas. Todavía falta el
-              desglose comparable por funciones, como sanidad o educación, y por
-              administración. Los contratos y ayudas recopilados no cubren todo
-              ese gasto.
+              El reparto COFOG permite consultar funciones como salud, educación
+              y protección social para los ejercicios completos disponibles. La
+              cobertura puede diferir del resumen anual. El desglose por
+              administración sigue pendiente; los contratos y ayudas no cubren
+              todo ese gasto.
             </p>
             <Link
-              href={periodHref}
+              href={
+                selected
+                  ? `/gasto-por-funciones?year=${selected.year}`
+                  : "/gasto-por-funciones"
+              }
               className="inline-block text-sm underline underline-offset-4"
             >
-              Consultar el total realizado y su evolución →
+              Consultar el gasto realizado por funciones →
             </Link>
           </article>
           <article className="space-y-3 rounded border border-border p-4">

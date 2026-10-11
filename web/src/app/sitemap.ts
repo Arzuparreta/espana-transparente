@@ -34,6 +34,7 @@ const STATIC_ROUTES: {
   { path: "/", changeFrequency: "daily", priority: 1.0 },
   { path: "/decisiones", changeFrequency: "daily", priority: 0.9 },
   { path: "/cuentas-publicas", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/gasto-por-funciones", changeFrequency: "weekly", priority: 0.8 },
   { path: "/personas", changeFrequency: "daily", priority: 0.9 },
   { path: "/dinero", changeFrequency: "daily", priority: 0.9 },
   { path: "/economia", changeFrequency: "weekly", priority: 0.8 },
