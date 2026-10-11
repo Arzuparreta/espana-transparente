@@ -230,9 +230,8 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
             <p className="text-sm leading-6 text-muted-foreground">
               El reparto COFOG permite consultar funciones como salud, educación
               y protección social para los ejercicios completos disponibles. La
-              cobertura puede diferir del resumen anual. El desglose por
-              administración sigue pendiente; los contratos y ayudas no cubren
-              todo ese gasto.
+              cobertura puede diferir del resumen anual. Los contratos y ayudas
+              no cubren todo ese gasto.
             </p>
             <Link
               href={
@@ -259,6 +258,15 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
             >
               Ver prioridades presupuestadas →
             </Link>
+          </article>
+          <article className="space-y-3 rounded border border-border p-4">
+            <h3 className="font-semibold">Qué cuentas tiene cada nivel</h3>
+            <p className="text-sm leading-6 text-muted-foreground">Ingresos,
+              gasto y saldo del conjunto central, autonómico, local y de Seguridad
+              Social. Sus operaciones entre administraciones impiden sumar sus
+              ingresos o gastos como partes del total consolidado.</p>
+            <Link href={selected ? `/cuentas-por-subsector?year=${selected.year}` : "/cuentas-por-subsector"}
+              className="inline-block text-sm underline underline-offset-4">Consultar las cuentas por subsector →</Link>
           </article>
           <article className="space-y-3 rounded border border-border p-4">
             <h3 className="font-semibold">Para qué se concedieron ayudas</h3>
