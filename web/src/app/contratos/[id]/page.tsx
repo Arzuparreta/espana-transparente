@@ -77,7 +77,7 @@ function buildShareText(contract: {
       : null
   const parts: string[] = []
   if (contract.awarding_body) parts.push(contract.awarding_body)
-  if (amountStr) parts.push(`adjudicó ${amountStr}`)
+  if (amountStr) parts.push(`${contract.award_amount != null ? "importe adjudicado" : "presupuesto de licitación"}: ${amountStr} sin IVA`)
   if (contract.contractor) parts.push(`a ${contract.contractor}`)
   return parts.length > 0
     ? `${parts.join(" ")}. Fuente: España Transparente`
@@ -102,16 +102,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
   const dateStr = formatDateLabel(contract.date)
   const awardDateStr = formatDateLabel(contract.award_date)
-  const showAwardDate = awardDateStr && awardDateStr !== dateStr
+  const showAwardDate = Boolean(awardDateStr)
   const budgetAmount = contract.amount
   const awardAmount = contract.award_amount
-  const showAwardAmount =
-    awardAmount != null &&
-    budgetAmount != null &&
-    Math.abs(awardAmount - budgetAmount) / budgetAmount > 0.01
+  const hasComparableBudget = budgetAmount != null && budgetAmount > 0
 
   const items: FieldItem[] = []
-  if (dateStr) items.push({ label: "Fecha", value: dateStr, mono: true })
+  if (dateStr) items.push({ label: "Actualización PCSP", value: dateStr, mono: true })
   if (contract.contract_type)
     items.push({ label: "Tipo", value: contract.contract_type })
   if (contract.awarding_body) {
@@ -276,7 +273,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
               </span>
             }
             title={contract.title}
-            description="Detalle del contrato público, su órgano contratante, adjudicatario y vínculos documentados."
+            description="Expediente de contratación: presupuesto de licitación y adjudicación cuando consta. Ninguno de esos importes acredita el pago."
           />
         }
         aside={
@@ -399,7 +396,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
               label: "Presupuesto sin IVA",
               value: formatAmount(budgetAmount, contract.currency ?? "EUR"),
             },
-            ...(showAwardAmount && awardAmount != null && budgetAmount != null
+            ...(awardAmount != null
               ? [
                   {
                     label: "Importe adjudicado sin IVA",
@@ -408,7 +405,7 @@ export default async function ContractDetailPage({ params }: PageProps) {
                       contract.currency ?? "EUR",
                     ),
                     valueClassName: "text-accent",
-                    hint: `${awardAmount < budgetAmount ? "−" : "+"}${Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto`,
+                    hint: hasComparableBudget && budgetAmount != null ? `${awardAmount < budgetAmount ? "−" : "+"}${Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto` : undefined,
                   },
                 ]
               : []),

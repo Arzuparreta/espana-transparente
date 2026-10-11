@@ -162,13 +162,17 @@ function ContratoCard({
               : ""}
           </div>
           {dateStr ? (
-            <div className="text-xs text-muted-foreground">{dateStr}</div>
+            <div className="text-xs text-muted-foreground">Actualización PCSP: {dateStr}</div>
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
           <div className="text-base font-mono font-semibold tabular-nums">
             {formatAmount(c.amount)}
           </div>
+          <p className="text-xs text-muted-foreground">Licitación sin IVA</p>
+          {c.award_amount != null ? (
+            <p className="text-xs text-muted-foreground">Adjudicado sin IVA: <span className="font-mono">{formatAmount(c.award_amount)}</span></p>
+          ) : null}
           {c.source_url ? (
             <a
               href={c.source_url}
@@ -242,7 +246,7 @@ export function ContratosClient({
 
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
-          {total} licitaciones · ordenadas por importe
+          {total} licitaciones · ordenadas por presupuesto sin IVA
         </div>
         {contracts.length === 0 ? (
           <EmptyState

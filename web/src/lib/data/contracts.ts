@@ -58,23 +58,12 @@ export const getContractPage = unstable_cache(
       ),
     )
 
-    // Top contracts by amount — a defined population ("los 1.000 mayores"),
-    // not an arbitrary sample presented as a total.
-    const stats = await supabase
-      .from("contracts")
-      .select("id, awarding_body, amount")
-      .order("amount", { ascending: false, nullsFirst: false })
-      .order("id")
-      .limit(1000)
-    throwDataError(stats.error, "contract stats")
-
     return {
       contracts: (data ?? []).map((row) => ({
         ...row,
         responsible: responsibleByContract.get(row.id) ?? null,
       })),
       total: count ?? 0,
-      statsRows: stats.data ?? [],
     }
   },
   ["contract-page"],

@@ -62,7 +62,7 @@ function BeneficiaryRow({ fund, rank }: { fund: EuFundRow; rank: number }) {
       <div className="flex shrink-0 items-center gap-3">
         <div className="text-right">
           <p className="font-mono text-sm font-semibold">{formatEuroCompact(fund.eu_budget)}</p>
-          {fund.total_budget && fund.eu_budget && (
+          {fund.total_budget != null && fund.eu_budget != null && (
             <p className="font-mono text-xs text-muted-foreground">
               total {formatEuroCompact(fund.total_budget)}
             </p>
@@ -96,8 +96,8 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
   return (
     <div className="ui-page">
       <PageHeader
-        title="Fondos europeos"
-        description="Dinero que llega desde la Unión Europea y se reparte en España: quién lo recibe y para qué. Periodo 2014-2027. Fuente: Kohesio, portal oficial de la Comisión Europea."
+        title="¿Qué beneficiarios figuran en Kohesio?"
+        description="Beneficiarios españoles registrados en Kohesio y presupuesto UE asociado a sus proyectos. Cobertura plurianual de cohesión 2014-2027: no es el total de fondos europeos ni acredita importes pagados."
       />
 
       <SourceFootnote
@@ -111,6 +111,12 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
         }
       />
 
+      <p className="text-sm leading-6 text-muted-foreground">
+        Los importes agregan el presupuesto UE registrado para los beneficiarios disponibles en el portal,
+        sin selección anual ni certificación de pagos. No representan el MRR/PRTR ni el conjunto de la PAC.
+        El presupuesto total incluye cofinanciación nacional: no se añade al presupuesto UE como otro flujo.
+      </p>
+
       {summary && (
         <StatGrid
           items={[
@@ -119,16 +125,16 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
               value: Number(summary.beneficiary_count).toLocaleString("es-ES"),
             },
             {
-              label: "Fondos UE a España",
+              label: "Presupuesto UE · Kohesio",
               value: formatEuroCompact(Number(summary.total_eu_budget)),
             },
             {
-              label: "Proyectos totales",
+              label: "Proyectos registrados",
               value: Number(summary.total_projects).toLocaleString("es-ES"),
             },
             {
               label: "Cofinanciación media",
-              value: summary.avg_cofinancing_rate
+              value: summary.avg_cofinancing_rate != null
                 ? `${Number(summary.avg_cofinancing_rate).toFixed(1)} %`
                 : "—",
             },
@@ -139,7 +145,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
       {funds.length === 0 ? (
         <EmptyState
           title="Sin datos"
-          description="El ETL de Kohesio aún no ha ejecutado."
+          description="No hay beneficiarios disponibles en esta página. Consulta la cobertura y el estado de la fuente."
         />
       ) : (
         <div className="space-y-2">

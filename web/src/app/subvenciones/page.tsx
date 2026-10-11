@@ -5,7 +5,7 @@ import {
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
-import { StatGrid } from "@/components/domain/StatGrid"
+import { OperationContext } from "@/components/domain/OperationContext"
 import { SubvencionesClient } from "@/components/subvenciones/SubvencionesClient"
 import {
   PAGE_SIZE,
@@ -15,7 +15,6 @@ import {
   getSubvencionPageFiltered,
   parsePage,
 } from "@/lib/data"
-import { formatEuroCompact } from "@/lib/format"
 
 export const revalidate = 3600
 
@@ -53,7 +52,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
   const activeProvince = (await searchParams)?.province?.trim() || null
   const activeMunicipio = (await searchParams)?.municipio?.trim() || null
   const activeFlow = (await searchParams)?.flow === "to" ? "to" : "by"
-  const requestedYear = Number.parseInt((await searchParams)?.year ?? "", 10)
+  const requestedYear = Number((await searchParams)?.year ?? "")
   const activeYear =
     Number.isInteger(requestedYear) &&
     requestedYear >= 1900 &&
@@ -88,7 +87,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     territoryLabels,
   ] = await Promise.all([
     hasFilter
-      ? Promise.resolve({ subsidies: [], total: 0, statsRows: [] })
+      ? Promise.resolve({ subsidies: [], total: 0 })
       : getSubvencionPage(page, activeNivel),
     hasFilter
       ? getSubvencionPageFiltered(
@@ -114,56 +113,29 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     ),
   ])
 
-  const { subsidies, total, statsRows } =
+  const { subsidies, total } =
     hasFilter && filteredData
       ? {
           subsidies: filteredData.subsidies,
           total: filteredData.total,
-          statsRows: baseData.statsRows,
         }
       : baseData
-
-  const topImporte =
-    (statsRows[0] as { importe?: number } | undefined)?.importe ?? null
-  const topSum = statsRows.reduce(
-    (sum, s) => sum + ((s as { importe?: number }).importe ?? 0),
-    0,
-  )
 
   return (
     <div className="ui-page">
       <PageHeader
-        title="Subvenciones"
-        description="Dinero que reparte el Estado a empresas, fundaciones u organismos para fines concretos. Quién lo recibe, cuánto, y para qué. Beneficiarios individuales aparecen anonimizados en la fuente oficial."
+        title="¿Qué ayudas se concedieron y a quién?"
+        description="Consulta las concesiones a organizaciones registradas en la BDNS: importe concedido, beneficiario y órgano concedente. Concesión no equivale a pago. El desglose por finalidad aún está pendiente."
       />
 
-      {!hasFilter && activeNivel === "all" && statsRows.length > 0 ? (
-        <StatGrid
-          items={[
-            {
-              label: "Concesiones publicadas",
-              value: total.toLocaleString("es-ES"),
-            },
-            {
-              label: "Mayor concesión",
-              value: formatEuroCompact(topImporte),
-              hint: "La subvención de mayor importe publicada en la BDNS.",
-            },
-            {
-              label: `Suma · ${statsRows.length.toLocaleString("es-ES")} mayores`,
-              value: formatEuroCompact(topSum),
-              hint: `Importe agregado de las ${statsRows.length.toLocaleString("es-ES")} concesiones más grandes.`,
-            },
-          ]}
-        />
-      ) : null}
+      <OperationContext kind="subvenciones" total={total} year={activeYear} />
 
       <SourceFootnote
         sourceLabel="BDNS · IGAE"
         sourceHref="https://www.infosubvenciones.es"
         lastChecked={lastChecked}
         latestRecordDate={summary.total.latest_record_date}
-        coverageLabel={`${total.toLocaleString("es-ES")} concesiones publicadas`}
+        coverageLabel={`Histórico del portal · ${summary.total.total_rows.toLocaleString("es-ES")} concesiones`}
       />
 
       <SubvencionesClient

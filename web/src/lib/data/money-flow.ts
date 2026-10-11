@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR } from "./shared"
+import { unstable_cache, HOUR, throwDataError } from "./shared"
 
 export type MoneyFlowRow = {
   year: number
@@ -42,7 +42,7 @@ export type MoneyFlowSection = {
   ministry_normalized: string | null
   minister_person_id: string | null
   minister_name: string | null
-  total_credit_initial: number
+  total_credit_initial: number | null
   contract_count: number
   contract_total: number
   subsidy_count: number
@@ -65,7 +65,7 @@ function stripNif(name: string): string {
 
 export const getMoneyFlowYear = unstable_cache(
   async (year: number): Promise<MoneyFlowSection[]> => {
-    const [{ data, error }, { data: benData }, { data: euData }] = await Promise.all([
+    const [{ data, error }, { data: benData, error: benError }, { data: euData, error: euError }] = await Promise.all([
       supabase
         .from("v_program_money_flow")
         .select(
@@ -82,7 +82,10 @@ export const getMoneyFlowYear = unstable_cache(
         .select("ministry_normalized, eu_fund_count, eu_fund_total, eu_fund_total_with_cofinancing, orgs_with_eu_funds"),
     ])
 
-    if (error || !data) return []
+    throwDataError(error, "budget associations")
+    throwDataError(benError, "ministry beneficiaries")
+    throwDataError(euError, "ministry Kohesio associations")
+    if (!data) return []
     const rows = data as MoneyFlowRow[]
 
     // Index beneficiaries by ministry
@@ -127,7 +130,7 @@ export const getMoneyFlowYear = unstable_cache(
           ministry_normalized: row.ministry_normalized,
           minister_person_id: row.minister_person_id,
           minister_name: row.minister_name,
-          total_credit_initial: Number(row.total_credit_initial ?? 0),
+          total_credit_initial: row.total_credit_initial == null ? null : Number(row.total_credit_initial),
           contract_count: Number(row.contract_count ?? 0),
           contract_total: Number(row.contract_total ?? 0),
           subsidy_count: Number(row.subsidy_count ?? 0),
@@ -145,7 +148,9 @@ export const getMoneyFlowYear = unstable_cache(
           eu_fund_summary: row.ministry_normalized ? (euFundByMinistry.get(row.ministry_normalized) ?? null) : null,
         })
       } else {
-        existing.total_credit_initial += Number(row.total_credit_initial ?? 0)
+        existing.total_credit_initial = existing.total_credit_initial == null || row.total_credit_initial == null
+          ? null
+          : existing.total_credit_initial + Number(row.total_credit_initial)
         existing.programs.push({
           program_code: row.program_code,
           program_name: row.program_name,
@@ -155,9 +160,9 @@ export const getMoneyFlowYear = unstable_cache(
     }
 
     return Array.from(sections.values()).sort(
-      (a, b) => b.total_credit_initial - a.total_credit_initial
+      (a, b) => (b.total_credit_initial ?? 0) - (a.total_credit_initial ?? 0)
     )
   },
-  ["money-flow-year"],
+  ["money-flow-year-v2"],
   { revalidate: HOUR }
 )

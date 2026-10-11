@@ -156,6 +156,7 @@ function SubvencionCard({
           >
             {formatAmount(s.importe)}
           </ResponsiveLink>
+          <p className="text-xs text-muted-foreground">Importe concedido</p>
           <ResponsiveLink
             href={`/subvenciones/${s.id}`}
             className="text-xs text-muted-foreground underline-offset-2 hover:underline"
