@@ -84,7 +84,7 @@ def test_batch_stops_when_database_preflight_fails(tmp_path):
     [
         ("weekly-core", 18, "src.congreso.declaraciones"),
         ("weekly-documents", 2, "src.borme.officers"),
-        ("weekly-links", 12, "common.search_refresh"),
+        ("weekly-links", 13, "common.search_refresh"),
     ],
 )
 def test_weekly_batches_are_partitioned(
@@ -123,6 +123,7 @@ def test_weekly_batches_are_partitioned(
     assert result.returncode == 0
     assert len(invoked) == expected_count
     if batch == "weekly-links":
+        assert invoked.index("-m src.ine.fiscal") < invoked.index("-m src.ine.subsectors") < invoked.index("-m common.search_refresh")
         assert invoked.index("-m src.ine.bde") < invoked.index("-m src.ine.fiscal") < invoked.index("-m src.ine.cofog") < invoked.index("-m common.search_refresh")
     assert any(required_module in call for call in invoked)
 

@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/domain/PageHeader"
 import { FiscalChain } from "@/components/chain/FiscalChain"
+import Link from "next/link"
 export const metadata = {
   title: "Cuentas públicas",
   description:
@@ -18,6 +19,7 @@ export default async function Page({
         description="España · conjunto de las administraciones públicas · contabilidad nacional SEC 2010"
       />
       <FiscalChain from={p.desde} to={p.hasta} action="/cuentas-publicas" />
+      <p className="text-sm"><Link href="/cuentas-por-subsector" className="underline underline-offset-4">Consultar ingresos, gasto y saldo por subsector →</Link>{" "}La colección permite elegir un ejercicio completo; el total S13 permanece consolidado.</p>
     </div>
   )
 }

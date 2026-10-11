@@ -17,6 +17,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "ine.ipc_subgrupos": "IPC por subgrupos",
   "ine.fiscal": "Cuentas públicas Eurostat",
   "ine.cofog": "Gasto por funciones COFOG",
+  "ine.subsectors": "Cuentas por subsector Eurostat",
   "ine.bde": "Deuda pública Eurostat",
   "contratacion.contratos": "Contratos PCSP",
   contracts_daily: "Contratos PCSP",
@@ -69,6 +70,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  { key: "fiscal-sectors", label: "Cuentas por subsector Eurostat", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.subsectors"] },
   { key: "bdns-calls", label: "Finalidades de convocatorias BDNS", cadence: "daily", maxAgeHours: 72, pipelines: ["bdns.convocatorias"] },
   { key: "cofog", label: "Gasto por funciones COFOG", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.cofog"] },
   {
