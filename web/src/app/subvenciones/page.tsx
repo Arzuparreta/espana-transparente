@@ -22,7 +22,7 @@ export const revalidate = 3600
 export const metadata = {
   title: "Subvenciones",
   description:
-    "Subvenciones públicas concedidas a organizaciones: importe, fecha, administración convocante y beneficiario.",
+    "Concesiones públicas recopiladas por el portal: importe, fecha, administración convocante y beneficiario.",
 }
 
 const VALID_NIVELES = ["all", "ESTADO", "AUTONOMICA", "LOCAL"]
@@ -126,7 +126,7 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="¿Qué ayudas se concedieron y a quién?"
-        description="Consulta las concesiones a organizaciones registradas en la BDNS: importe concedido, beneficiario y órgano concedente. Concesión no equivale a pago. La finalidad procede de la convocatoria verificada."
+        description="Consulta las concesiones publicadas en el SNPSAP recopiladas por el portal: importe concedido, beneficiario y órgano concedente. Concesión no equivale a pago. La finalidad procede de la convocatoria verificada."
       />
 
       <OperationContext kind="subvenciones" total={total} year={activeYear} />
@@ -159,8 +159,13 @@ export default async function SubvencionesPage({ searchParams }: PageProps) {
       <InfoPanel title="Fuente">
         Base de Datos Nacional de Subvenciones (BDNS) · Intervención General de
         la Administración del Estado (IGAE). API pública en infosubvenciones.es.
-        Solo se muestran concesiones a organizaciones; los beneficiarios
-        individuales están anonimizados en la fuente original y no se almacenan.
+        El filtro de ingesta excluye beneficiarios sin etiqueta o cuya etiqueta empieza
+        por asterisco. Una etiqueta visible no acredita por sí sola que sea una
+        organización; los asteriscos tampoco garantizan anonimización irreversible.
+        El corpus no representa todas las ayudas a hogares ni toda la BDNS.
+        Determinadas concesiones no se publican y la fuente puede corregir o retirar
+        registros. No se reconstruyen identidades ocultadas.
+        <a href="https://www.infosubvenciones.es/bdnstrans/GE/es/avisolegal" target="_blank" rel="noopener noreferrer" className="block mt-2 underline">Condiciones de reutilización y publicidad del SNPSAP</a>
       </InfoPanel>
     </div>
   )
