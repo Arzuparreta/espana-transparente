@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  {key:"espera-sanitaria",href:"/servicios/sanidad",label:"Espera quirúrgica",area:"dinero",section:"Resultados",description:"Pacientes pendientes, tiempo transcurrido y contexto de gasto sanitario con periodos independientes."},
   {key:"precios-vivienda",href:"/precios-vivienda",label:"Precios de vivienda",area:"economia",section:"Precios",description:"Evolución de compraventa por trimestre y territorio; índice y tasas IPV."},
   { key: "distribucion-salarial", href: "/distribucion-salarial", label: "Distribución salarial", area: "economia", section: "Ingresos", description: "Media y tramos del salario bruto mensual, con población, año y fuente." },
   { key: "actividad-senado", href: "/actividad-senado", label: "Control en el Senado", area: "decisiones", section: "Temas", description: "Mociones e interpelaciones sobre vivienda, roles, trámites y documentos." },

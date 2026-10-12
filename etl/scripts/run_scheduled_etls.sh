@@ -82,6 +82,7 @@ run_daily() {
 }
 
 run_weekly_core() {
+  run_self_tracked_pipeline "sanidad.espera" python -m src.sanidad.espera
   run_pipeline "congreso.cods" python -m src.congreso.cods --resume
   run_pipeline "congreso.declaraciones" python -m src.congreso.declaraciones
   run_self_tracked_pipeline "congreso.iniciativas" python -m src.congreso.iniciativas

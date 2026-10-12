@@ -1,0 +1,61 @@
+Sistema de Información de listas de espera del SNS (SISLE-SNS)                                                                                                                              8/20
+Secretaría General de Salud Digital, Información e Innovación del SNS - S.G. Información Sanitaria
+
+
+
+   SITUACIÓN DE LA LISTA DE ESPERA QUIRÚRGICA DEL SNS
+   DATOS A 31 DE DICIEMBRE DE 2025
+
+   Distribución por comunidades autónomas
+                                                                                                                 Lista de Espera Quirúrgica. SNS. Numero de Pacientes por 1000 habitantes
+                                 Total de                  Pacientes con más Porcentaje de    Tiempo
+                                              Tasa por
+   Comunidad Autónoma           pacientes                    de 6 meses de    pacientes con   medio de
+                                              1000 hab.
+                               pendientes                        espera      más de 6 meses espera (días)
+
+   ANDALUCÍA                     199.950        23,51               64.302            32,2           173
+
+   ARAGON                         25.783        18,71                5.593            21,7           132
+                                                                                                                  SNS: 17,70/1.000 hab.
+   PDO DE ASTURIAS                22.402        22,12                2.336            10,4           91
+
+   BALEARES                       17.075        13,62                3.832            22,4           105
+
+   CANARIAS                       32.131        14,59                5.575            17,4           106
+
+   CANTABRIA                      14.490        24,92                3.799            26,2           137
+
+   CASTILLA Y LEON                24.786        10,57                3.420            13,8           87
+
+   CASTILLA-LA MANCHA             36.491        18,17                6.017            16,5           117
+
+   CATALUÑA                      197.768        24,84               63.228            32,0           142
+
+   COMUNIDAD VALENCIANA           51.600         9,91                8.309            16,1           88               Lista de Espera Quirúrgica. SNS. Tiempo medio de espera (días).
+
+   EXTREMADURA                    22.404        21,96                5.178            23,1           135
+
+   GALICIA                        49.554        18,82                2.810             5,7           73
+
+   MADRID                         80.525        11,23                  657             0,8           50
+
+   MURCIA                         34.197        21,52                6.612            19,3           103            SNS: 122 días
+   C. FORAL DE NAVARRA            10.861        16,08                1.817            16,7           96
+
+   PAÍS VASCO                     24.069        10,81                  544             2,3           64
+
+   RIOJA                           7.822        23,80                  504             6,4           78
+
+   CEUTA                             931        12,12                  141            15,1           94
+
+   MELILLA                           901        12,73                   74             8,2           82
+
+   TOTAL                         853.740        17,70             184.748             21,6           122
+
+
+
+
+Fuente: SISLE-SNS. Indicadores basados en datos de cada comunidad autónoma; el Ministerio de Sanidad los agrega y publica según RD 605/2003. Cada administración es responsable de la veracidad de
+los datos y de aplicar criterios de cómputo.
+

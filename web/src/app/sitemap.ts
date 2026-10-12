@@ -34,6 +34,7 @@ const STATIC_ROUTES: {
   { path: "/", changeFrequency: "daily", priority: 1.0 },
   { path: "/decisiones", changeFrequency: "daily", priority: 0.9 },
   { path: "/cuentas-publicas", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/servicios/sanidad", changeFrequency: "weekly", priority: 0.8 },
   { path: "/gasto-por-funciones", changeFrequency: "weekly", priority: 0.8 },
   { path: "/actividad-senado", changeFrequency: "weekly", priority: 0.8 },
   { path: "/temas/vivienda", changeFrequency: "weekly", priority: 0.8 },
