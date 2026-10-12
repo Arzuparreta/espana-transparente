@@ -1,6 +1,6 @@
 # Auditoría de la matriz ciudadana: áreas, colecciones y fichas
 
-Trabajo en curso; no acredita cierre del plan. Referencia: sección 7 del [criterio ciudadano](2026-10-11-criterio-ciudadano.md) y entregas del [plan](2026-10-11-plan-ciudadano.md). La auditoría incluye todas las filas, los cinco accesos de área, búsqueda, estado de datos y páginas auxiliares. Una fuente ausente o evidencia indirecta no cuenta como requisito completado.
+Auditoría completada el 13 de octubre de 2026 (PRs #81–#87). La aceptación humana sigue pendiente y separada. Referencia: sección 7 del [criterio ciudadano](2026-10-11-criterio-ciudadano.md) y entregas del [plan](2026-10-11-plan-ciudadano.md). La auditoría incluye todas las filas, los cinco accesos de área, búsqueda, estado de datos y páginas auxiliares. Una fuente ausente o evidencia indirecta no cuenta como requisito completado.
 
 Para cada fila: pregunta/primera respuesta, medida y comparación, fecha y ámbito, personas con rol/documento/vigencia, fuente y límites, filtros/enlaces, estados vacío/error, móvil/teclado. Registrar archivo y comportamiento comprobado, reparación y checks del commit. Los contratos de pilotos complementan esta revisión; no prueban por sí solos todas las fichas.
 
@@ -31,7 +31,7 @@ Para cada fila: pregunta/primera respuesta, medida y comparación, fecha y ámbi
 | Instituciones y partidos | `instituciones`, `instituciones/[id]`, `partidos` | El partido de un magistrado o consejero se mostraba como insignia/«Partido»: es el partido que respaldó la candidatura (fuente de referencia y prensa, no BOE). Ahora se rotula así y se aclara que no es afiliación ni dependencia. Partidos: agrupa votos individuales, no una voluntad única |
 | Rastro de personas | `lib/data/entity-trail.ts`, `get_entity_trail` | Reparado: el rastro de cada diputado listaba bajo «Casos judiciales» los casos revisados contra su partido («vía partido»). Un caso del partido no es evidencia sobre cada miembro: ahora solo aparecen casos donde la persona es el actor revisado. La ficha del partido conserva sus casos |
 | Fichas ya conformes | `fondos-ue/[id]`, `subvenciones/[id]`, `corrupcion` | Revisadas sin cambios: beneficiario Kohesio sin llamar pago al presupuesto UE; concesión sin acreditar pago; estados procesales distinguen procesamiento, condena no firme/firme, absolución y sobreseimiento |
-| Resto de matriz | Aún no auditado en este documento | Pendiente de inspección y reparación; no se considera completado |
+| Resto de matriz | `presupuestos/*`, `cuentas-publicas`, `dinero-publico`, `iniciativas/[id]`, `indicadores/*`, `senado`, portada | Revisadas sin cambios en este bloque: ya separan proyecto, ley, prórroga y ejecución (auditoría PGE), contabilidad nacional frente a presupuesto, asociación frente a ejecución (trazabilidad y mandatos), trámite frente a ley publicada (recorrido parlamentario) y explicación de cada serie (auditoría de contenido 29/29). La portada declara la tesis, ofrece las preguntas de área y la cadena fiscal con fuente |
 
 ## Separación de aceptación
 
