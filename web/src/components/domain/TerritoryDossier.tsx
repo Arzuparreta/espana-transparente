@@ -115,9 +115,9 @@ export function TerritoryDossier({
       <StatGrid
         items={[
           { label: "Subvenciones", value: territory.subsidyCount.toLocaleString("es-ES") },
-          { label: "Importe subvenciones", value: formatEuroCompact(territory.subsidyAmount) },
+          { label: "Importe concedido de subvenciones", value: formatEuroCompact(territory.subsidyAmount) },
           { label: "Contratos", value: territory.contractCount.toLocaleString("es-ES") },
-          { label: "Importe contratos", value: formatEuroCompact(territory.contractAmount) },
+          { label: "Presupuesto de licitación de contratos", value: formatEuroCompact(territory.contractAmount) },
         ]}
       />
 
@@ -182,9 +182,11 @@ export function TerritoryDossier({
               ¿A dónde llega el dinero?
             </h2>
             <p className="text-sm text-muted-foreground">
-              Contratos y subvenciones cuyo receptor (la empresa o entidad que cobra) tiene su sede
-              en {territory.territoryName}. Cobertura parcial: la ubicación se resuelve por CIF y por
-              el nombre del organismo, no para todos los registros.
+              Contratos y subvenciones cuya adjudicataria o beneficiaria tiene su sede en{" "}
+              {territory.territoryName}. La sede no indica dónde se ejecuta el contrato o la ayuda.
+              Contratos: presupuesto de licitación sin IVA; subvenciones: importe concedido. No son pagos
+              y no se suman. Cobertura parcial: la ubicación se resuelve por CIF y por el nombre del
+              organismo, no para todos los registros.
             </p>
           </div>
 
@@ -219,7 +221,7 @@ export function TerritoryDossier({
                 {enrichment.companies.length === 0 ? (
                   <EmptyState
                     title="Sin empresas localizadas"
-                    description="Ningún receptor con sede resoluble en este territorio ha recibido fondos en la muestra."
+                    description="Ninguna adjudicataria o beneficiaria con sede resoluble en este territorio consta en la muestra."
                   />
                 ) : (
                   enrichment.companies.map((company) => (
@@ -231,7 +233,7 @@ export function TerritoryDossier({
                         {company.name}
                       </ResponsiveLink>
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                        {formatEuroCompact(company.receivedTotal)}
+                        licitado {formatEuroCompact(company.contractTotal)} · concedido {formatEuroCompact(company.subsidyTotal)}
                       </span>
                     </div>
                   ))
