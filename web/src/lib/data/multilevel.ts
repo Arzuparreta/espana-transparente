@@ -478,7 +478,9 @@ export type TerritoryCompany = {
   id: string
   name: string
   organizationType: string | null
-  receivedTotal: number
+  // Tender budgets of won contracts and granted subsidies: different phases, never added.
+  contractTotal: number
+  subsidyTotal: number
   contractCount: number
   subsidyCount: number
 }
@@ -526,7 +528,7 @@ async function fetchTerritoryEnrichment(ccaaKey: string): Promise<TerritoryEnric
   const [companiesRes, moneyInRes, orgCountRes, repsRes] = await Promise.all([
     supabase
       .from("v_territory_receptor_orgs")
-      .select("organization_id, name, organization_type, received_total, contract_count, subsidy_count")
+      .select("organization_id, name, organization_type, contract_total, subsidy_total, contract_count, subsidy_count")
       .in("province_key", provinceKeys)
       .order("received_total", { ascending: false })
       .limit(8),
@@ -548,7 +550,8 @@ async function fetchTerritoryEnrichment(ccaaKey: string): Promise<TerritoryEnric
     id: String(row.organization_id),
     name: String(row.name),
     organizationType: (row.organization_type as string | null) ?? null,
-    receivedTotal: toNumber(row.received_total),
+    contractTotal: toNumber(row.contract_total),
+    subsidyTotal: toNumber(row.subsidy_total),
     contractCount: toNumber(row.contract_count),
     subsidyCount: toNumber(row.subsidy_count),
   }))
@@ -698,7 +701,8 @@ async function fetchMunicipalEnrichment(rawTerritoryKey: string): Promise<Territ
     id: String(row.organization_id),
     name: String(row.name),
     organizationType: (row.organization_type as string | null) ?? null,
-    receivedTotal: toNumber(row.received_total),
+    contractTotal: toNumber(row.contract_total),
+    subsidyTotal: toNumber(row.subsidy_total),
     contractCount: toNumber(row.contract_count),
     subsidyCount: toNumber(row.subsidy_count),
   }))

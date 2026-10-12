@@ -1,7 +1,9 @@
 export type TerritoryMetric = "amount" | "records" | "per-capita"
 export type TerritoryDataset = "all" | "contracts" | "subsidies"
 
-export const TERRITORY_DATASETS: TerritoryDataset[] = ["all", "contracts", "subsidies"]
+// Contracts carry tender budgets and subsidies granted amounts: different phases,
+// so the atlas never offers a combined total ("all" is kept only as an internal type).
+export const TERRITORY_DATASETS: TerritoryDataset[] = ["contracts", "subsidies"]
 export const TERRITORY_METRICS: TerritoryMetric[] = ["amount", "records", "per-capita"]
 
 export const PROVINCE_TOPO_TO_KEY: Record<string, string> = {
@@ -91,4 +93,18 @@ export function parseTerritoryMetric(value: string | string[] | undefined): Terr
   return TERRITORY_METRICS.includes(candidate as TerritoryMetric)
     ? (candidate as TerritoryMetric)
     : "amount"
+}
+
+// Name every URL value the atlas cannot honour, so a fallback view is never silent.
+export function ignoredTerritoryParams(
+  params: { source?: string; metric?: string; year?: string; territory?: string },
+  years: number[],
+  territoryKeys: Set<string>,
+): string[] {
+  return [
+    params.source !== undefined && !TERRITORY_DATASETS.includes(params.source as TerritoryDataset) && "fuente",
+    params.metric !== undefined && !TERRITORY_METRICS.includes(params.metric as TerritoryMetric) && "medida",
+    params.year !== undefined && params.year !== "all" && !years.includes(Number(params.year)) && "año",
+    params.territory !== undefined && !territoryKeys.has(params.territory) && "territorio",
+  ].filter((label): label is string => Boolean(label))
 }

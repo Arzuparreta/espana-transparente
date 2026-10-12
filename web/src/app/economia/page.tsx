@@ -11,11 +11,13 @@ import {
 import { getPopulationForYear } from "@/lib/debt-per-capita"
 import { ECONOMY_VIEWS, parseView } from "@/lib/section-views"
 import { getThread } from "@/lib/thread-config"
+import { purchasingPower } from "@/lib/wage-prices"
+import { PurchasingPowerAnswer } from "@/components/domain/PurchasingPowerAnswer"
 
 export const revalidate = 3600
 
 interface PageProps {
-  searchParams?: Promise<{ view?: string | string[] }>
+  searchParams?: Promise<{ view?: string | string[]; year?: string | string[] }>
 }
 
 const VIEW_META = {
@@ -194,6 +196,7 @@ export default async function EconomiaPage({ searchParams }: PageProps) {
       sectionIndex={sectionIndex}
       anchors={anchors}
       navigation={navigation}
+      introduction={<PurchasingPowerAnswer data={purchasingPower(rows)} year={params?.year} />}
     />
   )
 }

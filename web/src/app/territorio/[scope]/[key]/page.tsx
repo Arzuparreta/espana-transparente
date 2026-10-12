@@ -10,8 +10,8 @@ interface PageProps {
 }
 
 const SCOPE_TITLE = {
-  ccaa: "Gasto autonómico",
-  municipio: "Gasto municipal",
+  ccaa: "Contratos y subvenciones autonómicos",
+  municipio: "Contratos y subvenciones municipales",
 } as const
 
 export async function generateMetadata({ params }: PageProps) {

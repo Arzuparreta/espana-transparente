@@ -401,14 +401,15 @@ export function TerritoryAtlas({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl font-black uppercase tracking-[-0.03em] sm:text-3xl">
-                Mapa del gasto
+                Contratos y subvenciones por territorio
               </h1>
               <span className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:inline">
                 Atlas territorial
               </span>
             </div>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-              Contratos y subvenciones autonómicas registrados en PCSP y BDNS.
+              Contratos: presupuesto de licitación sin IVA (PCSP). Subvenciones: importe concedido (BDNS).
+              Son fases distintas y no se suman; ninguna es gasto ejecutado ni pago.
             </p>
           </div>
 
@@ -419,9 +420,6 @@ export function TerritoryAtlas({
               </ControlButton>
               <ControlButton active={dataset === "subsidies"} onClick={() => setDataset("subsidies")}>
                 Subvenciones
-              </ControlButton>
-              <ControlButton active={dataset === "all"} onClick={() => setDataset("all")}>
-                Ambas
               </ControlButton>
             </div>
             <label className="sr-only" htmlFor="territory-year">Periodo</label>
@@ -583,7 +581,7 @@ export function TerritoryAtlas({
             aria-label={
               provinceMode
                 ? `Mapa de contratos por provincias de ${selected?.name}`
-                : "Mapa comparativo del gasto autonómico registrado por comunidades autónomas"
+                : `Mapa comparativo de ${dataset === "subsidies" ? "subvenciones concedidas" : "contratos licitados"} por comunidades autónomas`
             }
           >
             <rect width={WIDTH} height={HEIGHT} fill="#0c0f0d" />
@@ -811,7 +809,7 @@ export function TerritoryAtlas({
                   </Link>
                 ) : null}
                 <p className="text-[11px] leading-5 text-muted-foreground">
-                  Último registro: {formatDate(inspected.latestRecordDate)}. Los importes son registros publicados, no el gasto total ejecutado.
+                  Último registro: {formatDate(inspected.latestRecordDate)}. Los importes son registros publicados, no el gasto total ejecutado. El importe por habitante divide el registro de la administración entre su población: no es dinero recibido por cada persona. La comunidad indica la administración, no dónde se presta el servicio.
                 </p>
               </div>
             </div>
