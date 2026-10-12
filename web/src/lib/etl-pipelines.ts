@@ -12,6 +12,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "congreso.power_relationships": "Relaciones de poder",
   "congreso.public_officials": "Cargos públicos",
   "congreso.responsables": "Responsables",
+  "ine.vivienda": "Precios de vivienda IPV",
   "ine.salarios_distribucion": "Distribución salarial EPA",
   "ine.indicadores": "Indicadores INE",
   "ine.indicadores_ampliados": "Indicadores ampliados INE",
@@ -75,6 +76,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"housing-prices",label:"Precios de vivienda IPV",cadence:"weekly",maxAgeHours:24*9,pipelines:["ine.vivienda"]},
   { key: "wage-distribution", label: "Distribución salarial EPA", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.salarios_distribucion"] },
   { key: "senate-control", label: "Actividad de control del Senado", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["senado.actividad"] },
   { key: "parliament-activity", label: "Actividad parlamentaria por materia", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.actividad"] },
