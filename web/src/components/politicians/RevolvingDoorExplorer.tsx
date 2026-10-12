@@ -26,7 +26,7 @@ export function RevolvingDoorExplorer({ cases, partyMap = {} }: RevolvingDoorExp
     <div className="ui-page">
       <PageHeader
         title="Puertas giratorias"
-        description={`Personas que ocuparon un cargo público y después pasaron a trabajar en empresas relacionadas con decisiones tomadas durante ese cargo. ${uniquePeople} personas · ${cases.length} movimientos documentados con fuente pública.`}
+        description={`Personas que ocuparon un cargo público y después pasaron a la actividad privada, con cargo, organización, fechas y fuente pública. ${uniquePeople} personas · ${cases.length} movimientos documentados. El tránsito no acredita irregularidad: la autorización, las incompatibilidades o la relación con decisiones del cargo requieren evidencia propia en cada caso.`}
       />
 
       <SectionTabs tabs={tabs} defaultTab="all">
