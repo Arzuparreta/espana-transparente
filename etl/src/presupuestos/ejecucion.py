@@ -1,4 +1,4 @@
-"""IGAE state expenditure budget: current-budget execution, bounded pilot."""
+"""IGAE state expenditure budget: current-budget execution, bounded 2025 monthly series."""
 import argparse
 import calendar
 import hashlib
@@ -17,6 +17,20 @@ SCOPE = "ES_STATE_BUDGET"
 PERIOD = "2025-12"
 SOURCE_URL = "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20DICIEMBRE%202025.xlsx"
 PAGE_URL = "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Paginas/imejecucionpresupuesto2025.aspx"
+SOURCES = {
+    "2025-01": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20ENERO%202025%20(EXCEL).xlsx",
+    "2025-02": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20FEBRERO%202025%20(EXCEL).xlsx",
+    "2025-03": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20MARZO%202025%20(EXCEL).xlsx",
+    "2025-04": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20ABRIL%202025%20(EXCEL).xlsx",
+    "2025-05": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20MAYO%202025%20(EXCEL).xlsx",
+    "2025-06": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20JUNIO%202025%20(EXCEL).xlsx",
+    "2025-07": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20JULIO%202025%20(EXCEL).xlsx",
+    "2025-08": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20AGOSTO%202025%20(EXCEL).xlsx",
+    "2025-09": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20SEPTIEMBRE%202025%20(EXCEL).xlsx",
+    "2025-10": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20OCTUBRE%202025%20(EXCEL).xlsx",
+    "2025-11": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20NOVIEMBRE%202025.xlsx",
+    "2025-12": "https://www.igae.pap.hacienda.gob.es/sitios/igae/es-ES/Contabilidad/ContabilidadPublica/CPE/EjecucionPresupuestaria/Documents/MENSUAL%20DICIEMBRE%202025.xlsx"
+}
 FIELDS = ["credit", "committed", "obligations", "payments"]
 CODES = [str(i) for i in range(1, 10)] + ["NF", "FIN", "TOTAL"]
 MAPPING = "igae-current-chapters-v1"
@@ -97,19 +111,34 @@ def parse_workbook(payload, period=PERIOD, source_url=SOURCE_URL, checked_at=Non
 
 
 def replace_snapshot(cur, records):
-    if len(records) != 12 or {r[2] for r in records} != set(CODES) or any(r[0] != SCOPE or r[1] != PERIOD for r in records):
+    period = records[0][1] if records else None
+    if period not in SOURCES or len(records) != 12 or {r[2] for r in records} != set(CODES) or any(r[0] != SCOPE or r[1] != period for r in records):
         raise ValueError("Refusing incomplete or out-of-scope execution replacement")
-    cur.execute("DELETE FROM budget_execution WHERE scope=%s AND period=%s", (SCOPE, PERIOD))
+    cur.execute("DELETE FROM budget_execution WHERE scope=%s AND period=%s", (SCOPE, period))
     cur.executemany("""INSERT INTO budget_execution
         (scope,period,chapter,credit,committed,obligations,payments,unit,raw_data)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""", records)
 
 
 def fetch_records():
+    # Validate the entire manifest before any database mutation. Each report is
+    # an independent cumulative snapshot, never a flow to add to other months.
+    records = []
     with httpx.Client(timeout=45, follow_redirects=True) as client:
-        response = client.get(SOURCE_URL)
-        response.raise_for_status()
-        return parse_workbook(response.content)
+        for period, url in SOURCES.items():
+            response = client.get(url)
+            response.raise_for_status()
+            records.extend(parse_workbook(response.content, period, url))
+    return records
+
+
+def replace_series(cur, records):
+    grouped = {period: [r for r in records if r[1] == period] for period in SOURCES}
+    if len(records) != len(SOURCES) * 12 or any(len(rows) != 12 or {r[2] for r in rows} != set(CODES)
+        or any(r[0] != SCOPE for r in rows) for rows in grouped.values()):
+        raise ValueError("Refusing incomplete execution series")
+    for rows in grouped.values():
+        replace_snapshot(cur, rows)
 
 
 def run(dry_run=False):
@@ -124,7 +153,7 @@ def run(dry_run=False):
         conn.commit()
         records = fetch_records()
         with conn.cursor() as cur:
-            replace_snapshot(cur, records)
+            replace_series(cur, records)
             finish_run(cur, run_id=run_id, status="succeeded", rows_read=len(records), rows_inserted=len(records))
         conn.commit()
     except Exception as exc:
