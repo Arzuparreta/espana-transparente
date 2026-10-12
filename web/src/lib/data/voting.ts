@@ -1,3 +1,4 @@
+import { initiativeNumbers } from "@/lib/parliament-evidence"
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, throwDataError } from "./shared"
 import { PAGE_SIZE } from "./shared"
@@ -74,11 +75,12 @@ export const getVotingDetailData = unstable_cache(
 
     let initiative: { id: string; title: string | null; type: string | null } | null = null
     const initiativeNumber = session.data?.initiative_number as string | null | undefined
-    if (initiativeNumber) {
+    if (initiativeNumber && session.data?.legislature_id) {
       const { data } = await supabase
         .from("initiatives")
         .select("id, title, type")
-        .eq("number", initiativeNumber)
+        .in("number", initiativeNumbers(initiativeNumber))
+        .eq("legislature_id", session.data.legislature_id)
         .maybeSingle()
       if (data) initiative = data
     }
