@@ -82,6 +82,10 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
         coverageLabel={status === "ok" ? `${total.toLocaleString("es-ES")} diputados` : "Consulta no disponible"}
       />
 
+      <p className="text-sm leading-6 text-muted-foreground">
+        Denominador: sesiones plenarias con voto nominal de la legislatura en las que el diputado figura en el registro. Una sesión cuenta como «con voto» si emitió al menos un voto, presencial o telemático. No votar no prueba ausencia física, y votar no mide el trabajo en comisiones, ponencias o circunscripción.
+      </p>
+
       {/* Party filter pills */}
       {parties.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -121,8 +125,8 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
           title="Sin registros"
           description={
             activeParty
-              ? "Ningún diputado de este grupo tiene registro de asistencia en la muestra actual."
-              : "No hay registros de asistencia publicados en la muestra actual."
+              ? "Ningún diputado de este grupo tiene votaciones nominales registradas en la muestra actual."
+              : "No hay votaciones nominales registradas en la muestra actual."
           }
         />
       ) : (
@@ -135,8 +139,8 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
                   ["full_name", "Diputado"],
                   ["party_acronym", "Grupo"],
                   ["total_sessions", "Sesiones"],
-                  ["sessions_present", "Presente"],
-                  ["attendance_pct", "Asistencia"],
+                  ["sessions_present", "Con voto"],
+                  ["attendance_pct", "% con voto"],
                 ] as const
               ).map(([field, label]) => {
                 const active = sort === field
@@ -202,13 +206,13 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Presente</dt>
+                        <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Con voto</dt>
                         <dd className="mt-0.5 font-mono text-sm tabular-nums">
                           {row.sessions_present.toLocaleString("es-ES")}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">Asistencia</dt>
+                        <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">% con voto</dt>
                         <dd
                           className={cn(
                             "mt-0.5 font-mono text-sm font-medium tabular-nums",
@@ -234,8 +238,8 @@ export async function AttendanceView({ searchParams }: AttendanceViewProps) {
                       ["full_name", "Diputado", "text-left"],
                       ["party_acronym", "Grupo", "text-left"],
                       ["total_sessions", "Sesiones", "text-right"],
-                      ["sessions_present", "Presente", "hidden text-right md:table-cell"],
-                      ["attendance_pct", "Asistencia", "text-right"],
+                      ["sessions_present", "Con voto", "hidden text-right md:table-cell"],
+                      ["attendance_pct", "% con voto", "text-right"],
                     ] as const
                   ).map(([field, label, align]) => {
                     const active = sort === field

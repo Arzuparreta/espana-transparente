@@ -24,7 +24,7 @@ const VIEW_META = {
       "Directorio de las personas elegidas al Congreso, con grupo, circunscripción e historial público.",
   },
   asistencia: {
-    title: "Asistencia de diputados",
+    title: "Participación en votaciones nominales",
     description:
       "Sesiones plenarias con voto nominal en las que cada diputado ha emitido al menos un voto.",
   },
@@ -77,7 +77,7 @@ export default async function DiputadosPage({ searchParams }: PageProps) {
         active={view}
         items={[
           { value: "directorio", label: "Directorio", href: "/diputados" },
-          { value: "asistencia", label: "Asistencia", href: "/asistencia" },
+          { value: "asistencia", label: "Participación en votaciones", href: "/asistencia" },
           { value: "divergencias", label: "Divergencias", href: "/divergencias" },
         ]}
       />

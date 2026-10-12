@@ -159,7 +159,7 @@ export function PoliticianProfile({
   const tabs = [
     { value: "power", label: "Poder" },
     { value: "votes", label: "Votos", count: totalVotes ?? 0 },
-    ...(attendanceTotal > 0 ? [{ value: "asistencia", label: "Asistencia", count: attendanceTotal }] : []),
+    ...(attendanceTotal > 0 ? [{ value: "asistencia", label: "Votaciones por sesión", count: attendanceTotal }] : []),
     { value: "trajectory", label: "Trayectoria" },
     ...(bio ? [{ value: "bio", label: "Biografía" }] : []),
     ...(econDecls.length ? [{ value: "declarations", label: "Declaraciones" }] : []),
@@ -216,9 +216,9 @@ export function PoliticianProfile({
     { label: "Legislaturas", value: memberships.length, hint: "Etapas parlamentarias trazadas en la base de datos." },
     attendance
       ? {
-          label: "Asistencia a plenos",
+          label: "Sesiones con voto emitido",
           value: `${attendance.attendance_pct}%`,
-          hint: `${attendance.sessions_present} de ${attendance.total_sessions} sesiones con votación nominal (Leg. XV).`,
+          hint: `${attendance.sessions_present} de ${attendance.total_sessions} sesiones con votación nominal (Leg. XV). No votar no prueba ausencia física.`,
         }
       : {
           label: "Declaraciones",
@@ -583,7 +583,7 @@ export function PoliticianProfile({
                 <div className="space-y-3">
                   {attendanceSessions.length === 0 ? (
                     <EmptyState
-                      title="Sin datos de asistencia"
+                      title="Sin votaciones nominales registradas"
                       description="No hay sesiones nominales registradas para esta persona en la legislatura activa."
                     />
                   ) : (
@@ -593,7 +593,7 @@ export function PoliticianProfile({
                           <tr className="border-b border-border text-left">
                             <th className="py-2 pr-4 font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">Sesión</th>
                             <th className="py-2 pr-4 font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">Fecha</th>
-                            <th className="py-2 pl-4 text-right font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">Asistencia</th>
+                            <th className="py-2 pl-4 text-right font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground">Voto</th>
                             <th className="hidden py-2 pl-4 text-right font-mono text-[10px] font-normal uppercase tracking-[0.14em] text-muted-foreground sm:table-cell">Votos emitidos</th>
                           </tr>
                         </thead>
@@ -608,9 +608,9 @@ export function PoliticianProfile({
                                 <td className="py-2 pr-4 text-muted-foreground">{dateStr}</td>
                                 <td className="py-2 pl-4 text-right">
                                   {s.was_present ? (
-                                    <span className="text-green-600 dark:text-green-400">Presente</span>
+                                    <span className="text-green-600 dark:text-green-400">Con voto</span>
                                   ) : (
-                                    <span className="text-muted-foreground">Ausente</span>
+                                    <span className="text-muted-foreground">Sin voto registrado</span>
                                   )}
                                 </td>
                                 <td className="hidden py-2 pl-4 text-right tabular-nums text-muted-foreground sm:table-cell">
