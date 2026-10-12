@@ -35,6 +35,7 @@ export default async function Page({
           no acredita que un contrato o una ayuda financie una iniciativa.
         </p>
         <ul className="space-y-2">
+          <li><Link href="/actividad-senado" className="underline underline-offset-4">Control en el Senado: mociones e interpelaciones por año de presentación →</Link></li>
           <li>
             <Link
               href="/gasto-por-funciones"

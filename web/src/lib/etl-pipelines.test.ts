@@ -9,6 +9,7 @@ import {
 
 describe("getEtlPipelineLabel", () => {
   it("covers the priority ETL pipelines exposed in status views", () => {
+    expect(ETL_PIPELINE_LABELS["senado.actividad"]).toBe("Actividad de control del Senado")
     expect(ETL_PIPELINE_LABELS["congreso.actividad"]).toBe("Actividad parlamentaria por materia")
     expect(ETL_PIPELINE_LABELS["congreso.asistencia"]).toBe("Asistencia y votaciones")
     expect(ETL_PIPELINE_LABELS["senado.votaciones"]).toBe("Sesiones Senado")
