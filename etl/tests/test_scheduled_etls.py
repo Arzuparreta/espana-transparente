@@ -82,7 +82,7 @@ def test_batch_stops_when_database_preflight_fails(tmp_path):
 @pytest.mark.parametrize(
     ("batch", "expected_count", "required_module"),
     [
-        ("weekly-core", 22, "src.congreso.declaraciones"),
+        ("weekly-core", 23, "src.congreso.declaraciones"),
         ("weekly-documents", 2, "src.borme.officers"),
         ("weekly-links", 22, "common.search_refresh"),
     ],
@@ -125,6 +125,7 @@ def test_weekly_batches_are_partitioned(
     if batch == "weekly-core":
         assert "-m src.cohesion.feder" in invoked
         assert "-m src.pac.pagos" in invoked
+        assert "-m src.prtr.instruments" in invoked
     if batch == "weekly-links":
         assert invoked.index("-m src.ine.cofog") < invoked.index("-m src.presupuestos.ejecucion") < invoked.index("-m common.search_refresh")
         assert invoked.index("-m src.ine.fiscal") < invoked.index("-m src.ine.subsectors") < invoked.index("-m common.search_refresh")

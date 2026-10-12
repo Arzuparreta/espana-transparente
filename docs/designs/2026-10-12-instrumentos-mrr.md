@@ -1,0 +1,21 @@
+# MRR: subvenciones, financiación y compromisos documentados
+
+Piloto implementado después de PAC (#78), pendiente de CI remoto y merge.
+
+- Pregunta: ¿este programa concede una subvención o canaliza financiación, y qué fase acredita cada importe?
+- Respuesta esperada: DUS 5000 conserva sus concesiones documentadas; las facilidades ICO distinguen origen en el tramo de préstamos MRR, productos de financiación a receptores y compromisos de desembolso a ICO. Un préstamo UE a España no convierte cada operación final en un préstamo: el convenio incluye mediación, financiación directa, deuda, capital y cuasicapital.
+- Medida: compromisos en euros/céntimos por anualidad, sin presentarlos como desembolsos ejecutados, operaciones formalizadas, pagos a empresas o devolución. Comparación de fases y denominadores; no sumar estas cifras a concesiones DUS, transferencias FEDER o pagos PAC.
+- Periodo: edición BOE publicada el 16/01/2026, adenda firmada el 31/12/2025; anualidades 2024–2026. La revisión de una anualidad pasada no prueba su ejecución. La eficacia requiere inscripción: el dato de publicación no sustituye su comprobación.
+- Fuente/cobertura: XML originales BOE-A-2024-13820 y BOE-A-2026-977. Dos facilidades y una modificación de compromisos, no todo el MRR. Personas firmantes con rol, fecha y documento; no atribuir concesiones, aprobación de operaciones ni pagos personales sin evidencia.
+- Riesgo material: la adenda reproduce primero la tabla anterior y después la modificada en «Segunda. Modificación estipulación decimosexta». Elegir expresamente la tabla de esa estipulación, reconciliar anualidades y total y excluir la tabla distinta de comisiones de gestión. No usar la primera coincidencia monetaria ni el folleto original como importe vigente.
+- Interpretación a impedir: financiación asignada igual a préstamo cobrado; gestión de un instrumento igual a decisión individual sobre cada destinatario; contrato formalizado o subvención concedida igual a pago. El contraste con la metodología AIReF explica qué fases identifica su observatorio, sin importar sus agregados como ejecución contable.
+- Verificación AIReF: el extracto oficial indexado de su metodología de abril de 2024 identifica contratos formalizados y subvenciones concedidas como base del observatorio. El PDF completo devuelve errores de certificado/tiempo de espera: no se considera descargado ni revisado en su totalidad y no se desactiva verificación TLS. Nuevas afirmaciones metodológicas requieren más evidencia primaria.
+- Implementación: parser XML acotado a la estipulación segunda modificada, conciliación de anualidades y total, hash de ambos originales, snapshot atómico y migración con lectura pública/actualización de servicio. Página `/fondos-ue/prtr/instrumentos?year=2026`, selección 2024–2026, enlaces desde DUS y fondos; mantenimiento semanal core y monitor independiente. Después, estudio de ayudas anonimizadas, matriz completa y recuperación de frescura/despliegue. Comprensión con participantes reales sigue pendiente.
+
+## Verificación técnica
+
+- Fuente BOE descargada de nuevo con TLS verificado; dos facilidades y seis importes anuales conciliados. La tabla antigua y las comisiones se excluyen por estipulación, no por coincidencia de importes.
+- 477 pruebas ETL pasan; una integración de búsqueda se omite por falta de su conexión específica. 323 pruebas web pasan. TypeScript, lint y build final con lector de base de datos restaurado pasan; auditorías UI (483 archivos) y contenido (399 archivos, 29/29 indicadores) pasan.
+- PostgreSQL aislado: snapshot de 1.605 bytes comprimidos; lectura anon y actualización service_role comprobadas; metadata vacía rechazada. No se inventa checkpoint de ejecución ETL en la semilla.
+- Móvil 390×844: cliente y contenido 375 px, sin desbordamiento; selección 2026→2025 y envío con Enter conservan la anualidad en URL, cifras cero, contexto y fuentes legibles. Lector temporal restaurado antes de build. No acredita aceptación humana.
+- AIReF: extracto oficial indexado verificado de nuevo el 12/10/2026; distingue contratos formalizados/subvenciones concedidas y ámbito de transferencias. No se ha descargado ni revisado íntegramente el PDF y no se deducen agregados actuales.
