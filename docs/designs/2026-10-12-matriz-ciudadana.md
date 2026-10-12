@@ -21,6 +21,7 @@ Para cada fila: pregunta/primera respuesta, medida y comparación, fecha y ámbi
 | Contratos | Página, lector y schema CPV/adjudicación | Primera respuesta antes del directorio: expedientes adjudicados por año, administración y división CPV, presupuesto de licitación y ofertas por resultado, con exclusiones contadas ([bloque](2026-10-13-compras-competencia.md)). Identidad oficial, lotes y monedas en [bloque de contratos](2026-10-12-identidad-contratos.md). Competencia de registros antiguos con varios lotes limitada al primer resultado |
 | Territorio | `web/src/app/territorio/page.tsx` | Enlaces a liquidaciones y financiación con ámbito propio; entradas inválidas pueden sustituirse, y el rótulo gasto municipal requiere revisar fase del grid |
 | Subvenciones/finalidades | Estudio BDNS y PR #80 | Se repara la afirmación de organizaciones verificadas y se documenta cobertura excluida. Fuente parcial no permite prometer todas las ayudas a hogares |
+| Estado de datos | `estado-datos/page.tsx`, `lib/question-coverage.ts` | Primera respuesta antes de la tabla técnica: 19 preguntas cubiertas con página, fuente, qué cubre y qué no, y estado de su ingesta. Registro versionado con los contratos de diseño; prueba que cada ruta y monitor existen. Sin tabla de ingestas no se afirma frescura |
 | Resto de matriz | Aún no auditado en este documento | Pendiente de inspección y reparación; no se considera completado |
 
 ## Separación de aceptación
