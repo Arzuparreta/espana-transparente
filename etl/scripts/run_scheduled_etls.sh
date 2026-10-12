@@ -82,6 +82,7 @@ run_daily() {
 }
 
 run_weekly_core() {
+  run_self_tracked_pipeline "cohesion.feder" python -m src.cohesion.feder
   run_self_tracked_pipeline "prtr.dus5000" python -m src.prtr.dus5000
   run_self_tracked_pipeline "sanidad.espera" python -m src.sanidad.espera
   run_pipeline "congreso.cods" python -m src.congreso.cods --resume

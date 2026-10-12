@@ -81,7 +81,7 @@ export default async function DineroThreadPage({ searchParams }: PageProps) {
         "/subvenciones":
           "¿Qué ayudas se concedieron y a quién? Concesión no equivale a pago.",
         "/fondos-ue":
-          "¿Qué beneficiarios figuran en Kohesio? Cobertura de cohesión, no el total de fondos europeos.",
+          "¿Qué beneficiarios figuran en Kohesio? Inventario ESIF, no el total de fondos europeos ni de PAC.",
         "/dinero-publico":
           "¿Qué operaciones se asocian a cada ministerio? Explora los vínculos documentados y sus límites.",
       }

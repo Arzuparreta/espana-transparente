@@ -1,4 +1,5 @@
 export const ETL_PIPELINE_LABELS: Record<string, string> = {
+  "cohesion.feder": "Programas FEDER · fases financieras",
   "prtr.dus5000": "PRTR · DUS 5000",
   "sanidad.espera": "Espera quirúrgica SISLE",
   "congreso.diputados": "Diputados",
@@ -81,6 +82,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"cohesion-feder",label:"Programas FEDER · fases financieras",cadence:"weekly",maxAgeHours:24*9,pipelines:["cohesion.feder"]},
   {key:"prtr-dus5000",label:"PRTR · DUS 5000",cadence:"weekly",maxAgeHours:24*9,pipelines:["prtr.dus5000"]},
   {key:"surgical-waiting",label:"Espera quirúrgica SISLE",cadence:"weekly",maxAgeHours:24*9,pipelines:["sanidad.espera"]},
   {key:"local-liquidation",label:"Liquidación municipal de Canarias",cadence:"weekly",maxAgeHours:24*9,pipelines:["presupuestos.local"]},
