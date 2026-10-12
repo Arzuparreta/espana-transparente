@@ -70,6 +70,7 @@ run_daily() {
   run_self_tracked_pipeline "congreso.asistencia" python -m src.congreso.asistencia --from-date 20250101
   run_self_tracked_pipeline "ine.indicadores" python -m src.ine.indicadores
   run_self_tracked_pipeline "contracts_daily" python -m src.contratacion.contratos --since-days 7 --max-pages 100
+  run_self_tracked_pipeline "contratacion.resumen" python -m src.contratacion.resumen
   run_self_tracked_pipeline "subsidies_daily" python -m src.bdns.subvenciones \
     --from-date "${since}" --to-date "${today}" --importe-min 0 --max-pages 500
   run_self_tracked_pipeline "bdns.convocatorias" python -m src.bdns.convocatorias --limit 100
