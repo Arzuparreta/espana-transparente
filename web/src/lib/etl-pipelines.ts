@@ -1,4 +1,5 @@
 export const ETL_PIPELINE_LABELS: Record<string, string> = {
+  "prtr.dus5000": "PRTR · DUS 5000",
   "sanidad.espera": "Espera quirúrgica SISLE",
   "congreso.diputados": "Diputados",
   "congreso.asistencia": "Asistencia y votaciones",
@@ -80,6 +81,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"prtr-dus5000",label:"PRTR · DUS 5000",cadence:"weekly",maxAgeHours:24*9,pipelines:["prtr.dus5000"]},
   {key:"surgical-waiting",label:"Espera quirúrgica SISLE",cadence:"weekly",maxAgeHours:24*9,pipelines:["sanidad.espera"]},
   {key:"local-liquidation",label:"Liquidación municipal de Canarias",cadence:"weekly",maxAgeHours:24*9,pipelines:["presupuestos.local"]},
   {key:"territorial-financing",label:"Liquidación de financiación territorial",cadence:"weekly",maxAgeHours:24*9,pipelines:["presupuestos.financiacion"]},
