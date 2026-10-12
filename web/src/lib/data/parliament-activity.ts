@@ -11,9 +11,8 @@ import {
   validateActivity,
   type ActivityRow,
 } from "@/lib/parliament-activity";
-export const getParliamentActivity = unstable_cache(
+const cachedParliamentActivity = unstable_cache(
   async (requested?: string | string[]) => {
-    try {
       const coverageResult = await supabase
         .from("parliament_activity_coverage")
         .select("metadata")
@@ -47,11 +46,17 @@ export const getParliamentActivity = unstable_cache(
       )
         throw new Error("Activity coverage and rows disagree");
       return { coverage, year, rows, error: false };
-    } catch (error) {
-      console.error("Parliament activity", dataErrorMessage(error));
-      return { coverage: null, year: undefined, rows: [], error: true };
-    }
   },
-  ["parliament-activity-v1"],
+  ["parliament-activity-v2"],
   { revalidate: HOUR },
 );
+
+// Keep failures outside the cache: a transient failure must be retryable.
+export async function getParliamentActivity(requested?: string | string[]) {
+  try {
+    return await cachedParliamentActivity(requested)
+  } catch (error) {
+    console.error("Parliament activity", dataErrorMessage(error))
+    return { coverage: null, year: undefined, rows: [], error: true }
+  }
+}
