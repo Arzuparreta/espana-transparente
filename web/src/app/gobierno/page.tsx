@@ -100,7 +100,7 @@ export default async function GobiernoPage() {
     <div className="ui-page">
       <PageHeader
         title="Gobierno"
-        description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. Qué mandatos constan y qué registros de contratación se asocian al departamento durante ese periodo.`}
+        description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. Qué mandatos constan y qué registros de contratación se asocian al departamento durante ese periodo. Responsabilidad política, competencia sobre un expediente y firma son evidencias distintas: la asociación al departamento no prueba una decisión personal.`}
       />
 
       <StatGrid
