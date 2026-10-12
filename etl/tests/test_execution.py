@@ -69,6 +69,10 @@ def test_sql_migration_seed_idempotence_rollback_and_permissions():
             cur.execute((migrations/'20261012000000_budget_execution.sql').read_text())
             cur.execute("SELECT credit,obligations,payments FROM budget_execution WHERE chapter='NF'")
             assert cur.fetchone()==(272465015,263369367,256999714)
+            cur.execute((migrations/'20261012010000_budget_execution_series.sql').read_text())
+            cur.execute((migrations/'20261012010000_budget_execution_series.sql').read_text())
+            cur.execute('SELECT count(*), count(DISTINCT period) FROM budget_execution')
+            assert cur.fetchone()==(144,12)
             records=parse_workbook(workbook())
             other=list(records[0]);other[1]='2024-12'
             cur.execute('INSERT INTO budget_execution VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)',other)
@@ -76,14 +80,60 @@ def test_sql_migration_seed_idempotence_rollback_and_permissions():
             cur.execute("SELECT count(*) FROM budget_execution WHERE period='2025-12'");assert cur.fetchone()[0]==12
             cur.execute("SELECT count(*) FROM budget_execution WHERE period='2024-12'");assert cur.fetchone()[0]==1
         conn.commit()
+        from presupuestos.ejecucion import SOURCES, replace_series
+        with conn.cursor() as cur:
+            cur.execute("SELECT credit FROM budget_execution WHERE period='2025-01' AND chapter='1'")
+            before=cur.fetchone()[0]
+        conn.commit()
+        series=[]
+        for period in SOURCES:
+            for row in records:
+                copy=list(row);copy[1]=period;series.append(copy)
+        series[60][3]=-1  # SQL failure after five periods have been replaced
+        with pytest.raises(psycopg2.Error):
+            with conn.cursor() as cur:replace_series(cur,series)
+        conn.rollback()
+        with conn.cursor() as cur:
+            cur.execute("SELECT credit FROM budget_execution WHERE period='2025-01' AND chapter='1'")
+            assert cur.fetchone()[0]==before
         bad=list(records[0]);bad[3]=-1
         with pytest.raises(psycopg2.Error):
             with conn.cursor() as cur:replace_snapshot(cur,[bad,*records[1:]])
         conn.rollback()
         with conn.cursor() as cur:
             cur.execute('SET LOCAL ROLE anon')
-            cur.execute('SELECT count(*) FROM budget_execution');assert cur.fetchone()[0]==13
+            cur.execute('SELECT count(*) FROM budget_execution');assert cur.fetchone()[0]==145
         with pytest.raises(psycopg2.Error):
             with conn.cursor() as cur:cur.execute('DELETE FROM budget_execution')
         conn.rollback()
     finally:conn.close()
+
+
+def test_manifest_covers_twelve_independent_cuts_and_rejects_partial_series():
+    from presupuestos.ejecucion import SOURCES, replace_series
+    from unittest.mock import Mock
+    assert list(SOURCES) == [f'2025-{m:02d}' for m in range(1,13)]
+    assert len(set(SOURCES.values())) == 12
+    cur=Mock()
+    with pytest.raises(ValueError): replace_series(cur,parse_workbook(workbook()))
+    cur.execute.assert_not_called()
+    records=[]
+    for period in SOURCES:
+        for row in parse_workbook(workbook()):
+            copy=list(row);copy[1]=period;records.append(copy)
+    replace_series(cur,records)
+    assert cur.execute.call_count==12
+    assert cur.executemany.call_count==12
+    for call,period in zip(cur.execute.call_args_list,SOURCES):
+        assert call.args[1]==('ES_STATE_BUDGET',period)
+
+
+def test_fetch_failure_does_not_return_partial_series(monkeypatch):
+    from presupuestos import ejecucion
+    from unittest.mock import Mock
+    client=Mock();client.__enter__=Mock(return_value=client);client.__exit__=Mock(return_value=False)
+    response=Mock(content=workbook());response.raise_for_status.return_value=None
+    client.get.side_effect=[response,RuntimeError('source unavailable')]
+    monkeypatch.setattr(ejecucion.httpx,'Client',lambda **kwargs:client)
+    monkeypatch.setattr(ejecucion,'parse_workbook',lambda *args:parse_workbook(workbook()))
+    with pytest.raises(RuntimeError,match='unavailable'):ejecucion.fetch_records()

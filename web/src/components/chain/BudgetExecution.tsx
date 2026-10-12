@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { SourceFootnote } from "@/components/domain/SourceFootnote"
+import Link from "next/link";
+import { SourceFootnote } from "@/components/domain/SourceFootnote";
 import {
   CHAPTERS,
   EXECUTION_SOURCE,
@@ -7,29 +7,36 @@ import {
   selectExecutionPeriod,
   type Chapter,
   type ExecutionPeriod,
-} from "@/lib/budget-execution"
-import { formatEuroCompact } from "@/lib/format"
+} from "@/lib/budget-execution";
+import { formatEuroCompact } from "@/lib/format";
 
 const money = (n: number | null) =>
-  n === null ? "No numérico en fuente" : formatEuroCompact(n * 1000)
+  n === null ? "No numérico en fuente" : formatEuroCompact(n * 1000);
 const percent = (n: number | null) =>
   n === null
     ? "No calculable"
-    : `${n.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %`
+    : `${n.toLocaleString("es-ES", { maximumFractionDigits: 1 })} %`;
 export function BudgetExecution({
   data,
   period,
 }: {
   data: {
-    periods: ExecutionPeriod[]
-    rejectedPeriods: string[]
-    error: boolean
-  }
-  period?: string | string[]
+    periods: ExecutionPeriod[];
+    rejectedPeriods: string[];
+    error: boolean;
+  };
+  period?: string | string[];
 }) {
   const selected = selectExecutionPeriod(data.periods, period),
-    latest = data.periods.at(-1)
-  const nf = selected?.rows.NF
+    latest = data.periods.at(-1);
+  const series = selected
+    ? data.periods.filter(
+        (r) =>
+          r.period.slice(0, 4) === selected.period.slice(0, 4) &&
+          r.period <= selected.period,
+      )
+    : [];
+  const nf = selected?.rows.NF;
   const table = (codes: Chapter[], caption: string) =>
     selected && (
       <table className="w-full table-fixed text-left text-sm">
@@ -74,7 +81,7 @@ export function BudgetExecution({
           ))}
         </tbody>
       </table>
-    )
+    );
   return (
     <section
       className="space-y-5"
@@ -184,6 +191,79 @@ export function BudgetExecution({
             salida aplicada al presupuesto corriente. Son etapas distintas, no
             importes que deban sumarse.
           </p>
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold">
+              ¿Cómo avanzan las obligaciones y los pagos?
+            </h3>
+            <p className="text-sm leading-6">
+              Cada fila acumula desde enero hasta su corte, dentro del mismo
+              ejercicio. No sumes las filas: repetirías el gasto. El crédito
+              vigente puede cambiar entre cortes. Las diferencias entre informes
+              pueden incluir revisiones; no se presentan como gasto mensual ni
+              como medida de eficiencia.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {series.length} de {Number(selected.period.slice(5))} cortes hasta
+              el seleccionado. Los cortes ausentes no se interpolan ni se
+              convierten en cero.
+            </p>
+            <table className="w-full table-fixed text-left text-sm">
+              <caption className="pb-3 text-left text-xs leading-5 text-muted-foreground">
+                Operaciones no financieras (1–7) · euros corrientes · acumulados
+                por corte
+              </caption>
+              <thead>
+                <tr className="border-b border-border text-xs sm:text-sm">
+                  <th scope="col" className="py-2">
+                    Corte / fuente
+                  </th>
+                  <th scope="col" className="break-words px-1 py-2">
+                    Crédito vigente
+                  </th>
+                  <th scope="col" className="break-words px-1 py-2">
+                    Obligación neta
+                  </th>
+                  <th scope="col" className="break-words px-1 py-2">
+                    Pago corriente
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {series.map((r) => (
+                  <tr
+                    key={r.period}
+                    className="border-b border-border/60 align-top"
+                  >
+                    <th scope="row" className="py-3 pr-2 font-normal">
+                      <Link
+                        href={`/ejecucion-presupuestaria?period=${r.period}`}
+                        aria-current={
+                          r.period === selected.period ? "page" : undefined
+                        }
+                        className="block underline underline-offset-4"
+                      >
+                        {r.period}
+                      </Link>
+                      <a
+                        href={r.sourceUrl}
+                        className="text-xs underline underline-offset-2"
+                        aria-label={`Cuadro IGAE ${r.period}`}
+                      >
+                        IGAE ↗
+                      </a>
+                    </th>
+                    {(["credit", "obligations", "payments"] as const).map(
+                      (f) => (
+                        <td key={f} className="break-words px-1 py-3 font-mono">
+                          {money(r.rows.NF[f])}
+                        </td>
+                      ),
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {table(
             ["1", "2", "3", "4", "5", "6", "7", "NF"],
             "Operaciones no financieras",
@@ -225,7 +305,7 @@ export function BudgetExecution({
           data.error
             ? "Cobertura no consultable"
             : data.periods.length
-              ? `${data.periods.length} informe${data.periods.length === 1 ? "" : "s"} acumulado${data.periods.length === 1 ? "" : "s"} · piloto ${data.periods[0].period}${data.periods.length > 1 ? `–${latest?.period}` : ""}`
+              ? `${data.periods.length} informe${data.periods.length === 1 ? "" : "s"} acumulado${data.periods.length === 1 ? "" : "s"} · cobertura ${data.periods[0].period}${data.periods.length > 1 ? `–${latest?.period}` : ""}`
               : "Sin informes completos disponibles"
         }
       />
@@ -235,5 +315,5 @@ export function BudgetExecution({
         </a>
       </p>
     </section>
-  )
+  );
 }
