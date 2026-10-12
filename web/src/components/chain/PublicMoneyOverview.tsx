@@ -258,6 +258,10 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
             >
               Ver prioridades presupuestadas →
             </Link>
+            <Link href="/ejecucion-presupuestaria?period=2025-12" className="inline-block text-sm underline underline-offset-4">
+              Ver ejecución estatal acumulada a diciembre de 2025 →
+            </Link>
+            <p className="text-xs leading-5 text-muted-foreground">El piloto tiene su propio periodo y ámbito presupuestario; no aplica el año del resumen S13.</p>
           </article>
           <article className="space-y-3 rounded border border-border p-4">
             <h3 className="font-semibold">Qué cuentas tiene cada nivel</h3>

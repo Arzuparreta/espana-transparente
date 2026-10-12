@@ -143,6 +143,9 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
 
       <PresupuestosClient year={year} rows={rows} />
 
+      <p className="my-3 text-sm"><ResponsiveLink href="/ejecucion-presupuestaria?period=2025-12" className="underline underline-offset-4">
+          Ver ejecución del presupuesto estatal a diciembre de 2025 →
+        </ResponsiveLink>{" "}Piloto IGAE con créditos definitivos, obligaciones y pagos del presupuesto corriente. Tiene su propio ámbito y corte; no aplica el año ni los programas seleccionados aquí.</p>
       <InfoPanel title="Fuente">
         Secretaría de Estado de Presupuestos y Gastos (SEPG) · Ministerio de Hacienda.
         Datos de dotación presupuestaria por sección y programa.
