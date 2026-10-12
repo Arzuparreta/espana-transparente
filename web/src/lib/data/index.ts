@@ -95,6 +95,7 @@ export {
   getBudgetSummary,
   getBudgetSection,
   getBudgetProgram,
+  getBudgetProgramEvidence,
   getBudgetMinister,
   getBudgetSourceNote,
   type BudgetSourceKind,

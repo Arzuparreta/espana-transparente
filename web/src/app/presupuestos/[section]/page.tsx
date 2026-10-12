@@ -1,9 +1,10 @@
+import { budgetEditionUrl, budgetYearSelection, publishedBudgetTotal } from "@/lib/budget-context"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { StatGrid } from "@/components/domain/StatGrid"
 import { BudgetStatusBanner } from "@/components/presupuestos/BudgetStatusBanner"
-import { BudgetProvenanceBadge } from "@/components/presupuestos/BudgetProvenanceBadge"
+import { BudgetProvenanceNote, BudgetProvenanceBadge } from "@/components/presupuestos/BudgetProvenanceBadge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { BUDGET_YEARS, getBudgetSourceNote, getBudgetYearMeta, getBudgetMinister, getBudgetSection } from "@/lib/data"
@@ -14,7 +15,7 @@ export const revalidate = 3600
 
 interface PageProps {
   params: Promise<{ section: string }>
-  searchParams?: Promise<{ year?: string }>
+  searchParams?: Promise<{ year?: string | string[] }>
 }
 
 const CHAPTER_NAMES: Record<string, string> = {
@@ -29,9 +30,8 @@ const CHAPTER_NAMES: Record<string, string> = {
 }
 
 export default async function BudgetSectionPage({ params, searchParams }: PageProps) {
-  const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
-  const requestedYear = Number.parseInt((await searchParams)?.year ?? String(latestYear), 10)
-  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
+  const year = budgetYearSelection((await searchParams)?.year, BUDGET_YEARS)
+  if (year == null) notFound()
   const meta = getBudgetYearMeta(year)
   const sectionCode = decodeURIComponent((await params).section)
 
@@ -45,16 +45,19 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
   }
 
   const sectionName = programs[0]?.section_name ?? sectionCode
-  const totalInitial = programs.reduce((sum, p) => sum + (p.total_credit_initial ?? 0), 0)
-  const totalFinal = programs.reduce((sum, p) => sum + (p.total_credit_final ?? 0), 0)
+  const reference = programs.every(p => p.source_kind === "carried_forward")
+  const totalInitial = reference
+    ? programs.every(p => p.total_credit_initial != null) ? programs.reduce((sum,p)=>sum+p.total_credit_initial!,0) : null
+    : publishedBudgetTotal(programs)
+  const totalFinal = programs.every(p => p.total_credit_final != null) ? programs.reduce((sum, p) => sum + p.total_credit_final!, 0) : null
 
   return (
     <div className="ui-page">
       <ContextTrail
-        section={{ href: "/presupuestos", label: "Presupuestos" }}
+        section={{ href: `/presupuestos?year=${year}`, label: "Presupuestos" }}
         current={sectionName}
         meta={`Sec. ${sectionCode} · ${year}`}
-        fallbackHref="/presupuestos"
+        fallbackHref={`/presupuestos?year=${year}`}
         fallbackLabel="Volver a Presupuestos"
         related={[
           minister?.responsibility_position_id
@@ -97,14 +100,16 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
 
       <StatGrid
         items={[
-          { label: "Crédito inicial", value: formatEuroCompact(totalInitial) },
-          ...(Math.abs(totalFinal - totalInitial) > 1
+          { label: reference ? "Referencia de 2023" : "Crédito inicial publicado", value: formatEuroCompact(totalInitial) },
+          ...(totalFinal != null && totalInitial != null && Math.abs(totalFinal - totalInitial) > 1
             ? [{ label: "Crédito definitivo", value: formatEuroCompact(totalFinal) }]
             : []),
           { label: "Programas", value: programs.length.toLocaleString("es-ES") },
         ]}
       />
 
+      <BudgetProvenanceNote sourceKind={reference ? "carried_forward" : null} />
+      <p className="text-sm">Dotaciones, no ejecución o pago. <a href={budgetEditionUrl(reference ? 2023 : year)} target="_blank" rel="noopener noreferrer" className="underline">Edición oficial {reference ? 2023 : year}</a>. Hasta 2023: extracción de Civio scraper-pge.</p>
       {/* Program list */}
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">
@@ -126,7 +131,7 @@ export default async function BudgetSectionPage({ params, searchParams }: PagePr
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="shrink-0 font-mono text-xs text-muted-foreground">{p.program_code}</span>
-                      <span className="text-sm font-medium leading-snug">{p.program_name ?? "—"}</span>
+                      <ResponsiveLink href={`/presupuestos/${sectionCode}/${p.program_code}?year=${year}`} className="text-sm font-medium leading-snug underline">{p.program_name ?? "—"}</ResponsiveLink>
                       <BudgetProvenanceBadge
                         sourceKind={p.source_kind}
                         sourceYear={p.source_year}

@@ -1,3 +1,4 @@
+import { publishedBudgetTotal } from "@/lib/budget-context"
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, throwDataError, type BudgetSourceKind, type BudgetType } from "./shared"
 
@@ -21,18 +22,18 @@ export const BUDGET_YEAR_META: Record<
   2023: { budgetType: "ley", label: "Aprobado", note: "PGE aprobado." },
   2024: {
     budgetType: "prorroga",
-    label: "Prórroga vigente",
-    note: "No hubo un nuevo presupuesto aprobado. Siguieron en vigor los créditos prorrogados del PGE 2023, publicados por SEPG.",
+    label: "Prórroga publicada",
+    note: "Edición de la prórroga publicada por SEPG para este ejercicio, con base en el PGE aprobado de 2023. Seguridad Social conserva una referencia de 2023 separada.",
   },
   2025: {
     budgetType: "prorroga",
-    label: "Prórroga vigente",
-    note: "No hubo un nuevo presupuesto aprobado. Siguieron en vigor los créditos prorrogados del PGE 2023, publicados por SEPG.",
+    label: "Prórroga publicada",
+    note: "Edición de la prórroga publicada por SEPG para este ejercicio, con base en el PGE aprobado de 2023. Seguridad Social conserva una referencia de 2023 separada.",
   },
   2026: {
     budgetType: "prorroga",
-    label: "Prórroga vigente",
-    note: "No hubo un nuevo presupuesto aprobado. Siguen en vigor los créditos prorrogados del PGE 2023, publicados por SEPG para 2026.",
+    label: "Prórroga publicada",
+    note: "Edición de la prórroga publicada por SEPG para 2026, con base en el PGE aprobado de 2023. Seguridad Social conserva una referencia de 2023 separada.",
   },
 }
 
@@ -50,10 +51,10 @@ export function getBudgetSourceNote(row: {
   in_force_year?: number | null
 }) {
   if (row.source_kind === "carried_forward" && row.source_year) {
-    return `Dato prorrogado desde PGE ${row.source_year}`
+    return `Referencia de PGE ${row.source_year}; crédito actualizado no acreditado`
   }
   if (row.source_kind === "published_prorroga" && row.in_force_year) {
-    return `Dato de prórroga · PGE en vigor ${row.in_force_year}`
+    return `Prórroga publicada para ${row.source_year ?? "este ejercicio"} · base aprobada ${row.in_force_year}`
   }
   return null
 }
@@ -68,7 +69,7 @@ export const getBudgetSummary = unstable_cache(
     throwDataError(error, "budget summary")
     return data ?? []
   },
-  ["budget-summary"],
+  ["budget-summary-editions-v2"],
   { revalidate: HOUR }
 )
 
@@ -83,7 +84,7 @@ export const getBudgetSection = unstable_cache(
     throwDataError(error, "budget section")
     return data ?? []
   },
-  ["budget-section"],
+  ["budget-section-editions-v2"],
   { revalidate: HOUR }
 )
 
@@ -98,13 +99,13 @@ export const getBudgetProgram = unstable_cache(
     throwDataError(error, "budget program")
     return data ?? []
   },
-  ["budget-program"],
+  ["budget-program-editions-v2"],
   { revalidate: HOUR }
 )
 
 export const getBudgetMinister = unstable_cache(
   async (year: number, sectionCode: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("v_budget_responsibility")
       .select("budget_type, minister_name, responsibility_position_id")
       .eq("year", year)
@@ -112,6 +113,7 @@ export const getBudgetMinister = unstable_cache(
       .not("minister_name", "is", null)
       .limit(1)
       .maybeSingle()
+    throwDataError(error, "budget minister")
     return data ?? null
   },
   ["budget-minister"],
@@ -136,8 +138,8 @@ export const getBudgetAnchor = unstable_cache(
       const rows = await getBudgetSummary(year)
       if (rows.length === 0) continue
 
-      const total = rows.reduce((sum, row) => sum + (row.total_credit_initial ?? 0), 0)
-      if (total <= 0) continue
+      const total = publishedBudgetTotal(rows)
+      if (total == null || total <= 0) continue
 
       const first = rows[0]
       const meta = getBudgetYearMeta(year)
@@ -157,4 +159,14 @@ export const getBudgetAnchor = unstable_cache(
   },
   ["budget-anchor-home"],
   { revalidate: HOUR }
+)
+
+export const getBudgetProgramEvidence = unstable_cache(
+  async (sectionCode: string, programCode: string) => {
+    const { data, error } = await supabase.from("budget_lines")
+      .select("year, source_kind, source_url")
+      .eq("section_code", sectionCode).eq("program_code", programCode)
+    throwDataError(error, "budget program sources")
+    return data ?? []
+  }, ["budget-program-evidence"], { revalidate: HOUR }
 )
