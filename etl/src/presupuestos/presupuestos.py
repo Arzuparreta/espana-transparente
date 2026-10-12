@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import io
+import json
 import zipfile
 from collections import defaultdict
 from datetime import date
@@ -24,7 +25,7 @@ import psycopg2.extras
 from common.db import get_pg_conn
 from common.etl_runs import finish_run, is_chunk_succeeded, start_run
 from common.responsibility import normalize_public_body
-from presupuestos.sources import BudgetSource, available_years, download_funcional, download_gastos
+from presupuestos.sources import get_source, BudgetSource, available_years, download_funcional, download_gastos
 from presupuestos.scraper_sepg import SepgRecord, scrape_year as scrape_sepg_year
 
 
@@ -208,12 +209,15 @@ def parse_sepg_records(rows: list[SepgRecord], source: BudgetSource) -> list[dic
             "credit_final":         None,
             "ministry_normalized":  normalize_public_body(row.section_name),
             "administration_level": "state",
-            "source_url":           source.gastos_url,
+            "source_url":           row.source_url or source.gastos_url,
             "raw_data":             psycopg2.extras.Json({
                 "source": source.notes,
                 "budget_type": source.budget_type,
                 "source_kind": "published_prorroga",
                 "in_force_year": source.in_force_year,
+                "edition_index_url": source.gastos_url,
+                "verified_exercise": source.year,
+                "source_sha256": row.source_sha256,
                 "section_code": row.section_code,
                 "program_code": row.program_code,
                 "economic_chapter": row.economic_chapter,
@@ -242,7 +246,7 @@ def build_carried_forward_records(
 
         raw = dict(base.get("raw_data") or {})
         raw.update({
-            "source": source.notes,
+            "reference_context_url": source.gastos_url,
             "budget_type": source.budget_type,
             "source_kind": "carried_forward",
             "source_year": source.in_force_year,
@@ -256,7 +260,7 @@ def build_carried_forward_records(
             "source_kind": "carried_forward",
             "source_year": source.in_force_year,
             "in_force_year": source.in_force_year,
-            "source_url": source.gastos_url,
+            "source_url": base.get("source_url") or get_source(source.in_force_year).gastos_url,
             "raw_data": psycopg2.extras.Json(raw),
         })
 
@@ -479,10 +483,13 @@ def parse_records(raw: bytes, source: BudgetSource) -> list[dict]:
 
 # ─── Upsert ───────────────────────────────────────────────────────────────────
 
-def upsert(conn, records: list[dict]) -> int:
+def upsert(conn, records: list[dict], *, replace_year: int | None = None, commit: bool = True) -> int:
     if not records:
         return 0
     cur = conn.cursor()
+    if replace_year is not None:
+        if any(r["year"] != replace_year or r["budget_type"] != "prorroga" for r in records):
+            raise ValueError("Replacement must contain one complete prorroga exercise")
     for rec in records:
         cur.execute("""
             INSERT INTO budget_lines (
@@ -520,7 +527,15 @@ def upsert(conn, records: list[dict]) -> int:
               raw_data            = EXCLUDED.raw_data,
               updated_at          = now()
         """, rec)
-    conn.commit()
+    if replace_year is not None:
+        keys = [{key: r.get(key) for key in ("section_code", "program_code", "economic_chapter")} for r in records]
+        cur.execute("""DELETE FROM budget_lines bl WHERE year=%s AND budget_type='prorroga'
+            AND NOT EXISTS (SELECT 1 FROM jsonb_to_recordset(%s::jsonb)
+              AS k(section_code text,program_code text,economic_chapter integer)
+              WHERE (k.section_code,k.program_code,k.economic_chapter)=
+                    (bl.section_code,bl.program_code,bl.economic_chapter))""", (replace_year, json.dumps(keys)))
+    if commit:
+        conn.commit()
     cur.close()
     return len(records)
 
@@ -578,7 +593,7 @@ def run_year(*, year: int, resume: bool, dry_run: bool) -> tuple[int, int]:
 
         upserted = 0
         if conn:
-            upserted = upsert(conn, records)
+            upserted = upsert(conn, records, replace_year=year if source.fmt == "sepg_prorroga" else None, commit=False)
             cur = conn.cursor()
             finish_run(
                 cur,

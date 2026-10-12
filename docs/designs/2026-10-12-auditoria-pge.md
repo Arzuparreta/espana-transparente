@@ -1,0 +1,21 @@
+# Auditoría de edición, importes y procedencia PGE
+
+Pregunta: ¿qué créditos se publicaron para el ejercicio elegido y cuáles son solo referencias históricas? Respuesta: dotaciones de la edición SEPG verificada, con presupuesto aprobado/proyecto/prórroga diferenciados; la referencia de Seguridad Social de 2023 no se suma como crédito actualizado de 2024–2026.
+
+Fuentes verificadas: los índices `PGE2023Prorroga`, `PGE2024Prorroga` y `PGE2025Prorroga` declaran respectivamente ejercicios 2024, 2025 y 2026. El año del nombre de carpeta no demuestra el ejercicio. Índices oficiales bajo `https://www.sepg.pap.hacienda.gob.es/Presup/{carpeta}/MaestroDocumentos/PGE-ROM/Indice.htm`. Los 37 apartados presupuestarios proporcionan CSV por programa; hasta 2023 se conserva la extracción de Civio y sus enlaces originales.
+
+Medida/ámbito: dotaciones iniciales publicadas del sector administrativo estatal con presupuesto limitativo en la serie roja, en euros tras convertir los miles del CSV. No es gasto ejecutado, pago, todo S13 ni total consolidado de administraciones. Transferencias internas y créditos financieros impiden interpretar la suma como gasto final. Prórroga con base 2023 no significa que todos los importes permanezcan iguales ni que la cifra de 2023 acredite el crédito actualizado.
+
+La extracción anterior seleccionaba el detalle `_2` de algunos programas que no incluía todas las dotaciones, y perdía capítulos publicados directamente sin conceptos hijos. Ahora prefiere el resumen económico completo `_3` (o la variante interna publicada) y selecciona el nivel superior de cada rama orgánica/económica. Nunca suma capítulo/artículo/concepto como categorías adicionales. Cada programa exige identidad, unidad, columna Total e importe total publicado único; valores no finitos y discrepancias hacen fallar antes de reemplazar datos. La tolerancia de conciliación por programa es 0,051 miles de euros, sin fabricar restos.
+
+Periodo/contexto: selección estricta de un año soportado, sin `parseInt` ni salto al último cuando el solicitado no existe. El programa muestra cifras, nombre y enlaces del ejercicio seleccionado. Los vínculos a sección, catálogo y trazabilidad conservan el año. Cada programa muestra edición oficial y CSV de origen. Las referencias mantienen el documento 2023, no una URL que aparenta probar un crédito del ejercicio posterior.
+
+Persistencia: upsert conserva IDs de las claves actuales y elimina solo claves obsoletas de la prórroga auditada. Reemplazo y registro de éxito del ETL comparten transacción; fallo hace rollback. Migración con 4.001 observaciones públicas verificadas para corregir los tres ejercicios al desplegar, sin esperar un cron que solo refresca el año actual. No añade tabla pública ni datos privados; conserva referencias históricas separadas y actualiza su procedencia desde la partida original. Fuente y SHA-256 por CSV. No se atribuye decisión personal a una coincidencia por ministerio.
+
+Evidencia del 12 de octubre:
+
+- Lectura íntegra y conciliación de los CSV oficiales: 1.332 filas en 2024, 1.332 en 2025 y 1.337 en 2026. Totales publicados, excluyendo referencias: 435.492.762.910 €, 435.807.762.910 € y 435.804.734.100 €. Son sumas del ámbito presupuestario descrito, sin inferir consolidación.
+- Seed SQL contrastado contra todos los valores y metadatos del decoder. PostgreSQL aislado prueba importes, conservación de ID, retirada de claves obsoletas, documento original de referencias y rollback de reemplazo fallido. Las fixtures oficiales cubren Cortes (capítulo sin conceptos), cooperación (detalle incompleto frente a resumen) y transferencias internas.
+- 422 pruebas ETL correctas con integraciones PostgreSQL; una integración ajena de búsqueda omitida por faltar su conexión específica. Checks web, CI del último head y verificación de la revisión desplegada se registran en la PR.
+- 283 pruebas web, lint, auditorías UI/contenido y build correctos. Claves de caché presupuestarias renovadas para no reutilizar las cifras anteriores a la corrección; la caché de otras colecciones mantiene su política.
+- La aceptación con participantes reales sigue pendiente. Esta auditoría cierra la reparación técnica PGE del plan; no certifica comprensión ciudadana ni cobertura de instrumentos europeos y resultados de servicios de fase 5.

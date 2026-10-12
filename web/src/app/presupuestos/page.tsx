@@ -1,3 +1,5 @@
+import { budgetEditionUrl, budgetYearSelection, publishedBudgetTotal } from "@/lib/budget-context"
+import { EmptyState } from "@/components/domain/EmptyState"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
@@ -17,7 +19,7 @@ export const metadata = {
 
 interface PageProps {
   searchParams?: Promise<{
-    year?: string
+    year?: string | string[]
   }>
 }
 
@@ -31,8 +33,8 @@ function clasesPasivasProgramCode(year: number) {
 
 export default async function PresupuestosPage({ searchParams }: PageProps) {
   const latestYear = BUDGET_YEARS[BUDGET_YEARS.length - 1]
-  const requestedYear = Number.parseInt((await searchParams)?.year ?? String(latestYear), 10)
-  const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
+  const year = budgetYearSelection((await searchParams)?.year, BUDGET_YEARS)
+  if (year == null) return <div className="ui-page"><PageHeader title="Presupuestos" description="¿Qué créditos se publicaron para este ejercicio?" /><EmptyState title="Ejercicio no disponible" description="Selecciona un único año con datos. No se sustituye por otro ejercicio." /><ResponsiveLink href="/presupuestos" className="underline">Ver ejercicios disponibles</ResponsiveLink></div>
   const meta = getBudgetYearMeta(year)
 
   const [rows, lastChecked] = await Promise.all([
@@ -40,7 +42,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     getEtlLastFinished(["presupuestos"]),
   ])
 
-  const totalInitial = rows.reduce((sum, r) => sum + (r.total_credit_initial ?? 0), 0)
+  const totalInitial = publishedBudgetTotal(rows)
   const sectionCount = rows.length
   const programCount = rows.reduce((sum, r) => sum + (r.program_count ?? 0), 0)
   const prorrogaCount = rows.filter(
@@ -53,7 +55,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     {
       href: `/presupuestos/60?year=${year}`,
       label: "Seguridad Social",
-      detail: "Sección 60 · pensiones contributivas y prestaciones",
+      detail: year >= 2024 ? "Sección 60 · referencia de 2023, no crédito actualizado" : "Sección 60 · pensiones contributivas y prestaciones",
       amount: socialSecurity?.total_credit_initial ?? null,
     },
     {
@@ -80,7 +82,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="Presupuestos"
-        description="El plan anual del Estado: cuánto piensa gastar y en qué áreas (sanidad, defensa, educación, pensiones). Cuando no hay nuevo presupuesto aprobado, se muestran los créditos prorrogados."
+        description="¿Qué créditos se publicaron y para qué programas? Dotaciones presupuestarias, con referencias históricas separadas. No son gasto realizado ni pago; las transferencias entre entidades impiden leer la suma como gasto final consolidado."
       />
 
       {meta ? (
@@ -95,7 +97,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       {rows.length > 0 ? (
         <StatGrid
           items={[
-            { label: `Crédito inicial ${year}`, value: formatEuroCompact(totalInitial) },
+            { label: `Créditos publicados ${year}`, value: formatEuroCompact(totalInitial) },
             { label: "Secciones", value: sectionCount.toLocaleString("es-ES") },
             { label: "Programas", value: programCount.toLocaleString("es-ES") },
             ...(prorrogaCount > 0
@@ -103,7 +105,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
                   {
                     label: "En prórroga",
                     value: `${prorrogaCount} ${prorrogaCount === 1 ? "sección" : "secciones"}`,
-                    hint: "Sin nuevo presupuesto aprobado: créditos del año anterior prorrogados automáticamente.",
+                    hint: "Edición oficial de prórroga y referencias históricas, identificadas por separado.",
                     valueClassName: "text-amber-600 dark:text-amber-400",
                   },
                 ]
@@ -113,13 +115,14 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       ) : null}
 
       <SourceFootnote
-        sourceLabel="SEPG · Ministerio de Hacienda"
+        sourceLabel={year >= 2024 ? "SEPG · Ministerio de Hacienda" : "SEPG · extracción de Civio scraper-pge"}
         lastChecked={lastChecked}
         coverageLabel={`${BUDGET_YEARS[0]}–${BUDGET_YEARS[BUDGET_YEARS.length - 1]} (sin 2020)${
           meta?.label ? ` · ${meta.label} ${year}` : ""
         }`}
       />
 
+      <p className="text-sm leading-6">El total excluye los importes marcados como referencia de 2023. En la prórroga cubre el sector administrativo estatal con presupuesto limitativo publicado en la serie roja; no equivale a todas las administraciones. <a href={budgetEditionUrl(year)} target="_blank" rel="noopener noreferrer" className="underline">Edición oficial del ejercicio {year}</a>.</p>
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Accesos directos
@@ -148,7 +151,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
         </ResponsiveLink>{" "}Piloto IGAE con créditos definitivos, obligaciones y pagos del presupuesto corriente. Tiene su propio ámbito y corte; no aplica el año ni los programas seleccionados aquí.</p>
       <InfoPanel title="Fuente">
         Secretaría de Estado de Presupuestos y Gastos (SEPG) · Ministerio de Hacienda.
-        Datos de dotación presupuestaria por sección y programa.
+        Datos de dotación presupuestaria por sección y programa. Hasta 2023, extracción de Civio scraper-pge; desde 2024, CSV de las ediciones oficiales de prórroga.
         Cobertura 2016–{latestYear} (sin 2020; España prorrogó el PGE 2018 ese año).
         {meta ? ` Estado ${year}: ${meta.note}` : ""}
       </InfoPanel>

@@ -89,6 +89,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
 | Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
 | Fase 3, liquidación local | 88 municipios canarios, cuatro fases de 2024 y huecos oficiales; [contrato](2026-10-12-liquidacion-local.md). Cobertura nacional no inferida |
+| Fase 3, auditoría de prórrogas PGE | Edición, conciliación por programa y referencias 2023 separadas; [contrato](2026-10-12-auditoria-pge.md) |
 | Fase 3, financiación territorial | Saldo de liquidación 2024, 15 comunidades y dos ciudades; [contrato](2026-10-12-financiacion-territorial.md). No es financiación anual total ni pago neto |
 | Fase 4, publicación y vigencia | Congreso → PDF/CVE → XML BOE, leyes y correcciones separadas; [contrato](2026-10-12-publicacion-vigencia.md) |
 | Fase 4, precios de vivienda | IPV base 2025 por trimestre/territorio, tasas y límites; [contrato](2026-10-12-precios-vivienda.md) |

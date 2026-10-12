@@ -23,8 +23,8 @@ export function BudgetProvenanceBadge({
   if (!isCarriedForward && !isPublishedProrroga) return null
 
   const label = isCarriedForward
-    ? `Prorrogado desde ${sourceYear ?? "año anterior"}`
-    : `Prórroga oficial · en vigor ${inForceYear ?? ""}`
+    ? `Referencia de ${sourceYear ?? "otro ejercicio"}`
+    : `Prórroga ${sourceYear ?? "publicada"} · base ${inForceYear ?? "no acreditada"}`
 
   return (
     <Badge
@@ -49,10 +49,9 @@ export function BudgetProvenanceNote({ sourceKind, className }: BudgetProvenance
 
   return (
     <p className={cn("text-xs leading-5 text-amber-700 dark:text-amber-400", className)}>
-      Esta cifra no proviene de un presupuesto aprobado para este año.
-      El Estado no presentó ni aprobó nuevos créditos: los del año anterior
-      siguieron en vigor automáticamente. El gasto real puede diferir
-      porque los importes no se votaron ni se ajustaron a la situación actual.
+      Importe del presupuesto aprobado de 2023 reutilizado como referencia.
+      No acredita el crédito inicial actualizado de este ejercicio ni su ejecución o pago.
+      Se excluye del total de créditos publicados para la prórroga.
     </p>
   )
 }

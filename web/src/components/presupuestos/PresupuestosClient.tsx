@@ -108,7 +108,7 @@ export function PresupuestosClient({ year, rows }: PresupuestosClientProps) {
             description={
               meta?.budgetType === "prorroga" || meta?.budgetType === "proyecto"
                 ? meta.note
-                : <>Ejecuta el ETL: <code>PYTHONPATH=src python -m src.presupuestos.presupuestos --year {year}</code></>
+                : "No hay datos publicados en esta consulta."
             }
           />
         ) : (

@@ -65,8 +65,8 @@ def _civio_source(year: int, folder: str, *, budget_type: str = "ley", notes: st
 
 _SEPG_PRORROGA_BASE = "https://www.sepg.pap.hacienda.gob.es/sitios/sepg/es-ES/Presupuestos/PGE"
 _SEPG_PRORROGA_YEARS: dict[int, tuple[str, int]] = {
-    2024: ("PGE2024Prorroga", 2023),
-    2025: ("PGE2025Prorroga", 2023),
+    2024: ("PGE2023Prorroga", 2023),
+    2025: ("PGE2024Prorroga", 2023),
     2026: ("PGE2025Prorroga", 2023),
 }
 
@@ -75,7 +75,7 @@ def _sepg_prorroga_source(year: int, folder: str, in_force_year: int) -> BudgetS
     return BudgetSource(
         year=year,
         fmt="sepg_prorroga",
-        gastos_url=f"{_SEPG_PRORROGA_BASE}/{folder}/paginas/{folder.lower()}.aspx",
+        gastos_url=f"https://www.sepg.pap.hacienda.gob.es/Presup/{folder}/MaestroDocumentos/PGE-ROM/Indice.htm",
         budget_type="prorroga",
         in_force_year=in_force_year,
         notes=f"SEPG ROM prorroga, folder={folder}, PGE en vigor={in_force_year}",

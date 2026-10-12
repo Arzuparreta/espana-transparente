@@ -10,6 +10,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
+import math
+from dataclasses import replace
 import csv
 import io
 import os
@@ -25,8 +28,8 @@ _BASE = "https://www.sepg.pap.hacienda.gob.es/Presup"
 
 # ROM folder name per prórroga year  (update when SEPG publishes new ones)
 PRORROGA_FOLDERS: dict[int, str] = {
-    2024: "PGE2024Prorroga",
-    2025: "PGE2025Prorroga",
+    2024: "PGE2023Prorroga",
+    2025: "PGE2024Prorroga",
     2026: "PGE2025Prorroga",
 }
 
@@ -39,6 +42,8 @@ class SepgRecord:
     program_name: str | None
     economic_chapter: int
     credit_initial: float  # euros (converted from thousands)
+    source_url: str = ""
+    source_sha256: str = ""
 
 
 # ─── HTTP helper ─────────────────────────────────────────────────────────────
@@ -66,7 +71,7 @@ def _curl_get(url: str, timeout: int = 30) -> bytes:
 
 # ─── ROM index parsing ────────────────────────────────────────────────────────
 
-def get_gastos_page_names(folder: str) -> list[str]:
+def get_gastos_page_names(folder: str, *, expected_year: int) -> list[str]:
     """Return all 'estado de gastos' page names from the ROM index.
 
     Each entry is a relative path like 'N_24P_E_R_31_101_1_1_1.htm'.
@@ -74,6 +79,8 @@ def get_gastos_page_names(folder: str) -> list[str]:
     """
     index_url = f"{_BASE}/{folder}/MaestroDocumentos/PGE-ROM/Indice.htm"
     content = _curl_get(index_url).decode("latin-1")
+    if not re.search(rf"Presupuesto\s+prorrogado\s+para\s+{expected_year}(?!\d)", content, re.I):
+        raise RuntimeError(f"SEPG {folder}: index does not declare exercise {expected_year}")
     pattern = re.compile(r'href="(N_\w+_E_R_31_\d+_\d+_1_1\.htm)"')
     pages = list(dict.fromkeys(pattern.findall(content)))
     return pages
@@ -82,15 +89,22 @@ def get_gastos_page_names(folder: str) -> list[str]:
 def get_csv_names_from_gastos_page(folder: str, page_name: str) -> list[str]:
     """Fetch a section 'estado de gastos' page and return all program CSV names.
 
-    Returns filenames like 'N_24P_E_R_31_101_1_1_1_1911M_2.CSV' (the _2 suffix
-    marks 'estado de gastos'; we skip _3 which is 'resumen orgánico').
+    Prefer the complete economic summary (_3); use _2 where it is the
+    only published table (e.g. internal transfers 000X).
     """
     page_url = f"{_BASE}/{folder}/MaestroDocumentos/PGE-ROM/{page_name}"
     content = _curl_get(page_url).decode("latin-1")
     time.sleep(REQUEST_DELAY)
-    return list(dict.fromkeys(
-        re.findall(r'doc/CSV/([^"\'\s]+_2\.CSV)', content)
-    ))
+    names = list(dict.fromkeys(re.findall(r'doc/CSV/([^"\'\s]+_(?:[23]|T_[12])\.CSV)', content)))
+    # Detailed _2 CSVs can contain only selected appropriations. The _3
+    # economic summary publishes full chapter totals, including entities.
+    groups: dict[str, str] = {}
+    for name in names:
+        base = name[:-6]
+        if base not in groups or name.endswith("_3.CSV") or name.endswith("_T_2.CSV"):
+            groups[base] = name
+    return list(groups.values())
+
 
 
 # ─── CSV parsing ─────────────────────────────────────────────────────────────
@@ -103,7 +117,7 @@ def _parse_amount(value: str) -> float | None:
     cleaned = cleaned.replace(".", "").replace(",", ".")
     try:
         v = float(cleaned)
-        return v if v != 0 else None
+        return v if math.isfinite(v) else None
     except ValueError:
         return None
 
@@ -111,8 +125,8 @@ def _parse_amount(value: str) -> float | None:
 def parse_sepg_csv(content: bytes) -> list[SepgRecord]:
     """Parse one SEPG ROM program CSV into SepgRecord list (one per chapter).
 
-    Aggregates concept-level rows (3-digit Económica) to chapter level,
-    falling back to article (2-digit) if no concept rows are present.
+    Reads complete economic summaries, or reconciled detailed rows.
+    Selects the highest published level of each economic branch.
     Amounts are converted from thousands to euros.
     """
     text = content.decode("latin-1")
@@ -135,51 +149,55 @@ def parse_sepg_csv(content: bytes) -> list[SepgRecord]:
             program_code = m.group(1).strip()
             program_name = m.group(2).strip()
 
-    if not section_code or not program_code:
-        return []
+    if not section_code or not program_code or "(Miles de euros)" not in text:
+        raise RuntimeError("SEPG CSV: missing identity or thousands-of-euros unit")
 
     # ── Table parsing ──────────────────────────────────────────────────────
-    concept_amounts: dict[str, float] = {}   # 3-digit economic code → amount (thousands)
-    article_amounts: dict[str, float] = {}   # 2-digit economic code → amount (thousands)
-
+    amounts: dict[tuple[str, str], float] = defaultdict(float)
     reader = csv.reader(io.StringIO(text), delimiter=";")
     in_table = False
-
+    organic = ""
+    summary_layout = False
+    total_index = 4
     for row in reader:
-        if not row:
-            continue
-        # Detect header row (contains "Económica" / "Economica")
-        if any("con" in c.lower() and "mica" in c.lower() for c in row):
+        if any(c.strip().lower() in {"económica", "economica"} for c in row):
             in_table = True
+            summary_layout = row[0].strip().lower() in {"económica", "economica"}
+            if "Total" not in row:
+                raise RuntimeError("SEPG CSV: missing total column")
+            total_index = row.index("Total")
             continue
-        if not in_table:
+        if not in_table or len(row) <= total_index:
             continue
-        if len(row) < 5:
+        if not summary_layout and row[0].strip():
+            organic = row[0].strip()
+        code = row[0 if summary_layout else 1].strip()
+        if not re.fullmatch(r"[1-9]\d{0,2}", code) or not row[total_index].strip():
             continue
+        value = _parse_amount(row[total_index])
+        if value is None:
+            if row[total_index].strip() not in {"0", "0,00"}:
+                raise RuntimeError(f"SEPG CSV {program_code}: invalid amount")
+            value = 0.0
+        amounts[(organic, code)] += value
 
-        economica = row[1].strip() if len(row) > 1 else ""
-        total_raw = row[4].strip() if len(row) > 4 else ""
-
-        if not economica or not total_raw:
-            continue
-        if not re.match(r"^\d+$", economica):
-            continue
-
-        amount = _parse_amount(total_raw)
-        if amount is None:
-            continue
-
-        if len(economica) == 3:
-            concept_amounts[economica] = concept_amounts.get(economica, 0) + amount
-        elif len(economica) == 2:
-            article_amounts[economica] = article_amounts.get(economica, 0) + amount
-
-    # ── Chapter aggregation ────────────────────────────────────────────────
-    # Prefer concept (3-digit) over article (2-digit) to avoid double-counting
-    source = concept_amounts if concept_amounts else article_amounts
+    # Select each branch's highest published amount. Some direct chapter
+    # appropriations (e.g. Cortes chapter 6) have no article/concept children.
     chapter_totals: dict[int, float] = defaultdict(float)
-    for code, amount_thousands in source.items():
-        chapter_totals[int(code[0])] += amount_thousands
+    for (organic, code), amount in amounts.items():
+        if any((organic, code[:length]) in amounts for length in range(1, len(code))):
+            continue
+        chapter_totals[int(code[0])] += amount
+
+    total_rows = [row for row in csv.reader(io.StringIO(text), delimiter=";")
+                  if len(row) > total_index and (row[1].strip() == "TOTAL" if summary_layout else row[2].strip() == f"TOTAL {program_name}")]
+    if len(total_rows) != 1:
+        raise RuntimeError(f"SEPG CSV {program_code}: missing unique program total")
+    expected = _parse_amount(total_rows[0][total_index])
+    if expected is None:
+        raise RuntimeError(f"SEPG CSV {program_code}: invalid program total")
+    if abs(sum(chapter_totals.values()) - expected) > 0.051:
+        raise RuntimeError(f"SEPG CSV {program_code}: chapters do not reconcile with program total")
 
     return [
         SepgRecord(
@@ -213,7 +231,7 @@ def scrape_year(year: int, *, verbose: bool = True) -> list[SepgRecord]:
     if verbose:
         print(f"Fetching ROM index for {folder} ...")
 
-    gastos_pages = get_gastos_page_names(folder)
+    gastos_pages = get_gastos_page_names(folder, expected_year=year)
     if not gastos_pages:
         raise RuntimeError(f"SEPG {folder}: no budget sections in source index")
     if verbose:
@@ -227,6 +245,8 @@ def scrape_year(year: int, *, verbose: bool = True) -> list[SepgRecord]:
             print(f"  [{i:02d}/{len(gastos_pages)}] {page_name}")
 
         csv_names = get_csv_names_from_gastos_page(folder, page_name)
+        if not csv_names:
+            raise RuntimeError(f"SEPG {folder}: no program CSVs in {page_name}")
         new_csv_names = [n for n in csv_names if n not in seen_csv_names]
         seen_csv_names.update(new_csv_names)
 
@@ -240,9 +260,8 @@ def scrape_year(year: int, *, verbose: bool = True) -> list[SepgRecord]:
 
             records = parse_sepg_csv(csv_bytes)
             if not records:
-                if verbose:
-                    print(f"    WARNING: no records from {csv_name}")
-            all_records.extend(records)
+                raise RuntimeError(f"SEPG {folder}: no observations from {csv_name}")
+            all_records.extend(replace(r, source_url=csv_url, source_sha256=hashlib.sha256(csv_bytes).hexdigest()) for r in records)
 
     if verbose:
         unique_programs = len({(r.section_code, r.program_code) for r in all_records})
