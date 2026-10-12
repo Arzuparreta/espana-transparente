@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  { key: "distribucion-salarial", href: "/distribucion-salarial", label: "Distribución salarial", area: "economia", section: "Ingresos", description: "Media y tramos del salario bruto mensual, con población, año y fuente." },
   { key: "actividad-senado", href: "/actividad-senado", label: "Control en el Senado", area: "decisiones", section: "Temas", description: "Mociones e interpelaciones sobre vivienda, roles, trámites y documentos." },
   { key: "vivienda", href: "/temas/vivienda", label: "Vivienda", area: "decisiones", section: "Temas", description: "Actividad registrada por materia, personas, documentos y recorridos de dinero y economía." },
   { key: "liquidacion-autonomica", href: "/liquidacion-autonomica", label: "Liquidación autonómica", area: "territorio", section: "Presupuestos", description: "Crédito inicial y definitivo, obligaciones y pagos de 17 comunidades en 2024." },

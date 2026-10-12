@@ -1,0 +1,324 @@
+{
+  "version": "epa-monthly-national-2021-v1",
+  "sources": {
+    "66237": "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/66237?nult=100",
+    "66252": "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/66252?nult=100",
+    "66199": "https://servicios.ine.es/wstempus/js/ES/DATOS_TABLA/66199?nult=100"
+  },
+  "retrieved_at": "2026-10-12T11:36:44.837530+00:00",
+  "sha256": {
+    "66237": "a131dc50ec867ba97fadcd51a67e5811fc7a0b5fa6b518f4aed9dde00bb76e6e",
+    "66252": "20222e63c2d78eb2d5aa88abab37e3fff880b2d51b7c1e6b1d1ae290b3c85177",
+    "66199": "cd9071fc370c759be2afc71431e349081bb016f66249aac443a9002e24f48913"
+  },
+  "years": [
+    {
+      "year": 2021,
+      "mean": 2076.5,
+      "count_thousands": 16633.6,
+      "bands": [
+        {
+          "decile": 1,
+          "lower": null,
+          "mean": 566.3,
+          "count_thousands": 1663.1,
+          "share": 10.0
+        },
+        {
+          "decile": 2,
+          "lower": 852.7,
+          "mean": 1033.9,
+          "count_thousands": 1663.6,
+          "share": 10.0
+        },
+        {
+          "decile": 3,
+          "lower": 1156.4,
+          "mean": 1256.8,
+          "count_thousands": 1663.0,
+          "share": 10.0
+        },
+        {
+          "decile": 4,
+          "lower": 1353.1,
+          "mean": 1455.0,
+          "count_thousands": 1663.2,
+          "share": 10.0
+        },
+        {
+          "decile": 5,
+          "lower": 1551.9,
+          "mean": 1652.7,
+          "count_thousands": 1663.6,
+          "share": 10.0
+        },
+        {
+          "decile": 6,
+          "lower": 1752.7,
+          "mean": 1865.7,
+          "count_thousands": 1663.4,
+          "share": 10.0
+        },
+        {
+          "decile": 7,
+          "lower": 1996.6,
+          "mean": 2148.0,
+          "count_thousands": 1662.5,
+          "share": 10.0
+        },
+        {
+          "decile": 8,
+          "lower": 2322.1,
+          "mean": 2558.2,
+          "count_thousands": 1664.1,
+          "share": 10.0
+        },
+        {
+          "decile": 9,
+          "lower": 2804.8,
+          "mean": 3142.9,
+          "count_thousands": 1663.0,
+          "share": 10.0
+        },
+        {
+          "decile": 10,
+          "lower": 3586.8,
+          "mean": 5083.8,
+          "count_thousands": 1664.0,
+          "share": 10.0
+        }
+      ]
+    },
+    {
+      "year": 2022,
+      "mean": 2118.8,
+      "count_thousands": 17274.1,
+      "bands": [
+        {
+          "decile": 1,
+          "lower": null,
+          "mean": 619.7,
+          "count_thousands": 1726.5,
+          "share": 10.0
+        },
+        {
+          "decile": 2,
+          "lower": 951.1,
+          "mean": 1132.2,
+          "count_thousands": 1727.9,
+          "share": 10.0
+        },
+        {
+          "decile": 3,
+          "lower": 1247.1,
+          "mean": 1338.8,
+          "count_thousands": 1726.5,
+          "share": 10.0
+        },
+        {
+          "decile": 4,
+          "lower": 1434.6,
+          "mean": 1523.1,
+          "count_thousands": 1727.9,
+          "share": 10.0
+        },
+        {
+          "decile": 5,
+          "lower": 1607.2,
+          "mean": 1708.7,
+          "count_thousands": 1726.6,
+          "share": 10.0
+        },
+        {
+          "decile": 6,
+          "lower": 1802.8,
+          "mean": 1913.1,
+          "count_thousands": 1728.6,
+          "share": 10.0
+        },
+        {
+          "decile": 7,
+          "lower": 2035.2,
+          "mean": 2181.8,
+          "count_thousands": 1727.6,
+          "share": 10.0
+        },
+        {
+          "decile": 8,
+          "lower": 2358.0,
+          "mean": 2592.8,
+          "count_thousands": 1727.0,
+          "share": 10.0
+        },
+        {
+          "decile": 9,
+          "lower": 2841.6,
+          "mean": 3172.8,
+          "count_thousands": 1726.2,
+          "share": 10.0
+        },
+        {
+          "decile": 10,
+          "lower": 3613.0,
+          "mean": 5002.0,
+          "count_thousands": 1729.2,
+          "share": 10.0
+        }
+      ]
+    },
+    {
+      "year": 2023,
+      "mean": 2273.0,
+      "count_thousands": 18000.2,
+      "bands": [
+        {
+          "decile": 1,
+          "lower": null,
+          "mean": 645.0,
+          "count_thousands": 1800.0,
+          "share": 10.0
+        },
+        {
+          "decile": 2,
+          "lower": 1000.0,
+          "mean": 1209.6,
+          "count_thousands": 1799.9,
+          "share": 10.0
+        },
+        {
+          "decile": 3,
+          "lower": 1335.4,
+          "mean": 1434.1,
+          "count_thousands": 1799.7,
+          "share": 10.0
+        },
+        {
+          "decile": 4,
+          "lower": 1534.7,
+          "mean": 1631.6,
+          "count_thousands": 1800.4,
+          "share": 10.0
+        },
+        {
+          "decile": 5,
+          "lower": 1731.8,
+          "mean": 1834.0,
+          "count_thousands": 1800.0,
+          "share": 10.0
+        },
+        {
+          "decile": 6,
+          "lower": 1935.5,
+          "mean": 2059.5,
+          "count_thousands": 1799.9,
+          "share": 10.0
+        },
+        {
+          "decile": 7,
+          "lower": 2192.0,
+          "mean": 2356.7,
+          "count_thousands": 1800.0,
+          "share": 10.0
+        },
+        {
+          "decile": 8,
+          "lower": 2548.2,
+          "mean": 2781.8,
+          "count_thousands": 1800.1,
+          "share": 10.0
+        },
+        {
+          "decile": 9,
+          "lower": 3036.5,
+          "mean": 3390.6,
+          "count_thousands": 1799.8,
+          "share": 10.0
+        },
+        {
+          "decile": 10,
+          "lower": 3858.2,
+          "mean": 5386.7,
+          "count_thousands": 1800.3,
+          "share": 10.0
+        }
+      ]
+    },
+    {
+      "year": 2024,
+      "mean": 2385.6,
+      "count_thousands": 18459.1,
+      "bands": [
+        {
+          "decile": 1,
+          "lower": null,
+          "mean": 710.2,
+          "count_thousands": 1845.8,
+          "share": 10.0
+        },
+        {
+          "decile": 2,
+          "lower": 1068.9,
+          "mean": 1280.9,
+          "count_thousands": 1845.0,
+          "share": 10.0
+        },
+        {
+          "decile": 3,
+          "lower": 1392.7,
+          "mean": 1488.5,
+          "count_thousands": 1846.8,
+          "share": 10.0
+        },
+        {
+          "decile": 4,
+          "lower": 1582.2,
+          "mean": 1681.5,
+          "count_thousands": 1845.6,
+          "share": 10.0
+        },
+        {
+          "decile": 5,
+          "lower": 1780.1,
+          "mean": 1888.7,
+          "count_thousands": 1845.6,
+          "share": 10.0
+        },
+        {
+          "decile": 6,
+          "lower": 2001.4,
+          "mean": 2130.0,
+          "count_thousands": 1846.3,
+          "share": 10.0
+        },
+        {
+          "decile": 7,
+          "lower": 2265.4,
+          "mean": 2448.0,
+          "count_thousands": 1845.9,
+          "share": 10.0
+        },
+        {
+          "decile": 8,
+          "lower": 2659.8,
+          "mean": 2914.7,
+          "count_thousands": 1846.2,
+          "share": 10.0
+        },
+        {
+          "decile": 9,
+          "lower": 3199.8,
+          "mean": 3567.3,
+          "count_thousands": 1842.2,
+          "share": 10.0
+        },
+        {
+          "decile": 10,
+          "lower": 4056.7,
+          "mean": 5741.0,
+          "count_thousands": 1849.7,
+          "share": 10.0
+        }
+      ]
+    }
+  ]
+}
