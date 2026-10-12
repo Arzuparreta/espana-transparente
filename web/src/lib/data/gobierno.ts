@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client"
-import { unstable_cache, HOUR, throwDataError, type GobiernoMember, type MinistrioContract, type InstitucionMember } from "./shared"
+import { unstable_cache, HOUR, throwDataError, dataQuerySignal, type GobiernoMember, type MinistrioContract, type InstitucionMember } from "./shared"
 
 export type { GobiernoMember, MinistrioContract, InstitucionMember }
 
@@ -10,10 +10,11 @@ export const getGobiernoActual = unstable_cache(
       .select(
         "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url, official_id, end_date, excluded_amount_count"
       )
+      .abortSignal(dataQuerySignal())
     throwDataError(error, "government list")
     return (data ?? []) as GobiernoMember[]
   },
-  ["gobierno-actual"],
+  ["gobierno-actual-mandates-v2"],
   { revalidate: HOUR * 24 }
 )
 
