@@ -244,10 +244,10 @@ const COLLECTIONS: SectionMeta[] = [
   {
     key: "asistencia",
     href: "/asistencia",
-    label: "Asistencia",
+    label: "Participación en votaciones",
     area: "decisiones",
     section: "Actividad parlamentaria",
-    description: "Presencia registrada en las sesiones.",
+    description: "Sesiones con voto nominal en las que cada diputado emitió algún voto.",
   },
   {
     key: "divergencias",

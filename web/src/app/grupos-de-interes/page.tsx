@@ -34,7 +34,7 @@ export default async function GruposDeInteresPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="Grupos de interés"
-        description={`Organizaciones inscritas en el Registro de Grupos de Interés de la CNMC. Cada entrada representa una entidad que declara intentar influir en reguladores o poderes públicos. ${total.toLocaleString("es-ES")} registros.`}
+        description={`Organizaciones inscritas en el Registro de Grupos de Interés de la CNMC. Cada entrada representa una entidad que declara intentar influir en reguladores o poderes públicos. ${total.toLocaleString("es-ES")} registros. Este registro no recoge toda la actividad de influencia, y la inscripción no acredita reuniones ni efectos sobre una decisión.`}
       />
 
       <SourceFootnote

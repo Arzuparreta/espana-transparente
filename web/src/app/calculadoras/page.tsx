@@ -23,6 +23,9 @@ export default async function CalculatorsPage() {
   return (
     <div className="ui-page-wide space-y-6 sm:space-y-8">
       <PageHeader title={metadata.title as string} description={metadata.description as string} />
+      <p className="text-sm leading-6 text-muted-foreground">
+        ¿Cuánto necesito para mantener mi capacidad de compra? El IPC mide la evolución de una cesta media: tu caso cambia según lo que compras y dónde vives. Los importes que escribes se calculan en tu navegador y no se envían ni se guardan.
+      </p>
       {ipcSeries.length > 1 ? (
         <div className="space-y-6">
           <IpcBasketCalculator series={ipcSubgroups} />

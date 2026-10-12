@@ -142,7 +142,7 @@ export default async function DeclaracionesPage({ searchParams }: PageProps) {
     <div className="ui-page space-y-6 sm:space-y-8">
       <PageHeader
         title="Declaraciones económicas"
-        description="Registro de bienes, rentas, actividades e intereses económicos presentados por los diputados al tomar posesión y al cesar en el cargo."
+        description="Registro de bienes, rentas, actividades e intereses económicos presentados por los diputados al tomar posesión y al cesar en el cargo. Los valores son los declarados, extraídos de documentos oficiales (en parte por reconocimiento de texto) y no una tasación. Que no conste una declaración no significa que no exista patrimonio."
       />
 
       <SourceFootnote

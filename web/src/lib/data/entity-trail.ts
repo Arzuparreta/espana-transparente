@@ -39,7 +39,7 @@ export interface EntityTrail {
     people: TrailConnection[]
     /** Organizations connected to this person/org. */
     organizations: TrailConnection[]
-    /** Judicial cases linked to this entity or its party. */
+    /** Judicial cases where this entity itself is a reviewed actor. */
     judicial: TrailConnection[]
     /** External registers (e.g. CNMC lobbying groups). */
     external: TrailConnection[]
@@ -98,7 +98,11 @@ function buildOrganizationTrail(
   }
 }
 
-function buildPoliticianTrail(
+// A case reviewed against a party is not evidence about each of its members:
+// the person's trail only lists cases where that person is the reviewed actor.
+export const PARTY_ROUTED_JUDICIAL_SOURCE = "Caso judicial — vía partido"
+
+export function buildPoliticianTrail(
   polId: string,
   polName: string,
   rows: Record<string, unknown>[],
@@ -116,6 +120,7 @@ function buildPoliticianTrail(
     const meta = row.connection_meta as string | null
 
     if (!connLabel || !connRoute) continue
+    if (source === PARTY_ROUTED_JUDICIAL_SOURCE) continue
     const key = `${connType}:${connRoute}`
     if (seen.has(key)) continue
     seen.add(key)

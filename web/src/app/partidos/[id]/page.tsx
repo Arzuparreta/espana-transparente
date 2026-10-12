@@ -46,7 +46,7 @@ export default async function PartyPage({ params }: PageProps) {
     { label: "Diputados activos", value: memberships.length, hint: "Escaños con membresía activa en la XV Legislatura." },
     ...(stats
       ? [
-          { label: "Asistencia media", value: `${stats.attendance_pct ?? "—"}%`, hint: "Promedio del grupo en votaciones nominales." },
+          { label: "Sesiones con voto (media)", value: `${stats.attendance_pct ?? "—"}%`, hint: "Promedio de sus diputados en sesiones con votación nominal; no mide presencia física." },
           { label: "Votos a favor", value: `${stats.pct_yes ?? "—"}%`, hint: "Porcentaje de votos 'Sí' sobre el total registrado." },
           { label: "Votos en contra", value: `${stats.pct_no ?? "—"}%`, hint: "Porcentaje de votos 'No' sobre el total registrado." },
           { label: "Abstenciones", value: `${stats.pct_abstain ?? "—"}%`, hint: "Porcentaje de abstenciones sobre el total registrado." },

@@ -174,6 +174,10 @@ export default async function VotacionPage({ params }: PageProps) {
           </div>
         ) : null}
 
+        <p className="text-sm leading-6 text-muted-foreground">
+          Este resultado corresponde al texto concreto sometido a votación{tipo ? ` (${tipo.toLowerCase()})` : ""}. Un voto sobre una enmienda, un dictamen o una toma en consideración no es un voto sobre la ley final; la publicación y la entrada en vigor se comprueban en la iniciativa.
+        </p>
+
         {totalRecorded > 0 ? (
           <RecordSection
             title="Resultado"

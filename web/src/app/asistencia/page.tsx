@@ -5,9 +5,9 @@ import { AttendanceView } from "@/components/views/AttendanceView"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: "Asistencia de diputados",
+  title: "Participación en votaciones nominales",
   description:
-    "Sesiones plenarias con voto nominal en las que cada diputado ha emitido al menos un voto.",
+    "Sesiones plenarias con voto nominal en las que cada diputado emitió al menos un voto. No votar no prueba ausencia física y votar no mide todo el trabajo parlamentario.",
   alternates: { canonical: "/asistencia" },
 }
 
