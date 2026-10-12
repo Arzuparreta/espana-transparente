@@ -137,3 +137,21 @@ def test_fetch_failure_does_not_return_partial_series(monkeypatch):
     monkeypatch.setattr(ejecucion.httpx,'Client',lambda **kwargs:client)
     monkeypatch.setattr(ejecucion,'parse_workbook',lambda *args:parse_workbook(workbook()))
     with pytest.raises(RuntimeError,match='unavailable'):ejecucion.fetch_records()
+
+
+def test_fetch_retries_html_answer_before_parsing():
+    from presupuestos import ejecucion
+    from unittest.mock import Mock
+    html=Mock(content=b'<html>busy</html>');html.raise_for_status.return_value=None
+    xlsx=Mock(content=workbook());xlsx.raise_for_status.return_value=None
+    client=Mock();client.get.side_effect=[html,xlsx]
+    assert ejecucion.fetch_workbook(client,'u',sleep=lambda s:None)==xlsx.content
+
+
+def test_fetch_refuses_persistent_non_workbook():
+    from presupuestos import ejecucion
+    from unittest.mock import Mock
+    html=Mock(content=b'<html>busy</html>');html.raise_for_status.return_value=None
+    client=Mock();client.get.return_value=html
+    with pytest.raises(RuntimeError,match='did not serve a workbook'):ejecucion.fetch_workbook(client,'u',sleep=lambda s:None)
+    assert client.get.call_count==ejecucion.FETCH_ATTEMPTS

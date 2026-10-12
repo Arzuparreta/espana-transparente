@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 import re
+import time
 import unicodedata
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -120,15 +121,35 @@ def replace_snapshot(cur, records):
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""", records)
 
 
-def fetch_records():
+FETCH_ATTEMPTS = 3
+FETCH_DELAY_SECONDS = 2
+FETCH_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+    "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8"}
+
+
+def fetch_workbook(client, url, sleep=time.sleep):
+    # The IGAE front-end intermittently resets bursts or answers an HTML page
+    # with status 200; that surfaced as "File is not a zip file" mid-series.
+    for attempt in range(FETCH_ATTEMPTS):
+        if attempt: sleep(15 * attempt)
+        try:
+            response = client.get(url)
+            response.raise_for_status()
+        except httpx.HTTPError:
+            if attempt == FETCH_ATTEMPTS - 1: raise
+            continue
+        if response.content[:4] == b"PK\x03\x04": return response.content
+    raise RuntimeError(f"IGAE did not serve a workbook for {url} after {FETCH_ATTEMPTS} attempts")
+
+
+def fetch_records(sleep=time.sleep):
     # Validate the entire manifest before any database mutation. Each report is
     # an independent cumulative snapshot, never a flow to add to other months.
     records = []
-    with httpx.Client(timeout=45, follow_redirects=True) as client:
-        for period, url in SOURCES.items():
-            response = client.get(url)
-            response.raise_for_status()
-            records.extend(parse_workbook(response.content, period, url))
+    with httpx.Client(timeout=45, follow_redirects=True, headers=FETCH_HEADERS) as client:
+        for index, (period, url) in enumerate(SOURCES.items()):
+            if index: sleep(FETCH_DELAY_SECONDS)
+            records.extend(parse_workbook(fetch_workbook(client, url, sleep), period, url))
     return records
 
 
