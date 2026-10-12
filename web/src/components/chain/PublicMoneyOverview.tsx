@@ -220,6 +220,8 @@ export function PublicMoneyOverview({ accounts, year }: Props) {
         </Link>
       </section>
 
+      <p className="text-sm leading-6"><Link href="/servicios/sanidad" className="underline underline-offset-4">¿Qué resultado se observa junto al gasto sanitario? Espera quirúrgica, territorio y límites →</Link></p>
+
       <section aria-labelledby="destinos-title" className="space-y-4">
         <h2 id="destinos-title" className="text-xl font-semibold">
           ¿Y a qué se destina el dinero?

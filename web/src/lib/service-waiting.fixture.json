@@ -1,0 +1,198 @@
+{
+  "version": "sisle-surgery-2025-v1",
+  "cut": "2025-12-31",
+  "revision_date": "2026-09-24",
+  "source_url": "https://www.sanidad.gob.es/estadEstudios/estadisticas/inforRecopilaciones/docs/LISTAS_PUBLICACION_Dic_2025_rectificado.pdf",
+  "index_url": "https://www.sanidad.gob.es/estadEstudios/estadisticas/inforRecopilaciones/listaEspera.htm",
+  "correction_url": "https://www.sanidad.gob.es/estadEstudios/estadisticas/inforRecopilaciones/docs/Nota_Aclaratoria_Rectificacion_Dic_2025.pdf",
+  "source_page": 8,
+  "denominator": "health-card-population",
+  "retrieved_at": "2026-10-12T14:59:42.245682+00:00",
+  "sha256": {
+    "index": "ea656f2912a8f0cd9343981717bf974268a728dd49a80881499b3d4f6c513bf6",
+    "report": "ddc25d0f2c882eb8eea9c5798a6570f9de83eda3044bae0413360d8a1be98007",
+    "correction": "e5cd02be553c1f067085dfcf04ac36f6eae59c938ef9d40fc014bd39383fe34f"
+  },
+  "rows": [
+    {
+      "code": "01",
+      "label": "Andalucía",
+      "patients": 199950,
+      "rate": 23.51,
+      "over_six_months": 64302,
+      "over_six_share": 32.2,
+      "mean_days": 173
+    },
+    {
+      "code": "02",
+      "label": "Aragón",
+      "patients": 25783,
+      "rate": 18.71,
+      "over_six_months": 5593,
+      "over_six_share": 21.7,
+      "mean_days": 132
+    },
+    {
+      "code": "03",
+      "label": "Asturias",
+      "patients": 22402,
+      "rate": 22.12,
+      "over_six_months": 2336,
+      "over_six_share": 10.4,
+      "mean_days": 91
+    },
+    {
+      "code": "04",
+      "label": "Illes Balears",
+      "patients": 17075,
+      "rate": 13.62,
+      "over_six_months": 3832,
+      "over_six_share": 22.4,
+      "mean_days": 105
+    },
+    {
+      "code": "05",
+      "label": "Canarias",
+      "patients": 32131,
+      "rate": 14.59,
+      "over_six_months": 5575,
+      "over_six_share": 17.4,
+      "mean_days": 106
+    },
+    {
+      "code": "06",
+      "label": "Cantabria",
+      "patients": 14490,
+      "rate": 24.92,
+      "over_six_months": 3799,
+      "over_six_share": 26.2,
+      "mean_days": 137
+    },
+    {
+      "code": "07",
+      "label": "Castilla y León",
+      "patients": 24786,
+      "rate": 10.57,
+      "over_six_months": 3420,
+      "over_six_share": 13.8,
+      "mean_days": 87
+    },
+    {
+      "code": "08",
+      "label": "Castilla-La Mancha",
+      "patients": 36491,
+      "rate": 18.17,
+      "over_six_months": 6017,
+      "over_six_share": 16.5,
+      "mean_days": 117
+    },
+    {
+      "code": "09",
+      "label": "Cataluña",
+      "patients": 197768,
+      "rate": 24.84,
+      "over_six_months": 63228,
+      "over_six_share": 32.0,
+      "mean_days": 142
+    },
+    {
+      "code": "10",
+      "label": "Comunitat Valenciana",
+      "patients": 51600,
+      "rate": 9.91,
+      "over_six_months": 8309,
+      "over_six_share": 16.1,
+      "mean_days": 88
+    },
+    {
+      "code": "11",
+      "label": "Extremadura",
+      "patients": 22404,
+      "rate": 21.96,
+      "over_six_months": 5178,
+      "over_six_share": 23.1,
+      "mean_days": 135
+    },
+    {
+      "code": "12",
+      "label": "Galicia",
+      "patients": 49554,
+      "rate": 18.82,
+      "over_six_months": 2810,
+      "over_six_share": 5.7,
+      "mean_days": 73
+    },
+    {
+      "code": "13",
+      "label": "Comunidad de Madrid",
+      "patients": 80525,
+      "rate": 11.23,
+      "over_six_months": 657,
+      "over_six_share": 0.8,
+      "mean_days": 50
+    },
+    {
+      "code": "14",
+      "label": "Región de Murcia",
+      "patients": 34197,
+      "rate": 21.52,
+      "over_six_months": 6612,
+      "over_six_share": 19.3,
+      "mean_days": 103
+    },
+    {
+      "code": "15",
+      "label": "Navarra",
+      "patients": 10861,
+      "rate": 16.08,
+      "over_six_months": 1817,
+      "over_six_share": 16.7,
+      "mean_days": 96
+    },
+    {
+      "code": "16",
+      "label": "País Vasco",
+      "patients": 24069,
+      "rate": 10.81,
+      "over_six_months": 544,
+      "over_six_share": 2.3,
+      "mean_days": 64
+    },
+    {
+      "code": "17",
+      "label": "La Rioja",
+      "patients": 7822,
+      "rate": 23.8,
+      "over_six_months": 504,
+      "over_six_share": 6.4,
+      "mean_days": 78
+    },
+    {
+      "code": "18",
+      "label": "Ceuta",
+      "patients": 931,
+      "rate": 12.12,
+      "over_six_months": 141,
+      "over_six_share": 15.1,
+      "mean_days": 94
+    },
+    {
+      "code": "19",
+      "label": "Melilla",
+      "patients": 901,
+      "rate": 12.73,
+      "over_six_months": 74,
+      "over_six_share": 8.2,
+      "mean_days": 82
+    },
+    {
+      "code": "ES",
+      "label": "SNS · España",
+      "patients": 853740,
+      "rate": 17.7,
+      "over_six_months": 184748,
+      "over_six_share": 21.6,
+      "mean_days": 122
+    }
+  ]
+}
