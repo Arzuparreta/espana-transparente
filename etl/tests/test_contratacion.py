@@ -87,6 +87,7 @@ def test_parse_entry_contractor_none_when_no_tender_result():
           xmlns:cac_ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonAggregateComponents-2"
           xmlns:cbc_ext="urn:dgpe:names:draft:codice-place-ext:schema:xsd:CommonBasicComponents-2">
       <entry>
+        <id>https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/1234568</id>
         <title>Contrato sin adjudicar</title>
         <link href="https://example.com/123"/>
         <updated>2025-03-15T10:00:00Z</updated>

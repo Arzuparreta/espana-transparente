@@ -6,7 +6,7 @@ it("identifies concessions and dates without equating them with payments", () =>
   const html = renderToStaticMarkup(<OperationContext kind="subvenciones" total={0} year={2024} />)
   expect(html).toContain("0</span> concesiones en esta consulta")
   expect(html).toContain("fecha de concesión; no fecha de pago")
-  expect(html).toContain("no incluye beneficiarios individuales")
+  expect(html).toContain("Una etiqueta visible no acredita personalidad jurídica")
 })
 it("labels unfiltered historical scope and the territorial limit", () => {
   const html = renderToStaticMarkup(<OperationContext kind="contratos" total={1} year={null} />)

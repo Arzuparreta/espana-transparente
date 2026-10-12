@@ -1,4 +1,5 @@
 "use client"
+import { contractAmount } from "@/lib/contract-edition"
 import { useSearchParams } from "next/navigation"
 import { collectionHref } from "@/lib/exploration"
 import { CollectionFilters } from "@/components/navigation/CollectionFilters"
@@ -19,6 +20,10 @@ interface Contrato {
   title: string
   awarding_body: string | null
   awarding_body_organization_id: string | null
+  currency?: string | null
+  award_currency?: string | null
+  result_count?: number | null
+  lot_count?: number | null
   amount: number | null
   status: string | null
   contract_type: string | null
@@ -68,12 +73,6 @@ const STATUS_VARIANT: Record<string, string> = {
   PRE: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
 }
 
-function formatAmount(eur: number | null): string {
-  if (eur == null) return "—"
-  if (eur >= 1_000_000) return `${(eur / 1_000_000).toFixed(1)}M €`
-  if (eur >= 1_000) return `${Math.round(eur / 1_000)}K €`
-  return `${Math.round(eur)} €`
-}
 
 function statusClass(status: string | null): string {
   return STATUS_VARIANT[status ?? ""] ?? "bg-muted text-muted-foreground"
@@ -167,11 +166,12 @@ function ContratoCard({
         </div>
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-end sm:gap-1">
           <div className="text-base font-mono font-semibold tabular-nums">
-            {formatAmount(c.amount)}
+            {contractAmount(c.amount, c.result_count == null ? null : c.currency)}
           </div>
           <p className="text-xs text-muted-foreground">Licitación sin IVA</p>
+          <p className="text-xs text-muted-foreground">{c.result_count == null ? "Alcance histórico sin verificar" : `${c.result_count} resultados · ${c.lot_count ?? 0} lotes; detalle en ficha`}</p>
           {c.award_amount != null ? (
-            <p className="text-xs text-muted-foreground">Adjudicado sin IVA: <span className="font-mono">{formatAmount(c.award_amount)}</span></p>
+            <p className="text-xs text-muted-foreground">Resultado publicado sin IVA: <span className="font-mono">{contractAmount(c.award_amount, c.award_currency)}</span></p>
           ) : null}
           {c.source_url ? (
             <a

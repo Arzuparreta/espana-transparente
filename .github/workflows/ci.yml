@@ -155,6 +155,7 @@ jobs:
           --health-retries 5
     env:
       TEST_COFOG_DB_URL: postgresql://postgres:isolated-test@localhost:5432/cofog_test
+      TEST_CONTRACT_DB_URL: postgresql://postgres:isolated-test@localhost:5432/contracts_test
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -162,6 +163,17 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Create disposable contract identity database
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg2
+          conn = psycopg2.connect(os.environ['TEST_COFOG_DB_URL'])
+          conn.autocommit = True
+          with conn.cursor() as cur:
+              cur.execute('CREATE DATABASE contracts_test')
+          conn.close()
+          PY
       - run: PYTHONPATH=src python -m pytest tests/
       - run: PYTHONPATH=src python -m src.congreso.gobierno --dry-run
       - run: PYTHONPATH=src python -m src.public_bodies.boe_nombramientos --dry-run --days 1

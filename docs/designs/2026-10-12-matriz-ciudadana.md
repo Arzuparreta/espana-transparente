@@ -18,7 +18,7 @@ Para cada fila: pregunta/primera respuesta, medida y comparación, fecha y ámbi
 |---|---|---|
 | Personas | `web/src/app/personas/page.tsx`, `ThreadLanding.tsx`, `data/gobierno.ts` | Primera respuesta implementada antes del directorio: puesto, persona, inicio registrado, documento concreto o ausencia explícita. No valida por sí sola competencias ni vigencia de toda la fuente |
 | Decisiones | `web/src/app/decisiones/page.tsx`, tema vivienda | Primera respuesta implementada sobre vivienda, sesiones por año, fase, documentos y alcance; filtro propio conserva año al entrar en tema |
-| Contratos | Página, lector y schema CPV/adjudicación | Pregunta y fase visibles, pero objeto por CPV y competencia agregada aún sin primera respuesta; auditar lotes, duplicados, monedas y periodo antes de calcular |
+| Contratos | Página, lector y schema CPV/adjudicación | Pregunta y fase visibles, pero objeto por CPV y competencia agregada aún sin primera respuesta; identidad oficial, lotes, resultados y monedas reparados en [bloque de contratos](2026-10-12-identidad-contratos.md); primera respuesta agregada y cobertura pendientes |
 | Territorio | `web/src/app/territorio/page.tsx` | Enlaces a liquidaciones y financiación con ámbito propio; entradas inválidas pueden sustituirse, y el rótulo gasto municipal requiere revisar fase del grid |
 | Subvenciones/finalidades | Estudio BDNS y PR #80 | Se repara la afirmación de organizaciones verificadas y se documenta cobertura excluida. Fuente parcial no permite prometer todas las ayudas a hogares |
 | Resto de matriz | Aún no auditado en este documento | Pendiente de inspección y reparación; no se considera completado |

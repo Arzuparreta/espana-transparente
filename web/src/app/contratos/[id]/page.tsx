@@ -1,3 +1,5 @@
+import { contractAmount, contractEdition, comparableAward } from "@/lib/contract-edition"
+import { PublishedContractEdition } from "@/components/contratos/ContractEdition"
 import { MandateEvidence } from "@/components/domain/MandateEvidence"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
@@ -32,14 +34,6 @@ export async function generateMetadata({ params }: PageProps) {
   return { title: contract?.title ?? "Contrato" }
 }
 
-function formatAmount(amount: number | null, currency = "EUR"): string {
-  if (amount == null) return "—"
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
 
 function formatDateLabel(value: string | null): string | null {
   if (!value) return null
@@ -66,19 +60,15 @@ function buildShareText(contract: {
   award_amount?: number | null
   awarding_body?: string | null
   contractor?: string | null
+  source_id?: string | null
+  currency?: string | null
+  award_currency?: string | null
 }): string {
   const displayAmount = contract.award_amount ?? contract.amount
-  const amountStr =
-    displayAmount != null
-      ? new Intl.NumberFormat("es-ES", {
-          style: "currency",
-          currency: "EUR",
-          maximumFractionDigits: 0,
-        }).format(displayAmount)
-      : null
+  const amountStr = displayAmount != null ? contractAmount(displayAmount, contract.source_id ? (contract.award_amount != null ? contract.award_currency : contract.currency) : null) : null
   const parts: string[] = []
   if (contract.awarding_body) parts.push(contract.awarding_body)
-  if (amountStr) parts.push(`${contract.award_amount != null ? "importe adjudicado" : "presupuesto de licitación"}: ${amountStr} sin IVA`)
+  if (amountStr) parts.push(`${contract.award_amount != null ? "importe de un resultado publicado" : "presupuesto de licitación"}: ${amountStr} sin IVA`)
   if (contract.contractor) parts.push(`a ${contract.contractor}`)
   return parts.length > 0
     ? `${parts.join(" ")}. Fuente: España Transparente`
@@ -106,7 +96,8 @@ export default async function ContractDetailPage({ params }: PageProps) {
   const showAwardDate = Boolean(awardDateStr)
   const budgetAmount = contract.amount
   const awardAmount = contract.award_amount
-  const hasComparableBudget = budgetAmount != null && budgetAmount > 0
+  const edition = contractEdition(contract.published_edition, contract.source_id)
+  const hasComparableBudget = comparableAward(edition) && budgetAmount != null && budgetAmount > 0
 
   const items: FieldItem[] = []
   if (dateStr) items.push({ label: "Actualización PCSP", value: dateStr, mono: true })
@@ -396,16 +387,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
           items={[
             {
               label: "Presupuesto sin IVA",
-              value: formatAmount(budgetAmount, contract.currency ?? "EUR"),
+              value: contractAmount(budgetAmount, edition ? contract.currency : null),
             },
             ...(awardAmount != null
               ? [
                   {
-                    label: "Importe adjudicado sin IVA",
-                    value: formatAmount(
-                      awardAmount,
-                      contract.currency ?? "EUR",
-                    ),
+                    label: "Un resultado publicado sin IVA",
+                    value: contractAmount(awardAmount, contract.award_currency),
                     valueClassName: "text-accent",
                     hint: hasComparableBudget && budgetAmount != null ? `${awardAmount < budgetAmount ? "−" : "+"}${Math.round(Math.abs(1 - awardAmount / budgetAmount) * 100)}% sobre el presupuesto` : undefined,
                   },
@@ -413,6 +401,8 @@ export default async function ContractDetailPage({ params }: PageProps) {
               : []),
           ]}
         />
+
+        <PublishedContractEdition edition={edition} />
 
         <RecordSection title="Datos del expediente">
           <FieldList items={items} />
