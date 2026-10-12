@@ -1,0 +1,1039 @@
+{
+  "TIME_PERIOD": [
+    {
+      "code": "2024",
+      "label": "2024"
+    }
+  ],
+  "TERRITORIO": [
+    {
+      "code": "ES708",
+      "label": "Lanzarote",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "35004",
+      "label": "Arrecife",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35010",
+      "label": "Haría",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35018",
+      "label": "San Bartolomé",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35024",
+      "label": "Teguise",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35028",
+      "label": "Tías",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35029",
+      "label": "Tinajo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35034",
+      "label": "Yaiza",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES704",
+      "label": "Fuerteventura",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "35003",
+      "label": "Antigua",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35007",
+      "label": "Betancuria",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35014",
+      "label": "La Oliva",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35015",
+      "label": "Pájara",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35017",
+      "label": "Puerto del Rosario",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35030",
+      "label": "Tuineje",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES705",
+      "label": "Gran Canaria",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "35001",
+      "label": "Agaete",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35002",
+      "label": "Agüimes",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35005",
+      "label": "Artenara",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35006",
+      "label": "Arucas",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35008",
+      "label": "Firgas",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35009",
+      "label": "Gáldar",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35011",
+      "label": "Ingenio",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35012",
+      "label": "Mogán",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35013",
+      "label": "Moya",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35016",
+      "label": "Las Palmas de Gran Canaria",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35019",
+      "label": "San Bartolomé de Tirajana",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35020",
+      "label": "La Aldea de San Nicolás",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35021",
+      "label": "Santa Brígida",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35022",
+      "label": "Santa Lucía de Tirajana",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35023",
+      "label": "Santa María de Guía de Gran Canaria",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35025",
+      "label": "Tejeda",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35026",
+      "label": "Telde",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35027",
+      "label": "Teror",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35031",
+      "label": "Valsequillo de Gran Canaria",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35032",
+      "label": "Valleseco",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "35033",
+      "label": "Vega de San Mateo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES709",
+      "label": "Tenerife",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "38001",
+      "label": "Adeje",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38004",
+      "label": "Arafo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38005",
+      "label": "Arico",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38006",
+      "label": "Arona",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38010",
+      "label": "Buenavista del Norte",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38011",
+      "label": "Candelaria",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38012",
+      "label": "Fasnia",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38015",
+      "label": "Garachico",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38017",
+      "label": "Granadilla de Abona",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38018",
+      "label": "La Guancha",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38019",
+      "label": "Guía de Isora",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38020",
+      "label": "Güímar",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38022",
+      "label": "Icod de los Vinos",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38023",
+      "label": "San Cristóbal de La Laguna",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38025",
+      "label": "La Matanza de Acentejo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38026",
+      "label": "La Orotava",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38028",
+      "label": "Puerto de la Cruz",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38031",
+      "label": "Los Realejos",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38032",
+      "label": "El Rosario",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38034",
+      "label": "San Juan de la Rambla",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38035",
+      "label": "San Miguel de Abona",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38038",
+      "label": "Santa Cruz de Tenerife",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38039",
+      "label": "Santa Úrsula",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38040",
+      "label": "Santiago del Teide",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38041",
+      "label": "El Sauzal",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38042",
+      "label": "Los Silos",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38043",
+      "label": "Tacoronte",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38044",
+      "label": "El Tanque",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38046",
+      "label": "Tegueste",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38051",
+      "label": "La Victoria de Acentejo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38052",
+      "label": "Vilaflor de Chasna",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES706",
+      "label": "La Gomera",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "38002",
+      "label": "Agulo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38003",
+      "label": "Alajeró",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38021",
+      "label": "Hermigua",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38036",
+      "label": "San Sebastián de La Gomera",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38049",
+      "label": "Valle Gran Rey",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38050",
+      "label": "Vallehermoso",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES707",
+      "label": "La Palma",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "38007",
+      "label": "Barlovento",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38008",
+      "label": "Breña Alta",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38009",
+      "label": "Breña Baja",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38014",
+      "label": "Fuencaliente de La Palma",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38016",
+      "label": "Garafía",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38024",
+      "label": "Los Llanos de Aridane",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38027",
+      "label": "El Paso",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38029",
+      "label": "Puntagorda",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38030",
+      "label": "Puntallana",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38033",
+      "label": "San Andrés y Sauces",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38037",
+      "label": "Santa Cruz de La Palma",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38045",
+      "label": "Tazacorte",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38047",
+      "label": "Tijarafe",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38053",
+      "label": "Villa de Mazo",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "ES703",
+      "label": "El Hierro",
+      "granularity": "ISLANDS"
+    },
+    {
+      "code": "38013_2007",
+      "label": "Frontera",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38048",
+      "label": "Valverde",
+      "granularity": "MUNICIPALITIES"
+    },
+    {
+      "code": "38901",
+      "label": "El Pinar de El Hierro",
+      "granularity": "MUNICIPALITIES"
+    }
+  ],
+  "PRESUPUESTO_ESTADO": [
+    {
+      "code": "PRESUPUESTO_INICIAL",
+      "label": "Presupuesto inicial"
+    },
+    {
+      "code": "PRESUPUESTO_DEFINITIVO",
+      "label": "Presupuesto definitivo"
+    },
+    {
+      "code": "PRESUPUESTO_EJECUTADO",
+      "label": "Presupuesto ejecutado"
+    },
+    {
+      "code": "INGRESOS_GASTOS_LIQUIDOS",
+      "label": "Ingresos y gastos líquidos"
+    },
+    {
+      "code": "INGRESOS_GASTOS_LIQUIDOS_CORRIENTE",
+      "label": "Ingresos y gastos líquidos del ejercicio corriente"
+    },
+    {
+      "code": "INGRESOS_GASTOS_LIQUIDOS_CERRADOS",
+      "label": "Ingresos y gastos líquidos de ejercicio cerrados"
+    }
+  ],
+  "MEDIDAS": [
+    {
+      "code": "IMPORTE_PRESUPUESTARIO",
+      "label": "Importe presupuestario"
+    },
+    {
+      "code": "IMPORTE_PRESUPUESTARIO_HAB",
+      "label": "Importe presupuestario por habitante"
+    },
+    {
+      "code": "IMPORTE_PRESUPUESTARIO_PORCENTAJE",
+      "label": "Porcentaje del importe de la partida sobre el importe total del presupuesto"
+    }
+  ],
+  "PRESUPUESTO_PARTIDA": [
+    {
+      "code": "GASTOS",
+      "label": "Gastos"
+    },
+    {
+      "code": "GASTOS_OPERACIONES_NO_FINANCIERAS",
+      "label": "Gastos operaciones no financieras"
+    },
+    {
+      "code": "GASTOS_OPERACIONES_CORRIENTES",
+      "label": "Gastos operaciones corrientes"
+    },
+    {
+      "code": "G_1",
+      "label": "Gastos personal"
+    },
+    {
+      "code": "G_10",
+      "label": "Gastos personal directivo"
+    },
+    {
+      "code": "G_11",
+      "label": "Gastos personal eventual"
+    },
+    {
+      "code": "G_12",
+      "label": "Gastos personal funcionario"
+    },
+    {
+      "code": "G_13",
+      "label": "Gastos personal laboral"
+    },
+    {
+      "code": "G_14",
+      "label": "Gastos resto personal"
+    },
+    {
+      "code": "G_15",
+      "label": "Gastos incentivos rendimiento personal"
+    },
+    {
+      "code": "G_16",
+      "label": "Gastos cargo empleador"
+    },
+    {
+      "code": "G_2",
+      "label": "Gastos bienes corrientes y servicios"
+    },
+    {
+      "code": "G_20",
+      "label": "Gastos arrendamientos y cánones"
+    },
+    {
+      "code": "G_21",
+      "label": "Gastos reparaciones y conservación"
+    },
+    {
+      "code": "G_22",
+      "label": "Gastos material y suministros"
+    },
+    {
+      "code": "G_23",
+      "label": "Gastos indemnización servicios"
+    },
+    {
+      "code": "G_24",
+      "label": "Gastos publicaciones"
+    },
+    {
+      "code": "G_25",
+      "label": "Gastos trabajos otras AAPP"
+    },
+    {
+      "code": "G_26",
+      "label": "Gastos trabajos ISFL"
+    },
+    {
+      "code": "G_3",
+      "label": "Gastos financieros"
+    },
+    {
+      "code": "G_31",
+      "label": "Gastos préstamos"
+    },
+    {
+      "code": "G_33",
+      "label": "Gastos préstamos moneda extranjera"
+    },
+    {
+      "code": "G_34",
+      "label": "Gastos depósitos y fianzas"
+    },
+    {
+      "code": "G_35",
+      "label": "Gastos intereses demora y otros"
+    },
+    {
+      "code": "G_4",
+      "label": "Gastos transferencias corrientes"
+    },
+    {
+      "code": "G_42",
+      "label": "Transferencias a Administración General del Estado"
+    },
+    {
+      "code": "G_43",
+      "label": "Transferencias a Seguridad Social"
+    },
+    {
+      "code": "G_44",
+      "label": "Transferencias a Entidades Públicas Estatales"
+    },
+    {
+      "code": "G_45",
+      "label": "Transferencias a CCAA"
+    },
+    {
+      "code": "G_46",
+      "label": "Transferencias a otras EELL"
+    },
+    {
+      "code": "G_47",
+      "label": "Transferencias a empresas"
+    },
+    {
+      "code": "G_48",
+      "label": "Transferencias a familias e ISFL"
+    },
+    {
+      "code": "G_49",
+      "label": "Transferencias al exterior"
+    },
+    {
+      "code": "G_5",
+      "label": "Fondo contingencia"
+    },
+    {
+      "code": "G_50",
+      "label": "Dotación fondo contingencia"
+    },
+    {
+      "code": "GASTOS_OPERACIONES_CAPITAL",
+      "label": "Gastos operaciones capital"
+    },
+    {
+      "code": "G_6",
+      "label": "Inversiones reales"
+    },
+    {
+      "code": "G_60",
+      "label": "Inversiones infraestructura nueva uso general"
+    },
+    {
+      "code": "G_61",
+      "label": "Inversiones reposición infraestructura uso general"
+    },
+    {
+      "code": "G_62",
+      "label": "Inversiones servicios nuevos"
+    },
+    {
+      "code": "G_63",
+      "label": "Inversiones reposición servicios"
+    },
+    {
+      "code": "G_64",
+      "label": "Inversiones carácter inmaterial"
+    },
+    {
+      "code": "G_65",
+      "label": "Inversiones gestionada otros entes públicos"
+    },
+    {
+      "code": "G_68",
+      "label": "Gastos inversiones bienes patrimoniales"
+    },
+    {
+      "code": "G_69",
+      "label": "Inversiones bienes comunales"
+    },
+    {
+      "code": "G_7",
+      "label": "Gastos transferencias capital"
+    },
+    {
+      "code": "G_72",
+      "label": "Transferencias capital a Administración General del Estado"
+    },
+    {
+      "code": "G_74",
+      "label": "Transferencias capital a Entidades Públicas Estatales"
+    },
+    {
+      "code": "G_75",
+      "label": "Transferencias capital a CCAA"
+    },
+    {
+      "code": "G_76",
+      "label": "Transferencias capital a otras EELL"
+    },
+    {
+      "code": "G_77",
+      "label": "Transferencias capital a empresas"
+    },
+    {
+      "code": "G_78",
+      "label": "Transferencias capital a familias e ISFL"
+    },
+    {
+      "code": "G_79",
+      "label": "Transferencias capital al exterior"
+    },
+    {
+      "code": "GASTOS_OPERACIONES_FINANCIERAS",
+      "label": "Gastos operaciones financieras"
+    },
+    {
+      "code": "G_8",
+      "label": "Gastos activos financieros"
+    },
+    {
+      "code": "G_83",
+      "label": "Gastos concesión préstamos no sector público"
+    },
+    {
+      "code": "G_84",
+      "label": "Gastos constitución depósitos y fianzas"
+    },
+    {
+      "code": "G_85",
+      "label": "Gastos adquisición acciones y participaciones sector público"
+    },
+    {
+      "code": "G_86",
+      "label": "Gastos adquisición acciones y participaciones no sector público"
+    },
+    {
+      "code": "G_87",
+      "label": "Gastos aportaciones patrimoniales"
+    },
+    {
+      "code": "G_9",
+      "label": "Gastos pasivos financieros"
+    },
+    {
+      "code": "G_91",
+      "label": "Gastos amortización préstamos"
+    },
+    {
+      "code": "G_94",
+      "label": "Gastos devolución depósitos y fianzas"
+    },
+    {
+      "code": "INGRESOS",
+      "label": "Ingresos"
+    },
+    {
+      "code": "INGRESOS_OPERACIONES_NO_FINANCIERAS",
+      "label": "Ingresos operaciones no financieras"
+    },
+    {
+      "code": "INGRESOS_OPERACIONES_CORRIENTES",
+      "label": "Ingresos operaciones corrientes"
+    },
+    {
+      "code": "I_1",
+      "label": "Impuestos directos"
+    },
+    {
+      "code": "I_10",
+      "label": "Ingresos Impuesto Renta"
+    },
+    {
+      "code": "I_11",
+      "label": "Ingresos Impuesto Capital"
+    },
+    {
+      "code": "I_13",
+      "label": "Ingresos Impuesto Actividades Económicas"
+    },
+    {
+      "code": "I_16",
+      "label": "Ingresos recargos impuestos directos Estado y CCAA"
+    },
+    {
+      "code": "I_17",
+      "label": "Ingresos recargos impuestos directos otras EELL"
+    },
+    {
+      "code": "I_19",
+      "label": "Ingresos otros impuestos directos"
+    },
+    {
+      "code": "I_2",
+      "label": "Impuestos indirectos"
+    },
+    {
+      "code": "I_22",
+      "label": "Ingresos Impuesto Consumos Específicos"
+    },
+    {
+      "code": "I_28",
+      "label": "Ingresos impuesto indirectos extinguidos"
+    },
+    {
+      "code": "I_29",
+      "label": "Ingresos otros impuesto indirectos"
+    },
+    {
+      "code": "I_3",
+      "label": "Tasas y otros ingresos"
+    },
+    {
+      "code": "I_30",
+      "label": "Ingresos tasas servicios públicos básicos"
+    },
+    {
+      "code": "I_31",
+      "label": "Ingresos tasas servicios públicos social"
+    },
+    {
+      "code": "I_32",
+      "label": "Ingresos tasas actividadeslocales"
+    },
+    {
+      "code": "I_33",
+      "label": "Ingresos tasas uso espacio público"
+    },
+    {
+      "code": "I_34",
+      "label": "Ingresos precios públicos"
+    },
+    {
+      "code": "I_35",
+      "label": "Ingresos contribuciones especiales"
+    },
+    {
+      "code": "I_36",
+      "label": "Ingresos ventas"
+    },
+    {
+      "code": "I_38",
+      "label": "Ingresos reintegros operaciones corrientes"
+    },
+    {
+      "code": "I_39",
+      "label": "Otros ingresos"
+    },
+    {
+      "code": "I_4",
+      "label": "Ingresos transferencias corrientes"
+    },
+    {
+      "code": "I_42",
+      "label": "Ingresos transferencias de Administración General del Estado"
+    },
+    {
+      "code": "I_44",
+      "label": "Ingresos transferencias de Entidades Públicas Estatales"
+    },
+    {
+      "code": "I_45",
+      "label": "Ingresos transferencias de CCAA"
+    },
+    {
+      "code": "I_46",
+      "label": "Ingresos transferencias de otras EELL"
+    },
+    {
+      "code": "I_47",
+      "label": "Ingresos transferencias de empresas"
+    },
+    {
+      "code": "I_48",
+      "label": "Ingresos transferencias de familias e ISFL"
+    },
+    {
+      "code": "I_49",
+      "label": "Ingresos transferencias del exterior"
+    },
+    {
+      "code": "I_4T",
+      "label": "Ingresos transferencias ajuste consolidación"
+    },
+    {
+      "code": "I_5",
+      "label": "Ingresos patrimoniales"
+    },
+    {
+      "code": "I_50",
+      "label": "Ingresos intereses títulos y valores"
+    },
+    {
+      "code": "I_51",
+      "label": "Ingresos intereses anticipos y préstamos concedidos"
+    },
+    {
+      "code": "I_52",
+      "label": "Ingresos intereses depósitos"
+    },
+    {
+      "code": "I_53",
+      "label": "Ingresos dividendos"
+    },
+    {
+      "code": "I_54",
+      "label": "Ingresos rentas bienes inmuebles"
+    },
+    {
+      "code": "I_55",
+      "label": "Ingresos concesiones"
+    },
+    {
+      "code": "I_59",
+      "label": "Otros ingresos patrimoniales"
+    },
+    {
+      "code": "INGRESOS_OPERACIONES_CAPITAL",
+      "label": "Ingresos operaciones capital"
+    },
+    {
+      "code": "I_6",
+      "label": "Enajenación inversiones reales"
+    },
+    {
+      "code": "I_60",
+      "label": "Ingresos enajenación inversiones terrenos"
+    },
+    {
+      "code": "I_61",
+      "label": "Ingresos enajenación otras inversiones reales"
+    },
+    {
+      "code": "I_68",
+      "label": "Ingresos enajenación reintegros capital"
+    },
+    {
+      "code": "I_7",
+      "label": "Ingresos transferencias capital"
+    },
+    {
+      "code": "I_72",
+      "label": "Ingresos transferencias capital de Administración General del Estado"
+    },
+    {
+      "code": "I_73",
+      "label": "Ingresos transferencias capital de Seguridad Social"
+    },
+    {
+      "code": "I_74",
+      "label": "Ingresos transferencias capital de Entidades Públicas Estatales"
+    },
+    {
+      "code": "I_75",
+      "label": "Ingresos transferencias capital de CCAA"
+    },
+    {
+      "code": "I_76",
+      "label": "Ingresos transferencias capital de otras EELL"
+    },
+    {
+      "code": "I_77",
+      "label": "Ingresos transferencias capital de empresas"
+    },
+    {
+      "code": "I_78",
+      "label": "Ingresos transferencias capital de familias e ISFL"
+    },
+    {
+      "code": "I_79",
+      "label": "Ingresos transferencias capital del exterior"
+    },
+    {
+      "code": "I_7T",
+      "label": "Ingresos transferencias capital ajuste consolidación"
+    },
+    {
+      "code": "INGRESOS_OPERACIONES_FINANCIERAS",
+      "label": "Ingresos operaciones financieras"
+    },
+    {
+      "code": "I_8",
+      "label": "Ingresos activos financieros"
+    },
+    {
+      "code": "I_82",
+      "label": "Ingresos reintegro préstamos sector público"
+    },
+    {
+      "code": "I_83",
+      "label": "Ingresos reintegro préstamos no sector público"
+    },
+    {
+      "code": "I_84",
+      "label": "Ingresos devolución depósitos y fianzas"
+    },
+    {
+      "code": "I_87",
+      "label": "Remanente tesorería"
+    },
+    {
+      "code": "I_9",
+      "label": "Ingresos pasivos financieros"
+    },
+    {
+      "code": "I_91",
+      "label": "Ingresos préstamos"
+    },
+    {
+      "code": "I_94",
+      "label": "Ingresos depósitos y fianzas"
+    }
+  ]
+}
