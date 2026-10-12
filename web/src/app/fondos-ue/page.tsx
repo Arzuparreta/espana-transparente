@@ -97,10 +97,11 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
     <div className="ui-page">
       <PageHeader
         title="¿Qué beneficiarios figuran en Kohesio?"
-        description="Beneficiarios españoles registrados en Kohesio y presupuesto UE asociado a sus proyectos. Cobertura plurianual de cohesión 2014-2027: no es el total de fondos europeos ni acredita importes pagados."
+        description="Beneficiarios españoles registrados en Kohesio y presupuesto UE asociado a sus proyectos. Inventario ESIF plurianual 2014-2027: no es el total de fondos europeos ni acredita importes pagados."
       />
 
-      <p className="text-sm leading-6">Cohesión, MRR/PRTR y PAC son instrumentos distintos. <ResponsiveLink href="/fondos-ue/prtr" className="underline">Explorar el programa PRTR DUS 5000 y sus concesiones publicadas →</ResponsiveLink> La PAC tiene cobertura y fases propias; no se incluye en estos totales.</p>
+      <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/cohesion" className="underline">Consultar costes y transferencias por programa FEDER de cohesión →</ResponsiveLink></p>
+      <p className="text-sm leading-6">Cohesión, MRR/PRTR y PAC tienen instrumentos y fases propios. <ResponsiveLink href="/fondos-ue/prtr" className="underline">Explorar el programa PRTR DUS 5000 y sus concesiones publicadas →</ResponsiveLink> Kohesio incluye registros ESIF de FEADER: este inventario no desglosa aquí la parte de la PAC ni representa su total.</p>
 
       <SourceFootnote
         sourceLabel="Kohesio · Comisión Europea"
@@ -115,7 +116,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
 
       <p className="text-sm leading-6 text-muted-foreground">
         Los importes agregan el presupuesto UE registrado para los beneficiarios disponibles en el portal,
-        sin selección anual ni certificación de pagos. No representan el MRR/PRTR ni el conjunto de la PAC.
+        sin selección anual ni certificación de pagos. No representan el MRR/PRTR ni el conjunto de la PAC; tampoco permiten aislar aquí la contribución de FEADER.
         El presupuesto total incluye cofinanciación nacional: no se añade al presupuesto UE como otro flujo.
       </p>
 
@@ -131,7 +132,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
               value: formatEuroCompact(Number(summary.total_eu_budget)),
             },
             {
-              label: "Proyectos registrados",
+              label: "Proyectos asociados por beneficiario",
               value: Number(summary.total_projects).toLocaleString("es-ES"),
             },
             {
