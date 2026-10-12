@@ -64,6 +64,7 @@ export const SECONDARY_NAV: NavItem[] = [
 const COLLECTIONS: SectionMeta[] = [
   {key:"pac-pagos",href:"/fondos-ue/pac",label:"PAC · pagos agrarios",area:"dinero",section:"Operaciones",description:"FEAGA y periodos FEADER; cierre financiero y organismo pagador."},
   {key:"cohesion-feder",href:"/fondos-ue/cohesion",label:"Cohesión · FEDER",area:"dinero",section:"Operaciones",description:"Coste, selección, gasto declarado y transferencias netas por programa y corte."},
+  {key:"mrr-instruments",href:"/fondos-ue/prtr/instrumentos",label:"MRR · subvenciones y financiación",area:"dinero",section:"Operaciones",description:"Instrumentos y compromisos ICO por anualidad; contraste de fases con AIReF."},
   {key:"prtr-dus5000",href:"/fondos-ue/prtr",label:"PRTR · DUS 5000",area:"dinero",section:"Operaciones",description:"Programa MRR y concesiones publicadas por expediente; no acredita pagos."},
   {key:"espera-sanitaria",href:"/servicios/sanidad",label:"Espera quirúrgica",area:"dinero",section:"Resultados",description:"Pacientes pendientes, tiempo transcurrido y contexto de gasto sanitario con periodos independientes."},
   {key:"precios-vivienda",href:"/precios-vivienda",label:"Precios de vivienda",area:"economia",section:"Precios",description:"Evolución de compraventa por trimestre y territorio; índice y tasas IPV."},

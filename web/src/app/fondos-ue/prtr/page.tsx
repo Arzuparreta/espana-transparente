@@ -57,6 +57,7 @@ export default async function Page({
         title="¿Qué financia DUS 5000 y qué fase está acreditada?"
         description="Subvenciones para proyectos locales de energía limpia. Instrumento MRR/PRTR, gestión IDAE; este piloto acredita importes de concesión publicados, no pagos ni proyectos terminados."
       />
+      <Link href="/fondos-ue/prtr/instrumentos" className="block underline">Subvenciones y financiación ICO: comparar instrumentos y fases</Link>
       <div className="rounded border p-4 space-y-3">
         <h2 className="text-xl font-semibold">
           Presupuesto del programa · desde 2021

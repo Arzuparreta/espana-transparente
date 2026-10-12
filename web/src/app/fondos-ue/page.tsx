@@ -102,6 +102,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
 
       <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/pac" className="underline">Consultar pagos PAC por fondo y organismo pagador →</ResponsiveLink> Cierre financiero consolidado, separado de concesiones e inventarios.</p>
       <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/cohesion" className="underline">Consultar costes y transferencias por programa FEDER de cohesión →</ResponsiveLink></p>
+      <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/prtr/instrumentos" className="underline">Distinguir subvenciones, financiación y compromisos ICO →</ResponsiveLink> Fuentes BOE y contraste de fases con AIReF.</p>
       <p className="text-sm leading-6">Cohesión, MRR/PRTR y PAC tienen instrumentos y fases propios. <ResponsiveLink href="/fondos-ue/prtr" className="underline">Explorar el programa PRTR DUS 5000 y sus concesiones publicadas →</ResponsiveLink> Kohesio incluye registros ESIF de FEADER: este inventario no desglosa aquí la parte de la PAC ni representa su total.</p>
 
       <SourceFootnote

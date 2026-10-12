@@ -82,6 +82,7 @@ run_daily() {
 }
 
 run_weekly_core() {
+  run_self_tracked_pipeline "prtr.instruments" python -m src.prtr.instruments
   run_self_tracked_pipeline "pac.pagos" python -m src.pac.pagos
   run_self_tracked_pipeline "cohesion.feder" python -m src.cohesion.feder
   run_self_tracked_pipeline "prtr.dus5000" python -m src.prtr.dus5000

@@ -88,8 +88,9 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 1, operaciones y asociaciones | Implementado; PR #57 mergeada |
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
 | Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
-| Fase 5, piloto PRTR DUS 5000 | Programa MRR, presupuesto y concesión por expediente con fechas de última resolución; [contrato](2026-10-12-prtr-dus5000.md). Pagos individuales no acreditados; contraste AIReF y otros instrumentos pendientes |
+| Fase 5, piloto PRTR DUS 5000 | Programa MRR, presupuesto y concesión por expediente con fechas de última resolución; [contrato](2026-10-12-prtr-dus5000.md). Pagos individuales no acreditados; contraste de fases AIReF e instrumentos ICO en el bloque siguiente |
 | Fase 5, primer resultado sanitario | Espera quirúrgica rectificada, 19 administraciones, conciliación SNS y gasto nacional con selección independiente; [contrato](2026-10-12-espera-sanitaria.md). Otros servicios tras evaluar el piloto |
+| Fase 5, instrumentos MRR | Dos facilidades ICO, compromisos por anualidad en la adenda publicada 16/01/2026; concesión DUS, financiación y pagos separados. [Contrato](2026-10-12-instrumentos-mrr.md), contraste de fases y ámbito AIReF |
 | Fase 5, pagos PAC | Cierre consolidado 2025, FEAGA y dos periodos FEADER separados; [contrato](2026-10-12-pagos-pac.md). Organismo pagador no equivale a lugar beneficiado |
 | Fase 5, programas FEDER | Implementación y transferencias netas con cortes independientes; [contrato](2026-10-12-cohesion-feder.md). No acredita pagos a beneficiarios |
 | Fase 3, liquidación local | 88 municipios canarios, cuatro fases de 2024 y huecos oficiales; [contrato](2026-10-12-liquidacion-local.md). Cobertura nacional no inferida |

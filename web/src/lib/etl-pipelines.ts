@@ -1,4 +1,5 @@
 export const ETL_PIPELINE_LABELS: Record<string, string> = {
+  "prtr.instruments": "MRR · compromisos de financiación ICO",
   "pac.pagos": "PAC · pagos FEAGA y FEADER",
   "cohesion.feder": "Programas FEDER · fases financieras",
   "prtr.dus5000": "PRTR · DUS 5000",
@@ -83,6 +84,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"mrr-instruments",label:"MRR · compromisos de financiación ICO",cadence:"weekly",maxAgeHours:24*9,pipelines:["prtr.instruments"]},
   {key:"pac-pagos",label:"PAC · pagos FEAGA y FEADER",cadence:"weekly",maxAgeHours:24*9,pipelines:["pac.pagos"]},
   {key:"cohesion-feder",label:"Programas FEDER · fases financieras",cadence:"weekly",maxAgeHours:24*9,pipelines:["cohesion.feder"]},
   {key:"prtr-dus5000",label:"PRTR · DUS 5000",cadence:"weekly",maxAgeHours:24*9,pipelines:["prtr.dus5000"]},
