@@ -22,7 +22,7 @@ export default async function PartidosPage() {
     <div className="ui-page">
       <PageHeader
         title="Partidos"
-        description="Los partidos con representación en el Congreso. Cuántos diputados tienen, en qué provincias, y cómo votan."
+        description="Los partidos con representación en el Congreso. Cuántos diputados tienen, en qué provincias y cómo votó cada uno: el partido agrupa decisiones individuales, no una voluntad única."
       />
       <div className="space-y-2">
         {withDeputies.map((p) => {

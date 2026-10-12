@@ -81,15 +81,6 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
       <PageHeader
         title={formatName(member.person_name)}
         description={`${member.position_title} · ${institutionLabel}`}
-        eyebrow={
-          member.political_party ? (
-            <PartyBadge
-              acronym={member.political_party}
-              color={member.party_color ?? undefined}
-              partyId={partyId}
-            />
-          ) : undefined
-        }
       />
 
       <div className="rounded-[2px] border border-border bg-card px-6 py-2">
@@ -97,7 +88,11 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
           <Row label="Organismo">{institutionLabel}</Row>
           <Row label="Cargo">{member.position_title}</Row>
           {member.nominating_body && <Row label="Propuesto por">{member.nominating_body}</Row>}
-          {member.political_party && <Row label="Partido">{member.political_party}</Row>}
+          {member.political_party && (
+            <Row label="Candidatura respaldada por">
+              <PartyBadge acronym={member.political_party} color={member.party_color ?? undefined} partyId={partyId} />
+            </Row>
+          )}
           {member.appointment_date && (
             <Row label="Nombramiento">{formatDate(member.appointment_date)}</Row>
           )}
@@ -107,7 +102,8 @@ export default async function InstitucionDetailPage({ params }: PageProps) {
       <InfoPanel title="Fuente">
         Nombramiento extraído del BOE o de la web oficial del organismo. El partido asociado
         corresponde al que respaldó la candidatura en el Congreso, el Senado, el CGPJ o el
-        Gobierno según el caso.
+        Gobierno según el caso; procede de fuentes de referencia y prensa, no del BOE, y no indica
+        afiliación ni dependencia política de la persona.
         {member.source_url && (
           <>
             {" "}

@@ -82,11 +82,14 @@ function MemberCard({ member, partyId }: { member: InstitucionMember; partyId: s
       </div>
 
       <div className="mt-3 flex min-w-0 items-center justify-between gap-2">
-        <PartyBadge
-          acronym={member.political_party ?? "—"}
-          color={member.party_color ?? undefined}
-          partyId={partyId}
-        />
+        {member.political_party ? (
+          <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="shrink-0">Candidatura respaldada por</span>
+            <PartyBadge acronym={member.political_party} color={member.party_color ?? undefined} partyId={partyId} />
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Respaldo de la candidatura no identificado</span>
+        )}
         <div className="flex shrink-0 items-center gap-2">
           {member.has_revolving_door && (
             <ResponsiveLink
@@ -143,14 +146,14 @@ export default async function InstitucionesPage() {
     <div className="ui-page">
       <PageHeader
         title="Organismos institucionales"
-        description="Personas nombradas para dirigir organismos públicos clave —Tribunal Constitucional, Consejo General del Poder Judicial, RTVE, SEPI— y por qué partido fue propuesta cada una."
+        description="Personas nombradas en organismos públicos clave —Tribunal Constitucional, Consejo General del Poder Judicial, RTVE, SEPI—, órgano que las propuso y partido que respaldó su candidatura cuando consta. Ese respaldo no es afiliación de la persona ni prueba de dependencia política."
       />
 
       <StatGrid
         items={[
           { label: "Miembros activos", value: totalMembers.toString() },
           { label: "Organismos cubiertos", value: INSTITUTION_ORDER.length.toString() },
-          { label: "Con partido identificado", value: `${pctParty} %` },
+          { label: "Con respaldo de candidatura identificado", value: `${pctParty} %` },
           {
             label: "Último nombramiento",
             value: lastDate ? formatDate(lastDate) : "—",
@@ -194,7 +197,8 @@ export default async function InstitucionesPage() {
       <InfoPanel title="Fuente">
         Los nombramientos se extraen del BOE y de las webs oficiales de cada organismo.
         El partido asociado corresponde al que respaldó la candidatura en el Congreso, el Senado,
-        el CGPJ o el Gobierno según el caso. Las tarjetas con enlace dirigen a la ficha del/la
+        el CGPJ o el Gobierno según el caso; esa atribución procede de fuentes de referencia y prensa,
+        no del BOE, y no indica afiliación ni que la persona actúe por mandato de ese partido. Las tarjetas con enlace dirigen a la ficha del/la
         diputado/a cuando la persona forma o ha formado parte del Congreso. El badge{" "}
         <span className="font-medium text-accent">Puerta giratoria</span>{" "}
         indica que existe un caso publicado y verificado en nuestra base de datos.
