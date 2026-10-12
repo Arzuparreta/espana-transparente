@@ -1,7 +1,7 @@
 """ETL script: ingest subsidies from BDNS (Base de Datos Nacional de Subvenciones).
 
 Fetches concesiones by date range. Filters are applied client-side:
-  - Only organizational beneficiaries (individuals are anonymized with asterisks)
+  - Only visible beneficiary labels (not a validation of legal personality)
   - Optional minimum amount (--importe-min)
 
 The BDNS API does not support reliable server-side amount filtering or sorting by
@@ -32,10 +32,9 @@ PAGE_SIZE = 200
 REQUEST_DELAY = 1.0
 
 
-def _is_organization(beneficiario: str | None) -> bool:
-    if not beneficiario:
-        return False
-    return not beneficiario.startswith("*")
+def _has_visible_beneficiary(beneficiario: str | None) -> bool:
+    """Exclude absent/masked labels; visibility does not prove a legal entity."""
+    return isinstance(beneficiario, str) and bool(beneficiario.strip()) and not beneficiario.lstrip().startswith("*")
 
 
 # CIF/NIF pattern: org CIF (letter + 7 digits + control) or 8-digit NIF + letter.
@@ -105,7 +104,7 @@ def fetch_page(from_date: str, to_date: str, page: int, retries: int = 5) -> dic
 
 
 def parse_record(raw: dict, importe_min: float) -> dict | None:
-    if not _is_organization(raw.get("beneficiario")):
+    if not _has_visible_beneficiary(raw.get("beneficiario")):
         return None
     if (raw.get("importe") or 0) < importe_min:
         return None

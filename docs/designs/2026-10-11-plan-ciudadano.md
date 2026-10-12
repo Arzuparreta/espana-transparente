@@ -87,6 +87,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 1, entrada anual `/dinero` | Implementado y validado localmente; evidencia abajo |
 | Fase 1, operaciones y asociaciones | Implementado; PR #57 mergeada |
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
+| Fase 2, estudio de ayudas anonimizadas | Perfil acotado sin microdatos, condiciones vigentes y riesgos; [estudio](2026-10-12-estudio-ayudas-anonimizadas.md). Fuente parcial no acredita cobertura ampliada de hogares |
 | Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
 | Fase 5, piloto PRTR DUS 5000 | Programa MRR, presupuesto y concesión por expediente con fechas de última resolución; [contrato](2026-10-12-prtr-dus5000.md). Pagos individuales no acreditados; contraste de fases AIReF e instrumentos ICO en el bloque siguiente |
 | Fase 5, primer resultado sanitario | Espera quirúrgica rectificada, 19 administraciones, conciliación SNS y gasto nacional con selección independiente; [contrato](2026-10-12-espera-sanitaria.md). Otros servicios tras evaluar el piloto |

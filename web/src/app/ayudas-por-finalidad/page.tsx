@@ -22,7 +22,7 @@ export default async function Page({
     <div className="ui-page space-y-6">
       <PageHeader
         title="¿Para qué se concedieron ayudas?"
-        description="Finalidades declaradas de las concesiones a organizaciones recopiladas por el portal. Cada instrumento conserva su propio significado."
+        description="Finalidades declaradas de las concesiones recopiladas por el portal. Cada instrumento conserva su propio significado."
       />
       <SubsidyPurposes year={year} {...data} />
     </div>

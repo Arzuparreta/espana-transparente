@@ -24,8 +24,7 @@ export function SubsidyPurposes({
   return (
     <section className="space-y-5" aria-label="Finalidades de las ayudas">
       <p className="text-sm leading-6 text-muted-foreground">
-        Concesiones a organizaciones recopiladas por el portal, por fecha de
-        concesión. La finalidad declarada pertenece a la convocatoria BDNS
+        Concesiones recopiladas por el portal, por fecha de concesión. La finalidad declarada pertenece a la convocatoria BDNS
         vinculada por su código; no se deduce del nombre del beneficiario ni del
         título. Concesión no equivale a pago.
       </p>
@@ -155,8 +154,10 @@ export function SubsidyPurposes({
       <p className="text-sm leading-6 text-muted-foreground">
         La verificación de convocatorias se amplía progresivamente. Las
         concesiones sin vínculo verificado permanecen visibles; no se
-        reclasifican como cero. El corpus incluye concesiones a organizaciones y
-        puede tener cobertura temporal e importes incompletos. La finalidad no
+        reclasifican como cero. El corpus excluye etiquetas ausentes o que empiezan
+        por asterisco; una etiqueta visible no acredita personalidad jurídica.
+        No representa todas las ayudas a hogares y puede tener cobertura temporal
+        e importes incompletos. La finalidad no
         acredita resultados del servicio ni dónde se usó el dinero.
       </p>
       <Link

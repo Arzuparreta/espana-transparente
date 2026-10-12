@@ -6,7 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from bdns.subvenciones import BDNS_API, _is_organization, fetch_page, parse_record, run_window
+from bdns.subvenciones import BDNS_API, _has_visible_beneficiary, fetch_page, parse_record, run_window
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -16,16 +16,16 @@ def _load_fixture() -> list[dict]:
     return data["content"]
 
 
-def test_is_organization_accepts_named_entity():
-    assert _is_organization("UNIVERSIDAD COMPLUTENSE DE MADRID") is True
+def test_has_visible_beneficiary_accepts_named_entity():
+    assert _has_visible_beneficiary("UNIVERSIDAD COMPLUTENSE DE MADRID") is True
 
 
-def test_is_organization_rejects_anonymized():
-    assert _is_organization("* (datos personales protegidos)") is False
+def test_has_visible_beneficiary_rejects_anonymized():
+    assert _has_visible_beneficiary("* (datos personales protegidos)") is False
 
 
-def test_is_organization_rejects_none():
-    assert _is_organization(None) is False
+def test_has_visible_beneficiary_rejects_none():
+    assert _has_visible_beneficiary(None) is False
 
 
 def test_parse_record_returns_dict_for_org():
@@ -136,3 +136,9 @@ def test_fetch_page_retries_invalid_latin1_response(monkeypatch):
     monkeypatch.setattr("bdns.subvenciones.httpx.get", lambda *a, **kw: responses.pop(0))
     assert fetch_page("2026-09-07", "2026-09-14", 0)["last"] is True
     assert not responses
+
+
+def test_visible_beneficiary_gate_does_not_classify_legal_personality():
+    assert _has_visible_beneficiary("PERSONA SINTETICA") is True
+    assert _has_visible_beneficiary("   * etiqueta ocultada") is False
+    assert _has_visible_beneficiary("   ") is False
