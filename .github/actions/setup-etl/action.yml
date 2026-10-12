@@ -15,7 +15,7 @@ runs:
           echo "::error::uv is not installed on the self-hosted runner"
           exit 1
         fi
-        if ! command -v pdfinfo >/dev/null || ! command -v pdftoppm >/dev/null; then
+        if ! command -v pdfinfo >/dev/null || ! command -v pdftoppm >/dev/null || ! command -v pdftotext >/dev/null; then
           echo "::error::poppler-utils is not installed on the self-hosted runner"
           exit 1
         fi

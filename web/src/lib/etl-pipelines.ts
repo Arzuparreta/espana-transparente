@@ -20,6 +20,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "ine.fiscal": "Cuentas públicas Eurostat",
   "ine.cofog": "Gasto por funciones COFOG",
   "senado.actividad": "Actividad de control del Senado",
+  "congreso.publicacion": "Publicación y vigencia de leyes",
   "congreso.actividad": "Actividad parlamentaria por materia",
   "presupuestos.autonomico": "Liquidación presupuestaria autonómica",
   "presupuestos.ejecucion": "Ejecución del presupuesto del Estado",
@@ -76,6 +77,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"law-publication",label:"Publicación y vigencia de leyes",cadence:"weekly",maxAgeHours:24*9,pipelines:["congreso.publicacion"]},
   {key:"housing-prices",label:"Precios de vivienda IPV",cadence:"weekly",maxAgeHours:24*9,pipelines:["ine.vivienda"]},
   { key: "wage-distribution", label: "Distribución salarial EPA", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.salarios_distribucion"] },
   { key: "senate-control", label: "Actividad de control del Senado", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["senado.actividad"] },

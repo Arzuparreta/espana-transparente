@@ -1,3 +1,4 @@
+import { getLawPublication } from "@/lib/data/law-publication"
 import { ParliamentEvidence } from "@/components/domain/ParliamentEvidence"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
@@ -180,7 +181,7 @@ export default async function IniciativaPage({ params }: PageProps) {
           <FieldList items={items} />
         </RecordSection>
 
-        <ParliamentEvidence raw={initiative.raw_data} sourceUrl={initiative.source_url} />
+        <ParliamentEvidence raw={initiative.raw_data} sourceUrl={initiative.source_url} publication={await getLawPublication(initiative.number,initiative.legislature_id)} />
 
         <RecordSection title="Votaciones vinculadas" count={sessions.length}>
           {sessions.length === 0 ? (

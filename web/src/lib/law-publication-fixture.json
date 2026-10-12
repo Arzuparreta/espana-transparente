@@ -1,0 +1,663 @@
+{
+  "version": "congress-xv-publications-v1",
+  "legislature": 15,
+  "dataset_url": "https://www.congreso.es/webpublica/opendata/iniciativas/ProyectosDeLey__20261012050029.json",
+  "dataset_sha256": "630f03149b78d7738ec9d5e60ac3d29188f7a1344637b7ddb883a8232b2aaced",
+  "universe": 115,
+  "selected": 21,
+  "documents": 23,
+  "retrieved_at": "2026-10-12T12:23:37.657796+00:00",
+  "records": [
+    {
+      "number": "121/000001",
+      "title": "Proyecto de Ley Orgánica de representación paritaria y presencia \nequilibrada de mujeres y hombres.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000001&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "5c17548a1cc8259762935df32ea9bbc7cf4fbab27f090eebf6673617dfbd20ad",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-15936",
+          "title": "Ley Orgánica 2/2024, de 1 de agosto, de representación paritaria y presencia equilibrada de mujeres y hombres.",
+          "kind": "law",
+          "commencement_date": "2024-08-22",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/08/02/pdfs/BOE-A-2024-15936.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-15936",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-15936",
+          "xml_sha256": "c46d315eb34eb01d2622f77ab9c298ed09df508a398503744a5c0de560f1395c",
+          "boe_updated_at": "20260427085601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 186 de 02/08/2024 Ley Orgánica 2/2024, de 1 de agosto, de representación paritaria y presencia equilibrada de mujeres y hombres. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_002_2024.pdf",
+          "publication_date": "2024-08-02",
+          "diary_number": "186",
+          "pdf_sha256": "80c5a34bcd38a33bf2ac623ea992ea17887d9d86a04d195d1237139cd17ab66d"
+        }
+      ]
+    },
+    {
+      "number": "121/000004",
+      "title": "Proyecto de Ley de prevención de las pérdidas y el desperdicio \nalimentario.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000004&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "cbc218360d2971300cfe98a44fadb84e47c0562ce2d888f89cc461d8282df4b5",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-6597",
+          "title": "Ley 1/2025, de 1 de abril, de prevención de las pérdidas y el desperdicio alimentario.",
+          "kind": "law",
+          "commencement_date": "2025-01-02",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/04/02/pdfs/BOE-A-2025-6597.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-6597",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-6597",
+          "xml_sha256": "ee81dd4bb80160dc39ddf5e97f54dd615787203a98f00d85badc7050ca0f5dcb",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 80 de 02/04/2025 Ley 1/2025, de 1 de abril, de prevención de las pérdidas y el desperdicio alimentario. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_001_2025.pdf",
+          "publication_date": "2025-04-02",
+          "diary_number": "80",
+          "pdf_sha256": "81bede1d95cd805f9880e84bb77175dc1ae7bbf4143a10a918d0f05e61ace21e"
+        }
+      ]
+    },
+    {
+      "number": "121/000005",
+      "title": "Proyecto de Ley por la que se regulan las enseñanzas artísticas \nsuperiores y se establece la organización y equivalencias de las \nenseñanzas artísticas profesionales.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000005&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "1ca4fa6017805c058c7d967590eb52ed126822c66ef1062ae3532eb371a12e43",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-11613",
+          "title": "Ley 1/2024, de 7 de junio, por la que se regulan las enseñanzas artísticas superiores y se establece la organización y equivalencias de las enseñanzas artísticas profesionales.",
+          "kind": "law",
+          "commencement_date": "2024-06-28",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/06/08/pdfs/BOE-A-2024-11613.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-11613",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-11613",
+          "xml_sha256": "781f68af28cf07b5e3dc10fffe64f7f60e779dea6e0f745486cf570a0defd6e0",
+          "boe_updated_at": "20260605092601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 139 de 08/06/2024 Ley 1/2024, de 7 de junio, por la que se regulan las enseñanzas artísticas superiores y se establece la organización y equivalencias de las enseñanzas artísticas profesionales. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_001_2024.pdf",
+          "publication_date": "2024-06-08",
+          "diary_number": "139",
+          "pdf_sha256": "549d95ebe3a9d8bc2c82dbef53b82b9eda0bc2bd9ece957dad5d4105f95205c9"
+        }
+      ]
+    },
+    {
+      "number": "121/000006",
+      "title": "Proyecto de Ley Orgánica del derecho de defensa.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000006&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "75154d23b97655c294a932424bfe3337f4d7752300e52ab84c509fdec3a58032",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-23630",
+          "title": "Ley Orgánica 5/2024, de 11 de noviembre, del Derecho de Defensa.",
+          "kind": "law",
+          "commencement_date": "2024-12-04",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/11/14/pdfs/BOE-A-2024-23630.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-23630",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-23630",
+          "xml_sha256": "1cf523f1698e1a21e3208300e48ba2a94d54b7023ce99dbdbd0866b1a4da780d",
+          "boe_updated_at": "20251220192601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 275 de 14/11/2024 Ley Orgánica 5/2024, de 11 de noviembre, del Derecho de Defensa (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_005_2024.pdf",
+          "publication_date": "2024-11-14",
+          "diary_number": "275",
+          "pdf_sha256": "f8d1c9589c2f90c686983862a669b8e8c3a95cc8c6121b259fd5f90878e46525"
+        }
+      ]
+    },
+    {
+      "number": "121/000009",
+      "title": "Proyecto de Ley de Movilidad Sostenible.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000009&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "f42aadf6889d17f82f29ce48fa685066e9e93d2200f6ae8402fa13d7d296adab",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-24545",
+          "title": "Ley 9/2025, de 3 de diciembre, de Movilidad Sostenible.",
+          "kind": "law",
+          "commencement_date": "2025-12-05",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/12/04/pdfs/BOE-A-2025-24545.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-24545",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-24545",
+          "xml_sha256": "e738c21c374093856b0093e45a4eb1c26a4a4e16980de51a95d6f5a2c491db60",
+          "boe_updated_at": "20260930125601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 291 de 04/12/2025 Ley 9/2025, de 3 de diciembre, de Movilidad Sostenible. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_009_2025.pdf",
+          "publication_date": "2025-12-04",
+          "diary_number": "291",
+          "pdf_sha256": "2bd1976f0574f506d5b9020fb31f45d98482397cdf3038a580dd8006e43a223e"
+        }
+      ]
+    },
+    {
+      "number": "121/000010",
+      "title": "Proyecto de Ley de creación de la Autoridad Administrativa \nIndependiente para la Investigación Técnica de Accidentes e Incidentes \nferroviarios, marítimos y de aviación civil.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000010&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "28ea7e8855d52375c5f34579234078dfd34b14d8a84ded927fbd6f5e4841aa76",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-15937",
+          "title": "Ley 2/2024, de 1 de agosto, de creación de la Autoridad Administrativa Independiente para la Investigación Técnica de Accidentes e Incidentes ferroviarios, marítimos y de aviación civil.",
+          "kind": "law",
+          "commencement_date": "2024-08-22",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/08/02/pdfs/BOE-A-2024-15937.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-15937",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-15937",
+          "xml_sha256": "88ba8d3c2334128620cf6298a169f4bc7922ed7b3c034fd56fef6374326f3f51",
+          "boe_updated_at": "20260227085601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 186 de 02/08/2024 Ley 2/2024, de 1 de agosto, de creación de la Autoridad Administrativa Independiente para la Investigación Técnica de Accidentes e Incidentes ferroviarios, marítimos y de aviación civil. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_002_2024.pdf",
+          "publication_date": "2024-08-02",
+          "diary_number": "186",
+          "pdf_sha256": "f4ecca4dd06e5af7fd241ce432491d5681e759d551b8f528ecfa19e2a5f645b1"
+        }
+      ]
+    },
+    {
+      "number": "121/000012",
+      "title": "Proyecto de Ley por la que se regulan los servicios de atención a la \nclientela.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000012&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "6b598fbd8ee3161f6a9a99bf456df4b3453b3f2696af01ea2001ed74e6106b92",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-26698",
+          "title": "Ley 10/2025, de 26 de diciembre, por la que se regulan los servicios de atención a la clientela.",
+          "kind": "law",
+          "commencement_date": "2025-12-28",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/12/27/pdfs/BOE-A-2025-26698.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-26698",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-26698",
+          "xml_sha256": "0f0b13cf10c73c4ba5b4986fc4dfa4f369db74ce2afc6af67ee908e5124c7ea7",
+          "boe_updated_at": "20260421112601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 312 de 27/12/2025 Ley 10/2025, de 26 de diciembre, por la que se regulan los servicios de atención a la clientela. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_010_2025.pdf",
+          "publication_date": "2025-12-27",
+          "diary_number": "312",
+          "pdf_sha256": "0331830d0befea1a733780fd87a15e3b0495341802ad71215ff87a080cacf6ae"
+        }
+      ]
+    },
+    {
+      "number": "121/000014",
+      "title": "Proyecto de Ley básica de agentes forestales y medioambientales.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000014&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "35f2ecbd126c72ecee05e606d62a1da00abd55f586c05b4ef964aaf46808f0ce",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-23271",
+          "title": "Ley 4/2024, de 8 de noviembre, básica de agentes forestales y medioambientales.",
+          "kind": "law",
+          "commencement_date": "2024-11-10",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/11/09/pdfs/BOE-A-2024-23271.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-23271",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-23271",
+          "xml_sha256": "7718aba9ad36fc49aa0d3eaf569dd77f5a984806a8cad21fe21d5131ba65b0e8",
+          "boe_updated_at": "20251229105601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 271 de 09/11/2024 Ley 4/2024, de 8 de noviembre, básica de agentes forestales y medioambientales. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_004_2024.pdf",
+          "publication_date": "2024-11-09",
+          "diary_number": "271",
+          "pdf_sha256": "c8a42c2977920bc865be62d3a886b67f80839ce09f866e13d93b9937e7195826"
+        }
+      ]
+    },
+    {
+      "number": "121/000015",
+      "title": "Proyecto de Ley básica de bomberos forestales.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000015&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "6ec7037095708e68efd9bc69581a3c57c3039f6df1309bad1a0dd5a34b860197",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-23272",
+          "title": "Ley 5/2024, de 8 de noviembre, básica de bomberos forestales.",
+          "kind": "law",
+          "commencement_date": "2024-11-10",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/11/09/pdfs/BOE-A-2024-23272.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-23272",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-23272",
+          "xml_sha256": "881ee06e6fc679d5c813e3ce88d0f6d90a783a19bacce535aa3f0c13f54e61ff",
+          "boe_updated_at": "20251220192601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 271 de 09/11/2024 Ley 5/2024, de 8 de noviembre, básica de bomberos forestales. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_005_2024.pdf",
+          "publication_date": "2024-11-09",
+          "diary_number": "271",
+          "pdf_sha256": "e9e4b79430a2521b78e5874856b5f0fea6b60771ed32da8fb6b4d00d0ed863c4"
+        }
+      ]
+    },
+    {
+      "number": "121/000016",
+      "title": "Proyecto de Ley Orgánica de medidas en materia de eficiencia del \nServicio Público de Justicia.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000016&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "80a08c955354fc409efa649706a69bf133126b06de29dd2d53cde959bfea4e48",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-76",
+          "title": "Ley Orgánica 1/2025, de 2 de enero, de medidas en materia de eficiencia del Servicio Público de Justicia.",
+          "kind": "law",
+          "commencement_date": "2025-04-03",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/01/03/pdfs/BOE-A-2025-76.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-76",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-76",
+          "xml_sha256": "e2df2f9614b5d8a632f7de751bac68aebb80dc284ddfe832860a25b1803278e8",
+          "boe_updated_at": "20260709102601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 3 de 03/01/2025 Ley Orgánica 1/2025, de 2 de enero, de medidas en materia de eficiencia del Servicio Público de Justicia. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_001_2025.pdf",
+          "publication_date": "2025-01-03",
+          "diary_number": "3",
+          "pdf_sha256": "3da4685b0207dcc37b09fc3aae448a4e29a20b0235732a0d9718003b5e2e593c"
+        },
+        {
+          "boe_id": "BOE-A-2025-461",
+          "title": "Corrección de errores de la Ley Orgánica 1/2025, de 2 de enero, de medidas en materia de eficiencia del Servicio Público de Justicia.",
+          "kind": "correction",
+          "commencement_date": null,
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/01/11/pdfs/BOE-A-2025-461.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-461",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-461",
+          "xml_sha256": "af5bdbabaf0ec7dd3b212939fbd15bc292e9fccf0f9489fc4a23319287e03b0f",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 10 de 11/01/2025 Corrección de errores de la Ley Orgánica 1/2025, de 2 de enero, de medidas en materia de eficiencia del Servicio Público de Justicia. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_001_2025_corr.pdf",
+          "publication_date": "2025-01-11",
+          "diary_number": "10",
+          "pdf_sha256": "e43a2dcd25158942618bf1ca163980ee67981ec9ee63ebe0709920b4db17f017"
+        }
+      ]
+    },
+    {
+      "number": "121/000017",
+      "title": "Proyecto de Ley Orgánica por la que se modifica la Ley Orgánica \n7/2014, de 12 de noviembre, sobre intercambio de información de \nantecedentes penales y consideración de resoluciones judiciales penales \nen la Unión Europea, para su adecuación a la normativa de la Unión \nEuropea sobre el Sistema Europeo de Información de Antecedentes Penales \n(ECRIS).",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000017&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "e225b099409467560fb59e80171b94d64fc71e09cdb27e3deadf7b98b06bec36",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-21414",
+          "title": "Ley Orgánica 4/2024, de 18 de octubre, por la que se modifica la Ley Orgánica 7/2014, de 12 de noviembre, sobre intercambio de información de antecedentes penales y consideración de resoluciones judiciales penales en la Unión Europea, para su adecuación a la normativa de la Unión Europea sobre el Sistema Europeo de Información de Antecedentes Penales (ECRIS).",
+          "kind": "law",
+          "commencement_date": "2024-11-08",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/10/19/pdfs/BOE-A-2024-21414.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-21414",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-21414",
+          "xml_sha256": "73085e68222467066fcb3ccf284ef6e14dbe92463b3bc5fbb18b34d6587431aa",
+          "boe_updated_at": "20251220192601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 253 de 19/10/2024 Ley Orgánica 4/2024, de 18 de octubre, por la que se modifica la Ley Orgánica 7/2014, de 12 de noviembre, sobre intercambio de información de antecedentes penales y consideración de resoluciones judiciales penales en la Unión Europea, para su adecuación a la normativa de la Unión Europea sobre el Sistema Europeo de Información de Antecedentes Penales (ECRIS). (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_004_2024.pdf",
+          "publication_date": "2024-10-19",
+          "diary_number": "253",
+          "pdf_sha256": "1c05708462bb7b34f26ce1206e4c0d9d95f740f378222da5696435b99563570b"
+        }
+      ]
+    },
+    {
+      "number": "121/000020",
+      "title": "Proyecto de Ley por la que se modifican la Ley 48/1960, de 21 de \njulio, sobre Navegación Aérea, y la Ley 21/2003, de 7 de julio, de \nSeguridad Aérea.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000020&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "9a4f86c7d14951688430244e76309eff5775b6fb6c535dc8cf9a7241effa4e56",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-19339",
+          "title": "Ley 8/2025, de 29 de septiembre, por la que se modifican la Ley 48/1960, de 21 de julio, sobre Navegación Aérea, y la Ley 21/2003, de 7 de julio, de Seguridad Aérea.",
+          "kind": "law",
+          "commencement_date": "2025-10-20",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/09/30/pdfs/BOE-A-2025-19339.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-19339",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-19339",
+          "xml_sha256": "de7465d08291317ab2dfc26f4dcc1bbd6c131f3384399fd6c89ddf6a36398cd2",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 235 de 30/09/2025 Ley 8/2025, de 29 de septiembre, por la que se modifican la Ley 48/1960, de 21 de julio, sobre Navegación Aérea, y la Ley 21/2003, de 7 de julio, de Seguridad Aérea. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_008_2025.pdf",
+          "publication_date": "2025-09-30",
+          "diary_number": "235",
+          "pdf_sha256": "afb0adae68fa5a41ce561279f435441246477c1f28a02ee750b29c472375aa78"
+        }
+      ]
+    },
+    {
+      "number": "121/000022",
+      "title": "Proyecto de Ley por la que se modifican el texto refundido de la Ley \nsobre responsabilidad civil y seguro en la circulación de vehículos a \nmotor, aprobado por el Real Decreto Legislativo 8/2004, de 29 de octubre, \ny la Ley 20/2015, de 14 de julio, de ordenación, supervisión y solvencia \nde las entidades aseguradoras y reaseguradoras.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000022&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "a253f3de3b2b9b78b75aac9bf0a76ffe7ec47217d8e389cbf1c36f0983b11e7f",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-15424",
+          "title": "Ley 5/2025, de 24 de julio, por la que se modifican el texto refundido de la Ley sobre responsabilidad civil y seguro en la circulación de vehículos a motor, aprobado por el Real Decreto Legislativo 8/2004, de 29 de octubre, y la Ley 20/2015, de 14 de julio, de ordenación, supervisión y solvencia de las entidades aseguradoras y reaseguradoras.",
+          "kind": "law",
+          "commencement_date": "2025-07-26",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/07/25/pdfs/BOE-A-2025-15424.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15424",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-15424",
+          "xml_sha256": "a52d028a6386c9531703bb77e90006cacecb891b4881153ec7f9e2f0e5098dc8",
+          "boe_updated_at": "20260130085602",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 178 de 25/07/2025 Ley 5/2025, de 24 de julio, por la que se modifican el texto refundido de la Ley sobre responsabilidad civil y seguro en la circulación de vehículos a motor, aprobado por el Real Decreto Legislativo 8/2004, de 29 de octubre, y la Ley 20/2015, de 14 de julio, de ordenación, supervisión y solvencia de las entidades aseguradoras y reaseguradoras. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_005_2025.pdf",
+          "publication_date": "2025-07-25",
+          "diary_number": "178",
+          "pdf_sha256": "9657d0c565a0b0017bee94f8544da006109f54f06286c15a0496ed4f1a3e38ac"
+        }
+      ]
+    },
+    {
+      "number": "121/000023",
+      "title": "Proyecto de Ley por la que se establecen un Impuesto Complementario \npara garantizar un nivel mínimo global de imposición para los grupos \nmultinacionales y los grupos nacionales de gran magnitud, un Impuesto \nsobre el margen de intereses y comisiones de determinadas entidades \nfinancieras y un Impuesto sobre los líquidos para cigarrillos \nelectrónicos y otros productos relacionados con el tabaco, y se modifican \notras normas tributarias.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000023&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "6df5c840b6b2787e702b31a6ece8025c756bb3c12cc2c049f280a55911a9cb35",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-26694",
+          "title": "Ley 7/2024, de 20 de diciembre, por la que se establecen un Impuesto Complementario para garantizar un nivel mínimo global de imposición para los grupos multinacionales y los grupos nacionales de gran magnitud, un Impuesto sobre el margen de intereses y comisiones de determinadas entidades financieras y un Impuesto sobre los líquidos para cigarrillos electrónicos y otros productos relacionados con el tabaco, y se modifican otras normas tributarias.",
+          "kind": "law",
+          "commencement_date": "2024-12-22",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/12/21/pdfs/BOE-A-2024-26694.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-26694",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-26694",
+          "xml_sha256": "ce7c5ecf0b9e33f52372630af40fffd46d6c55273893e492d15a469411644840",
+          "boe_updated_at": "20261005122601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 307 de 21/12/2024 Ley 7/2024, de 20 de diciembre, por la que se establecen un Impuesto Complementario para garantizar un nivel mínimo global de imposición para los grupos multinacionales y los grupos nacionales de gran magnitud, un Impuesto sobre el margen de intereses y comisiones de determinadas entidades financieras y un Impuesto sobre los líquidos para cigarrillos electrónicos y otros productos relacionados con el tabaco, y se modifican otras normas tributarias. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_007_2024.pdf",
+          "publication_date": "2024-12-21",
+          "diary_number": "307",
+          "pdf_sha256": "f53d6ebcc82e76b21db269185389a390d2c6abc37d93d4884d94294ee4bc3e72"
+        }
+      ]
+    },
+    {
+      "number": "121/000030",
+      "title": "Proyecto de Ley Orgánica por la que se modifica la Ley Orgánica \n13/1982, de 10 de agosto, de reintegración y amejoramiento del Régimen \nForal de Navarra, en cuanto a tráfico, circulación de vehículos de motor \ny seguridad vial.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000030&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "e40780b0d9f9c97467bb30f29c67fe93ea95464b2dfb048a67232ad02da5faca",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2024-25451",
+          "title": "Ley Orgánica 6/2024, de 5 de diciembre, por la que se modifica la Ley Orgánica 13/1982, de 10 de agosto, de reintegración y amejoramiento del Régimen Foral de Navarra, en cuanto a tráfico, circulación de vehículos de motor y seguridad vial.",
+          "kind": "law",
+          "commencement_date": "2024-12-07",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2024/12/06/pdfs/BOE-A-2024-25451.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-25451",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2024-25451",
+          "xml_sha256": "57d0024c7d7f636f2b72dc2f6f0c1fae8ef2fd8eba85fbeb155f14cb83dc072b",
+          "boe_updated_at": "20251220192601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 294 de 06/12/2024 Ley Orgánica 6/2024, de 5 de diciembre, por la que se modifica la Ley Orgánica 13/1982, de 10 de agosto, de reintegración y amejoramiento del Régimen Foral de Navarra, en cuanto a tráfico, circulación de vehículos de motor y seguridad vial. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_006_2024.pdf",
+          "publication_date": "2024-12-06",
+          "diary_number": "294",
+          "pdf_sha256": "9c8a54948a4d5740990f3544c74866133d6d7c7256e251f1f106e78e91adbb6c"
+        }
+      ]
+    },
+    {
+      "number": "121/000033",
+      "title": "Proyecto de Ley por la que se modifican el texto refundido de la Ley \ndel Estatuto de los Trabajadores, aprobado por el Real Decreto \nLegislativo 2/2015, de 23 de octubre, en materia de extinción del \ncontrato de trabajo por incapacidad permanente de las personas \ntrabajadoras, y el texto refundido de la Ley General de la Seguridad \nSocial, aprobado por el Real Decreto Legislativo 8/2015, de 30 de \noctubre, en materia de incapacidad permanente.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000033&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "6c888ce188790829e486f1ed629e1d447a57bf18dc45b665246031e72aa07f3c",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-8567",
+          "title": "Ley 2/2025, de 29 de abril, por la que se modifican el texto refundido de la Ley del Estatuto de los Trabajadores, aprobado por el Real Decreto Legislativo 2/2015, de 23 de octubre, en materia de extinción del contrato de trabajo por incapacidad permanente de las personas trabajadoras, y el texto refundido de la Ley General de la Seguridad Social, aprobado por el Real Decreto Legislativo 8/2015, de 30 de octubre, en materia de incapacidad permanente.",
+          "kind": "law",
+          "commencement_date": "2025-05-01",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/04/30/pdfs/BOE-A-2025-8567.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8567",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-8567",
+          "xml_sha256": "a434e7a2681c8874d11e15cda88a5b1500eacef5cf85346b41cd812235b975ed",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 104 de 30/04/2025 Ley 2/2025, de 29 de abril, por la que se modifican el texto refundido de la Ley del Estatuto de los Trabajadores, aprobado por el Real Decreto Legislativo 2/2015, de 23 de octubre, en materia de extinción del contrato de trabajo por incapacidad permanente de las personas trabajadoras, y el texto refundido de la Ley General de la Seguridad Social, aprobado por el Real Decreto Legislativo 8/2015, de 30 de octubre, en materia de incapacidad permanente. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_002_2025.pdf",
+          "publication_date": "2025-04-30",
+          "diary_number": "104",
+          "pdf_sha256": "51f5d67b9a0ed0995867801019399e34b54ca2d1f9679df742e4aa5962c75451"
+        }
+      ]
+    },
+    {
+      "number": "121/000036",
+      "title": "Proyecto de Ley integral de impulso de la economía social.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000036&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "fd798c3cde8a895cc38ed11b8f1ac92461fe51a087079c19e6d92439e2f25ab5",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2026-7967",
+          "title": "Ley 1/2026, de 8 de abril, integral de impulso de la economía social.",
+          "kind": "law",
+          "commencement_date": "2026-04-10",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2026/04/09/pdfs/BOE-A-2026-7967.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-7967",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-7967",
+          "xml_sha256": "2e8275a51bcf89e0465c479da8b600a122ad616ff9af4292ec7aecb17007bbbf",
+          "boe_updated_at": "20260518082601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 87 de 09/04/2026 Ley 1/2026, de 8 de abril, integral de impulso de la economía social. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_001_2026.pdf",
+          "publication_date": "2026-04-09",
+          "diary_number": "87",
+          "pdf_sha256": "0be10881fdea7dba8be624afcd1ebb4f3ade3b68df2dbca44df40ead68deb22d"
+        },
+        {
+          "boe_id": "BOE-A-2026-8021",
+          "title": "Corrección de errores de la Ley 1/2026, de 8 de abril, integral de impulso de la economía social.",
+          "kind": "correction",
+          "commencement_date": null,
+          "official_pdf_url": "https://www.boe.es/boe/dias/2026/04/10/pdfs/BOE-A-2026-8021.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-8021",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2026-8021",
+          "xml_sha256": "e64771a93f35f6121f82343c429ee5386dc806df429441a661028ae3bb71f787",
+          "boe_updated_at": "20260519122601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 88 de 10/04/2026 Corrección de errores de la Ley 1/2026, de 8 de abril, integral de impulso de la economía social. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_001_2026_corr.pdf",
+          "publication_date": "2026-04-10",
+          "diary_number": "88",
+          "pdf_sha256": "a766649f9fd88aebde223175bf338a93d79a79b15f01167794bb9d3f8ba83414"
+        }
+      ]
+    },
+    {
+      "number": "121/000051",
+      "title": "Proyecto de Ley por la que se modifica la Ley 12/2002, de 23 de mayo, \npor la que se aprueba el Concierto Económico con la Comunidad Autónoma \ndel País Vasco.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000051&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "8971ba8c522f518aa9f73bbb4ba6a461590f448d64c8b9b55c54a93d7e6e57d6",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-8568",
+          "title": "Ley 3/2025, de 29 de abril, por la que se modifica la Ley 12/2002, de 23 de mayo, por la que se aprueba el Concierto Económico con la Comunidad Autónoma del País Vasco.",
+          "kind": "law",
+          "commencement_date": "2025-05-01",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/04/30/pdfs/BOE-A-2025-8568.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-8568",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-8568",
+          "xml_sha256": "b149b9b23cd3c98187aabaa61cc28c1024fcc7d72ff7299df7f9b704c08dd06b",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 104 de 30/04/2025 Ley 3/2025, de 29 de abril, por la que se modifica la Ley 12/2002, de 23 de mayo, por la que se aprueba el Concierto Económico con la Comunidad Autónoma del País Vasco. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_003_2025.pdf",
+          "publication_date": "2025-04-30",
+          "diary_number": "104",
+          "pdf_sha256": "e114d304cea00cc44a8c1ef96f676476e3dd74c062a47e9649937ac022e7deb0"
+        }
+      ]
+    },
+    {
+      "number": "121/000053",
+      "title": "Proyecto de Ley Orgánica por la que se autoriza la ratificación de \ncuatro enmiendas al artículo 8.2 del Estatuto de Roma de la Corte Penal \nInternacional.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000053&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "b50f7b5c6483e6aaeace583c05506ad759bbcdb7febafb53a9c1234466bbcc8f",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-11066",
+          "title": "Ley Orgánica 2/2025, de 3 de junio, por la que se autoriza la ratificación de cuatro enmiendas al artículo 8.2 del Estatuto de Roma de la Corte Penal Internacional.",
+          "kind": "law",
+          "commencement_date": "2025-06-05",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/06/04/pdfs/BOE-A-2025-11066.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-11066",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-11066",
+          "xml_sha256": "a8f170d2973ec1737ec2a851073ae80e4b394cd55d574844e7899fd31981a293",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 134 de 04/06/2025 Ley Orgánica 2/2025, de 3 de junio, por la que se autoriza la ratificación de cuatro enmiendas al artículo 8.2 del Estatuto de Roma de la Corte Penal Internacional. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/lo_002_2025.pdf",
+          "publication_date": "2025-06-04",
+          "diary_number": "134",
+          "pdf_sha256": "93e9f661b6b3a35ea132c5393bd101ba0e5c0505aac269e4d2b0eafc9b44f466"
+        }
+      ]
+    },
+    {
+      "number": "121/000054",
+      "title": "Proyecto de Ley por la que se crea la Agencia Estatal de Salud \nPública y se modifica la Ley 33/2011, de 4 de octubre, General de Salud \nPública.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000054&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "ebb94ef3c2af12f53c0ec9957a88a8a21adb33afe40fe8da99b8d298ed194815",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-15652",
+          "title": "Ley 7/2025, de 28 de julio, por la que se crea la Agencia Estatal de Salud Pública y se modifica la Ley 33/2011, de 4 de octubre, General de Salud Pública.",
+          "kind": "law",
+          "commencement_date": "2025-07-30",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/07/29/pdfs/BOE-A-2025-15652.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15652",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-15652",
+          "xml_sha256": "ea7a26afecc1c2ec33af6be0d26526ba0ee3dedfa6b970fe35d7d170102f03ea",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 181 de 29/07/2025 Ley 7/2025, de 28 de julio, por la que se crea la Agencia Estatal de Salud Pública y se modifica la Ley 33/2011, de 4 de octubre, General de Salud Pública. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_007_2025.pdf",
+          "publication_date": "2025-07-29",
+          "diary_number": "181",
+          "pdf_sha256": "7a43135253669e7619d5fe0f94e44af15f037867a5f565f4596a348e99e3dcd5"
+        }
+      ]
+    },
+    {
+      "number": "121/000061",
+      "title": "Proyecto de Ley por la que se modifica la Ley 28/1990, de 26 de \ndiciembre, por la que se aprueba el Convenio Económico entre el Estado y \nla Comunidad Foral de Navarra.",
+      "source_url": "https://www.congreso.es/es/busqueda-de-iniciativas?_iniciativas_id=121%2F000061&_iniciativas_legislatura=XV&_iniciativas_mode=mostrarDetalle&p_p_id=iniciativas&p_p_lifecycle=0&p_p_mode=view&p_p_state=normal",
+      "fiche_sha256": "8c9d138193f750c8b28667f4f1e1e20f426de12c95d55e7977b8d2c1fddc2098",
+      "documents": [
+        {
+          "boe_id": "BOE-A-2025-15423",
+          "title": "Ley 4/2025, de 24 de julio, por la que se modifica la Ley 28/1990, de 26 de diciembre, por la que se aprueba el Convenio Económico entre el Estado y la Comunidad Foral de Navarra.",
+          "kind": "law",
+          "commencement_date": "2025-07-26",
+          "official_pdf_url": "https://www.boe.es/boe/dias/2025/07/25/pdfs/BOE-A-2025-15423.pdf",
+          "boe_url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-15423",
+          "xml_url": "https://www.boe.es/diario_boe/xml.php?id=BOE-A-2025-15423",
+          "xml_sha256": "48a1a420483e672f23a291c194f6b9ecc0ae4ed3f9ae7bcf8467bf3026d2defb",
+          "boe_updated_at": "20251220202601",
+          "status": {
+            "estatus_derogacion": "N",
+            "judicialmente_anulada": "N",
+            "vigencia_agotada": "N"
+          },
+          "citation": "BOE Núm: 178 de 25/07/2025 Ley 4/2025, de 24 de julio, por la que se modifica la Ley 28/1990, de 26 de diciembre, por la que se aprueba el Convenio Económico entre el Estado y la Comunidad Foral de Navarra. (PDF)",
+          "pdf_url": "https://www.congreso.es/constitucion/ficheros/leyes_espa/l_004_2025.pdf",
+          "publication_date": "2025-07-25",
+          "diary_number": "178",
+          "pdf_sha256": "c59eb9df6b86009de355a8893991e02b0dc354b711c0a6b5bfe3628a3d83ddb5"
+        }
+      ]
+    }
+  ]
+}
