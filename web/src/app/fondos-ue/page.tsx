@@ -100,6 +100,7 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
         description="Beneficiarios españoles registrados en Kohesio y presupuesto UE asociado a sus proyectos. Inventario ESIF plurianual 2014-2027: no es el total de fondos europeos ni acredita importes pagados."
       />
 
+      <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/pac" className="underline">Consultar pagos PAC por fondo y organismo pagador →</ResponsiveLink> Cierre financiero consolidado, separado de concesiones e inventarios.</p>
       <p className="text-sm leading-6"><ResponsiveLink href="/fondos-ue/cohesion" className="underline">Consultar costes y transferencias por programa FEDER de cohesión →</ResponsiveLink></p>
       <p className="text-sm leading-6">Cohesión, MRR/PRTR y PAC tienen instrumentos y fases propios. <ResponsiveLink href="/fondos-ue/prtr" className="underline">Explorar el programa PRTR DUS 5000 y sus concesiones publicadas →</ResponsiveLink> Kohesio incluye registros ESIF de FEADER: este inventario no desglosa aquí la parte de la PAC ni representa su total.</p>
 

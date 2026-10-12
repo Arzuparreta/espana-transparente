@@ -84,3 +84,10 @@ it("monitors declarations and government updates", () => {
   expect(statuses.find((r) => r.key === "declarations")?.status).toBe("missing")
   expect(statuses.find((r) => r.key === "government")?.status).toBe("missing")
 })
+
+it("monitors PAC and FEDER separately from PRTR",()=>{
+ const statuses=getCriticalPipelineStatuses([])
+ expect(statuses.find(r=>r.key==="pac-pagos")?.status).toBe("missing")
+ expect(statuses.find(r=>r.key==="cohesion-feder")?.status).toBe("missing")
+ expect(getEtlPipelineLabel("pac.pagos")).toBe("PAC · pagos FEAGA y FEADER")
+})

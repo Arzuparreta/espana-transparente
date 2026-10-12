@@ -70,6 +70,7 @@ const STATIC_ROUTES: {
   { path: "/subvenciones", changeFrequency: "daily", priority: 0.8 },
   { path: "/presupuestos", changeFrequency: "monthly", priority: 0.7 },
   { path: "/dinero-publico", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/fondos-ue/pac", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fondos-ue/cohesion", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fondos-ue/prtr", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fondos-ue", changeFrequency: "weekly", priority: 0.7 },
