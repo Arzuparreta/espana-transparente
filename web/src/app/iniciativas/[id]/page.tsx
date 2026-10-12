@@ -1,3 +1,4 @@
+import { ParliamentEvidence } from "@/components/domain/ParliamentEvidence"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { EmptyState } from "@/components/domain/EmptyState"
@@ -178,6 +179,8 @@ export default async function IniciativaPage({ params }: PageProps) {
         <RecordSection title="Ficha">
           <FieldList items={items} />
         </RecordSection>
+
+        <ParliamentEvidence raw={initiative.raw_data} sourceUrl={initiative.source_url} />
 
         <RecordSection title="Votaciones vinculadas" count={sessions.length}>
           {sessions.length === 0 ? (

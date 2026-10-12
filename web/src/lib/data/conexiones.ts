@@ -1,3 +1,4 @@
+import { initiativeNumbers } from "@/lib/parliament-evidence"
 import { supabase } from "@/lib/supabase/client"
 import { unstable_cache, HOUR, dataQuerySignal, throwDataError } from "./shared"
 
@@ -169,14 +170,15 @@ export const getInitiativesPage = unstable_cache(
 
 export const getInitiativeDetail = unstable_cache(
   async (id: string) => {
-    const { data: initiative } = await supabase
+    const { data: initiative, error: initiativeError } = await supabase
       .from("initiatives")
       .select(
-        "id, type, number, title, proposer_group, status, source_url, legislature_id, origin_type, eu_directive_ref, budget_veto_used",
+        "id, type, number, title, proposer_group, status, source_url, legislature_id, origin_type, eu_directive_ref, budget_veto_used, raw_data",
       )
       .eq("id", id)
-      .single()
+      .maybeSingle()
 
+    throwDataError(initiativeError, "initiative detail")
     if (!initiative) return { initiative: null, sessions: [], proposers: [] }
 
     const [sessions, proposers] = await Promise.all([
@@ -185,7 +187,8 @@ export const getInitiativeDetail = unstable_cache(
         .select(
           "id, title, date, votes_yes, votes_no, votes_abstain, votes_no_vote, divergence_count",
         )
-        .eq("initiative_number", initiative.number)
+        .in("initiative_number", initiativeNumbers(initiative.number))
+        .eq("legislature_id", initiative.legislature_id)
         .order("date", { ascending: false }),
       supabase
         .from("v_initiative_proposers_public")
@@ -197,6 +200,8 @@ export const getInitiativeDetail = unstable_cache(
         .order("proposer_label"),
     ])
 
+    throwDataError(sessions.error, "initiative voting sessions")
+    throwDataError(proposers.error, "initiative proposers")
     return {
       initiative,
       sessions: sessions.data ?? [],
