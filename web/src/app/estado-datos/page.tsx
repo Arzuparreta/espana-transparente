@@ -12,6 +12,22 @@ import {
   type EtlPipelineRow,
 } from "@/lib/etl-pipelines"
 import { Fragment } from "react"
+import { COVERED_QUESTIONS, questionStatuses, type QuestionStatus } from "@/lib/question-coverage"
+
+const QUESTION_STATUS_LABEL: Record<QuestionStatus, string> = {
+  fresh: "Ingesta al día",
+  delayed: "Ingesta retrasada: la respuesta puede no incluir la última publicación",
+  failed: "Última ingesta fallida: se muestra el último dato validado",
+  missing: "Sin ejecución registrada de la ingesta",
+  unmonitored: "Estado de ingesta no disponible",
+}
+const QUESTION_STATUS_CLASS: Record<QuestionStatus, string> = {
+  fresh: "text-green-600 dark:text-green-400",
+  delayed: "text-amber-700 dark:text-amber-400",
+  failed: "text-red-600 dark:text-red-400",
+  missing: "text-amber-700 dark:text-amber-400",
+  unmonitored: "text-muted-foreground",
+}
 
 export const revalidate = 0
 
@@ -81,13 +97,38 @@ export default async function EstadoDatosPage() {
   const now = new Date()
   const criticalStatuses = getCriticalPipelineStatuses(pipelines as EtlPipelineRow[], now)
   const delayedCritical = criticalStatuses.filter((row) => row.status !== "fresh")
+  // Without the pipeline table a status would be a guess: show the questions, not a freshness claim.
+  const questions = questionStatuses(COVERED_QUESTIONS, dataUnavailable ? [] : criticalStatuses)
 
   return (
     <div className="ui-page">
       <PageHeader
         title="Estado de datos"
-        description="Frescura de pipelines ETL, cobertura histórica y conflictos de resolución de responsable."
+        description="Qué preguntas puede responder el portal, con qué fuente y qué deja fuera cada respuesta; después, frescura de cada ingesta y cobertura histórica."
       />
+
+      <section className="space-y-4" aria-labelledby="covered-questions">
+        <div className="space-y-1">
+          <h2 id="covered-questions" className="text-xl font-semibold">¿Qué preguntas podemos responder?</h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Cada respuesta tiene su fuente, periodo y perímetro. Que la ingesta esté al día prueba que la fuente se leyó, no que la respuesta sea exhaustiva: lo que queda fuera se indica en cada caso.
+          </p>
+        </div>
+        <ul className="grid gap-3 md:grid-cols-2">
+          {questions.map((question) => (
+            <li key={question.href + question.question} className="min-w-0 space-y-2 rounded-[2px] border border-border p-4 text-sm leading-6">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{question.area}</p>
+              <ResponsiveLink href={question.href} className="block font-semibold underline-offset-2 hover:underline">
+                {question.question}
+              </ResponsiveLink>
+              <p><span className="text-muted-foreground">Fuente:</span> {question.source}</p>
+              <p><span className="text-muted-foreground">Cubre:</span> {question.covers}</p>
+              <p><span className="text-muted-foreground">No cubre:</span> {question.excludes}</p>
+              <p className={QUESTION_STATUS_CLASS[question.status]}>{QUESTION_STATUS_LABEL[question.status]}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <SourceFootnote
         sourceLabel={dataUnavailable ? "Consulta no disponible" : `${pipelines.length} pipelines registrados`}

@@ -4,6 +4,8 @@ import { SearchResults } from "@/components/search/SearchResults"
 import { searchDocumentPage } from "@/lib/data/search"
 import { parsePage, type SearchResult } from "@/lib/data"
 import { Pagination } from "@/components/domain/Pagination"
+import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
+import { answersForQuery } from "@/lib/question-coverage"
 export const metadata = { title: "Buscar datos" }
 const TYPES: Partial<Record<SearchResult["entity_type"], string>> = {
   politician: "Diputados",
@@ -38,12 +40,14 @@ export default async function Page({
   const p = await searchParams
   const query = p.q?.trim() ?? ""
   const type =
-    p.type && p.type in TYPES
+    p.type && Object.hasOwn(TYPES, p.type)
       ? (p.type as SearchResult["entity_type"])
       : undefined
   const year = p.year && /^\d{4}$/.test(p.year) ? Number(p.year) : undefined
   const page = Math.min(10000, parsePage(p.page))
   const result = await searchDocumentPage(query, { type, year, page })
+  // A topic query first gets the answers the portal can document, then the matching records.
+  const answers = page === 1 && !type ? answersForQuery(query) : []
   const href = (next: number) => {
     const q = new URLSearchParams({ q: query, page: String(next) })
     if (type) q.set("type", type)
@@ -116,6 +120,28 @@ export default async function Page({
         </p>
       ) : (
         <>
+          {answers.length > 0 && (
+            <section aria-labelledby="topic-answers" className="space-y-3">
+              <h2 id="topic-answers" className="text-lg font-semibold">
+                Respuestas documentadas sobre «{query}»
+              </h2>
+              <ul className="grid gap-3 md:grid-cols-2">
+                {answers.map((answer) => (
+                  <li key={answer.href + answer.question} className="min-w-0 space-y-1 rounded-[2px] border border-border p-4 text-sm leading-6">
+                    <ResponsiveLink href={answer.href} className="block font-semibold underline-offset-2 hover:underline">
+                      {answer.question}
+                    </ResponsiveLink>
+                    <p>{answer.covers}.</p>
+                    <p className="text-muted-foreground">No cubre: {answer.excludes}.</p>
+                  </li>
+                ))}
+              </ul>
+              <h2 className="text-lg font-semibold">Registros que contienen «{query}»</h2>
+              <p className="text-xs text-muted-foreground">
+                La búsqueda encuentra registros por su texto: no todos están clasificados por tema y un registro no es una respuesta completa.
+              </p>
+            </section>
+          )}
           {query.length >= 2 && (
             <p role="status" className="text-sm">
               {result.total.toLocaleString("es-ES")} resultados · página {page}

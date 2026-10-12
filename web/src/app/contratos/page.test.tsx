@@ -8,6 +8,9 @@ vi.mock("@/lib/data", () => ({
   getEtlLastFinished: async () => null,
   getMoneyDatasetSummary: async () => ({ total: { total_rows: 99, latest_record_date: null } }),
 }))
+vi.mock("@/lib/data/contract-purchases", () => ({
+  getContractPurchases: async () => ({ coverage: null, year: null, rows: [], error: true }),
+}))
 vi.mock("@/lib/data/organizations", () => ({
   getOrganizationFilterName: async () => null, getExplorationTerritoryLabels: async () => ({}),
 }))
@@ -28,6 +31,8 @@ it("answers with the filtered count while identifying full-history source covera
   expect(html).toContain("Histórico del portal · 99 licitaciones")
   expect(html).toContain("no fecha de adjudicación ni de pago")
   expect(html).not.toContain("Suma ·")
+  // The purchase answer keeps its own period; its failure is not shown as zero purchases.
+  expect(html).toContain("no se presenta como cero compras")
   expect(mocks.filtered).toHaveBeenCalledWith(1, "all", "Hacienda", null, null, 2024, null, null, "by", null, "all")
 })
 it("rejects partially numeric annual filters", async () => {
