@@ -100,6 +100,8 @@ export default async function FondosUEPage({ searchParams }: PageProps) {
         description="Beneficiarios españoles registrados en Kohesio y presupuesto UE asociado a sus proyectos. Cobertura plurianual de cohesión 2014-2027: no es el total de fondos europeos ni acredita importes pagados."
       />
 
+      <p className="text-sm leading-6">Cohesión, MRR/PRTR y PAC son instrumentos distintos. <ResponsiveLink href="/fondos-ue/prtr" className="underline">Explorar el programa PRTR DUS 5000 y sus concesiones publicadas →</ResponsiveLink> La PAC tiene cobertura y fases propias; no se incluye en estos totales.</p>
+
       <SourceFootnote
         sourceLabel="Kohesio · Comisión Europea"
         sourceHref="https://kohesio.ec.europa.eu"

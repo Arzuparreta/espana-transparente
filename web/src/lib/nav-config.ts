@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  {key:"prtr-dus5000",href:"/fondos-ue/prtr",label:"PRTR · DUS 5000",area:"dinero",section:"Operaciones",description:"Programa MRR y concesiones publicadas por expediente; no acredita pagos."},
   {key:"espera-sanitaria",href:"/servicios/sanidad",label:"Espera quirúrgica",area:"dinero",section:"Resultados",description:"Pacientes pendientes, tiempo transcurrido y contexto de gasto sanitario con periodos independientes."},
   {key:"precios-vivienda",href:"/precios-vivienda",label:"Precios de vivienda",area:"economia",section:"Precios",description:"Evolución de compraventa por trimestre y territorio; índice y tasas IPV."},
   { key: "distribucion-salarial", href: "/distribucion-salarial", label: "Distribución salarial", area: "economia", section: "Ingresos", description: "Media y tramos del salario bruto mensual, con población, año y fuente." },
