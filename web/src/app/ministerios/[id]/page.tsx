@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
@@ -74,7 +74,6 @@ export default async function MinistrioPage({ params }: PageProps) {
     getPartyAcronymMap(),
   ])
   if (!member) notFound()
-  if (member.politician_id) redirect(`/diputados/${member.politician_id}`)
   const partyId = member.political_party ? partyMap[member.political_party.toLowerCase()] ?? null : null
 
   const color = getPartyColor(member.party_color)
@@ -101,10 +100,7 @@ export default async function MinistrioPage({ params }: PageProps) {
         fallbackHref="/gobierno"
         fallbackLabel="Volver a Gobierno"
         related={[
-          {
-            href: `/diputados/${member.politician_id}`,
-            label: nameFormatted,
-          },
+          member.politician_id ? {href: `/diputados/${member.politician_id}`,label:nameFormatted} : member.official_id ? {href:`/cargos/${member.official_id}`,label:nameFormatted} : null,
           member.political_party && partyId
             ? { href: `/partidos/${partyId}`, label: "Partido", meta: member.political_party }
             : null,
@@ -134,9 +130,7 @@ export default async function MinistrioPage({ params }: PageProps) {
         </p>
         <div className="flex min-w-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <EntityLink kind="politician" id={member.politician_id} className="text-lg font-bold underline-offset-2 hover:underline">
-              {nameFormatted}
-            </EntityLink>
+            {member.politician_id ? <EntityLink kind="politician" id={member.politician_id} className="text-lg font-bold underline-offset-2 hover:underline">{nameFormatted}</EntityLink> : member.official_id ? <EntityLink kind="official" id={member.official_id} className="text-lg font-bold underline-offset-2 hover:underline">{nameFormatted}</EntityLink> : <p className="text-lg font-bold">{nameFormatted}</p>}
             {startDate && (
               <p className="mt-0.5 text-sm text-muted-foreground">Desde {startDate}</p>
             )}
@@ -149,11 +143,12 @@ export default async function MinistrioPage({ params }: PageProps) {
         </div>
       </div>
 
+      <p className="my-4 text-sm leading-6 text-muted-foreground">Asociación directa de departamento durante el mandato, con fecha de adjudicación si consta y publicación como alternativa. No acredita decisión personal, adjudicación de todos los registros ni pago. La suma excluye {member.excluded_amount_count} registros sin importe o en moneda distinta de EUR. El catálogo enlazado conserva su propia cobertura de todos los periodos.</p>
       {/* Stats */}
       <StatGrid
         items={[
-          { label: "Contratos adjudicados", value: member.contract_count.toLocaleString("es-ES") },
-          { label: "Importe total", value: formatAmount(member.total_amount_eur) },
+          { label: "Registros durante el mandato", value: member.contract_count.toLocaleString("es-ES") },
+          { label: "Presupuesto de licitación EUR", value: formatAmount(member.total_amount_eur) },
         ]}
       />
 
@@ -161,7 +156,7 @@ export default async function MinistrioPage({ params }: PageProps) {
       {contracts.length > 0 && (
         <section className="space-y-2">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            Contratos más elevados
+            Registros de mayor presupuesto de licitación
           </h2>
           <div className="rounded-[2px] border border-border bg-card px-4 py-1">
             {contracts.map((c) => (
@@ -169,12 +164,12 @@ export default async function MinistrioPage({ params }: PageProps) {
             ))}
           </div>
           <p className="text-right text-xs text-muted-foreground">
-            Mostrando los 20 contratos de mayor importe.{" "}
+            Hasta 20 registros en EUR de mayor presupuesto de licitación durante el mandato.{" "}
             <ResponsiveLink
               href={`/contratos?ministry=${encodeURIComponent(member.organization_name)}`}
               className="underline underline-offset-2"
             >
-              Ver todos →
+              Ver catálogo del departamento (todos los periodos) →
             </ResponsiveLink>
           </p>
         </section>

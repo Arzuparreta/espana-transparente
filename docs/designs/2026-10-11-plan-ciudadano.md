@@ -88,6 +88,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 1, operaciones y asociaciones | Implementado; PR #57 mergeada |
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
 | Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
+| Fase 3, mandatos y evidencia | Asociaciones temporales, documentos y ambigüedad; [contrato](2026-10-12-mandatos-evidencia.md). Actuaciones personales no inferidas |
 | Fase 3, liquidación autonómica | Piloto de 17 comunidades, ejercicio 2024; [contrato](2026-10-12-liquidacion-autonomica.md). Siguen actuaciones/mandatos y cobertura territorial |
 | Fase 3, serie temporal estatal | Doce cortes acumulados de 2025; [contrato](2026-10-12-ejecucion-serie.md). Sigue ámbito territorial comparable |
 | Fase 3, piloto de ejecución estatal | Primer slice implementado; [contrato y evidencia](2026-10-12-ejecucion-estado.md) |

@@ -8,7 +8,7 @@ export const getGobiernoActual = unstable_cache(
     const { data, error } = await supabase
       .from("v_gobierno_actual")
       .select(
-        "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url"
+        "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url, official_id, end_date, excluded_amount_count"
       )
     throwDataError(error, "government list")
     return (data ?? []) as GobiernoMember[]
@@ -22,7 +22,7 @@ export const getMinistrioDetail = unstable_cache(
     const { data: member, error: memberError } = await supabase
       .from("v_gobierno_actual")
       .select(
-        "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url"
+        "id, position_type, person_name, organization_name, political_party, politician_id, party_color, contract_count, total_amount_eur, government, start_date, source_url, official_id, end_date, excluded_amount_count"
       )
       .eq("id", id)
       .single()
@@ -31,9 +31,10 @@ export const getMinistrioDetail = unstable_cache(
     if (!member) return { member: null, contracts: [] }
 
     const { data: contracts, error: contractsError } = await supabase
-      .from("contracts")
+      .from("v_mandate_contracts")
       .select("id, title, amount, date, awarding_body, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity")
-      .ilike("ministry_normalized", (member as GobiernoMember).organization_name)
+      .eq("position_id", id)
+      .eq("currency", "EUR")
       .order("amount", { ascending: false, nullsFirst: false })
       .limit(20)
     throwDataError(contractsError, "ministry contracts")
