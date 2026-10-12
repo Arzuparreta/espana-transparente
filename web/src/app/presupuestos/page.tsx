@@ -59,7 +59,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       amount: socialSecurity?.total_credit_initial ?? null,
     },
     {
-      href: `/presupuestos/60/${pensionProgramCode(year)}`,
+      href: `/presupuestos/60/${pensionProgramCode(year)}?year=${year}`,
       label: "Pensiones contributivas",
       detail: `Programa ${pensionProgramCode(year)} · Seguridad Social`,
       amount: null,
@@ -71,7 +71,7 @@ export default async function PresupuestosPage({ searchParams }: PageProps) {
       amount: clasesPasivas?.total_credit_initial ?? null,
     },
     {
-      href: `/presupuestos/07/${clasesPasivasProgramCode(year)}`,
+      href: `/presupuestos/07/${clasesPasivasProgramCode(year)}?year=${year}`,
       label: "Pensiones de Clases Pasivas",
       detail: `Programa ${clasesPasivasProgramCode(year)} · Clases Pasivas`,
       amount: null,
