@@ -11,6 +11,9 @@ Usage:
 
 import argparse
 import re
+import json
+from decimal import Decimal
+from .edition import build_edition, identifiable_source_url
 import subprocess
 import tempfile
 import os
@@ -107,6 +110,7 @@ def parse_entry(entry: ET.Element) -> dict | None:
     if not contract_folder_id:
         return None
 
+    edition = build_edition(entry, status_root)
     status = _text(status_root, "cbc_ext:ContractFolderStatusCode")
 
     authority_party = status_root.find(
@@ -209,7 +213,31 @@ def parse_entry(entry: ET.Element) -> dict | None:
             except (ValueError, TypeError):
                 pass
 
+    # Legacy scalar award fields describe only an unambiguous single result.
+    if len(edition["results"]) != 1:
+        contractor = contractor_nif = contractor_is_sme = contractor_is_ute = None
+        award_amount = award_amount_with_taxes = award_date = contract_number = received_tender_quantity = None
+    else:
+        single = edition["results"][0]
+        contractor = single["contractor"]
+        award_amount = Decimal(single["award_excluding_tax"]["value"]) if single["award_excluding_tax"]["value"] is not None else None
+        award_amount_with_taxes = Decimal(single["award_including_tax"]["value"]) if single["award_including_tax"]["value"] is not None else None
+        if contractor is None and award_amount is None:
+            award_date = None
+    budget = edition["project"]["budget_excluding_tax"]
+    if budget["value"] is not None:
+        amount_eur = Decimal(budget["value"])
+    currency = budget["currency"]
+    # The summary fallback is explicitly denominated EUR; an XML amount without
+    # currency is still unknown and must not borrow that fallback denomination.
+    if budget["value"] is None and amount_eur is not None:
+        currency = "EUR"
     record = {
+        "source_id": edition["source_id"],
+        "source_updated_at": edition["source_updated"],
+        "published_edition": edition,
+        "currency": currency,
+        "award_currency": edition["results"][0]["award_excluding_tax"]["currency"] if len(edition["results"]) == 1 else None,
         "contract_folder_id": contract_folder_id,
         "title": title,
         "awarding_body": contracting_authority,
@@ -297,6 +325,20 @@ def upsert(conn, records: list[dict]) -> int:
     cur = conn.cursor()
     upserted = 0
     for rec in records:
+        # One stable source identity at a time, including legacy UUID adoption.
+        cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (rec["source_id"],))
+        cur.execute("SELECT id FROM contracts WHERE source_id=%s", (rec["source_id"],))
+        existing = cur.fetchone()
+        if existing is None and identifiable_source_url(rec["source_url"]):
+            cur.execute("SELECT id FROM contracts WHERE source_id IS NULL AND md5(source_url)=md5(%s) AND source_url=%s FOR UPDATE", (rec["source_url"], rec["source_url"]),)
+            candidates = cur.fetchall()
+            if len(candidates) > 1:
+                raise ValueError("Ambiguous legacy source match; no contract identity inferred")
+            if len(candidates) == 1:
+                cur.execute("UPDATE contracts SET source_id=%s WHERE id=%s", (rec["source_id"], candidates[0][0]))
+        rec["published_edition_json"] = json.dumps(rec["published_edition"], ensure_ascii=False)
+        if len(rec["published_edition_json"].encode()) > 2_000_000:
+            raise ValueError("Oversized published contract edition")
         if rec["awarding_body"]:
             try:
                 rec["awarding_body_organization_id"] = upsert_organization(
@@ -320,7 +362,7 @@ def upsert(conn, records: list[dict]) -> int:
                 rec["contractor_organization_id"] = None
         cur.execute("""
             INSERT INTO contracts
-              (contract_folder_id, title, awarding_body,
+              (source_id, source_updated_at, published_edition, currency, award_currency, contract_folder_id, title, awarding_body,
                awarding_body_normalized, amount, status, contract_type,
                cpv_code, region, date, ministry_normalized, administration_level,
                awarding_body_organization_id, contractor_organization_id, source_url,
@@ -328,14 +370,19 @@ def upsert(conn, records: list[dict]) -> int:
                award_amount, award_amount_with_taxes, award_date, contract_number,
                received_tender_quantity)
             VALUES
-              (%(contract_folder_id)s, %(title)s, %(awarding_body)s,
+              (%(source_id)s, %(source_updated_at)s, %(published_edition_json)s::jsonb, %(currency)s, %(award_currency)s, %(contract_folder_id)s, %(title)s, %(awarding_body)s,
                %(awarding_body_normalized)s, %(amount)s, %(status)s, %(contract_type)s,
                %(cpv_code)s, %(region)s, %(date)s, %(ministry_normalized)s, %(administration_level)s,
                %(awarding_body_organization_id)s, %(contractor_organization_id)s, %(source_url)s,
                %(contractor)s, %(contractor_nif)s, %(contractor_is_sme)s, %(contractor_is_ute)s,
                %(award_amount)s, %(award_amount_with_taxes)s, %(award_date)s, %(contract_number)s,
                %(received_tender_quantity)s)
-            ON CONFLICT (contract_folder_id) DO UPDATE SET
+            ON CONFLICT (source_id) DO UPDATE SET
+              published_edition = EXCLUDED.published_edition,
+              source_updated_at = EXCLUDED.source_updated_at,
+              currency = EXCLUDED.currency,
+              award_currency = EXCLUDED.award_currency,
+              contract_folder_id = EXCLUDED.contract_folder_id,
               title = EXCLUDED.title,
               awarding_body = EXCLUDED.awarding_body,
               awarding_body_normalized = EXCLUDED.awarding_body_normalized,
@@ -351,25 +398,21 @@ def upsert(conn, records: list[dict]) -> int:
                 EXCLUDED.awarding_body_organization_id,
                 contracts.awarding_body_organization_id
               ),
-              contractor_organization_id = coalesce(
-                EXCLUDED.contractor_organization_id,
-                contracts.contractor_organization_id
-              ),
+              contractor_organization_id = EXCLUDED.contractor_organization_id,
               source_url = EXCLUDED.source_url,
-              contractor = coalesce(EXCLUDED.contractor, contracts.contractor),
-              contractor_nif = coalesce(EXCLUDED.contractor_nif, contracts.contractor_nif),
-              contractor_is_sme = coalesce(EXCLUDED.contractor_is_sme, contracts.contractor_is_sme),
-              contractor_is_ute = coalesce(EXCLUDED.contractor_is_ute, contracts.contractor_is_ute),
-              award_amount = coalesce(EXCLUDED.award_amount, contracts.award_amount),
-              award_amount_with_taxes = coalesce(EXCLUDED.award_amount_with_taxes, contracts.award_amount_with_taxes),
-              award_date = coalesce(EXCLUDED.award_date, contracts.award_date),
-              contract_number = coalesce(EXCLUDED.contract_number, contracts.contract_number),
-              received_tender_quantity = coalesce(
-                EXCLUDED.received_tender_quantity, contracts.received_tender_quantity
-              ),
+              contractor = EXCLUDED.contractor,
+              contractor_nif = EXCLUDED.contractor_nif,
+              contractor_is_sme = EXCLUDED.contractor_is_sme,
+              contractor_is_ute = EXCLUDED.contractor_is_ute,
+              award_amount = EXCLUDED.award_amount,
+              award_amount_with_taxes = EXCLUDED.award_amount_with_taxes,
+              award_date = EXCLUDED.award_date,
+              contract_number = EXCLUDED.contract_number,
+              received_tender_quantity = EXCLUDED.received_tender_quantity,
               updated_at = NOW()
+            WHERE contracts.source_updated_at IS NULL OR EXCLUDED.source_updated_at >= contracts.source_updated_at
         """, rec)
-        upserted += 1
+        upserted += cur.rowcount
     conn.commit()
     cur.close()
     return upserted

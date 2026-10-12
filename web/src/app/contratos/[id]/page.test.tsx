@@ -16,7 +16,7 @@ import Page from "./page"
 it.each([[100, 100], [null, 100], [0, 0]])("shows adjudication with budget %s and award %s", async (amount, award_amount) => {
   mocks.detail.mockResolvedValue({ contract: { title: "Contrato", amount, award_amount, award_date: "2024-01-01", date: "2024-01-01" }, responsible: null })
   const html = renderToStaticMarkup(await Page({ params: Promise.resolve({ id: "test" }) }))
-  expect(html).toContain("Importe adjudicado sin IVA")
+  expect(html).toContain("Un resultado publicado sin IVA")
   expect(html).toContain("Fecha de adjudicación")
   expect(html).not.toContain("NaN")
   expect(html).not.toContain("Infinity")

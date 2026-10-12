@@ -18,7 +18,7 @@ export function OperationContext({
         {" "}El recuento aplica los filtros de la consulta y abarca todas sus páginas.
       </p>
       <p className="text-sm leading-6 text-muted-foreground">
-        {contracts ? "Importes ordenados por presupuesto de licitación sin IVA. La ficha muestra la adjudicación cuando está disponible." : "Importes concedidos a organizaciones; no incluye beneficiarios individuales anonimizados en la fuente."}
+        {contracts ? "Importes ordenados por presupuesto de licitación sin IVA. La ficha muestra la adjudicación cuando está disponible." : "Importes concedidos del corpus; se excluyen etiquetas ausentes u ocultadas. Una etiqueta visible no acredita personalidad jurídica ni cobertura de todas las ayudas a hogares."}
         {" "}Estos registros no miden todo el gasto público. Los cargos asociados no acreditan una decisión personal.
       </p>
       <p className="text-xs leading-5 text-muted-foreground">

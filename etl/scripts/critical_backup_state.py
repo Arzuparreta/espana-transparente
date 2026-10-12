@@ -68,6 +68,9 @@ def export_state(conn: psycopg2.extensions.connection, output: Path) -> None:
                   cca.actor_label,
                   o.normalized_name AS organization_normalized_name,
                   c.contract_folder_id,
+                  to_jsonb(c)->>'source_id' AS contract_source_id,
+                  c.source_url AS contract_source_url,
+                  c.id AS contract_uuid,
                   s.bdns_id AS subsidy_bdns_id,
                   ccl.link_reason,
                   ccl.evidence_url,
@@ -191,6 +194,9 @@ def optional_id(cur, table: str, column: str, value: Any, description: str, erro
         ("organizations", "normalized_name"),
         ("parties", "name"),
         ("contracts", "contract_folder_id"),
+        ("contracts", "source_id"),
+        ("contracts", "source_url"),
+        ("contracts", "id"),
         ("subsidies", "bdns_id"),
         ("lobbying_groups", "slug"),
     }
@@ -267,9 +273,13 @@ def restore_state(conn: psycopg2.extensions.connection, state: dict[str, Any], a
                 cur, "organizations", "normalized_name", row.get("organization_normalized_name"),
                 f"organization {row.get('organization_normalized_name')}", errors
             )
+            # New backups identify the official source or exact source URL.
+            # Old folder-only backups still fail closed on ambiguous matches.
+            contract_key = "source_id" if row.get("contract_source_id") else "source_url" if row.get("contract_source_url") else "contract_folder_id"
+            contract_value = row.get("contract_source_id") or row.get("contract_source_url") or row.get("contract_folder_id")
             contract_id = optional_id(
-                cur, "contracts", "contract_folder_id", row.get("contract_folder_id"),
-                f"contract {row.get('contract_folder_id')}", errors
+                cur, "contracts", contract_key, contract_value,
+                f"contract {contract_value}", errors
             )
             subsidy_id = optional_id(
                 cur, "subsidies", "bdns_id", row.get("subsidy_bdns_id"),

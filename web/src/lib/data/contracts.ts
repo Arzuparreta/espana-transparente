@@ -1,9 +1,11 @@
+import { contractEdition } from "@/lib/contract-edition"
 import { supabase } from "@/lib/supabase/client"
 import {
   unstable_cache,
   HOUR,
   PAGE_SIZE,
   throwDataError,
+  dataQuerySignal,
   type ContractResponsibilityRow,
 } from "./shared"
 
@@ -14,7 +16,7 @@ export const getContractPage = unstable_cache(
     let query = supabase
       .from("contracts")
       .select(
-        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
+        "id, contract_folder_id, currency, award_currency, result_count, lot_count, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
         { count: "exact" },
       )
       .order("amount", { ascending: false, nullsFirst: false })
@@ -22,7 +24,7 @@ export const getContractPage = unstable_cache(
 
     if (type !== "all") query = query.eq("contract_type", type)
 
-    const { data, count, error } = await query.range(from, to)
+    const { data, count, error } = await query.range(from, to).abortSignal(dataQuerySignal())
     throwDataError(error, "contracts page")
     const contractIds = (data ?? []).map((row) => row.id)
     const responsibilities =
@@ -91,7 +93,7 @@ export const getContractPageFiltered = unstable_cache(
     let query = supabase
       .from("contracts")
       .select(
-        "id, contract_folder_id, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
+        "id, contract_folder_id, currency, award_currency, result_count, lot_count, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
         { count: "exact" },
       )
       .order("amount", { ascending: false, nullsFirst: false })
@@ -125,7 +127,7 @@ export const getContractPageFiltered = unstable_cache(
     if (year)
       query = query.gte("date", `${year}-01-01`).lt("date", `${year + 1}-01-01`)
 
-    const { data, count, error } = await query.range(from, to)
+    const { data, count, error } = await query.range(from, to).abortSignal(dataQuerySignal())
     throwDataError(error, "filtered contracts page")
     const contractIds = (data ?? []).map((row) => row.id)
     const responsibilities =
@@ -179,9 +181,10 @@ export const getContractDetail = unstable_cache(
       supabase
         .from("contracts")
         .select(
-          "id, contract_folder_id, title, awarding_body, awarding_body_normalized, awarding_body_organization_id, amount, currency, date, contractor, contractor_nif, contractor_organization_id, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity, description, source_url, contract_type, cpv_code, region, ministry_normalized, administration_level",
+          "id, source_id, published_edition, contract_folder_id, currency, award_currency, result_count, lot_count, title, awarding_body, awarding_body_normalized, awarding_body_organization_id, amount, date, contractor, contractor_nif, contractor_organization_id, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity, description, source_url, contract_type, cpv_code, region, ministry_normalized, administration_level",
         )
         .eq("id", id)
+        .abortSignal(dataQuerySignal())
         .single(),
       supabase
         .from("v_contract_mandate_context")
@@ -193,8 +196,9 @@ export const getContractDetail = unstable_cache(
     ])
     throwDataError(contract.error, "contract detail")
     throwDataError(responsibility.error, "contract responsibility")
+    if (contract.data?.published_edition && !contractEdition(contract.data.published_edition, contract.data.source_id)) throw new Error("Invalid published contract edition")
     return { contract: contract.data, responsible: responsibility.data ?? null }
   },
-  ["contract-detail"],
+  ["contract-detail-pcsp-v2"],
   { revalidate: HOUR },
 )
