@@ -35,6 +35,7 @@ const STATIC_ROUTES: {
   { path: "/decisiones", changeFrequency: "daily", priority: 0.9 },
   { path: "/cuentas-publicas", changeFrequency: "weekly", priority: 0.9 },
   { path: "/gasto-por-funciones", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/liquidacion-autonomica", changeFrequency: "weekly", priority: 0.8 },
   { path: "/ejecucion-presupuestaria", changeFrequency: "weekly", priority: 0.8 },
   { path: "/cuentas-por-subsector", changeFrequency: "weekly", priority: 0.8 },
   { path: "/ayudas-por-finalidad", changeFrequency: "daily", priority: 0.8 },

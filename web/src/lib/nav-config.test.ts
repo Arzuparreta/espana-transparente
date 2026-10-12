@@ -68,12 +68,13 @@ describe("section navigation", () => {
     )
   })
 
-  it("groups the Territorio hub under its own label with Mapa + Tu zona sections", () => {
+  it("groups the Territorio hub under its own label with liquidation, Mapa and Tu zona sections", () => {
     const territorioHub = getSectionsByHub().find(
       (g) => g.hub.href === "/territorio",
     )
     expect(territorioHub?.hub.label).toBe("Territorio")
     expect(territorioHub?.sections.map((s) => s.key)).toEqual([
+      "liquidacion-autonomica",
       "territorio",
       "tu-zona",
     ])

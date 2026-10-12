@@ -1,3 +1,4 @@
+import Link from "next/link"
 import type { Metadata } from "next"
 import { TerritoryAtlas } from "@/components/domain/TerritoryAtlas"
 import { TerritorySpendingGrid } from "@/components/views/TerritorySpendingGrid"
@@ -49,6 +50,7 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
 
   return (
     <>
+      <section className="ui-page-wide py-5 text-sm leading-6"><Link href="/liquidacion-autonomica?year=2024&territory=all" className="underline underline-offset-4">¿Qué ejecutó tu administración autonómica en 2024? →</Link><p className="text-muted-foreground">Liquidación presupuestaria definitiva: crédito, obligaciones y pagos. Tiene su propio ejercicio y ámbito; no se suma a los contratos y subvenciones del mapa.</p></section>
       <TerritoryAtlas
         data={data}
         initialDataset={parseTerritoryDataset(params?.source)}
