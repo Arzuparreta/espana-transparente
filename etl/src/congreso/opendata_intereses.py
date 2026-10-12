@@ -37,12 +37,8 @@ UA = "Mozilla/5.0 (compatible; AccionHumana/1.0)"
 
 def _discover_latest_url() -> str:
     """Find the current docacteco JSON URL by scraping the opendata page."""
-    result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}",
-         "https://www.congreso.es/es/opendata/diputados"],
-        capture_output=True, text=True, timeout=30,
-    )
-    html = result.stdout
+    from congreso.iniciativas import curl_text
+    html = curl_text("https://www.congreso.es/es/opendata/diputados")
     # Find the JSON link for docacteco
     import re
     match = re.search(r'(/webpublica/opendata/diputados/docacteco__\d+\.json)', html)

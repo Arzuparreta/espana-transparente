@@ -61,16 +61,32 @@ PERSON_GROUP_ACRONYMS = {
 }
 
 
+CURL_ATTEMPTS = 3
+CURL_BACKOFF_SECONDS = 20
+
+
 def curl_text(url: str) -> str:
-    result = subprocess.run(
-        ["curl", "-sS", "-L", "--max-time", "45", "-H", f"User-Agent: {UA}", url],
-        capture_output=True,
-        text=True,
-        timeout=50,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"curl failed for {url}: {result.stderr.strip()}")
-    return result.stdout
+    # congreso.es stalls for a while when it rate-limits a burst; a single
+    # timeout used to fail the whole weekly pipeline. Back off and retry,
+    # never faster than REQUEST_DELAY.
+    error = ""
+    for attempt in range(CURL_ATTEMPTS):
+        if attempt:
+            time.sleep(CURL_BACKOFF_SECONDS * attempt)
+        try:
+            result = subprocess.run(
+                ["curl", "-sS", "-L", "--max-time", "45", "-H", f"User-Agent: {UA}", url],
+                capture_output=True,
+                text=True,
+                timeout=50,
+            )
+        except subprocess.TimeoutExpired:
+            error = "timed out"
+            continue
+        if result.returncode == 0:
+            return result.stdout
+        error = result.stderr.strip()
+    raise RuntimeError(f"curl failed for {url} after {CURL_ATTEMPTS} attempts: {error}")
 
 
 def collapse_ws(value: Any) -> str | None:
