@@ -62,6 +62,7 @@ export const SECONDARY_NAV: NavItem[] = [
   { href: GITHUB_URL, label: "GitHub" },
 ]
 const COLLECTIONS: SectionMeta[] = [
+  { key: "vivienda", href: "/temas/vivienda", label: "Vivienda", area: "decisiones", section: "Temas", description: "Actividad registrada por materia, personas, documentos y recorridos de dinero y economía." },
   { key: "liquidacion-autonomica", href: "/liquidacion-autonomica", label: "Liquidación autonómica", area: "territorio", section: "Presupuestos", description: "Crédito inicial y definitivo, obligaciones y pagos de 17 comunidades en 2024." },
   { key: "ejecucion-presupuestaria", href: "/ejecucion-presupuestaria", label: "Ejecución del Estado", area: "dinero", section: "Cuentas", description: "Créditos definitivos, obligaciones y pagos corrientes del presupuesto estatal." },
   { key: "cuentas-por-subsector", href: "/cuentas-por-subsector", label: "Cuentas por subsector", area: "dinero", section: "Cuentas", description: "Ingresos, gasto y saldo de cada nivel administrativo; sin sumar transferencias internas." },

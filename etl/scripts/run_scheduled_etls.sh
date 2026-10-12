@@ -131,6 +131,7 @@ run_weekly_links() {
   run_self_tracked_pipeline "ine.cofog" python -m src.ine.cofog
   run_self_tracked_pipeline "presupuestos.ejecucion" python -m src.presupuestos.ejecucion
   run_self_tracked_pipeline "presupuestos.autonomico" python -m src.presupuestos.autonomico
+  run_self_tracked_pipeline "congreso.actividad" python -m src.congreso.actividad
   run_pipeline "elections.ingest" python -m src.elections.ingest
   run_self_tracked_pipeline "common.search_refresh" python -m common.search_refresh
 }
