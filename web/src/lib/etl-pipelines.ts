@@ -17,6 +17,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "ine.ipc_subgrupos": "IPC por subgrupos",
   "ine.fiscal": "Cuentas públicas Eurostat",
   "ine.cofog": "Gasto por funciones COFOG",
+  "congreso.actividad": "Actividad parlamentaria por materia",
   "presupuestos.autonomico": "Liquidación presupuestaria autonómica",
   "presupuestos.ejecucion": "Ejecución del presupuesto del Estado",
   "ine.subsectors": "Cuentas por subsector Eurostat",
@@ -72,6 +73,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  { key: "parliament-activity", label: "Actividad parlamentaria por materia", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["congreso.actividad"] },
   { key: "autonomic-liquidation", label: "Liquidación presupuestaria autonómica", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["presupuestos.autonomico"] },
   { key: "state-execution", label: "Ejecución del presupuesto del Estado", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["presupuestos.ejecucion"] },
   { key: "fiscal-sectors", label: "Cuentas por subsector Eurostat", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.subsectors"] },

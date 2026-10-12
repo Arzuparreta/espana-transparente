@@ -1,0 +1,6 @@
+import { ACTIVITY_VERSION,type ActivityCoverage,type ActivityRow } from "./parliament-activity"
+export function activityFixture(){
+ const coverage:ActivityCoverage={source:"Congreso",dataset_url:"https://www.congreso.es/webpublica/opendata/intervenciones/IntervencionesIniciativa__20261011050103.json",retrieved_at:"2026-10-12T00:00:00Z",legislature:15,topic:"housing",mapping_version:ACTIVITY_VERSION,dataset_sha256:"a".repeat(64),universe:3,selected:2,without_title_signal:1,unlocated_dates:0,years:{"2024":{universe:3,selected:2,interventions:1,voting_records:1}}}
+ const base:ActivityRow={id:"b".repeat(64),legislature:15,topic:"housing",event_date:"2024-01-01",initiative_number:"180/000001/0000",title:"Pregunta sobre vivienda",initiative_type:"Pregunta oral",kind:"intervention",body:"Pleno",phase:"Intervención",speaker:"Persona",speaker_role:"Diputado",proposer_label:"Otra persona",documents:["https://www.congreso.es/public_oficiales/L15/CONG/DS/PL/1.PDF#page=2"],title_signal:"vivienda",mapping_version:ACTIVITY_VERSION,dataset_sha256:coverage.dataset_sha256,politician_id:null,official_id:null}
+ return {coverage,rows:[base,{...base,id:"c".repeat(64),kind:"voting_record" as const,speaker:null,speaker_role:null}],year:"2024",error:false}
+}
