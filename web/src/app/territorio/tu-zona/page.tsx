@@ -7,7 +7,7 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: "Tu zona",
   description:
-    "Elige tu comunidad autónoma o una provincia para ver, por un lado, el gasto público de tu administración y, por otro, las empresas con sede en la zona que reciben contratos.",
+    "Elige tu comunidad autónoma o una provincia para ver los contratos y subvenciones registrados de tu administración y las adjudicatarias o beneficiarias con sede en la zona.",
   alternates: { canonical: "/territorio/tu-zona" },
 }
 
@@ -30,10 +30,12 @@ export default async function TuZonaPage() {
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">Tu zona</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Elige una comunidad autónoma para ver el gasto de tu administración, o
-          una provincia para ver las empresas con sede allí que reciben contratos
-          públicos. Cambia la selección cuantas veces necesites antes de
-          explorar.
+          Elige una comunidad autónoma para ver los contratos y subvenciones
+          registrados de tu administración, o una provincia para ver las
+          adjudicatarias y beneficiarias con sede allí. Son registros publicados,
+          no gasto ejecutado; la liquidación presupuestaria de cada comunidad está
+          en su propia página. La sede no indica dónde se presta el servicio.
+          Cambia la selección cuantas veces necesites antes de explorar.
         </p>
       </header>
       <TerritoryPicker territories={pickerTerritories} />
