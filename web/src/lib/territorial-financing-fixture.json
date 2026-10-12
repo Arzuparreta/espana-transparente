@@ -1,0 +1,660 @@
+{
+  "version": "territorial-financing-2024-v1",
+  "year": 2024,
+  "publication": "2026-07",
+  "unit": "MILES_EUR",
+  "source_url": "https://www.hacienda.gob.es/cdi/sist%20financiacion%20y%20deuda/informaci%C3%B3nccaa/cuadros-liquidacion-2024.xlsx",
+  "page_url": "https://www.hacienda.gob.es/es-ES/CDI/Paginas/SistemasFinanciacionDeuda/InformacionCCAAs/Informes%20financiacion%20comunidades%20autonomas2.aspx",
+  "method_url": "https://www.hacienda.gob.es/cdi/sist%20financiacion%20y%20deuda/informaci%C3%B3nccaa/liquidacion-de-los-recursos-sfa-2024.pdf",
+  "workbook_sha256": "85c09534f52a9faa333881e7d2fadc0f31a090651d06811da184fff0f349928b",
+  "retrieved_at": "2026-10-12T12:40:22.793194+00:00",
+  "records": [
+    {
+      "territory": "09",
+      "name": "Cataluña",
+      "group": "common",
+      "balances": {
+        "irpf": 820303.79317,
+        "iva": 53556.33538,
+        "special": 52043.04894999999,
+        "guarantee": 250496.66731,
+        "sufficiency": 8927.09636,
+        "resources": 1185326.94117,
+        "competitiveness": 1563285.32853,
+        "cooperation": 0.0,
+        "total": 2748612.2697
+      },
+      "details": {
+        "irpf": {
+          "definitive": 15804000.29317,
+          "advance": 14983696.5,
+          "balance": 820303.79317
+        },
+        "iva": {
+          "definitive": 8788815.905382287,
+          "advance": 8735259.57,
+          "balance": 53556.33538
+        },
+        "guarantee": {
+          "definitive": -1693347.8402321264,
+          "advance": -1943844.50754,
+          "balance": 250496.66731
+        },
+        "sufficiency": {
+          "definitive": 1142846.4463643606,
+          "advance": 1133919.35,
+          "balance": 8927.09636
+        }
+      }
+    },
+    {
+      "territory": "11",
+      "name": "Galicia",
+      "group": "common",
+      "balances": {
+        "irpf": 368240.72582,
+        "iva": 74066.01436,
+        "special": -31926.64677,
+        "guarantee": -137461.05202,
+        "sufficiency": 6001.16813,
+        "resources": 278920.20952,
+        "competitiveness": 0.0,
+        "cooperation": 507905.07235,
+        "total": 786825.28187
+      },
+      "details": {
+        "irpf": {
+          "definitive": 3478199.38582,
+          "advance": 3109958.66,
+          "balance": 368240.72582
+        },
+        "iva": {
+          "definitive": 2640489.224359451,
+          "advance": 2566423.21,
+          "balance": 74066.01436
+        },
+        "guarantee": {
+          "definitive": 1895942.7082627965,
+          "advance": 2033403.76028,
+          "balance": -137461.05202
+        },
+        "sufficiency": {
+          "definitive": 768269.668130934,
+          "advance": 762268.5,
+          "balance": 6001.16813
+        }
+      }
+    },
+    {
+      "territory": "01",
+      "name": "Andalucía",
+      "group": "common",
+      "balances": {
+        "irpf": 834105.25663,
+        "iva": 168383.6784,
+        "special": 54963.49386000001,
+        "guarantee": -168726.23699,
+        "sufficiency": 5042.61623,
+        "resources": 893768.8081299999,
+        "competitiveness": 0.0,
+        "cooperation": 644491.95732,
+        "total": 1538260.7654499998
+      },
+      "details": {
+        "irpf": {
+          "definitive": 8934893.746630002,
+          "advance": 8100788.49,
+          "balance": 834105.25663
+        },
+        "iva": {
+          "definitive": 7847719.478401044,
+          "advance": 7679335.8,
+          "balance": 168383.6784
+        },
+        "guarantee": {
+          "definitive": 6009543.8359949775,
+          "advance": 6178270.07298,
+          "balance": -168726.23699
+        },
+        "sufficiency": {
+          "definitive": 645555.1662341515,
+          "advance": 640512.55,
+          "balance": 5042.61623
+        }
+      }
+    },
+    {
+      "territory": "03",
+      "name": "Principado de Asturias",
+      "group": "common",
+      "balances": {
+        "irpf": -42716.73355,
+        "iva": -7287.67947,
+        "special": -572.1399999999994,
+        "guarantee": 78220.4899,
+        "sufficiency": 1873.50016,
+        "resources": 29517.43704,
+        "competitiveness": 0.0,
+        "cooperation": 190427.7453,
+        "total": 219945.18234
+      },
+      "details": {
+        "irpf": {
+          "definitive": 1399405.04645,
+          "advance": 1442121.78,
+          "balance": -42716.73355
+        },
+        "iva": {
+          "definitive": 989935.4905293743,
+          "advance": 997223.17,
+          "balance": -7287.67947
+        },
+        "guarantee": {
+          "definitive": 534773.5869523454,
+          "advance": 456553.0970499999,
+          "balance": 78220.4899
+        },
+        "sufficiency": {
+          "definitive": 239844.7501594257,
+          "advance": 237971.25,
+          "balance": 1873.50016
+        }
+      }
+    },
+    {
+      "territory": "06",
+      "name": "Cantabria",
+      "group": "common",
+      "balances": {
+        "irpf": -27660.10608,
+        "iva": -21464.44417,
+        "special": 1733.9366999999997,
+        "guarantee": 46768.44571,
+        "sufficiency": 4934.9443,
+        "resources": 4312.776459999998,
+        "competitiveness": 0.0,
+        "cooperation": 111153.25677,
+        "total": 115466.03323
+      },
+      "details": {
+        "irpf": {
+          "definitive": 775955.50392,
+          "advance": 803615.61,
+          "balance": -27660.10608
+        },
+        "iva": {
+          "definitive": 590952.9858251833,
+          "advance": 612417.43,
+          "balance": -21464.44417
+        },
+        "guarantee": {
+          "definitive": 126915.06659393292,
+          "advance": 80146.62088,
+          "balance": 46768.44571
+        },
+        "sufficiency": {
+          "definitive": 631771.2543034337,
+          "advance": 626836.31,
+          "balance": 4934.9443
+        }
+      }
+    },
+    {
+      "territory": "16",
+      "name": "La Rioja",
+      "group": "common",
+      "balances": {
+        "irpf": -1176.69945,
+        "iva": 9940.41544,
+        "special": 4859.29785,
+        "guarantee": -7543.19506,
+        "sufficiency": 2137.0285,
+        "resources": 8216.84728,
+        "competitiveness": 0.0,
+        "cooperation": 16495.55708,
+        "total": 24712.40436
+      },
+      "details": {
+        "irpf": {
+          "definitive": 442249.11055,
+          "advance": 443425.81,
+          "balance": -1176.69945
+        },
+        "iva": {
+          "definitive": 319015.5154442273,
+          "advance": 309075.1,
+          "balance": 9940.41544
+        },
+        "guarantee": {
+          "definitive": 124512.3610556447,
+          "advance": 132055.55612,
+          "balance": -7543.19506
+        },
+        "sufficiency": {
+          "definitive": 273581.88850493636,
+          "advance": 271444.86,
+          "balance": 2137.0285
+        }
+      }
+    },
+    {
+      "territory": "13",
+      "name": "Región de Murcia",
+      "group": "common",
+      "balances": {
+        "irpf": 153707.41462,
+        "iva": 5635.71219,
+        "special": 11086.51837,
+        "guarantee": 11819.7411,
+        "sufficiency": -2022.22178,
+        "resources": 180227.16449999998,
+        "competitiveness": 173798.99058,
+        "cooperation": 106730.28062,
+        "total": 460756.43570000003
+      },
+      "details": {
+        "irpf": {
+          "definitive": 1591762.3046199998,
+          "advance": 1438054.89,
+          "balance": 153707.41462
+        },
+        "iva": {
+          "definitive": 1354522.4521891568,
+          "advance": 1348886.74,
+          "balance": 5635.71219
+        },
+        "guarantee": {
+          "definitive": 1085426.189070236,
+          "advance": 1073606.44797,
+          "balance": 11819.7411
+        },
+        "sufficiency": {
+          "definitive": -258884.4217788596,
+          "advance": -256862.2,
+          "balance": -2022.22178
+        }
+      }
+    },
+    {
+      "territory": "17",
+      "name": "C. Valenciana",
+      "group": "common",
+      "balances": {
+        "irpf": 480618.48268,
+        "iva": 21676.54499,
+        "special": 46488.27352999999,
+        "guarantee": 211213.54755,
+        "sufficiency": -14530.66784,
+        "resources": 745466.18091,
+        "competitiveness": 1389836.2025,
+        "cooperation": 348484.96776,
+        "total": 2483787.3511699997
+      },
+      "details": {
+        "irpf": {
+          "definitive": 6563481.282679999,
+          "advance": 6082862.8,
+          "balance": 480618.48268
+        },
+        "iva": {
+          "definitive": 5188323.524992308,
+          "advance": 5166646.98,
+          "balance": 21676.54499
+        },
+        "guarantee": {
+          "definitive": 1912729.2306788452,
+          "advance": 1701515.68313,
+          "balance": 211213.54755
+        },
+        "sufficiency": {
+          "definitive": -1860214.5778362076,
+          "advance": -1845683.91,
+          "balance": -14530.66784
+        }
+      }
+    },
+    {
+      "territory": "02",
+      "name": "Aragón",
+      "group": "common",
+      "balances": {
+        "irpf": 114444.96686,
+        "iva": 39573.56299,
+        "special": 3129.812959999999,
+        "guarantee": -15520.17316,
+        "sufficiency": 2784.91174,
+        "resources": 144413.08139,
+        "competitiveness": 0.0,
+        "cooperation": 60128.89896,
+        "total": 204541.98035
+      },
+      "details": {
+        "irpf": {
+          "definitive": 2093013.84686,
+          "advance": 1978568.88,
+          "balance": 114444.96686
+        },
+        "iva": {
+          "definitive": 1389367.9829903657,
+          "advance": 1349794.42,
+          "balance": 39573.56299
+        },
+        "guarantee": {
+          "definitive": 334379.314547739,
+          "advance": 349899.48771,
+          "balance": -15520.17316
+        },
+        "sufficiency": {
+          "definitive": 356524.71174250124,
+          "advance": 353739.8,
+          "balance": 2784.91174
+        }
+      }
+    },
+    {
+      "territory": "08",
+      "name": "Castilla-La Mancha",
+      "group": "common",
+      "balances": {
+        "irpf": 144753.99025,
+        "iva": -25347.45864,
+        "special": 19098.423840000003,
+        "guarantee": 71879.55072,
+        "sufficiency": 795.0134,
+        "resources": 211179.51957,
+        "competitiveness": 0.0,
+        "cooperation": 145014.36971,
+        "total": 356193.88928
+      },
+      "details": {
+        "irpf": {
+          "definitive": 2161414.68025,
+          "advance": 2016660.69,
+          "balance": 144753.99025
+        },
+        "iva": {
+          "definitive": 1753170.861355603,
+          "advance": 1778518.32,
+          "balance": -25347.45864
+        },
+        "guarantee": {
+          "definitive": 1778939.0926629258,
+          "advance": 1707059.54194,
+          "balance": 71879.55072
+        },
+        "sufficiency": {
+          "definitive": 101777.03340411799,
+          "advance": 100982.02,
+          "balance": 795.0134
+        }
+      }
+    },
+    {
+      "territory": "05",
+      "name": "Canarias",
+      "group": "common",
+      "balances": {
+        "irpf": 206965.81354,
+        "iva": 0.0,
+        "special": 1825.4628599999999,
+        "guarantee": -100997.56128,
+        "sufficiency": 638.32898,
+        "resources": 108432.04410000001,
+        "competitiveness": 842710.38835,
+        "cooperation": 159866.77114,
+        "total": 1111009.20359
+      },
+      "details": {
+        "irpf": {
+          "definitive": 2277796.81354,
+          "advance": 2070831.0,
+          "balance": 206965.81354
+        },
+        "iva": null,
+        "guarantee": {
+          "definitive": 3733325.3772110892,
+          "advance": 3834322.93849,
+          "balance": -100997.56128
+        },
+        "sufficiency": {
+          "definitive": 96584.90897822063,
+          "advance": 95946.58,
+          "balance": 638.32898
+        }
+      }
+    },
+    {
+      "territory": "10",
+      "name": "Extremadura",
+      "group": "common",
+      "balances": {
+        "irpf": 37966.72758,
+        "iva": 36590.98855,
+        "special": 14140.79744,
+        "guarantee": -42844.32624,
+        "sufficiency": 4480.75089,
+        "resources": 50334.93822,
+        "competitiveness": 0.0,
+        "cooperation": 211279.94912,
+        "total": 261614.88734000002
+      },
+      "details": {
+        "irpf": {
+          "definitive": 952150.2975799999,
+          "advance": 914183.57,
+          "balance": 37966.72758
+        },
+        "iva": {
+          "definitive": 887175.308545952,
+          "advance": 850584.32,
+          "balance": 36590.98855
+        },
+        "guarantee": {
+          "definitive": 1112733.6048437823,
+          "advance": 1155577.93108,
+          "balance": -42844.32624
+        },
+        "sufficiency": {
+          "definitive": 573625.9708907176,
+          "advance": 569145.22,
+          "balance": 4480.75089
+        }
+      }
+    },
+    {
+      "territory": "04",
+      "name": "Illes Balears",
+      "group": "common",
+      "balances": {
+        "irpf": 308368.98153,
+        "iva": -170801.85891,
+        "special": 15241.9426,
+        "guarantee": -11886.98455,
+        "sufficiency": -7215.77228,
+        "resources": 133706.30839,
+        "competitiveness": 914763.5899,
+        "cooperation": 0.0,
+        "total": 1048469.89829
+      },
+      "details": {
+        "irpf": {
+          "definitive": 2085666.7015299997,
+          "advance": 1777297.72,
+          "balance": 308368.98153
+        },
+        "iva": {
+          "definitive": 1627849.271086832,
+          "advance": 1798651.13,
+          "balance": -170801.85891
+        },
+        "guarantee": {
+          "definitive": -341302.0683123502,
+          "advance": -329415.08376,
+          "balance": -11886.98455
+        },
+        "sufficiency": {
+          "definitive": -899643.5722803421,
+          "advance": -892427.8,
+          "balance": -7215.77228
+        }
+      }
+    },
+    {
+      "territory": "12",
+      "name": "Comunidad de Madrid",
+      "group": "common",
+      "balances": {
+        "irpf": 893385.48149,
+        "iva": 551144.72007,
+        "special": -18717.680699999997,
+        "guarantee": -376568.80608,
+        "sufficiency": -7566.13634,
+        "resources": 1041677.5784400001,
+        "competitiveness": 164394.7906,
+        "cooperation": 0.0,
+        "total": 1206072.36904
+      },
+      "details": {
+        "irpf": {
+          "definitive": 16039420.80149,
+          "advance": 15146035.32,
+          "balance": 893385.48149
+        },
+        "iva": {
+          "definitive": 9476829.530074082,
+          "advance": 8925684.81,
+          "balance": 551144.72007
+        },
+        "guarantee": {
+          "definitive": -6365644.439600021,
+          "advance": -5989075.63352,
+          "balance": -376568.80608
+        },
+        "sufficiency": {
+          "definitive": -968616.256337548,
+          "advance": -961050.12,
+          "balance": -7566.13634
+        }
+      }
+    },
+    {
+      "territory": "07",
+      "name": "Castilla y León",
+      "group": "common",
+      "balances": {
+        "irpf": 185770.34109,
+        "iva": 18721.54722,
+        "special": 22040.93042,
+        "guarantee": 46965.393090000005,
+        "sufficiency": 4357.87628,
+        "resources": 277856.08810000005,
+        "competitiveness": 0.0,
+        "cooperation": 443680.39268,
+        "total": 721536.4807800001
+      },
+      "details": {
+        "irpf": {
+          "definitive": 3139161.92109,
+          "advance": 2953391.58,
+          "balance": 185770.34109
+        },
+        "iva": {
+          "definitive": 2416230.5372241335,
+          "advance": 2397508.99,
+          "balance": 18721.54722
+        },
+        "guarantee": {
+          "definitive": 1343829.9802701483,
+          "advance": 1296864.58719,
+          "balance": 46965.393090000005
+        },
+        "sufficiency": {
+          "definitive": 557895.1662804132,
+          "advance": 553537.29,
+          "balance": 4357.87628
+        }
+      }
+    },
+    {
+      "territory": "18",
+      "name": "Ceuta",
+      "group": "city",
+      "balances": {
+        "irpf": 0.0,
+        "iva": 0.0,
+        "special": 0.0,
+        "guarantee": 0.0,
+        "sufficiency": 356.01,
+        "resources": 356.01,
+        "competitiveness": 0.0,
+        "cooperation": 14360.09,
+        "total": 14716.1
+      },
+      "details": {
+        "sufficiency": {
+          "definitive": 45576.69,
+          "advance": 45220.68,
+          "balance": 356.01
+        }
+      }
+    },
+    {
+      "territory": "19",
+      "name": "Melilla",
+      "group": "city",
+      "balances": {
+        "irpf": 0.0,
+        "iva": 0.0,
+        "special": 0.0,
+        "guarantee": 0.0,
+        "sufficiency": 285.06,
+        "resources": 285.06,
+        "competitiveness": 0.0,
+        "cooperation": 12887.26,
+        "total": 13172.32
+      },
+      "details": {
+        "sufficiency": {
+          "definitive": 36494.33,
+          "advance": 36209.27,
+          "balance": 285.06
+        }
+      }
+    }
+  ],
+  "totals": {
+    "Total CC.AA.": {
+      "irpf": 4477078.43618,
+      "iva": 754388.0784000001,
+      "special": 195435.47191000002,
+      "guarantee": -144184.50000000003,
+      "sufficiency": 10638.436729999998,
+      "resources": 5293355.92322,
+      "competitiveness": 5048789.29046,
+      "cooperation": 2945659.21881,
+      "total": 13287804.43249
+    },
+    "Total Ciudades": {
+      "irpf": 0.0,
+      "iva": 0.0,
+      "special": 0.0,
+      "guarantee": 0.0,
+      "sufficiency": 641.0699999999999,
+      "resources": 641.0699999999999,
+      "competitiveness": 0.0,
+      "cooperation": 27247.35,
+      "total": 27888.42
+    },
+    "Total General": {
+      "irpf": 4477078.43618,
+      "iva": 754388.0784000001,
+      "special": 195435.47191000002,
+      "guarantee": -144184.50000000003,
+      "sufficiency": 11279.506729999997,
+      "resources": 5293996.9932200005,
+      "competitiveness": 5048789.29046,
+      "cooperation": 2972906.56881,
+      "total": 13315692.85249
+    }
+  }
+}

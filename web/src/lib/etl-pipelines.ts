@@ -22,6 +22,7 @@ export const ETL_PIPELINE_LABELS: Record<string, string> = {
   "senado.actividad": "Actividad de control del Senado",
   "congreso.publicacion": "Publicación y vigencia de leyes",
   "congreso.actividad": "Actividad parlamentaria por materia",
+  "presupuestos.financiacion": "Liquidación de financiación territorial",
   "presupuestos.autonomico": "Liquidación presupuestaria autonómica",
   "presupuestos.ejecucion": "Ejecución del presupuesto del Estado",
   "ine.subsectors": "Cuentas por subsector Eurostat",
@@ -77,6 +78,7 @@ export type CriticalPipelineStatus = {
 }
 
 export const CRITICAL_ETL_PIPELINES = [
+  {key:"territorial-financing",label:"Liquidación de financiación territorial",cadence:"weekly",maxAgeHours:24*9,pipelines:["presupuestos.financiacion"]},
   {key:"law-publication",label:"Publicación y vigencia de leyes",cadence:"weekly",maxAgeHours:24*9,pipelines:["congreso.publicacion"]},
   {key:"housing-prices",label:"Precios de vivienda IPV",cadence:"weekly",maxAgeHours:24*9,pipelines:["ine.vivienda"]},
   { key: "wage-distribution", label: "Distribución salarial EPA", cadence: "weekly", maxAgeHours: 24 * 9, pipelines: ["ine.salarios_distribucion"] },

@@ -21,6 +21,7 @@ describe("getEtlPipelineLabel", () => {
     expect(ETL_PIPELINE_LABELS["ine.vivienda"]).toBe("Precios de vivienda IPV")
     expect(ETL_PIPELINE_LABELS["ine.salarios_distribucion"]).toBe("Distribución salarial EPA")
     expect(ETL_PIPELINE_LABELS["ine.cofog"]).toBe("Gasto por funciones COFOG")
+    expect(ETL_PIPELINE_LABELS["presupuestos.financiacion"]).toBe("Liquidación de financiación territorial")
     expect(ETL_PIPELINE_LABELS["presupuestos.autonomico"]).toBe("Liquidación presupuestaria autonómica")
     expect(ETL_PIPELINE_LABELS["presupuestos.ejecucion"]).toBe("Ejecución del presupuesto del Estado")
     expect(ETL_PIPELINE_LABELS["ine.subsectors"]).toBe("Cuentas por subsector Eurostat")

@@ -63,6 +63,7 @@ export function AutonomicLiquidation({
         cuentas al presupuesto del Estado: las transferencias entre
         administraciones podrían contarse dos veces.
       </p>
+      <Link href="/financiacion-territorial?year=2024&territory=all" className="block text-sm underline underline-offset-4">Consultar ajustes de financiación de 2024, con su propio perímetro →</Link>
       {data.error ? (
         <p role="alert">
           No se ha podido consultar la liquidación autonómica. El error no se
