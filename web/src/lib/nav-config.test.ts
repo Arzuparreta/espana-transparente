@@ -74,6 +74,7 @@ describe("section navigation", () => {
     )
     expect(territorioHub?.hub.label).toBe("Territorio")
     expect(territorioHub?.sections.map((s) => s.key)).toEqual([
+      "financiacion-territorial",
       "liquidacion-autonomica",
       "territorio",
       "tu-zona",
