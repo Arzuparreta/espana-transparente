@@ -132,6 +132,7 @@ run_weekly_links() {
   run_self_tracked_pipeline "ine.subsectors" python -m src.ine.subsectors
   run_self_tracked_pipeline "ine.cofog" python -m src.ine.cofog
   run_self_tracked_pipeline "presupuestos.ejecucion" python -m src.presupuestos.ejecucion
+  run_self_tracked_pipeline "presupuestos.local" python -m src.presupuestos.local
   run_self_tracked_pipeline "presupuestos.financiacion" python -m src.presupuestos.financiacion
   run_self_tracked_pipeline "presupuestos.autonomico" python -m src.presupuestos.autonomico
   run_self_tracked_pipeline "congreso.publicacion" python -m src.congreso.publicacion

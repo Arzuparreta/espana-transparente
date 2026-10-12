@@ -38,6 +38,7 @@ const STATIC_ROUTES: {
   { path: "/actividad-senado", changeFrequency: "weekly", priority: 0.8 },
   { path: "/temas/vivienda", changeFrequency: "weekly", priority: 0.8 },
   { path: "/financiacion-territorial", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/liquidacion-local", changeFrequency: "weekly", priority: 0.8 },
   { path: "/liquidacion-autonomica", changeFrequency: "weekly", priority: 0.8 },
   { path: "/ejecucion-presupuestaria", changeFrequency: "weekly", priority: 0.8 },
   { path: "/cuentas-por-subsector", changeFrequency: "weekly", priority: 0.8 },
