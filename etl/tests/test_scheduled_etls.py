@@ -38,11 +38,13 @@ def test_daily_batch_continues_after_a_pipeline_failure(tmp_path):
 
     invoked = calls.read_text().splitlines()
     assert result.returncode == 1
-    assert len(invoked) == 12
+    assert len(invoked) == 13
     assert any("src.bdns.convocatorias --limit 100" in call for call in invoked)
     assert "src.contratacion.contratos" in invoked[3]
-    assert "src.territorio.atlas" in invoked[6]
-    assert "src.territorio.org_geolocation" in invoked[7]
+    # The purchase summary still refreshes after a failed contracts run: it summarises what is stored.
+    assert "src.contratacion.resumen" in invoked[4]
+    assert "src.territorio.atlas" in invoked[7]
+    assert "src.territorio.org_geolocation" in invoked[8]
     assert "common.search_refresh" in invoked[-1]
     assert "contracts_daily (exit 7)" in result.stderr
 

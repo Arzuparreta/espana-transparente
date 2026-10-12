@@ -7,6 +7,9 @@ import { InfoPanel } from "@/components/domain/InfoPanel"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { OperationContext } from "@/components/domain/OperationContext"
 import { ContratosClient } from "@/components/contratos/ContratosClient"
+import { ContractPurchaseAnswer } from "@/components/contratos/ContractPurchaseAnswer"
+import { getContractPurchases } from "@/lib/data/contract-purchases"
+import { selectPurchaseLevel } from "@/lib/contract-purchases"
 import {
   PAGE_SIZE,
   getContractPage,
@@ -39,6 +42,8 @@ interface PageProps {
     organization?: string
     role?: string
     flow?: string
+    award_year?: string
+    award_level?: string
   }>
 }
 
@@ -89,7 +94,9 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     organization,
   )
 
+  const purchaseLevel = selectPurchaseLevel((await searchParams)?.award_level)
   const [
+    purchases,
     baseData,
     filteredData,
     summary,
@@ -97,6 +104,7 @@ export default async function ContratosPage({ searchParams }: PageProps) {
     organizationLabel,
     territoryLabels,
   ] = await Promise.all([
+    getContractPurchases((await searchParams)?.award_year),
     hasFilter
       ? Promise.resolve({ contracts: [], total: 0 })
       : getContractPage(page, activeType),
@@ -139,6 +147,10 @@ export default async function ContratosPage({ searchParams }: PageProps) {
         title="¿Qué se compra y a quién se adjudica?"
         description="Consulta las licitaciones registradas en la PCSP, su órgano contratante y su estado. El presupuesto de licitación y el importe adjudicado son medidas distintas; ninguno acredita un pago."
       />
+
+      <ContractPurchaseAnswer data={purchases} level={purchaseLevel} />
+
+      <h2 className="text-xl font-semibold">Expedientes registrados</h2>
 
       <OperationContext kind="contratos" total={total} year={activeYear} />
 
