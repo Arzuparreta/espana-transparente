@@ -123,6 +123,7 @@ run_weekly_links() {
   run_self_tracked_pipeline "judicial.wikipedia" python -m src.judicial.wikipedia --resume --extract-people
   run_self_tracked_pipeline "judicial.cgpj" python -m src.judicial.cgpj --resume
   run_self_tracked_pipeline "judicial.contract_links" python -m src.judicial.contract_links
+  run_self_tracked_pipeline "ine.vivienda" python -m src.ine.vivienda
   run_self_tracked_pipeline "ine.salarios_distribucion" python -m src.ine.salarios_distribucion
   run_self_tracked_pipeline "ine.indicadores_ampliados" python -m src.ine.indicadores_ampliados
   run_self_tracked_pipeline "ine.ipc_subgrupos" python -m src.ine.ipc_subgrupos

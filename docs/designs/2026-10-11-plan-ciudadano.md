@@ -88,6 +88,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 1, operaciones y asociaciones | Implementado; PR #57 mergeada |
 | Fase 2, gasto por funciones COFOG | Primer slice implementado; [contrato y evidencia](2026-10-11-destinos-cofog.md) |
 | Fase 2, finalidades y convocatorias BDNS | Segundo slice implementado; [contrato y evidencia](2026-10-11-finalidades-bdns.md) |
+| Fase 4, precios de vivienda | IPV base 2025 por trimestre/territorio, tasas y límites; [contrato](2026-10-12-precios-vivienda.md) |
 | Fase 4, distribución salarial | Media/tramos EPA 2021–2024, edición y reconciliación; [contrato](2026-10-12-distribucion-salarial.md) |
 | Fase 4, control y sesiones Senado | Piloto de mociones/interpelaciones y sus fichas; [contrato](2026-10-12-control-senado.md) |
 | Fase 4, actividad y vivienda | Piloto Congreso por materia con señal, personas, documentos y cobertura; [contrato](2026-10-12-actividad-vivienda.md) |

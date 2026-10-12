@@ -44,6 +44,7 @@ const STATIC_ROUTES: {
   { path: "/personas", changeFrequency: "daily", priority: 0.9 },
   { path: "/dinero", changeFrequency: "daily", priority: 0.9 },
   { path: "/distribucion-salarial", changeFrequency: "yearly", priority: 0.8 },
+  { path: "/precios-vivienda", changeFrequency: "monthly", priority: 0.8 },
   { path: "/economia", changeFrequency: "weekly", priority: 0.8 },
   { path: "/indicadores", changeFrequency: "weekly", priority: 0.8 },
   { path: "/calculadoras", changeFrequency: "monthly", priority: 0.6 },
