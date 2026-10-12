@@ -85,6 +85,10 @@ export default async function DistorsionElectoralPage({ searchParams }: PageProp
         description={`Elecciones generales del ${formattedDate} · ${activeElection.total_seats} escaños · participación ${activeElection.participation_pct}%`}
       />
 
+      <p className="text-sm leading-6 text-muted-foreground">
+        ¿Cómo se transformaron los votos en escaños? Se comparan votos y escaños obtenidos con las reglas vigentes: reparto D&apos;Hondt en cada provincia y número de escaños por circunscripción. La diferencia entre porcentaje de votos y de escaños describe el efecto de esas reglas sobre este resultado; no predice cómo habrían votado las personas ni qué gobierno habría salido con otras reglas.
+      </p>
+
       <DistorsionTabs
         dates={dates.map((d) => d.date)}
         activeDate={activeElection.date}
