@@ -202,3 +202,32 @@ export function questionStatuses(
     }
   })
 }
+
+// Topic words → covered answers. Search finds records by text; these answers come
+// first so a topic query is not answered with an unclassified list alone.
+const QUESTION_TOPICS: { words: string[]; hrefs: string[] }[] = [
+  { words: ["vivienda", "viviendas", "alquiler", "alquileres", "hipoteca", "hipotecas", "pisos"], hrefs: ["/precios-vivienda", "/decisiones", "/actividad-senado"] },
+  { words: ["salario", "salarios", "sueldo", "sueldos", "nomina", "precios", "ipc", "inflacion", "poder adquisitivo"], hrefs: ["/economia", "/distribucion-salarial"] },
+  { words: ["sanidad", "sanitario", "hospital", "hospitales", "lista de espera", "listas de espera", "operacion", "cirugia"], hrefs: ["/servicios/sanidad", "/gasto-por-funciones"] },
+  { words: ["deuda", "deficit", "superavit", "impuestos", "gasto publico", "ingresos publicos"], hrefs: ["/dinero", "/gasto-por-funciones", "/ejecucion-presupuestaria"] },
+  { words: ["contrato", "contratos", "licitacion", "licitaciones", "adjudicacion", "adjudicaciones", "compras publicas"], hrefs: ["/contratos"] },
+  { words: ["subvencion", "subvenciones", "ayuda", "ayudas"], hrefs: ["/ayudas-por-finalidad", "/fondos-ue/prtr"] },
+  { words: ["fondos europeos", "next generation", "prtr", "feder", "pac", "mrr", "agricultura", "agrario"], hrefs: ["/fondos-ue/prtr", "/fondos-ue/cohesion", "/fondos-ue/pac"] },
+  { words: ["ayuntamiento", "municipio", "comunidad autonoma", "financiacion autonomica", "financiacion territorial"], hrefs: ["/liquidacion-autonomica", "/liquidacion-local", "/financiacion-territorial"] },
+  { words: ["ley", "leyes", "boe", "proyecto de ley"], hrefs: ["/iniciativas"] },
+  { words: ["gobierno", "ministro", "ministra", "ministros", "cargo", "cargos"], hrefs: ["/personas"] },
+]
+
+const normalize = (value: string) =>
+  ` ${value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9ñ]+/g, " ").trim()} `
+
+export function answersForQuery(query: string): CoveredQuestion[] {
+  const text = normalize(query)
+  if (text.trim().length < 2) return []
+  const hrefs = new Set<string>()
+  for (const topic of QUESTION_TOPICS) {
+    // Whole words only: "pac" must not match "capacidad".
+    if (topic.words.some((word) => text.includes(normalize(word)))) topic.hrefs.forEach((href) => hrefs.add(href))
+  }
+  return COVERED_QUESTIONS.filter((question) => hrefs.has(question.href))
+}

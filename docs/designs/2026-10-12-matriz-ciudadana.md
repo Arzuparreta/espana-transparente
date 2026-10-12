@@ -22,6 +22,7 @@ Para cada fila: pregunta/primera respuesta, medida y comparación, fecha y ámbi
 | Territorio | `web/src/app/territorio/page.tsx` | Enlaces a liquidaciones y financiación con ámbito propio; entradas inválidas pueden sustituirse, y el rótulo gasto municipal requiere revisar fase del grid |
 | Subvenciones/finalidades | Estudio BDNS y PR #80 | Se repara la afirmación de organizaciones verificadas y se documenta cobertura excluida. Fuente parcial no permite prometer todas las ayudas a hogares |
 | Estado de datos | `estado-datos/page.tsx`, `lib/question-coverage.ts` | Primera respuesta antes de la tabla técnica: 19 preguntas cubiertas con página, fuente, qué cubre y qué no, y estado de su ingesta. Registro versionado con los contratos de diseño; prueba que cada ruta y monitor existen. Sin tabla de ingestas no se afirma frescura |
+| Búsqueda | `buscar/page.tsx`, `answersForQuery` | Una consulta de tema (vivienda, salario, sanidad, deuda, contratos, ayudas, fondos UE, territorio, leyes, cargos) muestra primero las respuestas documentadas con su cobertura y después los registros que contienen el texto, avisando de que no todos están clasificados. Un nombre propio sigue como búsqueda de registros. Corrige la validación de colección, que aceptaba claves del prototipo |
 | Resto de matriz | Aún no auditado en este documento | Pendiente de inspección y reparación; no se considera completado |
 
 ## Separación de aceptación

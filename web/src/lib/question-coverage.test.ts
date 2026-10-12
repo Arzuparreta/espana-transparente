@@ -19,3 +19,12 @@ it("never reports freshness it could not read", () => {
   expect(questionStatuses([first], [{ key: first.monitor!, status: "failed" }])[0].status).toBe("failed")
   expect(questionStatuses([{ ...first, monitor: null }], [{ key: first.monitor!, status: "fresh" }])[0].status).toBe("unmonitored")
 })
+
+it("offers covered answers for topic words, whole words only and accent-insensitive", async () => {
+  const { answersForQuery } = await import("./question-coverage")
+  expect(answersForQuery("Vivienda en Madrid").map((q) => q.href)).toEqual(["/decisiones", "/actividad-senado", "/precios-vivienda"])
+  expect(answersForQuery("déficit").map((q) => q.href)).toContain("/dinero")
+  expect(answersForQuery("capacidad")).toEqual([])
+  expect(answersForQuery("Pedro Sánchez")).toEqual([])
+  expect(answersForQuery("")).toEqual([])
+})
