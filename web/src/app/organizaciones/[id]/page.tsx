@@ -176,16 +176,34 @@ export default async function OrganizacionPage({ params }: PageProps) {
         <StatGrid
           variant="flat"
           items={[
-            {
-              label: "Contratos",
-              value: formatAmount(summary?.contract_total ?? 0),
-              hint: `${contractCount.toLocaleString("es-ES")} expedientes como órgano contratante o adjudicataria.`,
-              valueClassName: "text-2xl",
-            },
+            // Roles stay apart: contracting as a public body and winning as a supplier are opposite sides.
+            ...(summary
+              ? [
+                  {
+                    label: "Contratos como órgano contratante",
+                    value: formatAmount(summary.awarded_contract_total),
+                    hint: `${summary.awarded_contract_count.toLocaleString("es-ES")} expedientes · presupuesto de licitación sin IVA.`,
+                    valueClassName: "text-2xl",
+                  },
+                  {
+                    label: "Contratos como adjudicataria",
+                    value: formatAmount(summary.contractor_contract_total),
+                    hint: `${summary.contractor_contract_count.toLocaleString("es-ES")} expedientes · presupuesto de licitación, no importe cobrado.`,
+                    valueClassName: "text-2xl",
+                  },
+                ]
+              : [
+                  {
+                    label: "Contratos",
+                    value: "—",
+                    hint: `${contractCount.toLocaleString("es-ES")} expedientes; resumen por rol no disponible.`,
+                    valueClassName: "text-2xl",
+                  },
+                ]),
             {
               label: "Subvenciones recibidas",
               value: formatAmount(summary?.subsidy_received_total ?? 0),
-              hint: `${subsidyReceivedCount.toLocaleString("es-ES")} concesiones como beneficiaria.`,
+              hint: `${subsidyReceivedCount.toLocaleString("es-ES")} concesiones como beneficiaria · importe concedido, no pagado.`,
               valueClassName: "text-2xl",
             },
             {
@@ -197,7 +215,7 @@ export default async function OrganizacionPage({ params }: PageProps) {
             {
               label: "Fondos UE",
               value: formatAmount(summary?.eu_fund_total ?? 0),
-              hint: `${euFundCount.toLocaleString("es-ES")} registros Kohesio vinculados.`,
+              hint: `${euFundCount.toLocaleString("es-ES")} registros Kohesio · presupuesto UE registrado, no pagos.`,
               valueClassName: "text-2xl",
             },
           ]}
