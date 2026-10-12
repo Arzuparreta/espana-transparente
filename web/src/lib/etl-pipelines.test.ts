@@ -17,6 +17,7 @@ describe("getEtlPipelineLabel", () => {
     expect(ETL_PIPELINE_LABELS["territorio.org_geolocation"]).toBe("Geolocalización de receptores")
     expect(ETL_PIPELINE_LABELS["ine.ipc_subgrupos"]).toBe("IPC por subgrupos")
     expect(ETL_PIPELINE_LABELS["ine.bde"]).toBe("Deuda pública Eurostat")
+    expect(ETL_PIPELINE_LABELS["ine.salarios_distribucion"]).toBe("Distribución salarial EPA")
     expect(ETL_PIPELINE_LABELS["ine.cofog"]).toBe("Gasto por funciones COFOG")
     expect(ETL_PIPELINE_LABELS["presupuestos.autonomico"]).toBe("Liquidación presupuestaria autonómica")
     expect(ETL_PIPELINE_LABELS["presupuestos.ejecucion"]).toBe("Ejecución del presupuesto del Estado")
