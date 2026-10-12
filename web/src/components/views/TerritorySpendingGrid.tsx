@@ -154,7 +154,7 @@ export async function TerritorySpendingGrid({ scope }: { scope: TerritoryScope }
                         {territory.contractCount.toLocaleString("es-ES")} contratos
                       </div>
                       <div className="mt-2 font-mono text-xs text-muted-foreground">
-                        {formatAmount(territory.subsidyAmount + territory.contractAmount)}
+                        Concedido {formatAmount(territory.subsidyAmount)} · licitado {formatAmount(territory.contractAmount)}
                       </div>
                     </div>
                   </ResponsiveLink>
