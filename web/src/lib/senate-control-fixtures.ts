@@ -1,0 +1,8 @@
+import { ACTIVITY_VERSION } from "./parliament-activity"
+import type { SenateControlRow,SenateControlCoverage } from "./senate-control"
+export function senateFixture(){
+ const evidence={title:"Interpelación sobre vivienda",official_type:"Interpelación",status:"Formulada",presentation:"2024-05-22",qualification:"2024-05-28",authors:["Persona autora"],official_topics:["Vivienda"],committees:[],actors:[{name:"Otra persona",source_id:"10",role:null,registered_total:"1"}],stages:[{date:"2024-05-22",description:"Entrada en registro"}],sessions:[],documents:[],source_url:"https://www.senado.es/web/ficopendataservlet?legis=15&tipoFich=3&tipoEx=670&numEx=000001",page_url:"https://www.senado.es/web/actividadparlamentaria/iniciativas/detalleiniciativa/index.html?legis=15&id1=670&id2=000001",title_signal:"vivienda",mapping_version:ACTIVITY_VERSION,legislature:15,number:"670/000001",kind:"interpellation",xml_sha256:"a".repeat(64),retrieved_at:"2026-10-12T00:00:00Z"}
+ const rows:SenateControlRow[]=[{id:"15/670/000001",legislature:15,number:"670/000001",kind:"interpellation",presentation_date:"2024-05-22",title:evidence.title,evidence}]
+ const metadata:SenateControlCoverage={source:"Senado",legislature:15,mapping_version:ACTIVITY_VERSION,topic:"housing",catalogs:{interpellation:{url:"https://www.senado.es/web/ficopendataservlet?legis=15&tipoFich=15",universe:137,selected:1,sha256:"b".repeat(64)},motion:{url:"https://www.senado.es/web/ficopendataservlet?legis=15&tipoFich=16",universe:2671,selected:0,sha256:"c".repeat(64)}},years:{"2024":1},undated:0,selected:1,retrieved_at:"2026-10-12T00:00:00Z"}
+ return {rows,metadata}
+}
