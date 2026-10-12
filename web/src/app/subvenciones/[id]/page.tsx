@@ -1,3 +1,4 @@
+import { MandateEvidence } from "@/components/domain/MandateEvidence"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { PageHeader } from "@/components/domain/PageHeader"
@@ -151,6 +152,7 @@ export default async function SubsidyDetailPage({ params }: PageProps) {
         }
         aside={
           <>
+            <MandateEvidence responsible={responsible} recordSource={subsidy.source_url} />
             {responsible && (
               <div className="rounded-[2px] border border-border bg-card px-5 py-4">
                 <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">

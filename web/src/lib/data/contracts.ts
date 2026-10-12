@@ -184,9 +184,9 @@ export const getContractDetail = unstable_cache(
         .eq("id", id)
         .single(),
       supabase
-        .from("v_contract_responsibility")
+        .from("v_contract_mandate_context")
         .select(
-          "person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name",
+          "person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, position_id, position_type, start_date, end_date, mandate_source_url, relation_date, date_basis, match_method, candidate_count",
         )
         .eq("contract_id", id)
         .maybeSingle(),

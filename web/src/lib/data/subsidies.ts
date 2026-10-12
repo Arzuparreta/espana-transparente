@@ -179,9 +179,9 @@ export const getSubsidyDetail = unstable_cache(
           .eq("id", id)
           .maybeSingle(),
         supabase
-          .from("v_subsidy_responsibility")
+          .from("v_subsidy_mandate_context")
           .select(
-            "person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name",
+            "person_name, politician_id, official_id, ministry, government, political_party, administration_level, territory_name, position_id, position_type, start_date, end_date, mandate_source_url, relation_date, date_basis, match_method, candidate_count",
           )
           .eq("subsidy_id", id)
           .maybeSingle(),

@@ -111,8 +111,9 @@ export default async function CargoDetailPage({ params }: PageProps) {
 
       <div className="rounded-[2px] border border-border bg-card px-6 py-4">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Cargos ocupados
+          ¿Qué cargos constan y durante qué periodo?
         </h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">Estas fechas describen los mandatos registrados. La ausencia de cese no certifica vigencia actual; el cargo no acredita por sí solo una actuación personal en un expediente.</p>
         <div className="mt-3 space-y-3">
           {positions.length === 0 ? (
             <p className="text-sm italic text-muted-foreground">Sin cargos registrados.</p>
@@ -134,7 +135,7 @@ export default async function CargoDetailPage({ params }: PageProps) {
                   </div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
                     {formatDate(position.start_date)}
-                    {position.end_date ? ` – ${formatDate(position.end_date)}` : " – actualidad"}
+                    {position.end_date ? ` – ${formatDate(position.end_date)}` : " – cese no registrado"}
                   </div>
                 </div>
                 {position.source_url && (

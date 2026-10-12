@@ -121,6 +121,9 @@ export type BudgetType = "ley" | "prorroga" | "proyecto"
 export type BudgetSourceKind = "published" | "published_prorroga" | "carried_forward"
 
 export interface GobiernoMember {
+  official_id: string | null
+  end_date: string | null
+  excluded_amount_count: number
   id: string
   position_type: "presidente_gobierno" | "vicepresidente" | "ministro"
   person_name: string
@@ -238,6 +241,14 @@ export type Senator = {
 // ── Internal types ────────────────────────────────────────────────────────────
 
 export type Responsibility = {
+  position_id?: string | null
+  position_type?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  mandate_source_url?: string | null
+  relation_date?: string | null
+  date_basis?: string | null
+  candidate_count?: number | null
   person_name: string | null
   politician_id: string | null
   official_id: string | null

@@ -73,7 +73,7 @@ function MemberCard({ member, partyId }: { member: GobiernoMember; partyId: stri
         {member.contract_count > 0 ? (
           <span className="shrink-0 font-mono text-xs text-muted-foreground">
             {member.contract_count} contrato{member.contract_count !== 1 ? "s" : ""}{" "}
-            · {formatAmount(member.total_amount_eur)}
+            · licitación EUR {formatAmount(member.total_amount_eur)}
           </span>
         ) : null}
       </div>
@@ -95,22 +95,18 @@ export default async function GobiernoPage() {
   const government = members[0]?.government ?? "Gobierno actual"
   const ministerCount = byType["ministro"]?.length ?? 0
   const partyCount = new Set(members.map((m) => m.political_party)).size
-  const totalContracts = members.reduce((s, m) => s + m.contract_count, 0)
-  const totalAmount = members.reduce((s, m) => s + m.total_amount_eur, 0)
 
   return (
     <div className="ui-page">
       <PageHeader
         title="Gobierno"
-        description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. A qué partido pertenecen y qué contratos adjudica cada ministerio.`}
+        description={`Las personas que dirigen el Estado ahora mismo: presidente, vicepresidentes y ministros del ${government}. Qué mandatos constan y qué registros de contratación se asocian al departamento durante ese periodo.`}
       />
 
       <StatGrid
         items={[
           { label: "Ministerios", value: ministerCount.toString() },
           { label: "Partidos en coalición", value: partyCount.toString() },
-          { label: "Contratos vinculados", value: totalContracts.toLocaleString("es-ES") },
-          { label: "Importe contratos", value: formatAmount(totalAmount) },
         ]}
       />
 
@@ -138,7 +134,7 @@ export default async function GobiernoPage() {
       <InfoPanel title="Fuente y cobertura">
         Composición del gabinete a partir de datos del BOE y registros oficiales.
         Los contratos públicos vinculados provienen de la Plataforma de Contratación del Sector Público (PCSP)
-        y se asocian al ministerio adjudicador. La cobertura puede ser parcial si el nombre del órgano ha variado.
+        y se asocian por departamento y fecha dentro del mandato registrado. Se usa la fecha de adjudicación cuando consta y la de publicación como alternativa explícita; el importe es presupuesto de licitación, no gasto ni pago. Los importes sin dato o en otra moneda quedan fuera de la suma. No se suman tarjetas: pueden compartir departamento y expedientes. La cobertura puede ser parcial si el nombre del órgano ha variado.
         Las tarjetas con enlace dirigen a la ficha completa del/la diputado/a.
       </InfoPanel>
     </div>
