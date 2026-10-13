@@ -23,7 +23,7 @@ export SUPABASE_INTERNAL_URL="${SUPABASE_INTERNAL_URL:-http://127.0.0.1:54321}"
 export APP_REVISION="$REVISION"
 cd "$RELEASE/web"
 echo "[deploy] installing dependencies in isolated release…"
-npm ci
+npm ci --include=dev
 node scripts/check-internal-supabase.mjs
 echo "[deploy] building revision $REVISION…"
 npm run build
@@ -47,46 +47,57 @@ cp -a "$NGINX_SITE" "$NGINX_BACKUP"
 rollback() {
   trap - ERR
   set +e
-  echo "[deploy] failed; restoring the preceding process and nginx configuration" >&2
-  cp -a "$NGINX_BACKUP" "$NGINX_SITE"
-  nginx -t && systemctl reload nginx
-  pm2 startOrRestart "$RELEASE/previous.ecosystem.config.cjs" --update-env
-  pm2 save
+  echo "[deploy] failed; restoring the preceding release" >&2
+  # A restart cannot change PM2's cwd: recreate while the candidate serves.
+  pm2 delete espana-transparente-web >/dev/null 2>&1
+  pm2 start "$RELEASE/previous.ecosystem.config.cjs" --update-env
+  if curl -fsS --retry 10 --retry-connrefused --retry-delay 1 --max-time 10 \
+    http://127.0.0.1:3000/api/health >/dev/null; then
+    cp -a "$NGINX_BACKUP" "$NGINX_SITE"
+    if nginx -t && systemctl reload nginx; then
+      pm2 delete et-navigation-candidate >/dev/null 2>&1
+      pm2 save
+    fi
+  else
+    echo "[deploy] rollback health failed; retaining the candidate for inspection" >&2
+  fi
   return 1
 }
-trap rollback ERR
-install -m 644 "$RELEASE/ops/nginx/espana-transparente.conf" "$NGINX_SITE"
-if ! nginx -t; then
-  cp -a "$NGINX_BACKUP" "$NGINX_SITE"
-  exit 1
-fi
-# PM2 reads the existing app name and changes its cwd/script at the restart.
+# Prepare both process definitions without touching the running server.
 node --input-type=module - "$RELEASE" "$NODE_RUNTIME" <<'JS'
 import fs from 'node:fs';
 const [release, runtime] = process.argv.slice(2);
-fs.writeFileSync(`${release}/ecosystem.config.cjs`, `module.exports = ${JSON.stringify({apps:[{
-  name:'espana-transparente-web', cwd:`${release}/web`,
-  script:`${release}/web/node_modules/next/dist/bin/next`, args:'start -p 3000',
-  interpreter:`${runtime}/bin/node`, env:{NODE_ENV:'production',
-    SUPABASE_INTERNAL_URL:process.env.SUPABASE_INTERNAL_URL, APP_REVISION:process.env.APP_REVISION},
-}]})};\n`, {mode:0o600});
+const definition = (name,port) => ({apps:[{
+  name, cwd:`${release}/web`, script:`${release}/web/node_modules/next/dist/bin/next`,
+  args:`start -H 127.0.0.1 -p ${port}`, interpreter:`${runtime}/bin/node`, kill_timeout:15000,
+  env:{NODE_ENV:'production', SUPABASE_INTERNAL_URL:process.env.SUPABASE_INTERNAL_URL,
+    APP_REVISION:process.env.APP_REVISION},
+}]});
+for(const [file,name,port] of [
+  ['ecosystem.config.cjs','espana-transparente-web',3000],
+  ['candidate.ecosystem.config.cjs','et-navigation-candidate',3001],
+]) fs.writeFileSync(`${release}/${file}`,`module.exports = ${JSON.stringify(definition(name,port))};\n`,{mode:0o600});
 JS
-pm2 startOrRestart "$RELEASE/ecosystem.config.cjs" --update-env
+# This candidate name is reserved for this deployment, serialized by the CI lock.
+pm2 delete et-navigation-candidate >/dev/null 2>&1 || true
+pm2 start "$RELEASE/candidate.ecosystem.config.cjs" --update-env
+trap rollback ERR
+node scripts/verify-release.mjs http://127.0.0.1:3001 "$REVISION"
+# Serve the verified candidate while replacing the main process on port 3000.
+sed 's#http://127.0.0.1:3000#http://127.0.0.1:3001#g' \
+  "$RELEASE/ops/nginx/espana-transparente.conf" > "$RELEASE/nginx-candidate.conf"
+install -m 644 "$RELEASE/nginx-candidate.conf" "$NGINX_SITE"
+nginx -t
 systemctl reload nginx
-# A successful restart is insufficient: require this revision and a healthy DB.
-node --input-type=module <<'JS'
-let ready=false;
-for(let attempt=0;attempt<15;attempt++){
-  try{
-    const r=await fetch('http://127.0.0.1:3000/api/health',{signal:AbortSignal.timeout(10_000)});
-    const h=await r.json();
-    if(r.ok && h.status==='ok' && h.revision===process.env.APP_REVISION){ready=true;break;}
-  }catch{}
-  await new Promise(resolve=>setTimeout(resolve,2000));
-}
-if(!ready) throw new Error('New release failed its revision/database health check');
-console.log('New revision is serving with a healthy database');
-JS
+node scripts/verify-release.mjs https://spaintransparencia.info "$REVISION"
+pm2 delete espana-transparente-web
+pm2 start "$RELEASE/ecosystem.config.cjs" --update-env
+node scripts/verify-release.mjs http://127.0.0.1:3000 "$REVISION"
+install -m 644 "$RELEASE/ops/nginx/espana-transparente.conf" "$NGINX_SITE"
+nginx -t
+systemctl reload nginx
+node scripts/verify-release.mjs https://spaintransparencia.info "$REVISION"
+pm2 delete et-navigation-candidate
 pm2 save
 trap - ERR
 node "$RELEASE/scripts/prune-web-releases.mjs" "$RELEASE_ROOT" "$RELEASE/web"

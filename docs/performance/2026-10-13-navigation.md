@@ -115,7 +115,9 @@ su respuesta inmediata.
 El despliegue construye una release aislada bajo `/opt/espana-transparente/releases`,
 con dependencias independientes, sin sustituir el build ni `node_modules` del
 proceso que sirve tráfico. Verifica el endpoint interno, conserva assets hash de
-versiones anteriores, valida nginx y reinicia solo esta aplicación. Comprueba
+versiones anteriores y valida nginx. Primero sirve una instancia temporal
+comprobada en loopback; recrea el proceso principal mientras esa instancia sirve
+tráfico y después devuelve nginx al puerto principal. Comprueba
 revisión y base de datos, con rollback automático de proceso y nginx ante fallo.
 Mantiene tres releases y la caché se poda en el directorio realmente servido.
 Las credenciales se copian solo en el host con permisos privados.
