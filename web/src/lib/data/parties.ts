@@ -60,7 +60,7 @@ export const getParties = unstable_cache(
 export const getPartyPageData = unstable_cache(
   async (id: string) => {
     const [party, memberships, stats] = await Promise.all([
-      supabase.from("parties").select("*").eq("id", id).single(),
+      supabase.from("parties").select("*").eq("id", id).maybeSingle(),
       supabase
         .from("politician_memberships")
         .select(
@@ -71,11 +71,15 @@ export const getPartyPageData = unstable_cache(
         .eq("chamber", "congress")
         .order("constituency"),
       supabase
-        .from("v_party_stats")
+        .from("mv_party_stats")
         .select("deputy_count, total_votes, attendance_pct, pct_yes, pct_no, pct_abstain, pct_absent")
         .eq("party_id", id)
         .maybeSingle(),
     ])
+
+    throwDataError(party.error, "party detail")
+    throwDataError(memberships.error, "party members")
+    throwDataError(stats.error, "party statistics")
 
     return {
       party: party.data
@@ -85,59 +89,37 @@ export const getPartyPageData = unstable_cache(
       stats: stats.data ?? null,
     }
   },
-  ["party-page-data", PHOTOS_CACHE_VERSION],
+  ["party-page-data-v2", PHOTOS_CACHE_VERSION],
   { revalidate: HOUR }
 )
 
 export const getPartyVotingSessions = unstable_cache(
   async (partyId: string) => {
-    const { data: members } = await supabase
-      .from("politician_memberships")
-      .select("politician_id")
-      .eq("party_id", partyId)
-      .eq("is_active", true)
-      .eq("chamber", "congress")
-
-    if (!members || members.length === 0) return []
-
-    const memberIds = members.map((m) => m.politician_id)
-
-    const { data: sessions } = await supabase
-      .from("v_voting_session_summary")
-      .select("id, title, date, divergence_count, votes_yes, votes_no, votes_abstain, votes_no_vote")
-      .eq("chamber", "congress")
-      .order("date", { ascending: false })
-      .limit(30)
-
-    if (!sessions || sessions.length === 0) return []
-
-    const sessionIds = sessions.map((s) => s.id as string)
-
-    const { data: votes } = await supabase
-      .from("votes")
-      .select("voting_session_id, vote")
-      .in("politician_id", memberIds)
-      .in("voting_session_id", sessionIds)
-
+    const { memberships } = await getPartyPageData(partyId)
+    if (!memberships.length) return []
+    const { data: sessions, error } = await supabase.from("voting_sessions")
+      .select("id, title, date").eq("chamber", "congress")
+      .order("date", { ascending: false }).order("id").limit(30)
+    throwDataError(error, "party voting sessions")
+    if (!sessions?.length) return []
+    const ids = sessions.map((s) => s.id as string)
+    const [partyResult, tallies] = await Promise.all([
+      supabase.rpc("get_party_voting_tallies", { p_party_id: partyId, p_session_ids: ids }),
+      supabase.rpc("get_voting_session_tallies", { p_session_ids: ids }),
+    ])
+    throwDataError(partyResult.error, "party vote totals")
+    throwDataError(tallies.error, "session vote totals")
+    if (tallies.data?.length !== ids.length) throw new Error("Incomplete party session tallies")
     const bySession = new Map<string, Record<string, number>>()
-    for (const v of votes ?? []) {
-      const sid = v.voting_session_id as string
-      const map = bySession.get(sid) ?? {}
-      const key = String(v.vote ?? "")
-      map[key] = (map[key] ?? 0) + 1
-      bySession.set(sid, map)
+    for (const row of partyResult.data ?? []) {
+      const map = bySession.get(row.voting_session_id) ?? {}
+      map[row.vote] = Number(row.vote_count)
+      bySession.set(row.voting_session_id, map)
     }
-
-    return sessions.map((s) => ({
-      id: s.id as string,
-      title: s.title as string,
-      date: s.date as string,
-      divergence_count: (s.divergence_count as number) ?? 0,
-      partyVotes: bySession.get(s.id as string) ?? {},
-    }))
-  },
-  ["party-voting-sessions"],
-  { revalidate: HOUR }
+    const divergences = new Map<string, number>((tallies.data ?? []).map((row: { id: string; divergence_count: number }) => [row.id, Number(row.divergence_count)]))
+    return sessions.map((s) => ({ id: s.id as string, title: s.title as string, date: s.date as string,
+      divergence_count: divergences.get(s.id) ?? 0, partyVotes: bySession.get(s.id) ?? {} }))
+  }, ["party-voting-sessions-v2"], { revalidate: HOUR }
 )
 
 export interface PartyCaseRow {

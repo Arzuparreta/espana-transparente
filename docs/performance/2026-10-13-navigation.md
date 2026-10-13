@@ -66,7 +66,7 @@ del VPS con toda su caché fría ni el tiempo de pintura del navegador.
 
 ## Validación
 
-Build de producción y comprobación de tipos correctos. Suite: 370 pruebas, 103
+Build de producción y comprobación de tipos correctos. Suite: 373 pruebas, 104
 ficheros, incluyendo concurrencia, recuperación tras fallo, selección territorial,
 query strings, veto de navegación y fragmentos. En navegador: carga progresiva,
 búsqueda de personas fuera de las 36 iniciales y navegación a una ficha, mostrando
@@ -123,7 +123,7 @@ Mantiene tres releases y la caché se poda en el directorio realmente servido.
 Las credenciales se copian solo en el host con permisos privados. El transporte
 SSR y del middleware usa también el endpoint interno con un timeout, conservando
 la URL pública para el nombre y ámbito de las cookies de sesión. La suite Python
-local pasó 531 pruebas, incluida la paridad SQL en PostgreSQL 16 desechable; una
+local pasó 532 pruebas, incluida la paridad SQL en PostgreSQL 16 desechable; una
 integración de búsqueda quedó omitida por requerir otra conexión explícita.
 
 Se mantienen los totales exactos, las políticas de lectura y la verificación de
@@ -161,3 +161,12 @@ sobre toda la cámara. La ficha de votación deja de renderizar los cientos de v
 individuales dentro de un `details` cerrado: los carga al abrirlo, con búsqueda
 y bloques de 50, manteniendo el detalle completo disponible. Los enlaces a
 senadores van directamente a su ficha, sin pasar por una redirección de diputado.
+
+La comprobación de fichas frías encontró además la consulta global de resultados
+parlamentarios en partidos y `get_politician_divergences()` sobre todo el corpus.
+Se reutiliza la caché diaria de divergencias con la misma correspondencia de
+nombre/título/fecha, y las estadísticas públicas de partido se precalculan en
+22 filas. Las 30 votaciones recientes se leen de la tabla base y sus resultados
+se calculan con las RPC acotadas. Los votos de sus miembros se agregan en SQL,
+evita truncarlos a las 1.000 filas de REST. La regresión PostgreSQL comprueba
+1.500 votos y afiliaciones duplicadas, conservando los recuentos correctos.

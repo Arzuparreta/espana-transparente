@@ -70,6 +70,8 @@ export const getPoliticianProfileData = unstable_cache(
           .maybeSingle(),
       ])
 
+    throwDataError(divergences.error, "politician divergences")
+
     // Derive the person's current chamber from the active-legislature membership.
     // Senators reach this via /senadores/[id]; deputies via /diputados/[id].
     const membershipsData = (pol.data?.politician_memberships ?? []) as Array<{
@@ -110,7 +112,7 @@ export const getPoliticianProfileData = unstable_cache(
       entitySummary: entitySummary.data as EntitySummaryRow | null,
     }
   },
-  ["politician-profile-data", PHOTOS_CACHE_VERSION],
+  ["politician-profile-data-v2", PHOTOS_CACHE_VERSION],
   { revalidate: HOUR }
 )
 

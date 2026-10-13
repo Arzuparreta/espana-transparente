@@ -269,6 +269,8 @@ def refresh_money_coverage(cur) -> int:
     cur.execute("SET statement_timeout = '10min'")
     cur.execute("SELECT refresh_money_coverage()")
     count = int(cur.fetchone()[0])
+    cur.execute("SELECT refresh_party_stats_cache()")
+    cur.fetchone()
     cur.execute("SELECT refresh_ministry_beneficiaries_cache()")
     cur.fetchone()
     return count
