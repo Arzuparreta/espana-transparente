@@ -84,13 +84,24 @@ def pdf_text(payload):
         path=Path(temp)/'document.pdf';path.write_bytes(payload)
         return subprocess.run(['pdftotext','-layout',str(path),'-'],capture_output=True,check=True,timeout=30).stdout.decode('utf-8')
 
+def fetch_fiche(url,number,attempts=3,sleep=time.sleep):
+    # congreso.es intermittently answers the detail URL with the generic search page
+    # (same title, no record intro). Retry before treating it as a real mismatch.
+    for attempt in range(attempts):
+        sleep(REQUEST_DELAY+20*attempt)
+        html=fetch_bytes(url,2_000_000).decode('utf-8')
+        try:return html,fiche(html,number)
+        except ValueError as exc:
+            if str(exc)!='Bill fiche identity mismatch' or attempt==attempts-1:raise
+
 def fetch_snapshot():
     sources=[s for s in discover_current_sources() if s['dataset']=='ProyectosDeLey']
     if len(sources)!=1:raise ValueError('Bill source discovery changed')
     source=sources[0]['url'];payload=curl_text(source);selection,universe=approved(payload);records=[];bytes_read=0
     for number,title in selection:
-        url=fiche_url(number);html=fetch_bytes(url,2_000_000).decode('utf-8');documents=fiche(html,number);docs=[]
+        url=fiche_url(number);html,documents=fetch_fiche(url,number);docs=[]
         for d in documents:
+            time.sleep(REQUEST_DELAY)  # congreso.es rate limit: never burst fiche/PDF requests
             pdf=fetch_bytes(d['pdf_url']);bytes_read+=len(pdf)
             if bytes_read>200_000_000:raise ValueError('Publication PDF batch exceeds maintenance budget')
             bid=cve(pdf_text(pdf));xml=fetch_bytes(f'https://www.boe.es/diario_boe/xml.php?id={bid}',5_000_000)
