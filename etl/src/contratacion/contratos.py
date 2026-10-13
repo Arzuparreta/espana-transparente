@@ -319,6 +319,9 @@ def parse_atom(xml_bytes: bytes) -> tuple[list[dict], str | None]:
     return records, next_url
 
 
+AMBIGUOUS_LEGACY_MATCHES: list[str] = []
+
+
 def upsert(conn, records: list[dict]) -> int:
     if not records:
         return 0
@@ -333,8 +336,11 @@ def upsert(conn, records: list[dict]) -> int:
             cur.execute("SELECT id FROM contracts WHERE source_id IS NULL AND md5(source_url)=md5(%s) AND source_url=%s FOR UPDATE", (rec["source_url"], rec["source_url"]),)
             candidates = cur.fetchall()
             if len(candidates) > 1:
-                raise ValueError("Ambiguous legacy source match; no contract identity inferred")
-            if len(candidates) == 1:
+                # Never pick one legacy UUID arbitrarily: the verified edition gets its own
+                # row and the ambiguous legacy rows stay untouched. Aborting here froze the
+                # whole daily ingestion on a single duplicated legacy URL.
+                AMBIGUOUS_LEGACY_MATCHES.append(rec["source_id"])
+            elif len(candidates) == 1:
                 cur.execute("UPDATE contracts SET source_id=%s WHERE id=%s", (rec["source_id"], candidates[0][0]))
         rec["published_edition_json"] = json.dumps(rec["published_edition"], ensure_ascii=False)
         if len(rec["published_edition_json"].encode()) > 2_000_000:
@@ -483,7 +489,7 @@ def run_feed(*, max_pages: int | None, dry_run: bool, since_days: int | None = N
             cur.close()
             conn.close()
 
-        print(f"\nDone! {page_count} pages, {total_parsed} entries, {total_upserted} upserted")
+        print(f"\nDone! {page_count} pages, {total_parsed} entries, {total_upserted} upserted, {len(AMBIGUOUS_LEGACY_MATCHES)} ambiguous legacy matches left unassigned")
         return total_parsed, total_upserted
 
     except Exception as exc:

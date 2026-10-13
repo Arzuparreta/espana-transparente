@@ -48,24 +48,35 @@ VOTE_MAP = {
 }
 
 
+CURL_ATTEMPTS = 3
+
+
+def _curl(url: str, *, text: bool, timeout: int):
+    # A single stalled request (congreso.es stalls while rate-limiting) used to kill
+    # the whole attendance run mid-way. Back off and retry; never faster than the delay.
+    for attempt in range(CURL_ATTEMPTS):
+        if attempt:
+            time.sleep(20 * attempt)
+        try:
+            return subprocess.run(
+                ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
+                capture_output=True, text=text, timeout=timeout,
+            ).stdout
+        except subprocess.TimeoutExpired:
+            if attempt == CURL_ATTEMPTS - 1:
+                raise
+
+
 def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     if delay:
         time.sleep(delay)
-    result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
-        capture_output=True, text=True, timeout=30,
-    )
-    return result.stdout
+    return _curl(url, text=True, timeout=30)
 
 
 def curl_bytes(url: str, delay: float = REQUEST_DELAY) -> bytes:
     if delay:
         time.sleep(delay)
-    result = subprocess.run(
-        ["curl", "-sL", "-H", f"User-Agent: {UA}", url],
-        capture_output=True, timeout=60,
-    )
-    return result.stdout
+    return _curl(url, text=False, timeout=60)
 
 
 def get_voting_dates() -> list[int]:

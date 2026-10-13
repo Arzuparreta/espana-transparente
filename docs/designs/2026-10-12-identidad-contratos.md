@@ -35,3 +35,7 @@ El texto heredado de `OperationContext` para ayudas ya distingue etiquetas visib
 Checks locales: 515 pruebas ETL pasan, una integración de búsqueda omitida por conexión no configurada; 333 pruebas web pasan. TypeScript, lint y build con lector original restaurado pasan; auditorías UI (490 archivos) y contenido (404 archivos, 29/29 indicadores) pasan. Migración aplicada desde cero en una segunda base aislada, siete pruebas de identidad/recuperación pasan.
 
 Pendientes: CI remoto y merge; después, primera respuesta por CPV/competencia con cobertura y denominador documentados, resto de matriz, actualización de mandatos, frescura y despliegue final.
+
+## Corrección tras el despliegue (13/10/2026)
+
+La primera ingesta diaria con este código falló: «Ambiguous legacy source match». Una fila del feed coincidía por enlace con dos filas antiguas, y la ambigüedad abortaba toda la ingesta (5.472 entradas leídas, la ventana de 7 días repetiría el fallo cada día). La regla se mantiene —ninguna fila antigua adopta identidad si hay ambigüedad—, pero la edición verificada se guarda en su propia fila y las filas antiguas quedan intactas. El resumen de compras ya excluye filas antiguas superadas por una edición verificada del mismo expediente y órgano. El número de coincidencias ambiguas se informa al final de cada ejecución.

@@ -70,17 +70,20 @@ def test_refresh_adopts_single_exact_source_without_changing_uuid(conn):
         assert cur.fetchall() == [(legacy_id, row['source_id'])]
 
 
-def test_ambiguous_legacy_identity_fails_without_assigning_arbitrarily(conn):
+def test_ambiguous_legacy_identity_is_not_assigned_and_does_not_stop_ingestion(conn):
+    from contratacion import contratos
+    contratos.AMBIGUOUS_LEGACY_MATCHES.clear()
     row = record()
     with conn.cursor() as cur:
         cur.execute('INSERT INTO contracts(contract_folder_id,source_url) VALUES (%s,%s),(%s,%s)', ('one', row['source_url'], 'two', row['source_url']))
     conn.commit()
-    with pytest.raises(ValueError, match='Ambiguous'):
-        upsert(conn, [row])
-    conn.rollback()
+    assert upsert(conn, [row]) == 1
     with conn.cursor() as cur:
-        cur.execute('SELECT count(*) FROM contracts WHERE source_id IS NOT NULL')
-        assert cur.fetchone()[0] == 0
+        cur.execute("SELECT count(*) FROM contracts WHERE source_id IS NULL AND contract_folder_id IN ('one','two')")
+        assert cur.fetchone()[0] == 2
+        cur.execute('SELECT count(*) FROM contracts WHERE source_id=%s', (row['source_id'],))
+        assert cur.fetchone()[0] == 1
+    assert contratos.AMBIGUOUS_LEGACY_MATCHES == [row['source_id']]
 
 
 def test_older_feed_entry_cannot_replace_latest_revision(conn):
