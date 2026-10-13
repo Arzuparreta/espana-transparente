@@ -181,3 +181,16 @@ La regresión comprueba el límite de filas, el panel inactivo y una URL directa
 a votaciones con sus porcentajes completos. Validación final local: 375 tests
 web en 105 archivos, build, lint y auditorías de UI/contenido; 532 tests Python
 pasados y uno omitido por requerir otra integración de base de datos.
+
+La aceptación posterior al despliegue detectó un timeout transitorio en Senado.
+`votes` llevaba 15 días sin vacuum/analyze y el plan leía casi un millón de filas,
+con ordenación en disco. Tras `VACUUM (ANALYZE) public.votes`, la misma consulta
+invoker usa el índice de sesiones sin lecturas de heap: 119 ms frente a 1.526 ms
+en los planes medidos. La migración de mantenimiento reduce los umbrales de
+autovacuum y actualización de estadísticas únicamente para esa tabla, para que
+los nuevos lotes del ETL no mantengan estadísticas y visibilidad obsoletas.
+
+La ficha de partido de 139 diputados pasa de aproximadamente 535 a 147 KB de
+HTML/RSC descomprimidos (72%). Las tres peticiones públicas medidas después
+respondieron 200 y terminaron en 1,67–2,69 s durante el barrido concurrente;
+no se presentan como una medición de pintura ni como caché totalmente fría.
