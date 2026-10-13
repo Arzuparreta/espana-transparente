@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { createServerSupabaseFetch } from "@/lib/supabase/server-fetch"
 import { SUPABASE_AUTH_OPTIONS, SUPABASE_COOKIE_OPTIONS } from "@/lib/supabase/session"
 
 export async function middleware(request: NextRequest) {
@@ -18,6 +19,7 @@ export async function middleware(request: NextRequest) {
     {
       auth: SUPABASE_AUTH_OPTIONS,
       cookieOptions: SUPABASE_COOKIE_OPTIONS,
+      global: { fetch: createServerSupabaseFetch() },
       cookies: {
         getAll() {
           return request.cookies.getAll()

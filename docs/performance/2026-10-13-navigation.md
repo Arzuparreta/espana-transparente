@@ -66,7 +66,7 @@ del VPS con toda su caché fría ni el tiempo de pintura del navegador.
 
 ## Validación
 
-Build de producción y comprobación de tipos correctos. Suite: 364 pruebas, 99
+Build de producción y comprobación de tipos correctos. Suite: 366 pruebas, 100
 ficheros, incluyendo concurrencia, recuperación tras fallo, selección territorial,
 query strings, veto de navegación y fragmentos. En navegador: carga progresiva,
 búsqueda de personas fuera de las 36 iniciales y navegación a una ficha, mostrando
@@ -120,7 +120,11 @@ comprobada en loopback; recrea el proceso principal mientras esa instancia sirve
 tráfico y después devuelve nginx al puerto principal. Comprueba
 revisión y base de datos, con rollback automático de proceso y nginx ante fallo.
 Mantiene tres releases y la caché se poda en el directorio realmente servido.
-Las credenciales se copian solo en el host con permisos privados.
+Las credenciales se copian solo en el host con permisos privados. El transporte
+SSR y del middleware usa también el endpoint interno con un timeout, conservando
+la URL pública para el nombre y ámbito de las cookies de sesión. La suite Python
+local pasó 530 pruebas, incluida la paridad SQL en PostgreSQL 16 desechable; una
+integración de búsqueda quedó omitida por requerir otra conexión explícita.
 
 Se mantienen los totales exactos, las políticas de lectura y la verificación de
 sesiones autenticadas. El layout conserva render dinámico para que el build no
