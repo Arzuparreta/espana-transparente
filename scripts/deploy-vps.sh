@@ -9,6 +9,17 @@ git reset --hard "${ET_DEPLOY_REVISION:-origin/main}"
 REVISION="$(git rev-parse HEAD)"
 NODE_RUNTIME="$(bash "$REPO/scripts/ensure-node-runtime.sh")"
 export PATH="$NODE_RUNTIME/bin:$PATH"
+# A manual deployment may have completed while the self-hosted CI runner was
+# busy with ETL. Do not rebuild/restart an already verified identical release.
+CURRENT_REVISION="$(curl -fsS --max-time 10 http://127.0.0.1:3000/api/health 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const h=JSON.parse(s);console.log(h.status==="ok"?h.revision:"")}catch{}})' || true)"
+if [[ "$CURRENT_REVISION" == "$REVISION" ]] && \
+   cmp -s "$REPO/ops/nginx/espana-transparente.conf" /etc/nginx/sites-available/espana-transparente; then
+  VERIFIED_RELEASE="$(pm2 jlist | node -e 'const p=JSON.parse(require("fs").readFileSync(0,"utf8")).find(p=>p.name==="espana-transparente-web");console.log(Boolean(p?.pm2_env.pm_cwd?.startsWith("/opt/espana-transparente/releases/") && p.pm2_env.SUPABASE_INTERNAL_URL))')"
+  if [[ "$VERIFIED_RELEASE" == true ]]; then
+    echo "[deploy] identical healthy release already serving: $REVISION"
+    exit 0
+  fi
+fi
 RELEASE_ROOT="${ET_RELEASE_ROOT:-/opt/espana-transparente/releases}"
 RELEASE="$(mktemp -d "$RELEASE_ROOT/$REVISION.XXXXXX" 2>/dev/null || { mkdir -p "$RELEASE_ROOT"; mktemp -d "$RELEASE_ROOT/$REVISION.XXXXXX"; })"
 chmod 700 "$RELEASE"
