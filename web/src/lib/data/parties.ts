@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, PHOTOS_CACHE_VERSION, throwDataError, unwrapParty, normalizePartyName, isParliamentaryGroupName } from "./shared"
 
 export const getParties = unstable_cache(

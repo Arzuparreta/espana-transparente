@@ -1,42 +1,33 @@
 "use client"
 
-import {
-  type AnchorHTMLAttributes,
-  useEffect,
-  useState,
-  useTransition,
-} from "react"
+import { type AnchorHTMLAttributes, useEffect, useRef, useTransition } from "react"
 import Link, { type LinkProps } from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-let startProgress: (() => void) | null = null
-let stopProgress: (() => void) | null = null
+// One transition owner survives page unmounts and overlapping navigations.
+let navigate: ((href: string, replace?: boolean, scroll?: boolean) => void) | null = null
 
 export function NavigationProgress() {
-  const pathname = usePathname()
-  const [isNavigating, setIsNavigating] = useState(false)
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
-    startProgress = () => setIsNavigating(true)
-    stopProgress = () => setIsNavigating(false)
-
-    return () => {
-      startProgress = null
-      stopProgress = null
+    navigate = (href, replace, scroll) => {
+      startTransition(() => {
+        if (replace) router.replace(href, { scroll })
+        else router.push(href, { scroll })
+      })
     }
-  }, [])
-
-  useEffect(() => {
-    setIsNavigating(false)
-  }, [pathname])
+    return () => { navigate = null }
+  }, [router])
 
   return (
     <div
       aria-hidden="true"
       className={cn(
-        "fixed inset-x-0 top-0 z-[70] h-0.5 origin-left bg-primary transition-transform duration-200",
-        isNavigating ? "scale-x-100" : "scale-x-0"
+        "fixed inset-x-0 top-0 z-[70] h-0.5 origin-left bg-primary transition-transform duration-200 motion-reduce:transition-none",
+        isPending ? "scale-x-100" : "scale-x-0"
       )}
     />
   )
@@ -50,47 +41,62 @@ type ResponsiveLinkProps = LinkProps &
 export function ResponsiveLink({
   href,
   className,
-  prefetch = false,
+  prefetch = null,
   prefetchOnIntent = true,
-  onClick,
+  onNavigate,
   onPointerEnter,
   onFocus,
+  onPointerLeave,
+  replace,
+  scroll,
   ...props
 }: ResponsiveLinkProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const isInternal = typeof href === "string" && href.startsWith("/")
+  const intentTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function cancelIntent() {
+    if (intentTimer.current) clearTimeout(intentTimer.current)
+    intentTimer.current = null
+  }
+  useEffect(() => cancelIntent, [href])
+  const isInternal = typeof href === "string" && href.startsWith("/") && !href.startsWith("//")
 
   function prefetchTarget() {
     if (!isInternal || !prefetchOnIntent) return
-    startTransition(() => router.prefetch(href as string))
+    router.prefetch(href as string)
   }
 
   return (
     <Link
       href={href}
+      replace={replace}
+      scroll={scroll}
       prefetch={prefetch}
       onPointerEnter={(event) => {
         onPointerEnter?.(event)
-        if (event.pointerType === "touch") return
-        prefetchTarget()
+        if (event.pointerType === "touch" || event.defaultPrevented) return
+        cancelIntent()
+        intentTimer.current = setTimeout(prefetchTarget, 120)
+      }}
+      onPointerLeave={(event) => {
+        onPointerLeave?.(event)
+        cancelIntent()
       }}
       onFocus={(event) => {
         onFocus?.(event)
-        prefetchTarget()
+        if (!event.defaultPrevented) prefetchTarget()
       }}
-      onClick={(event) => {
-        onClick?.(event)
-        if (!event.defaultPrevented && isInternal) {
-          startProgress?.()
-          window.setTimeout(() => stopProgress?.(), 1800)
-        }
+      onNavigate={(event) => {
+        // Next invokes this only for actual same-tab client navigations (not
+        // Ctrl/Cmd-click, downloads or external URLs). Preserve caller vetoes.
+        let prevented = false
+        onNavigate?.({ preventDefault: () => { prevented = true; event.preventDefault() } })
+        if (prevented || !isInternal || !navigate) return
+        const target = new URL(href as string, window.location.href)
+        if (target.pathname === window.location.pathname && target.search === window.location.search) return
+        event.preventDefault()
+        navigate(href as string, replace, scroll)
       }}
-      className={cn(
-        "transition-opacity data-[pending=true]:opacity-70",
-        className
-      )}
-      data-pending={isPending ? "true" : undefined}
+      className={className}
       {...props}
     />
   )

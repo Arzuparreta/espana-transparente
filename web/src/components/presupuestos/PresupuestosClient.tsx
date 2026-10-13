@@ -8,9 +8,8 @@ import {
   BUDGET_YEARS,
   getBudgetSourceNote,
   getBudgetYearMeta,
-  type BudgetSourceKind,
-  type BudgetType,
-} from "@/lib/data"
+} from "@/lib/budget-metadata"
+import type { BudgetSourceKind, BudgetType } from "@/lib/data/shared"
 
 interface BudgetSectionRow {
   budget_type: BudgetType

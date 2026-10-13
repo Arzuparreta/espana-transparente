@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, PAGE_SIZE, dataQuerySignal, dataErrorMessage } from "./shared"
 
 export type DeclarationType = "bienes_rentas" | "actividades" | "intereses_economicos"

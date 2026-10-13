@@ -12,7 +12,16 @@
 # Idempotent: safe to re-run.
 set -euo pipefail
 
-cache_dir="${NEXT_CACHE_DIR:-/root/Proyectos/espana-transparente/web/.next/cache}"
+cache_dir="${NEXT_CACHE_DIR:-}"
+if [[ -z "$cache_dir" ]]; then
+  # Deploys now build isolated releases; prune the process actually serving.
+  live_web="$(pm2 jlist | node -e 'const p=JSON.parse(require("fs").readFileSync(0,"utf8")).find(p=>p.name==="espana-transparente-web");console.log(p?.pm2_env.pm_cwd||"")')"
+  case "$live_web" in
+    /opt/espana-transparente/releases/*/web|/root/Proyectos/espana-transparente/web)
+      cache_dir="$live_web/.next/cache" ;;
+    *) echo "Cannot identify the running app cache" >&2; exit 1 ;;
+  esac
+fi
 max_bytes="${NEXT_CACHE_MAX_BYTES:-5368709120}"  # 5 GiB
 
 if [[ ! "$max_bytes" =~ ^[0-9]+$ ]]; then

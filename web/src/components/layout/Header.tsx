@@ -33,7 +33,7 @@ export function Header() {
       <div className="relative flex h-14 w-full items-center px-4 sm:px-6">
         <ResponsiveLink
           href="/"
-          prefetch
+          prefetch={null}
           className="group mr-3 flex shrink-0 items-center gap-2.5"
         >
           <span className="grid h-8 w-8 shrink-0 place-items-center bg-primary text-primary-foreground transition-colors group-hover:bg-foreground">
@@ -57,7 +57,7 @@ export function Header() {
             <ResponsiveLink
               key={item.href}
               href={item.href}
-              prefetch
+              prefetch={null}
               aria-current={isPrimaryActive(item) ? "page" : undefined}
               className={cn(
                 triggerBase,
@@ -72,7 +72,7 @@ export function Header() {
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <ResponsiveLink
             href="/estado-datos"
-            prefetch
+            prefetch={null}
             className={cn(
               "hidden h-9 items-center text-[12px] font-medium tracking-tight text-muted-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline xl:inline-flex",
               isItemActive("/estado-datos") && "text-foreground",
@@ -92,7 +92,7 @@ export function Header() {
             <div className="hidden xl:flex items-center gap-2">
               <ResponsiveLink
                 href="/perfil"
-                prefetch
+                prefetch={null}
                 aria-label="Abrir perfil"
                 className="grid h-7 w-7 shrink-0 place-items-center rounded-[2px] bg-secondary border border-border font-mono text-[11px] font-semibold text-primary select-none"
               >

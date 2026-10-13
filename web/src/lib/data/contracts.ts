@@ -1,5 +1,5 @@
 import { contractEdition } from "@/lib/contract-edition"
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import {
   unstable_cache,
   HOUR,
@@ -9,6 +9,17 @@ import {
   type ContractResponsibilityRow,
 } from "./shared"
 
+const getContractCount = unstable_cache(
+  async (type: string) => {
+    let query = supabase.from("contracts").select("id", { count: "exact", head: true })
+    if (type !== "all") query = query.eq("contract_type", type)
+    const { count, error } = await query
+    throwDataError(error, "contracts count")
+    if (count == null) throw new Error("Missing exact contracts count")
+    return count
+  }, ["contract-count"], { revalidate: HOUR }
+)
+
 export const getContractPage = unstable_cache(
   async (page: number, type: string) => {
     const from = (page - 1) * PAGE_SIZE.contracts
@@ -17,14 +28,17 @@ export const getContractPage = unstable_cache(
       .from("contracts")
       .select(
         "id, contract_folder_id, currency, award_currency, result_count, lot_count, title, awarding_body, awarding_body_organization_id, amount, status, contract_type, region, date, source_url, contractor, contractor_nif, contractor_is_sme, contractor_is_ute, award_amount, award_amount_with_taxes, award_date, contract_number, received_tender_quantity",
-        { count: "exact" },
       )
       .order("amount", { ascending: false, nullsFirst: false })
       .order("id")
 
     if (type !== "all") query = query.eq("contract_type", type)
 
-    const { data, count, error } = await query.range(from, to).abortSignal(dataQuerySignal())
+    const [rows, total] = await Promise.all([
+      query.range(from, to).abortSignal(dataQuerySignal()),
+      getContractCount(type),
+    ])
+    const { data, error } = rows
     throwDataError(error, "contracts page")
     const contractIds = (data ?? []).map((row) => row.id)
     const responsibilities =
@@ -65,10 +79,10 @@ export const getContractPage = unstable_cache(
         ...row,
         responsible: responsibleByContract.get(row.id) ?? null,
       })),
-      total: count ?? 0,
+      total,
     }
   },
-  ["contract-page"],
+  ["contract-page-v2"],
   { revalidate: HOUR },
 )
 

@@ -1,7 +1,7 @@
 import { beforeEach,expect,it,vi } from "vitest"
 const mocks=vi.hoisted(()=>({from:vi.fn(),results:{} as Record<string,{data:unknown;error:unknown}>}))
 vi.mock("next/cache",()=>({unstable_cache:(fn:unknown)=>fn}))
-vi.mock("@/lib/supabase/client",()=>({supabase:{from:mocks.from}}))
+vi.mock("@/lib/supabase/public",()=>({supabase:{from:mocks.from}}))
 import { getParliamentActivity } from "./parliament-activity"
 import { activityFixture } from "@/lib/parliament-activity-fixtures"
 beforeEach(()=>{

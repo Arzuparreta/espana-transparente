@@ -9,6 +9,7 @@ interface Props {
 }
 
 export function DiputadosFilter({ politicians }: Props) {
+  const [visibleCount, setVisibleCount] = useState(36)
   const [query, setQuery] = useState("")
   const [activeParty, setActiveParty] = useState<string | null>(null)
 
@@ -50,7 +51,7 @@ export function DiputadosFilter({ politicians }: Props) {
         <input
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setVisibleCount(36) }}
           placeholder="Filtrar por nombre o provincia…"
           className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           aria-label="Filtrar diputados"
@@ -64,7 +65,7 @@ export function DiputadosFilter({ politicians }: Props) {
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => setActiveParty(null)}
+          onClick={() => { setActiveParty(null); setVisibleCount(36) }}
           className={`inline-flex min-h-9 items-center rounded px-3 font-mono text-xs transition-colors ${
             activeParty === null
               ? "bg-primary text-primary-foreground"
@@ -77,7 +78,7 @@ export function DiputadosFilter({ politicians }: Props) {
           <button
             key={acronym}
             type="button"
-            onClick={() => setActiveParty(activeParty === acronym ? null : acronym)}
+            onClick={() => { setActiveParty(activeParty === acronym ? null : acronym); setVisibleCount(36) }}
             style={
               activeParty === acronym && color
                 ? { backgroundColor: color, color: "#0B0B0A", borderColor: color }
@@ -102,10 +103,10 @@ export function DiputadosFilter({ politicians }: Props) {
         ))}
       </div>
 
-      {/* Results grid */}
+      {/* Keep the first render bounded; all deputies remain searchable. */}
       {filtered.length > 0 ? (
         <div className="ui-grid-cards">
-          {filtered.map((p) => (
+          {filtered.slice(0, visibleCount).map((p) => (
             <PoliticianCard key={p.id} politician={p} />
           ))}
         </div>
@@ -113,6 +114,12 @@ export function DiputadosFilter({ politicians }: Props) {
         <div className="rounded-[2px] border border-border bg-card px-6 py-10 text-center text-sm text-muted-foreground">
           Ningún diputado coincide con los filtros aplicados.
         </div>
+      )}
+      {filtered.length > visibleCount && (
+        <button type="button" className="min-h-11 rounded border border-border px-4 py-2 text-sm hover:bg-muted"
+          onClick={() => setVisibleCount((count) => count + 36)}>
+          Mostrar más diputados ({Math.min(visibleCount, filtered.length)} de {filtered.length})
+        </button>
       )}
     </div>
   )

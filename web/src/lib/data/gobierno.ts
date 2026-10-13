@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, throwDataError, dataQuerySignal, type GobiernoMember, type MinistrioContract, type InstitucionMember } from "./shared"
 
 export type { GobiernoMember, MinistrioContract, InstitucionMember }

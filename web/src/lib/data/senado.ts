@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, type Senator } from "./shared"
 
 export type { Senator }

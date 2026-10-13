@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { ResponsiveLink as Link } from "@/components/navigation/NavigationProgress"
 import { useEffect, useMemo, useState } from "react"
 import { feature as topoFeature } from "topojson-client"
 import { ArrowLeft, ExternalLink, MapPin, Search, X } from "lucide-react"

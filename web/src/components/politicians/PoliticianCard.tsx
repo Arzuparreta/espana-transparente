@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { ResponsiveLink as Link } from "@/components/navigation/NavigationProgress"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { PartyBadge } from "@/components/domain/PartyBadge"

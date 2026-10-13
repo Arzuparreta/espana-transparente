@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, dataQuerySignal, HOUR, PHOTOS_CACHE_VERSION, type TopContractAncla, type TopDivergenceSessionAncla, type InflationAnchor } from "./shared"
 import { getIndicatorSectionFacts } from "./conexiones"
 import { getCriticalPipelineStatuses, type EtlPipelineRow } from "@/lib/etl-pipelines"

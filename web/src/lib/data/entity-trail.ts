@@ -6,7 +6,7 @@
  * the trail (org → person → org → ...).
  */
 
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR } from "./shared"
 import { JUDICIAL_STATUS_LABEL, type JudicialStatus } from "./judicial"
 

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { dataErrorMessage, dataQuerySignal, unstable_cache, HOUR } from "./shared"
 
 export async function getEtlPipelineStatus() {

@@ -13,7 +13,8 @@
     "auth:smoke": "node scripts/auth-smoke.mjs",
     "search:check": "node scripts/search-check.mjs",
     "search:routes": "node scripts/search-check.mjs --routes-only",
-    "test": "vitest run"
+    "test": "vitest run",
+    "perf:navigation": "node scripts/navigation-benchmark.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

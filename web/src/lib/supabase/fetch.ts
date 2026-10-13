@@ -14,13 +14,14 @@ export function createSupabaseFetch(timeoutMs = configuredTimeoutMs()): typeof f
     }, timeoutMs)
 
     const originalSignal = init.signal
+    const onAbort = () => controller.abort(originalSignal?.reason)
     if (originalSignal) {
       if (originalSignal.aborted) {
         controller.abort(originalSignal.reason)
       } else {
         originalSignal.addEventListener(
           "abort",
-          () => controller.abort(originalSignal.reason),
+          onAbort,
           { once: true }
         )
       }
@@ -30,6 +31,7 @@ export function createSupabaseFetch(timeoutMs = configuredTimeoutMs()): typeof f
       return await fetch(input, { ...init, signal: controller.signal })
     } finally {
       clearTimeout(timeout)
+      originalSignal?.removeEventListener("abort", onAbort)
     }
   }
 }

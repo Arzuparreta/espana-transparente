@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest"
-vi.mock("@/lib/supabase/client", () => ({ supabase: {} }))
+vi.mock("@/lib/supabase/public", () => ({ supabase: {} }))
 import { buildPoliticianTrail, PARTY_ROUTED_JUDICIAL_SOURCE } from "./entity-trail"
 
 it("lists only cases where the person is the reviewed actor, never their party's cases", () => {

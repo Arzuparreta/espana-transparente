@@ -1,5 +1,5 @@
 import { initiativeNumbers } from "@/lib/parliament-evidence"
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, dataQuerySignal, throwDataError } from "./shared"
 
 const INDICATOR_PAGE_SIZE = 1000

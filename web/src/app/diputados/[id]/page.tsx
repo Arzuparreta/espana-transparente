@@ -1,5 +1,4 @@
 import { Suspense } from "react"
-import { supabase } from "@/lib/supabase/client"
 import { notFound, redirect } from "next/navigation"
 import { ContextTrail, type ContextTrailLink } from "@/components/navigation/ContextTrail"
 import { PoliticianProfile } from "@/components/politicians/PoliticianProfile"
@@ -15,7 +14,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
-  const { data } = await supabase.from("politicians").select("full_name").eq("id", id).single()
+  const { pol: data } = await getPoliticianProfileData(id)
   return { title: data?.full_name || "Diputado" }
 }
 

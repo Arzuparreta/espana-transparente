@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR } from "./shared"
 
 // Caps keep the sitemap under Google's per-file limit (50K URLs).

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, throwDataError } from "./shared"
 import { CCAA_GEO, getCcaaByDbKey } from "@/lib/ccaa-geo-mapping"
 import { normalizeTerritoryAlias } from "@/lib/territory-catalog"
@@ -808,14 +808,21 @@ export type TerritoryAtlasData = {
 async function fetchPagedTable(
   table: string,
   columns: string,
-  pageSize = 1000
+  pageSize = 1000,
+  filter?: { column: string; values: string[] }
 ): Promise<Record<string, unknown>[]> {
   const rows: Record<string, unknown>[] = []
   for (let from = 0; ; from += pageSize) {
-    const response = await supabase
-      .from(table)
-      .select(columns)
-      .range(from, from + pageSize - 1)
+    let query = supabase.from(table).select(columns)
+    if (filter) query = query.in(filter.column, filter.values)
+    // Offset pagination requires a stable order to avoid gaps and duplicates.
+    const orderColumns = table === "v_territory_spend_yearly"
+      ? ["dataset", "year", "ccaa_key", "province_key"]
+      : table === "territory_population" ? ["territory_key", "year"] : ["territory_key"]
+    for (const column of orderColumns) {
+      query = query.order(column)
+    }
+    const response = await query.range(from, from + pageSize - 1)
     throwDataError(response.error, table)
     rows.push(...((response.data ?? []) as unknown as Record<string, unknown>[]))
     if ((response.data?.length ?? 0) < pageSize) break
@@ -824,16 +831,21 @@ async function fetchPagedTable(
 }
 
 async function fetchTerritoryAtlas(): Promise<TerritoryAtlasData> {
-  const [territoryRows, spendRows, populationRows, coverageResponse] = await Promise.all([
-    fetchPagedTable(
+  const territoryPromise = fetchPagedTable(
       "territory_catalog",
-      "territory_key, territory_name, territory_type, parent_key, nuts_code, sort_order"
-    ),
+      "territory_key, territory_name, territory_type, parent_key, nuts_code, sort_order",
+      1000, { column: "territory_type", values: ["ccaa", "province"] }
+  )
+  const [territoryRows, spendRows, populationRows, coverageResponse] = await Promise.all([
+    territoryPromise,
     fetchPagedTable(
       "v_territory_spend_yearly",
       "dataset, year, ccaa_key, province_key, record_count, total_amount, latest_record_date"
     ),
-    fetchPagedTable("territory_population", "territory_key, year, population"),
+    territoryPromise.then((territories) => fetchPagedTable(
+      "territory_population", "territory_key, year, population", 1000,
+      { column: "territory_key", values: territories.map((row) => String(row.territory_key)) }
+    )),
     supabase
       .from("v_territory_spend_coverage")
       .select("dataset, total_records, resolved_records, unresolved_records"),
@@ -877,6 +889,6 @@ async function fetchTerritoryAtlas(): Promise<TerritoryAtlasData> {
 
 export const getTerritoryAtlas = unstable_cache(
   fetchTerritoryAtlas,
-  ["territory-atlas-v1"],
+  ["territory-atlas-v2"],
   { revalidate: HOUR }
 )

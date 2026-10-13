@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   result: { data: [] as unknown[] | null, error: null as unknown },
 }))
 vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }))
-vi.mock("@/lib/supabase/client", () => ({
+vi.mock("@/lib/supabase/public", () => ({
   supabase: { rpc: mocks.rpc, from: mocks.from },
 }))
 import { getSubsidyPurposeYear, getBdnsCall } from "./subsidy-purposes"

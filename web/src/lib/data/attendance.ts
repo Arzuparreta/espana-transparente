@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import type { AttendanceSortDirection, AttendanceSortField } from "@/lib/attendance-sort"
 import { dataErrorMessage, dataQuerySignal, unstable_cache, HOUR, PAGE_SIZE } from "./shared"
 

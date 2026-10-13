@@ -1,4 +1,4 @@
-import {supabase} from "@/lib/supabase/client"
+import {supabase} from "@/lib/supabase/public"
 import {unstable_cache,HOUR,dataErrorMessage,dataQuerySignal} from "./shared"
 import {pacSnapshot} from "@/lib/pac-payments"
 export const getPacPayments=unstable_cache(async()=>{

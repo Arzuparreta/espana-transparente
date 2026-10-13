@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   result: { data: [] as unknown[] | null, error: null as unknown },
 }));
 vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn }));
-vi.mock("@/lib/supabase/client", () => ({ supabase: { from: mocks.from } }));
+vi.mock("@/lib/supabase/public", () => ({ supabase: { from: mocks.from } }));
 import { getFiscalSectors } from "./fiscal-sectors";
 beforeEach(() => {
   mocks.result = { data: sectorRows(), error: null };

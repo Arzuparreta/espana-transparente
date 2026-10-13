@@ -11,7 +11,7 @@ vi.mock("next/cache", () => ({ unstable_cache: (fn: (...args: unknown[]) => Prom
     return result
   }
 } }))
-vi.mock("@/lib/supabase/client", () => ({ supabase: { from: (table: string) => {
+vi.mock("@/lib/supabase/public", () => ({ supabase: { from: (table: string) => {
   mock.reads++
   const fixture = activityFixture()
   const result = mock.fail ? { data: null, error: { message: "transient gateway" } } : { data: table === "parliament_activity_coverage" ? { metadata: fixture.coverage } : fixture.rows, error: null }

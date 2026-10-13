@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, PAGE_SIZE, throwDataError, type EuFundRow, type EuFundsSummary } from "./shared"
 
 export type { EuFundRow, EuFundsSummary }

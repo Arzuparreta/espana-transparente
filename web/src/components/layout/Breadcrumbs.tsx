@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { ResponsiveLink as Link } from "@/components/navigation/NavigationProgress"
 import { Fragment } from "react"
 import { cn } from "@/lib/utils"
 

@@ -1,4 +1,4 @@
-import {supabase} from '@/lib/supabase/client'
+import {supabase} from '@/lib/supabase/public'
 import {unstable_cache,HOUR,dataQuerySignal,dataErrorMessage} from './shared'
 import {lawSnapshot,publishedBill} from '@/lib/law-publication'
 export const getLawPublication=unstable_cache(async(number:string,legislatureId:string)=>{

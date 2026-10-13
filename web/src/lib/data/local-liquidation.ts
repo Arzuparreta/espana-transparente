@@ -1,4 +1,4 @@
-import {supabase} from '@/lib/supabase/client'
+import {supabase} from '@/lib/supabase/public'
 import {unstable_cache,HOUR,dataQuerySignal,dataErrorMessage} from './shared'
 import {localSnapshot} from '@/lib/local-liquidation'
 export const getLocalLiquidation=unstable_cache(async()=>{

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { type SearchResult } from "./shared"
 
 export type { SearchResult }

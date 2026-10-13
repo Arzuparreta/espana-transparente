@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { ResponsiveLink as Link } from "@/components/navigation/NavigationProgress"
 import { getSectionsByHub, SECONDARY_NAV } from "@/lib/nav-config"
 import { BRAND_NAME, BRAND_URL } from "@/lib/brand"
 

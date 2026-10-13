@@ -1,5 +1,5 @@
 import { initiativeNumbers } from "@/lib/parliament-evidence"
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import { unstable_cache, HOUR, throwDataError } from "./shared"
 import { PAGE_SIZE } from "./shared"
 
@@ -31,14 +31,14 @@ export const getVotingSessionPage = unstable_cache(
     const sessions = rows ?? []
     const ids = sessions.map((s) => s.id)
 
-    // Enrich just this page's rows with tallies. Filtering the view by id
-    // lets Postgres push the predicate down, so it stays fast (~0.3s).
+    // Scope votes inside the RPC before aggregation; filtering the full
+    // summary view still scans the entire corpus and can silently time out.
     const tallies = new Map<string, VoteTally>()
     if (ids.length > 0) {
-      const { data: summary } = await supabase
-        .from("v_voting_session_summary")
-        .select("id, vote_count, votes_yes, votes_no, votes_abstain, divergence_count")
-        .in("id", ids)
+      const { data: summary, error: summaryError } = await supabase
+        .rpc("get_voting_session_tallies", { p_session_ids: ids })
+      throwDataError(summaryError, "voting session tallies")
+      if ((summary ?? []).length !== ids.length) throw new Error("Incomplete voting session tallies")
       for (const row of summary ?? []) {
         tallies.set(row.id as string, {
           vote_count: (row.vote_count as number) ?? 0,
@@ -55,7 +55,7 @@ export const getVotingSessionPage = unstable_cache(
       total: count ?? 0,
     }
   },
-  ["voting-session-page"],
+  ["voting-session-page-bounded-v2"],
   { revalidate: HOUR }
 )
 

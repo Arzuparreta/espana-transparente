@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/public"
 import {
   unstable_cache,
   HOUR,
@@ -6,6 +6,17 @@ import {
   throwDataError,
   type SubsidyResponsibilityRow,
 } from "./shared"
+
+const getSubsidyCount = unstable_cache(
+  async (nivel1: string) => {
+    let query = supabase.from("subsidies").select("id", { count: "exact", head: true })
+    if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
+    const { count, error } = await query
+    throwDataError(error, "subsidies count")
+    if (count == null) throw new Error("Missing exact subsidies count")
+    return count
+  }, ["subsidy-count"], { revalidate: HOUR }
+)
 
 export const getSubvencionPage = unstable_cache(
   async (page: number, nivel1: string) => {
@@ -16,14 +27,17 @@ export const getSubvencionPage = unstable_cache(
       .from("subsidies")
       .select(
         "id, bdns_id, cod_concesion, fecha_concesion, beneficiario, instrumento, importe, convocatoria, nivel1, nivel2, nivel3, beneficiary_organization_id, granting_body_organization_id, source_url",
-        { count: "exact" },
       )
       .order("importe", { ascending: false, nullsFirst: false })
       .order("id")
 
     if (nivel1 !== "all") query = query.eq("nivel1", nivel1)
 
-    const { data, count, error } = await query.range(from, to)
+    const [rows, total] = await Promise.all([
+      query.range(from, to),
+      getSubsidyCount(nivel1),
+    ])
+    const { data, error } = rows
     throwDataError(error, "subsidies page")
     const subsidyIds = (data ?? []).map((row) => row.id)
     const responsibilities =
@@ -64,10 +78,10 @@ export const getSubvencionPage = unstable_cache(
         ...row,
         responsible: responsibleBySubsidy.get(row.id) ?? null,
       })),
-      total: count ?? 0,
+      total,
     }
   },
-  ["subsidies-page"],
+  ["subsidies-page-v2"],
   { revalidate: HOUR },
 )
 

@@ -1,3 +1,5 @@
+import { coalesceRequests } from "./coalesce"
+import { cache } from "react"
 import { unstable_cache as nextUnstableCache } from "next/cache"
 
 export const PUBLIC_DATA_CACHE_VERSION = "public-data-v4"
@@ -6,11 +8,11 @@ export const unstable_cache = ((
   callback,
   keyParts = [],
   options
-) => nextUnstableCache(
+) => cache(coalesceRequests(nextUnstableCache(
   callback,
   [PUBLIC_DATA_CACHE_VERSION, ...keyParts],
   options
-)) as typeof nextUnstableCache
+)))) as typeof nextUnstableCache
 
 export const HOUR = 3600
 export const PHOTOS_CACHE_VERSION = "photos-v3"

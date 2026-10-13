@@ -2,7 +2,7 @@ import {expect,it,vi} from 'vitest'
 import fixture from '@/lib/law-publication-fixture.json'
 const mock=vi.hoisted(()=>({results:{} as Record<string,{data:unknown;error:unknown}>,from:vi.fn()}))
 vi.mock('next/cache',()=>({unstable_cache:(f:unknown)=>f}))
-vi.mock('@/lib/supabase/client',()=>({supabase:{from:mock.from}}))
+vi.mock('@/lib/supabase/public',()=>({supabase:{from:mock.from}}))
 import {getLawPublication} from './law-publication'
 it('checks actual legislature and preserves query failures',async()=>{
  mock.from.mockImplementation((table:string)=>{const q={select:()=>q,eq:()=>q,abortSignal:()=>q,maybeSingle:()=>Promise.resolve(mock.results[table])};return q})

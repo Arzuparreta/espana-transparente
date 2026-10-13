@@ -1,7 +1,7 @@
 import { beforeEach,expect,it,vi } from "vitest"
 const mocks=vi.hoisted(()=>({from:vi.fn(),calls:[] as unknown[]}))
 vi.mock("next/cache",()=>({unstable_cache:(fn:unknown)=>fn}))
-vi.mock("@/lib/supabase/client",()=>({supabase:{from:mocks.from}}))
+vi.mock("@/lib/supabase/public",()=>({supabase:{from:mocks.from}}))
 import { getInitiativeDetail } from "./conexiones"
 import { getVotingDetailData } from "./voting"
 beforeEach(()=>{mocks.calls=[];mocks.from.mockImplementation((table:string)=>{
