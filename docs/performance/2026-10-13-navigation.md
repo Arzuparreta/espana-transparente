@@ -170,3 +170,14 @@ nombre/título/fecha, y las estadísticas públicas de partido se precalculan en
 se calculan con las RPC acotadas. Los votos de sus miembros se agregan en SQL,
 evita truncarlos a las 1.000 filas de REST. La regresión PostgreSQL comprueba
 1.500 votos y afiliaciones duplicadas, conservando los recuentos correctos.
+
+Las fichas de partido envían datos compactos a un panel cliente: renderizan
+30 diputados inicialmente, con búsqueda sobre todos y ampliación por bloques.
+Las votaciones y casos se renderizan cuando se abre su pestaña, evitando enviar
+su HTML oculto. Las pestañas de presentación usan `history.replaceState`,
+integrado con el router de Next, sin volver a solicitar datos que ya están
+cargados. Conservan enlaces directos y los demás parámetros de consulta.
+La regresión comprueba el límite de filas, el panel inactivo y una URL directa
+a votaciones con sus porcentajes completos. Validación final local: 375 tests
+web en 105 archivos, build, lint y auditorías de UI/contenido; 532 tests Python
+pasados y uno omitido por requerir otra integración de base de datos.

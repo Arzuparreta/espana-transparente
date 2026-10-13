@@ -2,7 +2,7 @@
 
 import type { ReactNode, RefObject } from "react"
 import { useEffect, useRef, Suspense } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 interface TabItem {
@@ -81,7 +81,6 @@ function SectionTabsBody({
   children,
   paramName,
 }: SectionTabsProps & { paramName: string }) {
-  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const validValues = tabs.map((t) => t.value)
@@ -107,7 +106,9 @@ function SectionTabsBody({
     if (next === defaultTab) params.delete(paramName)
     else params.set(paramName, next)
     const query = params.toString()
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+    // All panel data is already loaded. Update only presentation state,
+    // without requesting another server render or resetting scroll.
+    window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname)
   }
 
   return (

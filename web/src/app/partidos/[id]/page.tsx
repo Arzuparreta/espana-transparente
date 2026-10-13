@@ -1,16 +1,12 @@
+import { PartyPanels } from "@/components/politicians/PartyPanels"
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
-import { EmptyState } from "@/components/domain/EmptyState"
-import { EntityLink } from "@/components/domain/EntityLink"
 import { EntityTrail, EntityTrailSkeleton } from "@/components/domain/EntityTrail"
 import { PartyLogo } from "@/components/domain/PartyLogo"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { StatGrid } from "@/components/domain/StatGrid"
-import { SectionTabs } from "@/components/domain/SectionTabs"
 import { RecordLayout } from "@/components/domain/RecordLayout"
-import { RecordTable } from "@/components/domain/RecordTable"
-import { ResponsiveLink } from "@/components/navigation/NavigationProgress"
 import { getPartyPageData, getPartyVotingSessions, getPartyJudicialCases, JUDICIAL_STATUS_LABEL } from "@/lib/data"
 import type { JudicialStatus } from "@/lib/data"
 
@@ -19,8 +15,6 @@ export const revalidate = 3600
 interface PageProps {
   params: Promise<{ id: string }>
 }
-
-const LINK = "underline-offset-2 hover:underline"
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
@@ -72,16 +66,6 @@ export default async function PartyPage({ params }: PageProps) {
     return true
   })
 
-  const tabs: { value: string; label: string; count: number }[] = [
-    { value: "diputados", label: "Diputados", count: memberships.length },
-    { value: "votaciones", label: "Votaciones", count: votingSessions.length },
-  ]
-  if (uniqueCases.length > 0) {
-    tabs.push({ value: "casos", label: "Casos judiciales", count: uniqueCases.length })
-  }
-
-  const memberRows = memberships as unknown as Array<Record<string, unknown>>
-
   return (
     <div className="ui-page">
       <ContextTrail
@@ -120,127 +104,15 @@ export default async function PartyPage({ params }: PageProps) {
       >
         <StatGrid variant="flat" items={statItems} />
 
-        <SectionTabs
-          tabs={tabs}
-          defaultTab="diputados"
-          panels={{
-            diputados: (
-              <div id="diputados" className="scroll-mt-24">
-                {memberships.length === 0 ? (
-                  <EmptyState title="Sin diputados activos" description="No hay escaños con membresía activa en la muestra actual." />
-                ) : (
-                  <RecordTable
-                    caption="Diputados del grupo parlamentario"
-                    rows={memberRows}
-                    keyFor={(m) => String((m.politician as Record<string, unknown>).id)}
-                    columns={[
-                      {
-                        header: "Diputado",
-                        primary: true,
-                        cell: (m) => {
-                          const pol = m.politician as Record<string, unknown>
-                          return (
-                            <EntityLink kind="politician" id={pol.id as string} className={LINK}>
-                              {String(pol.full_name ?? "")}
-                            </EntityLink>
-                          )
-                        },
-                      },
-                      { header: "Circunscripción", cell: (m) => (m.constituency as string) || "—" },
-                      { header: "Grupo", hideOnMobile: true, cell: (m) => (m.group_parliamentary as string) || "—" },
-                    ]}
-                  />
-                )}
-              </div>
-            ),
-            votaciones: (
-              <div id="votaciones" className="scroll-mt-24">
-                {votingSessions.length === 0 ? (
-                  <EmptyState
-                    title="Sin votaciones"
-                    description="No hay sesiones registradas para este grupo en la muestra actual."
-                    action={
-                      <a href="/estado-datos" className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-                        Ver estado de los datos →
-                      </a>
-                    }
-                  />
-                ) : (
-                  <div className="divide-y divide-border/50">
-                    {votingSessions.map((s) => {
-                      const total = Object.values(s.partyVotes).reduce((a, b) => a + b, 0)
-                      const pctYes = total > 0 ? Math.round(((s.partyVotes["Sí"] ?? 0) / total) * 100) : 0
-                      const pctNo = total > 0 ? Math.round(((s.partyVotes["No"] ?? 0) / total) * 100) : 0
-                      const pctAbs = total > 0 ? Math.round(((s.partyVotes["Abstención"] ?? 0) / total) * 100) : 0
-                      const dateStr = new Date(s.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
-
-                      return (
-                        <EntityLink
-                          key={s.id}
-                          kind="voting-session"
-                          id={s.id}
-                          className="-mx-2 flex min-w-0 items-start justify-between gap-4 px-2 py-3 text-sm transition-colors hover:bg-muted/40"
-                        >
-                          <div className="min-w-0">
-                            <p className="min-w-0 truncate font-medium">{s.title}</p>
-                            {total > 0 && (
-                              <p className="mt-0.5 text-xs text-muted-foreground">
-                                {s.partyVotes["Sí"] ?? 0} sí · {s.partyVotes["No"] ?? 0} no · {s.partyVotes["Abstención"] ?? 0} abs
-                                {" · "}
-                                <span className="text-green-600 dark:text-green-400">{pctYes}% favor</span>
-                                {pctNo > 0 && <span className="text-red-600 dark:text-red-400"> · {pctNo}% contra</span>}
-                                {pctAbs > 0 && <span> · {pctAbs}% abs</span>}
-                              </p>
-                            )}
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <span className="text-xs text-muted-foreground">{dateStr}</span>
-                            {s.divergence_count > 0 && (
-                              <p className="mt-0.5 rounded border border-accent/35 bg-accent/10 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.08em] text-accent">
-                                {s.divergence_count} div.
-                              </p>
-                            )}
-                          </div>
-                        </EntityLink>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            ),
-            ...(uniqueCases.length > 0
-              ? {
-                  casos: (
-                    <div id="casos" className="space-y-3 scroll-mt-24">
-                      <p className="text-xs text-muted-foreground">
-                        Procedimientos en los que el partido está identificado como actor por fuentes oficiales.
-                      </p>
-                      <div className="divide-y divide-border/50">
-                        {uniqueCases.map((c) => (
-                          <div key={c.case_id} className="flex min-w-0 flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="min-w-0 space-y-1">
-                              <ResponsiveLink href={`/corrupcion/${c.case_id}`} className="block min-w-0 text-sm font-medium underline-offset-2 hover:underline">
-                                {c.title}
-                              </ResponsiveLink>
-                              <p className="text-xs text-muted-foreground">
-                                {c.procedural_status
-                                  ? JUDICIAL_STATUS_LABEL[c.procedural_status as JudicialStatus] ?? c.procedural_status
-                                  : "Estado no especificado"}
-                                {c.court_body ? ` · ${c.court_body}` : ""}
-                                {c.territory ? ` · ${c.territory}` : ""}
-                              </p>
-                            </div>
-                            <div className="shrink-0 text-left font-mono text-xs text-muted-foreground sm:text-right">
-                              {formatDate(c.source_published_at)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ),
-                }
-              : {}),
-          }}
+        <PartyPanels
+          members={memberships.map((m) => {
+            const person = m.politician as unknown as { id: string; full_name: string }
+            return { id: person.id, name: person.full_name, constituency: m.constituency ?? "", group: m.group_parliamentary ?? "" }
+          })}
+          sessions={votingSessions}
+          cases={uniqueCases.map((c) => ({ id: c.case_id, title: c.title,
+            status: c.procedural_status ? JUDICIAL_STATUS_LABEL[c.procedural_status as JudicialStatus] ?? c.procedural_status : "Estado no especificado",
+            court: c.court_body, territory: c.territory, date: formatDate(c.source_published_at) }))}
         />
       </RecordLayout>
     </div>
