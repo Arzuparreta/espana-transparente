@@ -62,8 +62,16 @@ def fetch_records():
     page=curl_text(PAGE)
     links=set(re.findall(r'/webpublica/opendata/intervenciones/IntervencionesIniciativa__\d+\.json',page))
     if len(links)!=1:raise ValueError('Activity discovery changed')
-    url='https://www.congreso.es'+links.pop();time.sleep(REQUEST_DELAY)
-    return decode(curl_text(url),url)
+    url='https://www.congreso.es'+links.pop()
+    # The download occasionally returns an HTML error body instead of JSON; retry, never parse it.
+    for attempt in range(3):
+        time.sleep(REQUEST_DELAY+20*attempt)
+        payload=curl_text(url)
+        try:json.loads(payload)
+        except ValueError:
+            if attempt==2:raise ValueError(f'Activity dataset was not JSON after 3 attempts: {payload[:80]!r}')
+            continue
+        return decode(payload,url)
 
 
 def replace_records(cur,records,metadata):
