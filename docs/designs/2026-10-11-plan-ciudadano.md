@@ -98,7 +98,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 3, auditoría de prórrogas PGE | Edición, conciliación por programa y referencias 2023 separadas; [contrato](2026-10-12-auditoria-pge.md) |
 | Fase 3, financiación territorial | Saldo de liquidación 2024, 15 comunidades y dos ciudades; [contrato](2026-10-12-financiacion-territorial.md). No es financiación anual total ni pago neto |
 | Fase 4, compras y competencia | Expedientes adjudicados por año/administración/CPV, presupuesto de licitación y ofertas por resultado; [contrato](2026-10-13-compras-competencia.md) |
-| Fase 4, matriz de áreas y fichas | Auditoría en curso; entradas Personas y Decisiones con primeras respuestas documentadas y estados diferenciados. [Matriz](2026-10-12-matriz-ciudadana.md). El resto de filas y fuentes de mandatos siguen abiertos |
+| Fase 4, matriz de áreas y fichas | Completada: todas las filas auditadas, primeras respuestas en Personas, Decisiones, Contratos, Economía, Estado de datos y Búsqueda; reparadas mezclas de fases (territorio, organizaciones), rótulos de asistencia, atribución colectiva en rastros y límites de colecciones. [Matriz](2026-10-12-matriz-ciudadana.md) |
 | Fase 4, publicación y vigencia | Congreso → PDF/CVE → XML BOE, leyes y correcciones separadas; [contrato](2026-10-12-publicacion-vigencia.md) |
 | Fase 4, precios de vivienda | IPV base 2025 por trimestre/territorio, tasas y límites; [contrato](2026-10-12-precios-vivienda.md) |
 | Fase 4, distribución salarial | Media/tramos EPA 2021–2024, edición y reconciliación; [contrato](2026-10-12-distribucion-salarial.md) |
@@ -110,7 +110,7 @@ Aceptación humana transversal pendiente: sesiones iniciales con 5–8 personas 
 | Fase 3, serie temporal estatal | Doce cortes acumulados de 2025; [contrato](2026-10-12-ejecucion-serie.md). Sigue ámbito territorial comparable |
 | Fase 3, piloto de ejecución estatal | Primer slice implementado; [contrato y evidencia](2026-10-12-ejecucion-estado.md) |
 | Fase 2, cuentas por subsector | Tercer slice implementado; [contrato y evidencia](2026-10-11-cuentas-subsectores.md). Siguiente bloque: fase 3, ejecución y territorio; aceptación humana pendiente |
-| Resto de slices y fases 2–5 | Pendientes; alcance con muestras oficiales |
+| Resto de slices y fases 2–5 | Implementados los slices planificados de las cinco fases. Ampliaciones de cobertura posteriores (histórico de ediciones PCSP, plataformas autonómicas, más municipios y servicios) quedan como trabajo nuevo, no como pendientes de este plan |
 | Sesiones de comprensión | Pendientes; requieren participantes reales |
 
 `NEXT.md` mantiene la fase activa. Este slice no cierra toda la fase 1.

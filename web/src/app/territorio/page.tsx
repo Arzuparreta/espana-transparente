@@ -59,7 +59,7 @@ export default async function TerritorioPage({ searchParams }: PageProps) {
     <>
       {ignored.length > 0 ? (
         <p role="alert" className="ui-page-wide pt-5 text-sm leading-6">
-          {ignored.join(", ")}: valor no disponible en el atlas. Se muestra la vista inicial, no una selección equivalente.
+          Valor no disponible en el atlas para {ignored.join(", ")}. Se muestra la vista inicial, no una selección equivalente.
         </p>
       ) : null}
       <section className="ui-page-wide py-5 text-sm leading-6"><Link href="/liquidacion-autonomica?year=2024&territory=all" className="underline underline-offset-4">¿Qué ejecutó tu administración autonómica en 2024? →</Link><Link href="/liquidacion-local?year=2024&municipality=all" className="block underline underline-offset-4">¿Qué autorizó y pagó tu ayuntamiento? Piloto de Canarias →</Link><Link href="/financiacion-territorial?year=2024&territory=all" className="block underline underline-offset-4">¿Qué ajuste de financiación corresponde a tu administración? →</Link><p className="text-muted-foreground">Liquidación presupuestaria definitiva: crédito, obligaciones y pagos. Tiene su propio ejercicio y ámbito; no se suma a los contratos y subvenciones del mapa.</p></section>
