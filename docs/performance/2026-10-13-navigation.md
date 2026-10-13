@@ -66,7 +66,7 @@ del VPS con toda su caché fría ni el tiempo de pintura del navegador.
 
 ## Validación
 
-Build de producción y comprobación de tipos correctos. Suite: 366 pruebas, 100
+Build de producción y comprobación de tipos correctos. Suite: 370 pruebas, 103
 ficheros, incluyendo concurrencia, recuperación tras fallo, selección territorial,
 query strings, veto de navegación y fragmentos. En navegador: carga progresiva,
 búsqueda de personas fuera de las 36 iniciales y navegación a una ficha, mostrando
@@ -123,7 +123,7 @@ Mantiene tres releases y la caché se poda en el directorio realmente servido.
 Las credenciales se copian solo en el host con permisos privados. El transporte
 SSR y del middleware usa también el endpoint interno con un timeout, conservando
 la URL pública para el nombre y ámbito de las cookies de sesión. La suite Python
-local pasó 530 pruebas, incluida la paridad SQL en PostgreSQL 16 desechable; una
+local pasó 531 pruebas, incluida la paridad SQL en PostgreSQL 16 desechable; una
 integración de búsqueda quedó omitida por requerir otra conexión explícita.
 
 Se mantienen los totales exactos, las políticas de lectura y la verificación de
@@ -140,3 +140,24 @@ Referencias oficiales:
 [streaming en self-hosting](https://nextjs.org/docs/15/app/guides/self-hosting).
 No se ha activado `staleTimes`, que Next documenta como experimental y no
 recomendado para producción.
+
+## Correcciones detectadas en la aceptación pública
+
+El primer barrido de 69 rutas detectó un timeout real en `/dinero-publico`.
+Se materializan las dos vistas históricas de principales receptores y de
+asociación con Kohesio, conservando sus consultas originales. Son 364 y 47 filas,
+272 y 72 KB incluidos sus índices: no se copia el corpus de millones de registros.
+El ETL diario/semanal de `common.search_refresh` refresca ambos snapshots en la
+misma transacción. El portal muestra el corte del agregado; los fallos no se
+sustituyen por totales cero. Las funciones de normalización conservan exactamente
+su algoritmo y referencian explícitamente `public.unaccent` para funcionar durante
+la materialización con search_path restringido. Las pruebas SQL comprueban refresh,
+normalización, permisos de solo lectura y RLS de la RPC de estadísticas del Senado.
+
+El Senado deja de contar usando la vista global de divergencias: una RPC invoker
+cuenta sesiones distintas con voto y filas de voto reales. No se cachea un fallo
+como cero. Su directorio muestra 36 tarjetas inicialmente y conserva búsqueda
+sobre toda la cámara. La ficha de votación deja de renderizar los cientos de votos
+individuales dentro de un `details` cerrado: los carga al abrirlo, con búsqueda
+y bloques de 50, manteniendo el detalle completo disponible. Los enlaces a
+senadores van directamente a su ficha, sin pasar por una redirección de diputado.

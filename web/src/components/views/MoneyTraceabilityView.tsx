@@ -11,6 +11,7 @@ import {
   getEtlLastFinished,
   getEuFundsSummary,
   getMoneyFlowYear,
+  getMinistryBeneficiariesLastRefreshed,
 } from "@/lib/data"
 
 export interface MoneyTraceabilityViewProps {
@@ -27,10 +28,11 @@ export async function MoneyTraceabilityView({ searchParams }: MoneyTraceabilityV
   const year = BUDGET_YEARS.includes(requestedYear) ? requestedYear : latestYear
   const meta = getBudgetYearMeta(year)
 
-  const [sections, lastChecked, euSummary] = await Promise.all([
+  const [sections, lastChecked, euSummary, beneficiariesRefreshed] = await Promise.all([
     getMoneyFlowYear(year),
     getEtlLastFinished(["presupuestos", "contracts_daily", "subsidies_daily", "kohesio"]),
     getEuFundsSummary(),
+    getMinistryBeneficiariesLastRefreshed(),
   ])
 
   const totalCredit = sections.some((s) => s.total_credit_initial == null)
@@ -87,6 +89,10 @@ export async function MoneyTraceabilityView({ searchParams }: MoneyTraceabilityV
           meta?.label ? ` · ${meta.label} ${year}` : ""
         }`}
       />
+
+      {beneficiariesRefreshed ? <p className="text-xs text-muted-foreground">
+        Principales receptores y asociaciones con Kohesio · agregado actualizado el {new Date(beneficiariesRefreshed).toLocaleDateString("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "long", year: "numeric" })}.
+      </p> : null}
 
       {sections.length === 0 ? (
         <EmptyState

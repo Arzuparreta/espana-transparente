@@ -75,10 +75,10 @@ export const getMoneyFlowYear = unstable_cache(
         .order("section_code", { ascending: true })
         .order("total_credit_initial", { ascending: false, nullsFirst: false }),
       supabase
-        .from("v_ministry_top_beneficiaries")
+        .from("mv_ministry_top_beneficiaries")
         .select("ministry_normalized, name, source_type, record_count, total_amount, organization_id, eu_fund_total, eu_fund_project_count"),
       supabase
-        .from("v_section_eu_fund_summary")
+        .from("mv_section_eu_fund_summary")
         .select("ministry_normalized, eu_fund_count, eu_fund_total, eu_fund_total_with_cofinancing, orgs_with_eu_funds"),
     ])
 
@@ -163,6 +163,15 @@ export const getMoneyFlowYear = unstable_cache(
       (a, b) => (b.total_credit_initial ?? 0) - (a.total_credit_initial ?? 0)
     )
   },
-  ["money-flow-year-v2"],
+  ["money-flow-year-v3"],
   { revalidate: HOUR }
+)
+
+export const getMinistryBeneficiariesLastRefreshed = unstable_cache(
+  async (): Promise<string | null> => {
+    const { data, error } = await supabase.from("mv_ministry_top_beneficiaries")
+      .select("refreshed_at").limit(1)
+    throwDataError(error, "beneficiaries refresh date")
+    return data?.[0]?.refreshed_at ?? null
+  }, ["ministry-beneficiaries-refreshed"], { revalidate: HOUR }
 )

@@ -170,6 +170,7 @@ export {
 // ── Money flow (Trazabilidad del gasto) ──────────────────────────────────────
 export {
   getMoneyFlowYear,
+  getMinistryBeneficiariesLastRefreshed,
   type MoneyFlowSection,
   type MoneyFlowRow,
   type EuFundSectionSummary,

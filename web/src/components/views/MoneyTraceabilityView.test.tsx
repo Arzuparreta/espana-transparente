@@ -5,6 +5,7 @@ import type { MoneyFlowSection } from "@/lib/data/money-flow"
 const mocks = vi.hoisted(() => ({ flow: vi.fn() }))
 vi.mock("@/lib/data", () => ({
   BUDGET_YEARS: [2023, 2024], getBudgetYearMeta: () => ({ label: "PGE" }),
+  getMinistryBeneficiariesLastRefreshed: async () => null,
   getMoneyFlowYear: mocks.flow, getEtlLastFinished: async () => null,
   getEuFundsSummary: async () => null,
 }))

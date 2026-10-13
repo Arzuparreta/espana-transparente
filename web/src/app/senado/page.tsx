@@ -1,17 +1,14 @@
-import Image from "next/image"
+import { SenatorsDirectory } from "@/components/politicians/SenatorsDirectory"
 import { PageHeader } from "@/components/domain/PageHeader"
 import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import { StatGrid } from "@/components/domain/StatGrid"
-import { PartyBadge } from "@/components/domain/PartyBadge"
 import { InfoPanel } from "@/components/domain/InfoPanel"
-import { EntityLink } from "@/components/domain/EntityLink"
 import {
   getSenators,
   getSenatorStats,
   getSenateSessionCount,
   getSenateNominalVoteStats,
   getEtlLastFinished,
-  type Senator,
 } from "@/lib/data"
 import { getPartyColor } from "@/lib/domain-style"
 
@@ -20,80 +17,6 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: "Senado",
   description: "Senadoras y senadores en activo: partido, fuente oficial y enlace a su ficha en el Senado.",
-}
-
-function formatName(raw: string): string {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .reverse()
-    .join(" ")
-}
-
-function SenatorCard({ senator }: { senator: Senator }) {
-  const membership = senator.politician_memberships[0]
-  const party = membership?.party ?? null
-  const color = getPartyColor(party?.color ?? null)
-  const constituency = membership?.constituency ?? null
-  const rd = membership?.raw_data as { tipo_procedencia?: string } | null
-  const tipo = rd?.tipo_procedencia ?? null
-
-  return (
-    <div
-      data-slot="card"
-      className="flex min-h-[7rem] flex-col justify-between rounded-[2px] border bg-card p-4 transition-colors hover:border-foreground/40"
-      style={{ borderColor: `${color}28` }}
-    >
-      <div className="flex min-w-0 items-start gap-3">
-        {senator.photo_url ? (
-          <Image
-            src={senator.photo_url}
-            alt={senator.full_name}
-            width={40}
-            height={52}
-            className="h-13 w-10 shrink-0 rounded-[2px] object-cover"
-            unoptimized
-          />
-        ) : (
-          <div
-            className="flex h-13 w-10 shrink-0 items-center justify-center rounded-[2px] text-sm font-bold text-white"
-            style={{ backgroundColor: color }}
-          >
-            {senator.first_name[0]}
-            {senator.last_name[0]}
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {constituency ?? "—"}
-            {tipo ? ` · ${tipo.charAt(0) + tipo.slice(1).toLowerCase()}` : ""}
-          </p>
-          <EntityLink kind="senator" id={senator.id}>
-            <p className="font-semibold leading-snug line-clamp-2 underline-offset-2 hover:underline">
-              {formatName(senator.full_name)}
-            </p>
-          </EntityLink>
-        </div>
-      </div>
-
-      <div className="mt-3 flex min-w-0 items-center gap-2">
-        {party && (
-          <PartyBadge
-            acronym={party.acronym ?? party.name}
-            color={party.color ?? undefined}
-            partyId={party.id ?? null}
-          />
-        )}
-        {membership?.group_parliamentary && (
-          <span className="truncate text-xs text-muted-foreground">
-            {membership.group_parliamentary
-              .replace(/GRUPO PARLAMENTARIO /i, "G.P. ")
-              .slice(0, 50)}
-          </span>
-        )}
-      </div>
-    </div>
-  )
 }
 
 export default async function SenadoPage() {
@@ -105,19 +28,6 @@ export default async function SenadoPage() {
     getEtlLastFinished(["senado.senadores", "senado.votaciones"]),
   ])
   const hasNominalVotes = voteStats.voteRows > 0
-
-  const byConstituency = new Map<string, Senator[]>()
-  for (const s of senators) {
-    const membership = s.politician_memberships[0]
-    const key = membership?.constituency ?? "Sin asignar"
-    const existing = byConstituency.get(key) ?? []
-    existing.push(s)
-    byConstituency.set(key, existing)
-  }
-
-  const constituencies = Array.from(byConstituency.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0], "es")
-  )
 
   return (
     <div className="ui-page space-y-6 sm:space-y-8">
@@ -181,25 +91,12 @@ export default async function SenadoPage() {
           Los datos de senadores se están ingiriendo automáticamente cada semana. Si esta página aparece vacía, el primer ciclo de ingestión aún no se ha completado.
         </InfoPanel>
       ) : (
-        <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {senators.length} senadores · por circunscripción
-          </h2>
-          <div className="space-y-6">
-            {constituencies.map(([constituency, members]) => (
-              <div key={constituency}>
-                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {constituency} ({members.length})
-                </h3>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {members.map((senator) => (
-                    <SenatorCard key={senator.id} senator={senator} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <SenatorsDirectory senators={senators.map((senator) => ({
+          ...senator,
+          politician_memberships: senator.politician_memberships.map((membership) => ({
+            ...membership, raw_data: { tipo_procedencia: membership.raw_data?.tipo_procedencia }
+          }))
+        }))} />
       )}
     </div>
   )

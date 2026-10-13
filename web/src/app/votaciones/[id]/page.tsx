@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { ContextTrail } from "@/components/navigation/ContextTrail"
 import { ExceptionBadge } from "@/components/domain/ExceptionBadge"
 import { PartyBadge } from "@/components/domain/PartyBadge"
-import { VoteBadge } from "@/components/domain/VoteBadge"
+import { IndividualVotes } from "@/components/domain/IndividualVotes"
 import { EntityLink } from "@/components/domain/EntityLink"
 import { RecordLayout } from "@/components/domain/RecordLayout"
 import { RecordSection } from "@/components/domain/RecordSection"
@@ -221,7 +221,7 @@ export default async function VotacionPage({ params }: PageProps) {
             <div className="space-y-2">
               {divergences.map((divergence, index) => (
                 <div key={index} className="flex flex-wrap items-center gap-2 border-l-2 border-accent pl-3 text-sm">
-                  <EntityLink kind="politician" id={divergence.politicianId} className="font-medium underline-offset-2 hover:underline">
+                  <EntityLink kind={chamber === "senate" ? "senator" : "politician"} id={divergence.politicianId} className="font-medium underline-offset-2 hover:underline">
                     {divergence.name}
                   </EntityLink>
                   <PartyBadge acronym={divergence.party} className="text-xs" partyId={divergence.partyId} />
@@ -277,29 +277,9 @@ export default async function VotacionPage({ params }: PageProps) {
           </div>
         </RecordSection>
 
-        <details className="text-sm">
-          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-            Ver voto individual de cada {chamber === "senate" ? "senador" : "diputado"}
-          </summary>
-          <div className="mt-3 max-h-96 overflow-y-auto border-t border-border pt-2">
-            {sorted.flatMap(([acronym, group]) =>
-              group.deputies.map((deputy, index) => (
-                <div
-                  key={`${acronym}-${index}`}
-                  className="flex items-center justify-between gap-3 border-b border-muted/30 py-1 last:border-0"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <EntityLink kind="politician" id={deputy.politicianId} className="min-w-0 truncate text-xs underline-offset-2 hover:underline">
-                      {deputy.name}
-                    </EntityLink>
-                    <PartyBadge acronym={acronym} color={group.color} partyId={group.partyId} className="shrink-0 text-xs" />
-                  </div>
-                  <VoteBadge vote={deputy.vote} className="shrink-0 text-xs" />
-                </div>
-              ))
-            )}
-          </div>
-        </details>
+        <IndividualVotes chamber={chamber} rows={sorted.flatMap(([party, group]) =>
+          group.deputies.map((deputy) => ({ ...deputy, party, partyId: group.partyId, color: group.color }))
+        )} />
       </RecordLayout>
     </div>
   )

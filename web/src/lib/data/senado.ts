@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/public"
-import { unstable_cache, HOUR, type Senator } from "./shared"
+import { unstable_cache, HOUR, throwDataError, type Senator } from "./shared"
 
 export type { Senator }
 
@@ -26,30 +26,12 @@ export const getSenateSessionCount = unstable_cache(
 
 export const getSenateNominalVoteStats = unstable_cache(
   async (): Promise<{ sessionsWithVotes: number; voteRows: number }> => {
-    try {
-      const [sessions, votes] = await Promise.all([
-        supabase
-          .from("v_voting_session_summary")
-          .select("*", { count: "exact", head: true })
-          .eq("chamber", "senate")
-          .gt("vote_count", 0),
-        supabase
-          .from("votes")
-          .select("id, voting_sessions!inner(chamber)", { count: "exact", head: true })
-          .eq("voting_sessions.chamber", "senate"),
-      ])
-      if (sessions.error) console.error("getSenateNominalVoteStats sessions:", sessions.error.message)
-      if (votes.error) console.error("getSenateNominalVoteStats votes:", votes.error.message)
-      return {
-        sessionsWithVotes: sessions.count ?? 0,
-        voteRows: votes.count ?? 0,
-      }
-    } catch (err) {
-      console.error("getSenateNominalVoteStats:", err)
-      return { sessionsWithVotes: 0, voteRows: 0 }
-    }
+    const { data, error } = await supabase.rpc("get_senate_nominal_vote_stats")
+    throwDataError(error, "senate nominal vote stats")
+    if (!data?.[0]) throw new Error("Missing Senate nominal vote statistics")
+    return { sessionsWithVotes: Number(data[0].sessions_with_votes), voteRows: Number(data[0].vote_rows) }
   },
-  ["senate-nominal-vote-stats"],
+  ["senate-nominal-vote-stats-v2"],
   { revalidate: HOUR }
 )
 

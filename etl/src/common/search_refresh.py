@@ -268,7 +268,10 @@ def refresh_money_coverage(cur) -> int:
     """Populate money_coverage_cache and money_examples_cache from the full chain."""
     cur.execute("SET statement_timeout = '10min'")
     cur.execute("SELECT refresh_money_coverage()")
-    return int(cur.fetchone()[0])
+    count = int(cur.fetchone()[0])
+    cur.execute("SELECT refresh_ministry_beneficiaries_cache()")
+    cur.fetchone()
+    return count
 
 
 def refresh_vote_divergences(cur) -> int:

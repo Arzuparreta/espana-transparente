@@ -7,8 +7,8 @@ import { getMoneyFlowYear } from "./money-flow"
 beforeEach(() => {
   mocks.results = {
     v_program_money_flow: { data: [], error: null },
-    v_ministry_top_beneficiaries: { data: [], error: null },
-    v_section_eu_fund_summary: { data: [], error: null },
+    mv_ministry_top_beneficiaries: { data: [], error: null },
+    mv_section_eu_fund_summary: { data: [], error: null },
   }
   mocks.from.mockImplementation((table: string) => {
     const query = {
@@ -18,7 +18,7 @@ beforeEach(() => {
     return query
   })
 })
-it.each(["v_program_money_flow", "v_ministry_top_beneficiaries", "v_section_eu_fund_summary"])("does not disguise a failed %s query as empty data", async (table) => {
+it.each(["v_program_money_flow", "mv_ministry_top_beneficiaries", "mv_section_eu_fund_summary"])("does not disguise a failed %s query as empty data", async (table) => {
   mocks.results[table] = { data: null, error: { message: "statement timeout" } }
   await expect(getMoneyFlowYear(2024)).rejects.toThrow("statement timeout")
 })
