@@ -49,6 +49,14 @@ def test_fetch_retries_bad_json_and_stops_on_404(monkeypatch):
     assert getter.call_count == 1
 
 
+def test_fetch_returns_none_when_bdns_has_no_descriptor(monkeypatch):
+    request = httpx.Request("GET", "https://example.test")
+    getter = Mock(return_value=httpx.Response(204, request=request))
+    monkeypatch.setattr("bdns.convocatorias.httpx.get", getter)
+    assert fetch_call("1000000") is None
+    assert getter.call_count == 1
+
+
 def test_dry_run_with_codes_never_opens_database(monkeypatch):
     monkeypatch.setattr("bdns.convocatorias.get_pg_conn", lambda: pytest.fail("database opened"))
     monkeypatch.setattr("bdns.convocatorias.fetch_call", lambda code: parse_call(call(), code))

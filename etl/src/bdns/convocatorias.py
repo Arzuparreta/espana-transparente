@@ -42,6 +42,8 @@ def fetch_call(code):
             response = httpx.get(API, params={"numConv": code}, timeout=30,
                 headers={"User-Agent": "EspanaTransparente/1.0 (+https://spaintransparencia.info)"})
             response.raise_for_status()
+            if response.status_code == 204:
+                return None  # BDNS publishes no descriptor for this code
             return parse_call(response.json(), code)
         except (httpx.TransportError, ValueError):
             if attempt == 2: raise
@@ -61,6 +63,9 @@ def pending_codes(cur, limit):
         LEFT JOIN bdns_calls c ON c.numero_convocatoria=s.numero_convocatoria
         WHERE s.numero_convocatoria ~ '^[0-9]{1,20}$'
           AND (c.checked_at IS NULL OR c.checked_at < now()-interval '30 days')
+          AND NOT EXISTS (SELECT 1 FROM bdns_call_misses m
+            WHERE m.numero_convocatoria=s.numero_convocatoria
+              AND m.checked_at > now()-interval '30 days')
           AND (c.numero_convocatoria IS NOT NULL OR %s > 0)
         GROUP BY s.numero_convocatoria, c.checked_at
         ORDER BY (c.checked_at IS NULL) DESC, max(s.fecha_concesion) DESC NULLS LAST,
@@ -101,15 +106,22 @@ def run(limit=100, codes=None, dry_run=False):
                 run_id = start_run(cur, pipeline="bdns.convocatorias")
             conn.commit()
         records = []
+        misses = []
         for i, code in enumerate(codes):
             if i: time.sleep(1)
-            records.append(fetch_call(code))
+            record = fetch_call(code)
+            if record is None: misses.append(code)
+            else: records.append(record)
         if not dry_run:
             with conn.cursor() as cur:
                 store_calls(cur, records)
+                if misses:
+                    cur.executemany("""INSERT INTO bdns_call_misses (numero_convocatoria,checked_at)
+                        VALUES (%s,now()) ON CONFLICT (numero_convocatoria)
+                        DO UPDATE SET checked_at=EXCLUDED.checked_at""", [(c,) for c in misses])
                 finish_run(cur, run_id=run_id, status="succeeded", rows_read=len(records), rows_inserted=len(records))
             conn.commit()
-        print(f"BDNS calls: {len(records)} verified; dry_run={dry_run}")
+        print(f"BDNS calls: {len(records)} verified, {len(misses)} without published descriptor; dry_run={dry_run}")
     except Exception as exc:
         if conn:
             conn.rollback()
