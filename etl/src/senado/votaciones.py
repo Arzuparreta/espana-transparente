@@ -158,7 +158,7 @@ def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=60,
