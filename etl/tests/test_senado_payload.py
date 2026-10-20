@@ -67,6 +67,7 @@ def test_export_does_not_publish_manifest_after_a_block(tmp_path, monkeypatch):
     monkeypatch.setattr(votaciones, "discover_session_vote_urls", lambda: [
         votaciones.BASE + "/legis15/votaciones/ses_1.xml"])
     monkeypatch.setattr(votaciones, "curl_text", lambda url: "<html>Access Denied</html>")
+    monkeypatch.setattr(votaciones, "curl_status", lambda url: 403)
     with pytest.raises((ValueError, RuntimeError)):
         payload.export_payload(tmp_path)
     assert not (tmp_path / "manifest.json").exists()
@@ -78,3 +79,21 @@ def test_official_xml_can_have_whitespace_before_declaration():
         xml, votaciones.BASE + "/legis15/votaciones/ses_61.xml")
     assert parsed[0].session_number == 61
     assert len(parsed[0].votes) == 1
+
+
+@pytest.mark.parametrize("status", [403, 404])
+def test_export_distinguishes_retired_links_from_blocks(tmp_path, monkeypatch, status):
+    urls = [votaciones.BASE + f"/legis15/votaciones/ses_{n}.xml" for n in (1, 2)]
+    monkeypatch.setattr(votaciones, "discover_session_vote_urls", lambda: urls)
+    monkeypatch.setattr(votaciones, "curl_status", lambda url: status)
+    monkeypatch.setattr(votaciones, "curl_text", lambda url:
+                        "<html>Not XML</html>" if url == urls[0] else XML.format(number=2))
+    if status == 403:
+        with pytest.raises(RuntimeError, match="HTTP 403"):
+            payload.export_payload(tmp_path)
+        assert not (tmp_path / "manifest.json").exists()
+    else:
+        payload.export_payload(tmp_path)
+        manifest = json.loads((tmp_path / "manifest.json").read_text())
+        assert manifest["not_found_urls"] == [urls[0]]
+        assert list(payload.load_payload(tmp_path)) == [urls[1]]
