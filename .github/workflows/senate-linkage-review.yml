@@ -25,7 +25,7 @@ jobs:
           WITH people AS (
             SELECT p.id, p.senate_id,
               EXISTS(SELECT 1 FROM politician_memberships pm WHERE pm.politician_id=p.id AND pm.chamber='senate') AS senate_member,
-              lower(regexp_replace(translate(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,''), 'áéíóúüñàèìòùäëïöçÁÉÍÓÚÜÑÀÈÌÒÙÄËÏÖÇ', 'aeiouunaeiouaei ocAEIOUUNAEIOUAEI OC'), '[^a-zA-Z ]', '', 'g')) AS name_key,
+              lower(regexp_replace(translate(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,''), 'áéíóúüñàèìòùäëïöçÁÉÍÓÚÜÑÀÈÌÒÙÄËÏÖÇ', 'aeiouunaeiouaeiocAEIOUUNAEIOUAEIOC'), '[^a-zA-Z ]', '', 'g')) AS name_key,
               p.full_name LIKE '%&%' AS html_name,
               p.full_name LIKE '%' || chr(65533) || '%' AS broken_encoding
             FROM politicians p
@@ -37,8 +37,8 @@ jobs:
               count(DISTINCT p.id) AS all_candidates,
               count(DISTINCT p.id) FILTER (WHERE p.senate_member) AS senate_candidates
             FROM gaps g LEFT JOIN people p ON
-              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(p.name_key), '\s+') word) =
-              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(g.normalized_name), '\s+') word)
+              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(p.name_key), '[[:space:]]+') word) =
+              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(g.normalized_name), '[[:space:]]+') word)
             GROUP BY g.normalized_name, g.rows
           )
           SELECT json_build_object(
