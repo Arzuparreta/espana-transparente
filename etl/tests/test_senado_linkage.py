@@ -7,7 +7,7 @@ import psycopg2.extras
 import pytest
 
 from src.senado import votaciones as mod
-from test_senado_votaciones import SAMPLE_SESSION_VOTES
+from .test_senado_votaciones import SAMPLE_SESSION_VOTES
 
 
 @pytest.fixture
@@ -164,7 +164,7 @@ def test_plural_non_voter_is_preserved_and_unknown_labels_fail():
 
 
 def test_resume_reconciles_sessions_even_when_they_already_have_votes(monkeypatch):
-    from test_senado_votaciones import _FakeVotesConn
+    from .test_senado_votaciones import _FakeVotesConn
     monkeypatch.setattr(mod,"get_pg_conn",lambda: _FakeVotesConn())
     monkeypatch.setattr(mod,"discover_session_vote_urls",lambda **kw:["official"])
     monkeypatch.setattr(mod,"fetch_senate_session_votations",lambda url:[votation()])
