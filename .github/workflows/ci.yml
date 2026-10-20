@@ -259,7 +259,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
-      SENATE_PAYLOAD_DIRECTORY: ${{ runner.temp }}/senate-votes-${{ github.run_id }}
+      SENATE_PAYLOAD_DIRECTORY: ${{ github.workspace }}/.senate-votes-${{ github.run_id }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-etl
