@@ -106,3 +106,15 @@ def test_official_session_without_votes_is_valid(tmp_path, monkeypatch):
     monkeypatch.setattr(votaciones, "curl_text", lambda url: xml)
     payload.export_payload(tmp_path)
     assert payload.load_payload(tmp_path) == {url: []}
+
+
+def test_payload_refuses_to_drop_named_rows_after_a_source_structure_change():
+    xml = XML.format(number=2).replace("resultado>", "resultado_nuevo>")
+    with pytest.raises(ValueError, match="nominal rows"):
+        payload._parse_session_xml(xml, votaciones.BASE + "/legis15/votaciones/ses_2.xml", 2)
+
+
+def test_payload_counts_plural_non_voters_in_the_official_denominator():
+    xml = XML.format(number=2).replace("<voto>SÍ</voto>", "<voto>NO VOTAN</voto>")
+    result = payload._parse_session_xml(xml, votaciones.BASE + "/legis15/votaciones/ses_2.xml", 2)
+    assert result[0].votes[0].vote == "No vota"

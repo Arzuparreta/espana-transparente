@@ -517,10 +517,10 @@ def build_senator_index(cur) -> SenatorIndex:
         """
     )
     candidates: dict[str, set[str]] = {}
-    official_ids: dict[int, set[str]] = {}
+    official_ids: dict[str, set[str]] = {}
     for pid, full, first, last, senate_id in cur.fetchall():
         if senate_id is not None:
-            official_ids.setdefault(int(senate_id), set()).add(pid)
+            official_ids.setdefault(str(senate_id), set()).add(pid)
         names = {full or ""}
         if first and last:
             names.add(f"{first} {last}")
@@ -532,7 +532,7 @@ def build_senator_index(cur) -> SenatorIndex:
     index.update({key: next(iter(ids)) if len(ids) == 1 else None
                   for key, ids in candidates.items()})
     for key, evidence in VERIFIED_NAME_ALIASES.items():
-        ids = official_ids.get(evidence["senate_id"], set())
+        ids = official_ids.get(str(evidence["senate_id"]), set())
         target = next(iter(ids)) if len(ids) == 1 else None
         # Never fall back to a plausible namesake when the official target is
         # absent, duplicated or conflicts with an existing normalized name.
