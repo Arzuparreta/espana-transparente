@@ -69,3 +69,11 @@ def test_export_does_not_publish_manifest_after_a_block(tmp_path, monkeypatch):
     with pytest.raises((ValueError, RuntimeError)):
         payload.export_payload(tmp_path)
     assert not (tmp_path / "manifest.json").exists()
+
+
+def test_official_xml_can_have_whitespace_before_declaration():
+    xml = "\ufeff\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + XML.format(number=61)
+    parsed = votaciones.parse_senate_session_vote_xml(
+        xml, votaciones.BASE + "/legis15/votaciones/ses_61.xml")
+    assert parsed[0].session_number == 61
+    assert len(parsed[0].votes) == 1
