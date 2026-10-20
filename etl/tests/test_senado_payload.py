@@ -14,9 +14,10 @@ XML = """<main><sesion><num_sesion>{number}</num_sesion>
 
 @pytest.fixture
 def exported(tmp_path, monkeypatch):
-    # The catalog omits session 1; the export must still retrieve it.
+    # Session 1 has no published vote export; preserve discovered sessions.
     monkeypatch.setattr(votaciones, "discover_session_vote_urls", lambda: [
-        votaciones.BASE + "/legis15/votaciones/ses_2.xml"])
+        votaciones.BASE + "/legis15/votaciones/ses_2.xml",
+        votaciones.BASE + "/legis15/votaciones/ses_3.xml"])
     fetched = []
     def fetch(url):
         fetched.append(url)
@@ -34,7 +35,7 @@ def test_payload_round_trip_uses_no_http_or_database(exported, monkeypatch):
     monkeypatch.setattr(votaciones, "curl_status", forbidden)
     monkeypatch.setattr(votaciones, "get_pg_conn", forbidden)
     loaded = payload.load_payload(exported)
-    assert [rows[0].session_number for rows in loaded.values()] == [1, 2]
+    assert [rows[0].session_number for rows in loaded.values()] == [2, 3]
     assert sum(len(rows[0].votes) for rows in loaded.values()) == 2
     votaciones.run(from_directory=str(exported), dry_run=True)
 
