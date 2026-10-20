@@ -25,7 +25,7 @@ jobs:
           python3 - <<'PY'
           import subprocess
           from common.http_headers import curl_header_args
-          for number in (1, 2, 60, 61, 9999):
+          for number in (1, 2, 10, 60, 61, 9999):
               url = f"https://www.senado.es/legis15/votaciones/ses_{number}.xml"
               response = subprocess.run(
                   ["curl", "-sSL", "--compressed", "--max-time", "20",
