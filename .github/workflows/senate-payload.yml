@@ -1,0 +1,37 @@
+name: Senate official XML payload
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [main]
+    paths:
+      - etl/src/senado/**
+      - etl/tests/test_senado_payload.py
+      - .github/workflows/senate-payload.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: etl/requirements.txt
+      - run: pip install -r etl/requirements.txt
+      - name: Fetch and parse every published session
+        working-directory: etl
+        env:
+          PYTHONPATH: src
+        run: python -m src.senado.votaciones --export-directory "${{ runner.temp }}/senate-votes"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: senate-votes-${{ github.run_id }}
+          path: ${{ runner.temp }}/senate-votes
+          if-no-files-found: error
+          retention-days: 3
