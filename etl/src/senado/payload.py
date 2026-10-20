@@ -7,6 +7,21 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 
+def _parse_session_xml(xml, url, number):
+    from . import votaciones as votes
+
+    root = ET.fromstring(xml.lstrip("\ufeff \t\r\n"))
+    session = root.find(".//sesion")
+    if (session is None or (session.findtext("num_sesion") or "").strip() != str(number)
+            or not votes.parse_senate_slash_date(session.findtext("fecha_sesion"))):
+        raise ValueError(f"Invalid Senate session identity at {url}")
+    parsed = votes.parse_senate_session_vote_xml(xml, url)
+    if len(parsed) != len(session.findall("votacion")):
+        raise ValueError(f"Unparseable Senate votations at {url}")
+    # Official sessions such as 10 contain session metadata and no votes.
+    return parsed
+
+
 def export_payload(directory):
     from . import votaciones as votes
 
@@ -24,10 +39,8 @@ def export_payload(directory):
         print(f"Fetching {url}", flush=True)
         try:
             xml = votes.curl_text(url)
-            parsed = votes.parse_senate_session_vote_xml(xml, url)
-            if not parsed or any(row.session_number != number for row in parsed):
-                raise RuntimeError(f"Invalid or empty Senate session at {url}")
-        except (ET.ParseError, RuntimeError) as exc:
+            parsed = _parse_session_xml(xml, url, number)
+        except (ET.ParseError, RuntimeError, ValueError) as exc:
             status = votes.curl_status(url)
             if status != 404:
                 raise RuntimeError(f"Senate export failed at {url}: HTTP {status}; {exc}") from exc
@@ -81,8 +94,6 @@ def load_payload(directory):
         data = (target / entry["file"]).read_bytes()
         if hashlib.sha256(data).hexdigest() != entry["sha256"]:
             raise ValueError(f"Senate payload checksum mismatch: {url}")
-        parsed = votes.parse_senate_session_vote_xml(data.decode("utf-8"), url)
-        if not parsed or any(row.session_number != number for row in parsed):
-            raise ValueError(f"Invalid or empty Senate payload session: {url}")
+        parsed = _parse_session_xml(data.decode("utf-8"), url, number)
         result[url] = parsed
     return result
