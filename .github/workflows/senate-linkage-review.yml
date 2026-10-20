@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   aggregate:
@@ -56,17 +57,15 @@ jobs:
           ROLLBACK;
           SQL
 
-  official_source:
-    uses: ./.github/workflows/senate-payload.yml
-
   public_evidence:
-    needs: official_source
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: senate-votes-${{ github.run_id }}
+          name: senate-votes-39479923366
+          run-id: 39479923366
+          github-token: ${{ github.token }}
           path: official-votes
       - name: Inspect published vote names and XML identity fields
         run: |
@@ -79,6 +78,8 @@ jobs:
           counts = Counter()
           forms = defaultdict(set)
           fields = set()
+          accepted = Counter()
+          rejected = Counter()
           for path in Path("official-votes").glob("*.xml"):
               root = ET.fromstring(path.read_text().lstrip("\ufeff \t\r\n"))
               for node in root.findall(".//VotoSenador") + root.findall(".//ausentes/ausencia"):
@@ -86,11 +87,17 @@ jobs:
                   key = re.sub(r"[^a-z ]", "", unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower())
                   key = " ".join(key.split())
                   counts[key] += 1
+                  vote_key = unicodedata.normalize("NFKD", node.findtext("voto") or "").encode("ascii", "ignore").decode().lower().strip()
+                  if node.tag == "ausencia" or vote_key in {"si", "no", "abstencion", "no vota"}:
+                      accepted[key] += 1
+                  else:
+                      rejected[vote_key] += 1
                   forms[key].add(name)
                   fields.update(child.tag for child in node)
           print("OFFICIAL_XML_FIELDS", sorted(fields))
           print("OFFICIAL_COVERAGE", sum(counts.values()), "rows;", len(counts), "distinct normalized names")
-          for key, count in sorted(counts.items()):
-              if count == 327 or not key:
+          print("ACCEPTED_COVERAGE", sum(accepted.values()), "rows; rejected labels:", dict(rejected))
+          for key, count in sorted(accepted.items()):
+              if count == 327 or not key or "vacan" in key:
                   print("PUBLIC_SOURCE_NAME_COUNT", count, sorted(forms[key]))
           PY
