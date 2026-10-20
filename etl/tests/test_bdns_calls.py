@@ -87,6 +87,8 @@ def test_migration_aggregation_idempotence_rollback_and_read_permissions(monkeyp
             cur.execute("CREATE POLICY subsidies_read ON subsidies FOR SELECT TO anon, authenticated USING(true)")
             cur.execute("GRANT SELECT ON subsidies TO anon, authenticated")
             cur.execute(migration.read_text())
+            cur.execute("DROP TABLE IF EXISTS bdns_call_misses")
+            cur.execute((migration.parent / "20261019150000_bdns_call_misses.sql").read_text())
             raw = call(); row = parse_call(raw, "877378", "2026-10-11T00:00:00Z")
             store_calls(cur, [row, row])
             cur.execute("SELECT count(*) FROM bdns_calls")
