@@ -175,3 +175,28 @@ def test_resume_reconciles_sessions_even_when_they_already_have_votes(monkeypatc
     monkeypatch.setattr(mod,"upsert_senate_votation",lambda *args: calls.append(args) or (1,1))
     mod.run(resume=True)
     assert len(calls) == 1
+
+
+def test_production_verification_checks_identity_value_and_source_evidence(db):
+    person(db)
+    vote = votation()
+    vote.votes = vote.votes[:1]
+    index = mod.build_senator_index(db)
+    mod.upsert_senate_votation(db,"xv",vote,index)
+    db.execute("SELECT id FROM voting_sessions")
+    sid = db.fetchone()[0]
+    assert mod.verify_stored_senate_votation(db,sid,vote,index) == 1
+    db.execute("UPDATE votes SET vote='No'")
+    with pytest.raises(RuntimeError,match="differ"):
+        mod.verify_stored_senate_votation(db,sid,vote,index)
+    db.execute("UPDATE votes SET vote='Sí',politician_id='wrong-person'")
+    with pytest.raises(RuntimeError,match="differ"):
+        mod.verify_stored_senate_votation(db,sid,vote,index)
+    db.execute("UPDATE votes SET politician_id='p',raw_data='{}'")
+    with pytest.raises(RuntimeError,match="differ"):
+        mod.verify_stored_senate_votation(db,sid,vote,index)
+
+
+def test_production_verification_rejects_unresolved_rows(db):
+    with pytest.raises(RuntimeError,match="Unresolved"):
+        mod.verify_stored_senate_votation(db,1,votation(),{})

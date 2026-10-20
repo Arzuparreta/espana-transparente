@@ -757,6 +757,34 @@ def upsert_senate_votation(
     return matched, unmatched
 
 
+def verify_stored_senate_votation(cur, session_id, votation, senator_index) -> int:
+    """Verify actual people, vote values and source evidence, not just totals."""
+    expected = {}
+    for row in votation.votes:
+        pid = resolve_senator(row.name, senator_index)
+        if not pid or pid in expected:
+            raise RuntimeError(
+                f"Unresolved or duplicate official identity in Senate {votation.session_number}/{votation.votation_number}"
+            )
+        expected[pid] = (row.vote, row.name, row.seat, row.group, row.absent, votation.source_url)
+    cur.execute(
+        "SELECT politician_id, vote, raw_data FROM votes WHERE voting_session_id = %s",
+        (session_id,),
+    )
+    actual = {}
+    for pid, vote, raw in cur.fetchall():
+        raw = raw or {}
+        actual[pid] = (
+            vote, raw.get("name"), raw.get("seat"), raw.get("group"),
+            raw.get("absent"), raw.get("source_url"),
+        )
+    if actual != expected:
+        raise RuntimeError(
+            f"Stored Senate votes differ from official people/values/evidence in {votation.session_number}/{votation.votation_number}"
+        )
+    return len(actual)
+
+
 def run(
     dry_run: bool = False,
     resume: bool = False,
@@ -846,6 +874,9 @@ def run(
                     "yielded parseable votes — refusing to report success"
                 )
 
+            coverage = 100 * rows_inserted / rows_read if rows_read else 0
+            print(f"Senate linkage coverage: {rows_inserted}/{rows_read} ({coverage:.4f}%); "
+                  f"{rows_unmatched} pending in this payload (historical registry excluded).")
             finish_run(
                 cur,
                 run_id=run_id,

@@ -90,6 +90,7 @@ jobs:
           python - <<'PY'
           import os
           from src.senado.payload import load_payload
+          from src.senado.votaciones import build_senator_index, verify_stored_senate_votation
           from common.db import get_pg_conn
           payload = load_payload(os.environ["SENATE_VERIFY_DIRECTORY"])
           expected = [vote for session in payload.values() for vote in session]
@@ -99,6 +100,7 @@ jobs:
           try:
               conn.set_session(readonly=True)
               with conn.cursor() as cur:
+                  senator_index = build_senator_index(cur)
                   for vote in expected:
                       cur.execute("""
                           SELECT vs.id FROM voting_sessions vs
@@ -110,17 +112,13 @@ jobs:
                       row = cur.fetchone()
                       if not row:
                           raise RuntimeError(f"Missing production votation: {vote.session_number}/{vote.votation_number}")
-                      cur.execute("SELECT count(*) FROM votes WHERE voting_session_id = %s", (row[0],))
-                      count = cur.fetchone()[0]
-                      if vote.votes and not count:
-                          raise RuntimeError(f"No nominal votes stored for {vote.session_number}/{vote.votation_number}")
-                      stored_votes += count
+                      stored_votes += verify_stored_senate_votation(cur, row[0], vote, senator_index)
               report = f"Verified {len(expected)} official votations; {stored_votes} stored nominal votes; {official_votes} official nominal rows."
               print(report)
               with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
                   summary.write("\n## Senate production verification\n" + report + "\n")
               if stored_votes != official_votes:
-                  print("::warning::Stored vote count differs from official rows; inspect unmatched-name records before claiming complete attribution.")
+                  raise RuntimeError("Senate production verification requires every official nominal row to be linked.")
           finally:
               conn.close()
           PY
