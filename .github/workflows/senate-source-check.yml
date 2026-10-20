@@ -56,7 +56,14 @@ jobs:
                       result = subprocess.run(
                           ["curl", "-sS", "-L", "--compressed",
                            "--connect-timeout", "10", "--max-time", "30",
-                           "-A", "Mozilla/5.0",
+                           "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                           "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                           "-H", "Accept-Language: es-ES,es;q=0.9,en;q=0.8",
+                           "-H", "Sec-Fetch-Dest: document",
+                           "-H", "Sec-Fetch-Mode: navigate",
+                           "-H", "Sec-Fetch-Site: none",
+                           "-H", "Sec-Fetch-User: ?1",
+                           "-H", "Upgrade-Insecure-Requests: 1",
                            "-o", str(output), "-w", "%{http_code}", url],
                           capture_output=True, text=True, timeout=40,
                       )
