@@ -13,6 +13,27 @@ permissions:
   contents: read
 
 jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check catalog links that do not return XML
+        env:
+          PYTHONPATH: etl/src
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          from common.http_headers import curl_header_args
+          for number in (1, 2, 60, 61, 9999):
+              url = f"https://www.senado.es/legis15/votaciones/ses_{number}.xml"
+              response = subprocess.run(
+                  ["curl", "-sSL", "--compressed", "--max-time", "20",
+                   *curl_header_args(), "-w", "\\nHTTP_STATUS=%{http_code}", url],
+                  capture_output=True, text=True, timeout=25)
+              print(url, response.stdout[-30:], response.stdout[:1000], flush=True)
+          PY
+
   export:
     runs-on: ubuntu-latest
     timeout-minutes: 30
