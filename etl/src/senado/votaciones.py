@@ -158,7 +158,7 @@ def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=60,
@@ -385,7 +385,7 @@ def parse_int(value: str | None) -> int:
 
 
 def parse_senate_session_vote_xml(xml_text: str, source_url: str) -> list[SenateVotation]:
-    root = ET.fromstring(xml_text)
+    root = ET.fromstring(xml_text.lstrip("\ufeff \t\r\n"))
     session_node = root.find(".//sesion")
     if session_node is None:
         return []
@@ -671,8 +671,18 @@ def run(
     limit: int | None = None,
     from_session: int = 1,
     max_session: int | None = None,
+    from_directory: str | None = None,
 ) -> None:
-    urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
+    payload = None
+    if from_directory:
+        from .payload import load_payload
+        payload = load_payload(from_directory)
+        urls = [url for url in payload if _session_number(url) >= from_session
+                and (max_session is None or _session_number(url) <= max_session)]
+        if limit:
+            urls = urls[:limit]
+    else:
+        urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
     print(f"Discovered {len(urls)} Senate session XML files")
 
     # Past sessions stay published, so an empty discovery is a blocked request
@@ -685,7 +695,7 @@ def run(
 
     if dry_run:
         for url in urls[:5]:
-            votations = fetch_senate_session_votations(url)
+            votations = payload[url] if payload is not None else fetch_senate_session_votations(url)
             vote_count = sum(len(v.votes) for v in votations)
             print(f"  · {url}: {len(votations)} votaciones, {vote_count} votos nominales")
         return
@@ -709,7 +719,7 @@ def run(
             rows_unmatched = 0
             sessions_parsed = 0
             for i, url in enumerate(urls, 1):
-                votations = fetch_senate_session_votations(url)
+                votations = payload[url] if payload is not None else fetch_senate_session_votations(url)
                 if votations:
                     sessions_parsed += 1
                 if resume and votations:
@@ -786,13 +796,22 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--from-session", type=int, default=1)
     parser.add_argument("--max-session", type=int, default=None)
+    parser.add_argument("--from-directory", help="Ingest a verified official XML payload without HTTP requests")
+    parser.add_argument("--export-directory", help="Fetch all official XML sessions without opening the database")
     args = parser.parse_args()
+    if args.export_directory:
+        if args.from_directory or args.limit or args.max_session or args.from_session != 1:
+            parser.error("export requires complete discovery and cannot be combined with session filters")
+        from .payload import export_payload
+        export_payload(args.export_directory)
+        return
     run(
         dry_run=args.dry_run,
         resume=args.resume,
         limit=args.limit,
         from_session=args.from_session,
         max_session=args.max_session,
+        from_directory=args.from_directory,
     )
 
 

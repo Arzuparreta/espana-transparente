@@ -115,7 +115,12 @@ run_weekly_core() {
   run_pipeline "territorio.municipios" python -m src.territorio.municipios
   # senado.es (Akamai) re-blocks this IP for a while after the long member crawl;
   # the vote probe needs only a few requests, so it runs before that burst.
-  run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones
+  if [[ -n "${SENATE_PAYLOAD_DIRECTORY:-}" ]]; then
+    run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones \
+      --from-directory "${SENATE_PAYLOAD_DIRECTORY}"
+  else
+    run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones
+  fi
   run_pipeline "senado.senadores" python -m src.senado.senadores
   run_self_tracked_pipeline "senado.bajas" python -m src.senado.bajas
 }

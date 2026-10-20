@@ -257,3 +257,22 @@ def test_discovery_tolerates_a_single_gap(monkeypatch):
 
     assert len(urls) == 82
     assert urls[-1].endswith("/ses_83.xml")
+
+
+def test_status_probe_uses_compressed_get_with_production_headers(monkeypatch):
+    from types import SimpleNamespace
+    from src.senado import votaciones as mod
+    from common.http_headers import curl_header_args
+
+    commands = []
+    def request(command, **kwargs):
+        commands.append(command)
+        return SimpleNamespace(stdout="200", returncode=0)
+    monkeypatch.setattr(mod.subprocess, "run", request)
+    assert mod.curl_status("https://www.senado.es/legis15/votaciones/ses_61.xml", delay=0) == 200
+    command = commands[0]
+    assert "--compressed" in command
+    assert "-I" not in command and "--head" not in command
+    headers = curl_header_args()
+    offset = command.index(headers[0])
+    assert command[offset:offset + len(headers)] == headers
