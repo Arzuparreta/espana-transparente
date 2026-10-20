@@ -1,0 +1,57 @@
+name: Senate linkage aggregate review
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/senate-linkage-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  aggregate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/senate-vote-identities'
+    runs-on: [self-hosted, linux, x64, espana-transparente]
+    timeout-minutes: 5
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PGOPTIONS: "-c default_transaction_read_only=on -c statement_timeout=30000"
+    steps:
+      - name: Count linkage causes without exporting names or identifiers
+        run: |
+          psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 <<'SQL'
+          BEGIN READ ONLY;
+          WITH people AS (
+            SELECT p.id, p.senate_id,
+              EXISTS(SELECT 1 FROM politician_memberships pm WHERE pm.politician_id=p.id AND pm.chamber='senate') AS senate_member,
+              lower(regexp_replace(translate(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,''), 'áéíóúüñàèìòùäëïöçÁÉÍÓÚÜÑÀÈÌÒÙÄËÏÖÇ', 'aeiouunaeiouaei ocAEIOUUNAEIOUAEI OC'), '[^a-zA-Z ]', '', 'g')) AS name_key,
+              p.full_name LIKE '%&%' AS html_name,
+              p.full_name LIKE '%' || chr(65533) || '%' AS broken_encoding
+            FROM politicians p
+          ), gaps AS (
+            SELECT normalized_name, sum(vote_rows) AS rows
+            FROM senate_vote_unmatched_names GROUP BY normalized_name
+          ), matches AS (
+            SELECT g.normalized_name, g.rows,
+              count(DISTINCT p.id) AS all_candidates,
+              count(DISTINCT p.id) FILTER (WHERE p.senate_member) AS senate_candidates
+            FROM gaps g LEFT JOIN people p ON
+              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(p.name_key), '\s+') word) =
+              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(g.normalized_name), '\s+') word)
+            GROUP BY g.normalized_name, g.rows
+          )
+          SELECT json_build_object(
+            'unmatched_distinct_names', (SELECT count(*) FROM gaps),
+            'unmatched_registry_rows', (SELECT coalesce(sum(rows),0) FROM gaps),
+            'unique_senate_candidate_names', (SELECT count(*) FROM matches WHERE senate_candidates=1),
+            'unique_senate_candidate_rows', (SELECT coalesce(sum(rows),0) FROM matches WHERE senate_candidates=1),
+            'unique_non_senate_candidate_names', (SELECT count(*) FROM matches WHERE all_candidates=1 AND senate_candidates=0),
+            'no_candidate_names', (SELECT count(*) FROM matches WHERE all_candidates=0),
+            'ambiguous_senate_candidate_names', (SELECT count(*) FROM matches WHERE senate_candidates>1),
+            'senators_with_html_entities', (SELECT count(*) FROM people WHERE senate_member AND html_name),
+            'senators_with_broken_encoding', (SELECT count(*) FROM people WHERE senate_member AND broken_encoding),
+            'duplicate_official_ids', (SELECT count(*) FROM (SELECT senate_id FROM people WHERE senate_id IS NOT NULL GROUP BY senate_id HAVING count(*)>1) d)
+          );
+          ROLLBACK;
+          SQL
