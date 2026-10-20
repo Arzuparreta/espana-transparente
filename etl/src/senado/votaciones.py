@@ -385,7 +385,7 @@ def parse_int(value: str | None) -> int:
 
 
 def parse_senate_session_vote_xml(xml_text: str, source_url: str) -> list[SenateVotation]:
-    root = ET.fromstring(xml_text)
+    root = ET.fromstring(xml_text.lstrip("\ufeff \t\r\n"))
     session_node = root.find(".//sesion")
     if session_node is None:
         return []
