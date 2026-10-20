@@ -2,6 +2,11 @@ name: Senate official XML payload
 
 on:
   workflow_call:
+  push:
+    branches: [main]
+    paths:
+      - etl/src/senado/**
+      - .github/workflows/senate-payload.yml
   pull_request:
     branches: [main]
     paths:
@@ -56,3 +61,66 @@ jobs:
           path: ${{ runner.temp }}/senate-votes
           if-no-files-found: error
           retention-days: 3
+
+  ingest:
+    name: Validate Senate ingestion after integration
+    needs: export
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, x64, espana-transparente]
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: etl
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-etl
+      - uses: actions/download-artifact@v4
+        with:
+          name: senate-votes-${{ github.run_id }}
+          path: ${{ runner.temp }}/senate-votes-${{ github.run_id }}
+      - name: Ingest the complete verified official payload
+        run: python -m src.senado.votaciones --from-directory "${{ runner.temp }}/senate-votes-${{ github.run_id }}"
+      - name: Verify production voting sessions against the official payload
+        env:
+          SENATE_VERIFY_DIRECTORY: ${{ runner.temp }}/senate-votes-${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import os
+          from src.senado.payload import load_payload
+          from common.db import get_pg_conn
+          payload = load_payload(os.environ["SENATE_VERIFY_DIRECTORY"])
+          expected = [vote for session in payload.values() for vote in session]
+          stored_votes = 0
+          official_votes = sum(len(vote.votes) for vote in expected)
+          conn = get_pg_conn()
+          try:
+              conn.set_session(readonly=True)
+              with conn.cursor() as cur:
+                  for vote in expected:
+                      cur.execute("""
+                          SELECT vs.id FROM voting_sessions vs
+                          JOIN legislatures l ON l.id = vs.legislature_id
+                          WHERE l.number = 15 AND vs.chamber = 'senate'
+                            AND vs.session_number = %s AND vs.date = %s::date
+                            AND vs.votacion_number = %s
+                      """, (vote.session_number, vote.session_date, vote.votation_number))
+                      row = cur.fetchone()
+                      if not row:
+                          raise RuntimeError(f"Missing production votation: {vote.session_number}/{vote.votation_number}")
+                      cur.execute("SELECT count(*) FROM votes WHERE voting_session_id = %s", (row[0],))
+                      count = cur.fetchone()[0]
+                      if vote.votes and not count:
+                          raise RuntimeError(f"No nominal votes stored for {vote.session_number}/{vote.votation_number}")
+                      stored_votes += count
+              report = f"Verified {len(expected)} official votations; {stored_votes} stored nominal votes; {official_votes} official nominal rows."
+              print(report)
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+                  summary.write("\n## Senate production verification\n" + report + "\n")
+              if stored_votes != official_votes:
+                  print("::warning::Stored vote count differs from official rows; inspect unmatched-name records before claiming complete attribution.")
+          finally:
+              conn.close()
+          PY
