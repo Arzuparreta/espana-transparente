@@ -23,36 +23,21 @@ jobs:
         run: |
           psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 <<'SQL'
           BEGIN READ ONLY;
-          WITH people AS (
-            SELECT p.id, p.senate_id,
-              EXISTS(SELECT 1 FROM politician_memberships pm WHERE pm.politician_id=p.id AND pm.chamber='senate') AS senate_member,
-              lower(regexp_replace(translate(coalesce(p.first_name,'') || ' ' || coalesce(p.last_name,''), 'áéíóúüñàèìòùäëïöçÁÉÍÓÚÜÑÀÈÌÒÙÄËÏÖÇ', 'aeiouunaeiouaeiocAEIOUUNAEIOUAEIOC'), '[^a-zA-Z ]', '', 'g')) AS name_key,
-              p.full_name LIKE '%&%' AS html_name,
-              p.full_name LIKE '%' || chr(65533) || '%' AS broken_encoding
-            FROM politicians p
-          ), gaps AS (
-            SELECT normalized_name, sum(vote_rows) AS rows
-            FROM senate_vote_unmatched_names GROUP BY normalized_name
-          ), matches AS (
-            SELECT g.normalized_name, g.rows,
-              count(DISTINCT p.id) AS all_candidates,
-              count(DISTINCT p.id) FILTER (WHERE p.senate_member) AS senate_candidates
-            FROM gaps g LEFT JOIN people p ON
-              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(p.name_key), '[[:space:]]+') word) =
-              (SELECT string_agg(word,' ' ORDER BY word) FROM regexp_split_to_table(trim(g.normalized_name), '[[:space:]]+') word)
-            GROUP BY g.normalized_name, g.rows
-          )
           SELECT json_build_object(
-            'unmatched_distinct_names', (SELECT count(*) FROM gaps),
-            'unmatched_registry_rows', (SELECT coalesce(sum(rows),0) FROM gaps),
-            'unique_senate_candidate_names', (SELECT count(*) FROM matches WHERE senate_candidates=1),
-            'unique_senate_candidate_rows', (SELECT coalesce(sum(rows),0) FROM matches WHERE senate_candidates=1),
-            'unique_non_senate_candidate_names', (SELECT count(*) FROM matches WHERE all_candidates=1 AND senate_candidates=0),
-            'no_candidate_names', (SELECT count(*) FROM matches WHERE all_candidates=0),
-            'ambiguous_senate_candidate_names', (SELECT count(*) FROM matches WHERE senate_candidates>1),
-            'senators_with_html_entities', (SELECT count(*) FROM people WHERE senate_member AND html_name),
-            'senators_with_broken_encoding', (SELECT count(*) FROM people WHERE senate_member AND broken_encoding),
-            'duplicate_official_ids', (SELECT count(*) FROM (SELECT senate_id FROM people WHERE senate_id IS NOT NULL GROUP BY senate_id HAVING count(*)>1) d)
+            'verified_alias_targets', (
+              SELECT count(DISTINCT p.id) FROM politicians p
+              JOIN politician_memberships pm ON pm.politician_id=p.id
+              JOIN legislatures l ON l.id=pm.legislature_id
+              WHERE p.senate_id=20013 AND pm.chamber='senate' AND l.number=15
+            ),
+            'alias_pending_rows', (
+              SELECT coalesce(sum(vote_rows),0) FROM senate_vote_unmatched_names
+              WHERE normalized_name='eduardo pujol bonell'
+            ),
+            'legacy_unkeyed_rows', (
+              SELECT coalesce(sum(greatest(vote_rows-cardinality(seen_vote_keys),0)),0)
+              FROM senate_vote_unmatched_names
+            )
           );
           ROLLBACK;
           SQL
@@ -94,6 +79,7 @@ jobs:
                       rejected[vote_key] += 1
                   forms[key].add(name)
                   fields.update(child.tag for child in node)
+          print("REJECTED_PUBLIC_NAMES", sorted((sorted(forms[k]), counts[k], accepted[k]) for k in counts if counts[k] != accepted[k]))
           print("OFFICIAL_XML_FIELDS", sorted(fields))
           print("OFFICIAL_COVERAGE", sum(counts.values()), "rows;", len(counts), "distinct normalized names")
           print("ACCEPTED_COVERAGE", sum(accepted.values()), "rows; rejected labels:", dict(rejected))
