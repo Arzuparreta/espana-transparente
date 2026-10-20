@@ -5,85 +5,147 @@ on:
     branches: [main]
     paths:
       - .github/workflows/senate-linkage-review.yml
+      - etl/src/senado/**
+      - etl/tests/test_senado_linkage.py
 
 permissions:
   contents: read
   actions: read
 
 jobs:
-  aggregate:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/senate-vote-identities'
-    runs-on: [self-hosted, linux, x64, espana-transparente]
-    timeout-minutes: 5
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      PGOPTIONS: "-c default_transaction_read_only=on -c statement_timeout=30000"
-    steps:
-      - name: Count linkage causes without exporting names or identifiers
-        run: |
-          psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 <<'SQL'
-          BEGIN READ ONLY;
-          SELECT json_build_object(
-            'verified_alias_targets', (
-              SELECT count(DISTINCT p.id) FROM politicians p
-              JOIN politician_memberships pm ON pm.politician_id=p.id
-              JOIN legislatures l ON l.id=pm.legislature_id
-              WHERE p.senate_id=20013 AND pm.chamber='senate' AND l.number=15
-            ),
-            'alias_pending_rows', (
-              SELECT coalesce(sum(vote_rows),0) FROM senate_vote_unmatched_names
-              WHERE normalized_name='eduardo pujol bonell'
-            ),
-            'legacy_unkeyed_rows', (
-              SELECT coalesce(sum(greatest(vote_rows-cardinality(seen_vote_keys),0)),0)
-              FROM senate_vote_unmatched_names
-            )
-          );
-          ROLLBACK;
-          SQL
+  official_source:
+    uses: ./.github/workflows/senate-payload.yml
 
   public_evidence:
+    needs: official_source
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r etl/requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: senate-votes-${{ github.run_id }}
+          path: official-votes
+      - name: Count every official nominal row with the proposed parser
+        env:
+          PYTHONPATH: etl/src
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          from src.senado.payload import load_payload
+          from src.senado.votaciones import senate_name_keys
+          counts = Counter()
+          old_counts = Counter()
+          raw_rows = 0
+          for path in Path("official-votes").glob("*.xml"):
+              root = ET.fromstring(path.read_text().lstrip("\ufeff \t\r\n"))
+              for node in root.findall(".//VotoSenador") + root.findall(".//ausentes/ausencia"):
+                  raw_rows += 1
+                  name = (node.findtext("nombre") or "").strip()
+                  if node.tag == "ausencia" or (node.findtext("voto") or "").lower().strip() != "no votan":
+                      old_counts[name] += 1
+          payload = load_payload("official-votes")
+          for session in payload.values():
+              for votation in session:
+                  counts.update(v.name for v in votation.votes)
+          assert sum(counts.values()) == raw_rows, "Parser dropped official nominal rows"
+          report = {"files":len(payload),"votations":sum(map(len,payload.values())),
+                    "nominal_rows":raw_rows,"previous_parser_rows":sum(old_counts.values()),
+                    "plural_non_voters_recovered":raw_rows-sum(old_counts.values())}
+          print("PUBLIC_CORPUS",json.dumps(report))
+          Path("public-names.json").write_text(json.dumps([
+              {"keys":sorted(senate_name_keys(name)),"rows":rows,"old_rows":old_counts[name]}
+              for name,rows in sorted(counts.items())
+          ]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public-senate-name-counts-${{ github.run_id }}
+          path: public-names.json
+          retention-days: 3
+
+  aggregate:
+    needs: public_evidence
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/senate-vote-identities'
+    runs-on: [self-hosted, linux, x64, espana-transparente]
     timeout-minutes: 5
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: senate-votes-39479923366
-          run-id: 39479923366
-          github-token: ${{ github.token }}
-          path: official-votes
-      - name: Inspect published vote names and XML identity fields
+          name: public-senate-name-counts-${{ github.run_id }}
+          path: ${{ runner.temp }}/senate-public-counts-${{ github.run_id }}
+      # No checkout or PR Python runs with production credentials. This fixed
+      # query returns counts only, within a forced read-only transaction.
+      - name: Verify prospective linkage with aggregate counts only
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PGOPTIONS: "-c default_transaction_read_only=on -c statement_timeout=30000"
+          PUBLIC_NAMES: ${{ runner.temp }}/senate-public-counts-${{ github.run_id }}/public-names.json
         run: |
-          python3 - <<'PY'
-          from collections import Counter, defaultdict
-          from pathlib import Path
-          import re
-          import unicodedata
-          import xml.etree.ElementTree as ET
-          counts = Counter()
-          forms = defaultdict(set)
-          fields = set()
-          accepted = Counter()
-          rejected = Counter()
-          for path in Path("official-votes").glob("*.xml"):
-              root = ET.fromstring(path.read_text().lstrip("\ufeff \t\r\n"))
-              for node in root.findall(".//VotoSenador") + root.findall(".//ausentes/ausencia"):
-                  name = (node.findtext("nombre") or "").strip()
-                  key = re.sub(r"[^a-z ]", "", unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower())
-                  key = " ".join(key.split())
-                  counts[key] += 1
-                  vote_key = unicodedata.normalize("NFKD", node.findtext("voto") or "").encode("ascii", "ignore").decode().lower().strip()
-                  if node.tag == "ausencia" or vote_key in {"si", "no", "abstencion", "no vota"}:
-                      accepted[key] += 1
-                  else:
-                      rejected[vote_key] += 1
-                  forms[key].add(name)
-                  fields.update(child.tag for child in node)
-          print("REJECTED_PUBLIC_NAMES", sorted((sorted(forms[k]), counts[k], accepted[k]) for k in counts if counts[k] != accepted[k]))
-          print("OFFICIAL_XML_FIELDS", sorted(fields))
-          print("OFFICIAL_COVERAGE", sum(counts.values()), "rows;", len(counts), "distinct normalized names")
-          print("ACCEPTED_COVERAGE", sum(accepted.values()), "rows; rejected labels:", dict(rejected))
-          for key, count in sorted(accepted.items()):
-              if count == 327 or not key or "vacan" in key:
-                  print("PUBLIC_SOURCE_NAME_COUNT", count, sorted(forms[key]))
-          PY
+          psql "$DATABASE_URL" --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 --set=public_names="$(cat "$PUBLIC_NAMES")" <<'SQL'
+          BEGIN READ ONLY;
+          WITH people AS (
+            SELECT DISTINCT p.id,p.senate_id,p.full_name,p.first_name,p.last_name
+            FROM politicians p
+            JOIN politician_memberships pm ON pm.politician_id=p.id
+            JOIN legislatures l ON l.id=pm.legislature_id
+            WHERE pm.chamber='senate' AND l.number=15
+          ), variants AS (
+            SELECT id,lower(regexp_replace(translate(n,
+              'áéíóúüñàèìòùäëïöçÁÉÍÓÚÜÑÀÈÌÒÙÄËÏÖÇ',
+              'aeiouunaeiouaeiocAEIOUUNAEIOUAEIOC'), '[^a-zA-Z ]','','g')) AS k
+            FROM people CROSS JOIN LATERAL unnest(ARRAY[
+              full_name,first_name||' '||last_name,last_name||', '||first_name
+            ]) n
+          ), keys AS (
+            SELECT DISTINCT id,trim(regexp_replace(k,'[[:space:]]+',' ','g')) AS k FROM variants
+            UNION
+            SELECT DISTINCT id,(
+              SELECT string_agg(word,' ' ORDER BY ord)
+              FROM regexp_split_to_table(trim(k),'[[:space:]]+') WITH ORDINALITY AS s(word,ord)
+              WHERE word NOT IN ('de','del','la','las','los','y','i')
+            ) AS k FROM variants
+          ), ordinary AS (
+            SELECT k,CASE WHEN count(DISTINCT id)=1 THEN min(id::text) END AS target
+            FROM keys WHERE k IS NOT NULL AND k<>'' GROUP BY k
+          ), alias_target AS (
+            SELECT CASE WHEN count(DISTINCT id)=1 THEN min(id::text) END AS target
+            FROM people WHERE senate_id='20013'
+          ), proposed AS (
+            SELECT * FROM ordinary WHERE k<>'eduardo pujol bonell'
+            UNION ALL
+            SELECT 'eduardo pujol bonell',
+              CASE WHEN NOT EXISTS (
+                SELECT 1 FROM ordinary o WHERE o.k='eduardo pujol bonell'
+                  AND o.target IS DISTINCT FROM a.target
+              ) THEN a.target END
+            FROM alias_target a
+          ), source AS (
+            SELECT row_number() OVER() AS n,rows,old_rows,keys
+            FROM jsonb_to_recordset(:'public_names'::jsonb)
+              AS s(rows integer,old_rows integer,keys jsonb)
+          ), matched AS (
+            SELECT s.n,s.rows,s.old_rows,
+              count(DISTINCT p.target) AS targets,
+              coalesce(bool_or(p.k IS NOT NULL AND p.target IS NULL),false) AS blocked
+            FROM source s CROSS JOIN LATERAL jsonb_array_elements_text(s.keys) k
+            LEFT JOIN proposed p ON p.k=k
+            GROUP BY s.n,s.rows,s.old_rows
+          )
+          SELECT json_build_object(
+            'verified_alias_targets',(SELECT count(*) FROM alias_target WHERE target IS NOT NULL),
+            'official_rows',(SELECT sum(rows) FROM source),
+            'proposed_linked_rows',(SELECT coalesce(sum(rows),0) FROM matched WHERE targets=1 AND NOT blocked),
+            'proposed_pending_rows',(SELECT coalesce(sum(rows),0) FROM matched WHERE targets<>1 OR blocked),
+            'proposed_pending_names',(SELECT count(*) FROM matched WHERE targets<>1 OR blocked),
+            'legacy_unkeyed_rows',(SELECT coalesce(sum(greatest(vote_rows-cardinality(seen_vote_keys),0)),0) FROM senate_vote_unmatched_names)
+          );
+          ROLLBACK;
+          SQL
