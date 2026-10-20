@@ -97,3 +97,12 @@ def test_export_distinguishes_retired_links_from_blocks(tmp_path, monkeypatch, s
         manifest = json.loads((tmp_path / "manifest.json").read_text())
         assert manifest["not_found_urls"] == [urls[0]]
         assert list(payload.load_payload(tmp_path)) == [urls[1]]
+
+
+def test_official_session_without_votes_is_valid(tmp_path, monkeypatch):
+    url = votaciones.BASE + "/legis15/votaciones/ses_10.xml"
+    xml = "<main><sesion><num_sesion>10</num_sesion><fecha_sesion>25/01/2024</fecha_sesion><diario_sesiones>13</diario_sesiones></sesion></main>"
+    monkeypatch.setattr(votaciones, "discover_session_vote_urls", lambda: [url])
+    monkeypatch.setattr(votaciones, "curl_text", lambda url: xml)
+    payload.export_payload(tmp_path)
+    assert payload.load_payload(tmp_path) == {url: []}
