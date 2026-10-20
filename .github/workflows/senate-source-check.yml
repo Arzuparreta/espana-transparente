@@ -1,0 +1,75 @@
+name: Senate source diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/senate-source-check.yml
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/senate-source-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-check:
+    name: Senate HTTP probe
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-latest
+          - [self-hosted, linux, x64, espana-transparente]
+    # This job performs read-only public requests, with no database or secrets.
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 8
+    steps:
+      - name: Probe official hosts and paths
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import subprocess
+          import tempfile
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          import time
+
+          rows = ["## Senate official source probes", "",
+                  "| URL | HTTP | Session | Votes | curl exit |",
+                  "|---|---:|---|---:|---:|"]
+          paths = [
+              "/legis15/votaciones/ses_60.xml",
+              "/legis15/votaciones/ses_61.xml",
+              "/legis15/votaciones/ses_61.xml?format=xml",
+              "/web/ficopendataservlet?tipoFich=14&legis=15",
+          ]
+          with tempfile.TemporaryDirectory() as directory:
+              for host in ("www.senado.es", "senado.es"):
+                  for path in paths:
+                      url = "https://" + host + path
+                      output = Path(directory) / "response"
+                      result = subprocess.run(
+                          ["curl", "-sS", "-L", "--compressed",
+                           "--connect-timeout", "10", "--max-time", "30",
+                           "-A", "Mozilla/5.0",
+                           "-o", str(output), "-w", "%{http_code}", url],
+                          capture_output=True, text=True, timeout=40,
+                      )
+                      session, votes = "", 0
+                      try:
+                          root = ET.fromstring(output.read_bytes())
+                          session = root.findtext(".//num_sesion", "")
+                          votes = len(root.findall(".//VotoSenador"))
+                      except (OSError, ET.ParseError):
+                          pass
+                      row = f"| {url} | {result.stdout} | {session} | {votes} | {result.returncode} |"
+                      rows.append(row)
+                      print(row, flush=True)
+                      time.sleep(2)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as report:
+              report.write("\n".join(rows) + "\n")
+          PY
