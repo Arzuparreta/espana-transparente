@@ -55,3 +55,42 @@ jobs:
           );
           ROLLBACK;
           SQL
+
+  official_source:
+    uses: ./.github/workflows/senate-payload.yml
+
+  public_evidence:
+    needs: official_source
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: senate-votes-${{ github.run_id }}
+          path: official-votes
+      - name: Inspect published vote names and XML identity fields
+        run: |
+          python3 - <<'PY'
+          from collections import Counter, defaultdict
+          from pathlib import Path
+          import re
+          import unicodedata
+          import xml.etree.ElementTree as ET
+          counts = Counter()
+          forms = defaultdict(set)
+          fields = set()
+          for path in Path("official-votes").glob("*.xml"):
+              root = ET.fromstring(path.read_text().lstrip("\ufeff \t\r\n"))
+              for node in root.findall(".//VotoSenador") + root.findall(".//ausentes/ausencia"):
+                  name = (node.findtext("nombre") or "").strip()
+                  key = re.sub(r"[^a-z ]", "", unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower())
+                  key = " ".join(key.split())
+                  counts[key] += 1
+                  forms[key].add(name)
+                  fields.update(child.tag for child in node)
+          print("OFFICIAL_XML_FIELDS", sorted(fields))
+          print("OFFICIAL_COVERAGE", sum(counts.values()), "rows;", len(counts), "distinct normalized names")
+          for key, count in sorted(counts.items()):
+              if count == 327 or not key:
+                  print("PUBLIC_SOURCE_NAME_COUNT", count, sorted(forms[key]))
+          PY
