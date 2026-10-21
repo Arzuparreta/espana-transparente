@@ -75,6 +75,7 @@ VOTE_MAP = {
     "abstencion": "Abstención",
     "abstención": "Abstención",
     "no vota": "No vota",
+    "no votan": "No vota",
 }
 
 SPANISH_NAME_PARTICLES = {"de", "del", "la", "las", "los", "y", "i"}
@@ -415,7 +416,9 @@ def parse_senate_session_vote_xml(xml_text: str, source_url: str) -> list[Senate
         for vote_node in node.findall(".//resultado/VotoSenador"):
             vote = normalize_vote(_cdata(vote_node.find("voto")))
             if vote not in {"Sí", "No", "Abstención", "No vota"}:
-                continue
+                raise RuntimeError(
+                    f"Unknown official vote label {vote!r} at {source_url}; refusing partial coverage"
+                )
             rows.append(
                 SenateVoteRow(
                     name=_cdata(vote_node.find("nombre")),
@@ -477,17 +480,47 @@ def fetch_senate_session_votations(url: str, attempts: int = 3) -> list[SenateVo
     return []
 
 
-def build_senator_index(cur) -> dict[str, str | None]:
+# The XML has names, not person IDs. Each exception must be independently
+# evidenced and scoped to an official Senate identity in the same legislature.
+VERIFIED_NAME_ALIASES = {
+    "eduardo pujol bonell": {
+        "senate_id": 20013,
+        "legislature": 15,
+        "profile_url": (
+            "https://www.senado.es/web/composicionorganizacion/senadores/"
+            "composicionsenado/fichasenador/index.html?id1=20013&legis=15"
+        ),
+        "evidence_url": (
+            "https://www.senado.es/web/actividadparlamentaria/sesionesplenarias/"
+            "pleno/rwdsesionespleno/detalle/index.html?id=47&lang=gl_ES&legis=15&ns=48"
+        ),
+    },
+}
+
+
+class SenatorIndex(dict):
+    """Unambiguous names plus evidence for explicitly reviewed variants."""
+
+    def __init__(self):
+        super().__init__()
+        self.alias_evidence = {}
+
+
+def build_senator_index(cur) -> SenatorIndex:
     cur.execute(
         """
-        SELECT p.id, p.full_name, p.first_name, p.last_name
+        SELECT DISTINCT p.id, p.full_name, p.first_name, p.last_name, p.senate_id
         FROM politicians p
         JOIN politician_memberships pm ON pm.politician_id = p.id
-        WHERE pm.chamber = 'senate'
+        JOIN legislatures l ON l.id = pm.legislature_id
+        WHERE pm.chamber = 'senate' AND l.number = 15
         """
     )
     candidates: dict[str, set[str]] = {}
-    for pid, full, first, last in cur.fetchall():
+    official_ids: dict[str, set[str]] = {}
+    for pid, full, first, last, senate_id in cur.fetchall():
+        if senate_id is not None:
+            official_ids.setdefault(str(senate_id), set()).add(pid)
         names = {full or ""}
         if first and last:
             names.add(f"{first} {last}")
@@ -495,7 +528,61 @@ def build_senator_index(cur) -> dict[str, str | None]:
         for name in names:
             for key in senate_name_keys(name):
                 candidates.setdefault(key, set()).add(pid)
-    return {key: next(iter(ids)) if len(ids) == 1 else None for key, ids in candidates.items()}
+    index = SenatorIndex()
+    index.update({key: next(iter(ids)) if len(ids) == 1 else None
+                  for key, ids in candidates.items()})
+    for key, evidence in VERIFIED_NAME_ALIASES.items():
+        ids = official_ids.get(str(evidence["senate_id"]), set())
+        target = next(iter(ids)) if len(ids) == 1 else None
+        # Never fall back to a plausible namesake when the official target is
+        # absent, duplicated or conflicts with an existing normalized name.
+        if target is None or (key in index and index[key] != target):
+            index[key] = None
+        else:
+            index[key] = target
+            index.alias_evidence[key] = evidence
+    return index
+
+
+def resolve_senator(name: str, index: dict) -> str | None:
+    keys = senate_name_keys(name)
+    if any(key in index and index[key] is None for key in keys):
+        return None
+    ids = {index[key] for key in keys if index.get(key)}
+    return next(iter(ids)) if len(ids) == 1 else None
+
+
+def resolve_tracked_senate_votes(cur, vote_keys: list[str]) -> None:
+    """Remove only pending occurrences proven linked in this transaction.
+
+    Counts predating seen_vote_keys are retained: a replay cannot prove what
+    those unkeyed legacy counts referred to. Do not turn them into coverage.
+    """
+    if not vote_keys:
+        return
+    cur.execute(
+        """
+        DELETE FROM senate_vote_unmatched_names
+        WHERE cardinality(seen_vote_keys) > 0
+          AND vote_rows = cardinality(seen_vote_keys)
+          AND seen_vote_keys <@ %s::text[]
+        """, (vote_keys,),
+    )
+    cur.execute(
+        """
+        UPDATE senate_vote_unmatched_names u
+        SET vote_rows = u.vote_rows - (
+              SELECT count(*) FROM unnest(u.seen_vote_keys) k
+              WHERE k = ANY(%s::text[])
+            ),
+            seen_vote_keys = ARRAY(
+              SELECT k FROM unnest(u.seen_vote_keys) k
+              WHERE NOT (k = ANY(%s::text[]))
+            ),
+            updated_at = now()
+        WHERE u.seen_vote_keys && %s::text[]
+        """, (vote_keys, vote_keys, vote_keys),
+    )
 
 
 def record_unmatched_senate_votes(cur, rows: list[SenateUnmatchedVote]) -> None:
@@ -606,13 +693,10 @@ def upsert_senate_votation(
     unmatched = 0
     unmatched_rows: list[SenateUnmatchedVote] = []
     rows = []
+    resolved_keys = []
+    seen_people = set()
     for vote in votation.votes:
-        possible_ids = {
-            senator_index[key]
-            for key in senate_name_keys(vote.name)
-            if key in senator_index and senator_index[key]
-        }
-        pol_id = next(iter(possible_ids)) if len(possible_ids) == 1 else None
+        pol_id = resolve_senator(vote.name, senator_index)
         if not pol_id:
             unmatched += 1
             unmatched_rows.append(
@@ -628,6 +712,12 @@ def upsert_senate_votation(
                 )
             )
             continue
+        if pol_id in seen_people:
+            raise RuntimeError("Multiple official vote rows resolve to the same senator")
+        seen_people.add(pol_id)
+        resolved_keys.append(
+            f"{votation.session_number}:{votation.votation_number}:{vote.seat or ''}:{normalize_name(vote.name)}"
+        )
         rows.append(
             (
                 sid,
@@ -641,6 +731,7 @@ def upsert_senate_votation(
                         "group": vote.group,
                         "name": vote.name,
                         "absent": vote.absent,
+                        "identity_alias": getattr(senator_index, "alias_evidence", {}).get(normalize_name(vote.name)),
                     }
                 ),
             )
@@ -660,9 +751,38 @@ def upsert_senate_votation(
             rows,
         )
 
+    resolve_tracked_senate_votes(cur, resolved_keys)
     record_unmatched_senate_votes(cur, unmatched_rows)
 
     return matched, unmatched
+
+
+def verify_stored_senate_votation(cur, session_id, votation, senator_index) -> int:
+    """Verify actual people, vote values and source evidence, not just totals."""
+    expected = {}
+    for row in votation.votes:
+        pid = resolve_senator(row.name, senator_index)
+        if not pid or pid in expected:
+            raise RuntimeError(
+                f"Unresolved or duplicate official identity in Senate {votation.session_number}/{votation.votation_number}"
+            )
+        expected[pid] = (row.vote, row.name, row.seat, row.group, row.absent, votation.source_url)
+    cur.execute(
+        "SELECT politician_id, vote, raw_data FROM votes WHERE voting_session_id = %s",
+        (session_id,),
+    )
+    actual = {}
+    for pid, vote, raw in cur.fetchall():
+        raw = raw or {}
+        actual[pid] = (
+            vote, raw.get("name"), raw.get("seat"), raw.get("group"),
+            raw.get("absent"), raw.get("source_url"),
+        )
+    if actual != expected:
+        raise RuntimeError(
+            f"Stored Senate votes differ from official people/values/evidence in {votation.session_number}/{votation.votation_number}"
+        )
+    return len(actual)
 
 
 def run(
@@ -673,6 +793,8 @@ def run(
     max_session: int | None = None,
     from_directory: str | None = None,
 ) -> None:
+    if resume:
+        print("Senate --resume reconciles all published sessions to repair partial linkage.")
     payload = None
     if from_directory:
         from .payload import load_payload
@@ -722,22 +844,6 @@ def run(
                 votations = payload[url] if payload is not None else fetch_senate_session_votations(url)
                 if votations:
                     sessions_parsed += 1
-                if resume and votations:
-                    cur.execute(
-                        """
-                        SELECT 1
-                        FROM voting_sessions vs
-                        JOIN votes v ON v.voting_session_id = vs.id
-                        WHERE vs.legislature_id = %s
-                          AND vs.chamber = 'senate'
-                          AND vs.session_number = %s
-                        LIMIT 1
-                        """,
-                        (legislature_id, votations[0].session_number),
-                    )
-                    if cur.fetchone():
-                        continue
-
                 session_read = sum(len(v.votes) for v in votations)
                 session_inserted = 0
                 session_unmatched = 0
@@ -768,6 +874,9 @@ def run(
                     "yielded parseable votes — refusing to report success"
                 )
 
+            coverage = 100 * rows_inserted / rows_read if rows_read else 0
+            print(f"Senate linkage coverage: {rows_inserted}/{rows_read} ({coverage:.4f}%); "
+                  f"{rows_unmatched} pending in this payload (historical registry excluded).")
             finish_run(
                 cur,
                 run_id=run_id,
@@ -778,6 +887,7 @@ def run(
             )
             conn.commit()
     except Exception as exc:
+        conn.rollback()
         if run_id:
             with conn.cursor() as cur:
                 finish_run(cur, run_id=run_id, status="failed", error_summary=str(exc)[:500])
@@ -792,7 +902,7 @@ def run(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Senate voting session indexer")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--resume", action="store_true", help="Compatibility flag: Senate sessions are always reconciled")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--from-session", type=int, default=1)
     parser.add_argument("--max-session", type=int, default=None)

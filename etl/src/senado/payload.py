@@ -18,6 +18,9 @@ def _parse_session_xml(xml, url, number):
     parsed = votes.parse_senate_session_vote_xml(xml, url)
     if len(parsed) != len(session.findall("votacion")):
         raise ValueError(f"Unparseable Senate votations at {url}")
+    raw_rows = len(session.findall(".//VotoSenador")) + len(session.findall(".//ausentes/ausencia"))
+    if sum(len(v.votes) for v in parsed) != raw_rows:
+        raise ValueError(f"Unparseable Senate nominal rows at {url}")
     # Official sessions such as 10 contain session metadata and no votes.
     return parsed
 
@@ -31,6 +34,8 @@ def export_payload(directory):
     if not urls:
         raise RuntimeError("Senate discovery returned no sessions")
     entries = []
+    nominal_rows = 0
+    votations = 0
     not_found = []
     # Discovery includes catalog links and probes beyond the lagging catalog.
     # Sessions without a published vote export must not be invented here.
@@ -53,10 +58,14 @@ def export_payload(directory):
         filename = f"ses_{number}.xml"
         (target / filename).write_bytes(data)
         entries.append(dict(url=url, file=filename, sha256=hashlib.sha256(data).hexdigest()))
+        nominal_rows += sum(len(v.votes) for v in parsed)
+        votations += len(parsed)
         print(f"Exported session {number}: {len(parsed)} votations", flush=True)
     manifest = dict(version=1, fetched_at=datetime.now(timezone.utc).isoformat(), discovered_urls=urls, not_found_urls=not_found, sessions=entries)
     # Publish the manifest only after every session has been fetched and parsed.
     (target / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    print(f"Official Senate corpus: {len(entries)} files, {votations} votations, "
+          f"{nominal_rows} nominal rows; {len(not_found)} confirmed HTTP 404 catalog links.", flush=True)
 
 
 def load_payload(directory):

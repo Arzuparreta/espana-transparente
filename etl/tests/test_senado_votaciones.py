@@ -200,6 +200,9 @@ class _FakeVotesCursor:
 
 
 class _FakeVotesConn:
+    def rollback(self):
+        return None
+
     def cursor(self, *args, **kwargs):
         return _FakeVotesCursor()
 
