@@ -3,6 +3,7 @@ import { SourceFootnote } from "@/components/domain/SourceFootnote"
 import {
   COFOG_FUNCTIONS,
   COFOG_SOURCE,
+  COFOG_TOLERANCE,
   selectCofogYear,
   type CofogCode,
   type CofogYear,
@@ -100,6 +101,18 @@ export function ExpenditureFunctions({
           {selected.provisional && (
             <p className="text-sm">
               Datos provisionales según Eurostat; sujetos a revisión.
+            </p>
+          )}
+          {Math.abs(selected.accountsDifference) > COFOG_TOLERANCE && (
+            <p role="status" className="text-sm">
+              El total provisional de este reparto difiere del publicado en{" "}
+              <a className="underline" href="https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table?lang=es">
+                las cuentas públicas de Eurostat
+              </a>{" "}
+              ({formatEuroCompact(selected.accountsTotal * 1_000_000)}) en{" "}
+              {Math.abs(selected.accountsDifference).toLocaleString("es-ES", { maximumFractionDigits: 1 })}{" "}
+              millones de euros. Los porcentajes usan el total COFOG; no se
+              ajustan las funciones para igualar ambas publicaciones.
             </p>
           )}
           {selected.total === 0 && (

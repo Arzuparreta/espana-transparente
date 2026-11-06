@@ -58,6 +58,39 @@ def test_reconciliation_with_accounts_is_required():
     assert len(build_records(payload(), accounts(100.5))) == 11
 
 
+def test_provisional_difference_preserves_official_denominator_and_comparison():
+    raw = payload()
+    raw["status"] = {"0": "p"}
+    records = build_records(raw, accounts(101))
+    assert len(records) == 11
+    assert records[0][4] == Decimal(100)
+    assert sum(r[4] for r in records[1:]) == records[0][4]
+    for record in records:
+        meta = json.loads(record[-1])
+        assert meta["accounts_total"] == "101"
+        assert meta["accounts_residual"] == "-1"
+        assert meta["accounts_comparison"] == "provisional_difference"
+
+
+def test_provisional_division_does_not_excuse_a_definitive_total_mismatch():
+    raw = payload()
+    raw["status"] = {"1": "p"}
+    with pytest.raises(ValueError, match="accounts mismatch"):
+        build_records(raw, accounts(101))
+
+
+def test_provisional_total_still_requires_complete_reconciled_sources():
+    raw = payload()
+    raw["status"] = {"0": "p"}
+    missing_accounts = accounts()
+    missing_accounts["value"] = {}
+    with pytest.raises(ValueError, match="Missing accounts total"):
+        build_records(raw, missing_accounts)
+    raw["value"]["1"] = 30
+    with pytest.raises(ValueError, match="COFOG reconciliation failed"):
+        build_records(raw, accounts(101))
+
+
 def test_empty_year_is_not_zero_or_a_partial_new_snapshot():
     raw = payload()
     raw["dimension"]["time"]["category"]["index"] = {"2024": 0, "2025": 1}
@@ -97,7 +130,9 @@ def test_postgres_idempotence_rollback_scope_and_public_permissions():
             cur.execute("SELECT count(*) FROM etl_runs WHERE pipeline='ine.cofog' AND status='succeeded'")
             assert cur.fetchone()[0] >= 1
         conn.commit()
-        records = build_records(payload(), accounts(), "2026-10-11T00:00:00Z")
+        raw = payload()
+        raw["status"] = {"0": "p"}
+        records = build_records(raw, accounts(101), "2026-11-06T00:00:00Z")
         with conn.cursor() as cur:
             replace_snapshot(cur, records)
             replace_snapshot(cur, records)
@@ -108,6 +143,8 @@ def test_postgres_idempotence_rollback_scope_and_public_permissions():
         with conn.cursor() as cur:
             cur.execute("SELECT count(*) FROM expenditure_functions WHERE sector='S13'")
             assert cur.fetchone()[0] == 11
+            cur.execute("SELECT DISTINCT raw_data->>'accounts_comparison', raw_data->>'accounts_residual' FROM expenditure_functions WHERE sector='S13'")
+            assert cur.fetchall() == [("provisional_difference", "-1")]
             replace_snapshot(cur, records)
             cur.execute("SELECT count(*) FROM expenditure_functions WHERE sector='S1311'")
             assert cur.fetchone()[0] == 1
