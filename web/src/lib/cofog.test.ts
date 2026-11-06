@@ -24,6 +24,21 @@ describe("COFOG publication contract", () => {
       expect(cofogYears(sample)).toEqual({ years: [], rejectedYears: [2024] })
     },
   )
+  it("publishes a disclosed provisional difference with its own denominator", () => {
+    const sample = rows()
+    sample[0].raw_data!.flags = ["p"]
+    for (const row of sample) Object.assign(row.raw_data!, {
+      accounts_total: "101", accounts_comparison: "provisional_difference", accounts_residual: "-1",
+    })
+    const result = cofogYears(sample)
+    expect(result.rejectedYears).toEqual([])
+    expect(result.years[0]).toMatchObject({ total: 100, accountsTotal: 101, accountsDifference: -1, provisional: true })
+    sample[0].raw_data!.flags = []
+    expect(cofogYears(sample).rejectedYears).toEqual([2024])
+    sample[0].raw_data!.flags = ["p"]
+    sample[1].raw_data!.accounts_residual = "0"
+    expect(cofogYears(sample).rejectedYears).toEqual([2024])
+  })
   it("retains provisionality and does not silently change an unavailable year", () => {
     const sample = rows()
     sample[1].raw_data!.flags = ["p"]

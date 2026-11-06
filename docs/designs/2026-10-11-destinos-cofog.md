@@ -24,3 +24,26 @@ Evidencia local del 11 de octubre:
 - ETL: 294 pruebas correctas; una prueba de integración de búsqueda omitida por no configurar su conexión específica. Web: 177 pruebas correctas en 31 archivos; lint, tipos, auditorías UI/contenido y build de producción correctos. `git diff --check` correcto.
 - Vista local del componente con las 99 filas obtenidas del seed SQL, a 390 × 844 y 1280 × 900. En móvil, documento de 375 px y tabla de 343 px, sin desbordamiento horizontal. Desplegable de significado activado con Enter; 2025 muestra ausencia y enlace explícito a 2024, sin sustituir cifras. El entorno temporal de revisión se elimina antes de commit. Esta prueba no acredita lectura desde Supabase en producción ni comprensión con participantes.
 - La publicación, migración en producción y primera actualización semanal requieren el recorrido de main después de merge. Los checks del head remoto se registran en la PR; no confundir CI con despliegue ni cerrar toda la fase 2.
+
+## Corrección del 6 de noviembre: contraste entre publicaciones provisionales
+
+La consulta viva reproduce el fallo semanal del 2 de noviembre: el total de
+2024 en `gov_10a_exp` es provisional y difiere del total de `gov_10a_main`.
+Las diez funciones siguen sumando el TOTAL de su propia publicación. Tratar
+esa diferencia entre dos publicaciones oficiales como un desglose inválido
+bloqueaba la actualización de todos los ejercicios y el monitor de frescura.
+
+Se mantiene la tolerancia de 0,6 M € para la suma de las diez funciones. El
+contraste con cuentas sigue siendo obligatorio: una diferencia superior a esa
+tolerancia solo se admite si el TOTAL COFOG lleva la bandera oficial `p`.
+Se conservan los importes, banderas y fechas de ambas fuentes y se añaden
+`accounts_comparison` (`matched` o `provisional_difference`) y
+`accounts_residual` (TOTAL COFOG menos TE de cuentas). No se reescalan funciones
+ni se atribuye la discrepancia a una causa no acreditada por Eurostat.
+
+La interfaz comprueba que todas las filas describen el mismo contraste y,
+para aceptar una discrepancia, exige bandera provisional del TOTAL y residuo
+coherente explícito. El reparto muestra el aviso y enlaza las cuentas de
+Eurostat. Sus porcentajes usan exclusivamente el TOTAL COFOG. Un total
+definitivo discrepante, fuente de cuentas ausente, año parcial o suma interna
+incorrecta continúa fallando antes de sustituir la instantánea.

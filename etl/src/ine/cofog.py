@@ -71,8 +71,17 @@ def build_records(raw, accounts, retrieved_at=None):
         residual = sum(facts[year, code][0] for code in CODES[1:]) - total
         if abs(residual) > TOLERANCE:
             raise ValueError(f"COFOG reconciliation failed in {year}: {residual}")
-        if ("TE", year) not in totals or abs(totals["TE", year][0] - total) > TOLERANCE:
-            raise ValueError(f"COFOG/accounts mismatch in {year}")
+        if ("TE", year) not in totals:
+            raise ValueError(f"Missing accounts total in {year}")
+        accounts_residual = total - totals["TE", year][0]
+        comparison = "matched"
+        if abs(accounts_residual) > TOLERANCE:
+            # Eurostat can publish a provisional functional breakdown separately
+            # from the main accounts. Keep its own denominator and disclose the
+            # difference; never scale the divisions to the accounts total.
+            if "p" not in facts[year, "TOTAL"][1]:
+                raise ValueError(f"COFOG/accounts mismatch in {year}")
+            comparison = "provisional_difference"
         for code in CODES:
             value, flag = facts[year, code]
             metadata = dict(
@@ -83,6 +92,7 @@ def build_records(raw, accounts, retrieved_at=None):
                 accounts_total=str(totals["TE", year][0]),
                 accounts_flags=[totals["TE", year][1]] if totals["TE", year][1] else [],
                 accounts_updated=accounts.get("updated"), reconciliation_residual=str(residual),
+                accounts_comparison=comparison, accounts_residual=str(accounts_residual),
             )
             records.append(("ES", "S13", int(year), code, value, "MIO_EUR", json.dumps(metadata)))
     if not records:

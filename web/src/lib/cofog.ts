@@ -68,6 +68,8 @@ export interface CofogYear {
   provisional: boolean
   lastChecked: string | null
   residual: number
+  accountsDifference: number
+  accountsTotal: number
 }
 
 export function cofogYears(rows: CofogObservation[]) {
@@ -112,6 +114,9 @@ export function cofogYears(rows: CofogObservation[]) {
         return false
       })
     const total = values.get("TOTAL") ?? NaN
+    const totalFlags = group.find((row) => row.function_code === "TOTAL")?.raw_data?.flags
+    const provisionalTotal = Array.isArray(totalFlags) &&
+      totalFlags.some((flag) => String(flag).includes("p"))
     const residual =
       Object.keys(COFOG_FUNCTIONS).reduce(
         (sum, code) => sum + (values.get(code) ?? NaN),
@@ -121,11 +126,20 @@ export function cofogYears(rows: CofogObservation[]) {
       invalid ||
       !Number.isFinite(residual) ||
       Math.abs(residual) > COFOG_TOLERANCE ||
-      group.some(
-        (row) =>
-          Math.abs(Number(row.raw_data?.accounts_total) - total) >
-          COFOG_TOLERANCE,
-      )
+      group.some((row) => {
+        const meta = row.raw_data!
+        const difference = total - Number(meta.accounts_total)
+        // Every row must describe the same comparison. A discrepancy is
+        // publishable only when the source TOTAL itself is provisional.
+        return Number(meta.accounts_total) !== Number(group[0].raw_data?.accounts_total) ||
+          (Math.abs(difference) > COFOG_TOLERANCE && (
+            meta.accounts_comparison !== "provisional_difference" ||
+            meta.accounts_residual == null ||
+            !Number.isFinite(Number(meta.accounts_residual)) ||
+            Math.abs(Number(meta.accounts_residual) - difference) > 1e-6 ||
+            !provisionalTotal
+          ))
+      })
     ) {
       rejectedYears.push(year)
       continue
@@ -138,6 +152,8 @@ export function cofogYears(rows: CofogObservation[]) {
       year,
       total,
       residual,
+      accountsTotal: Number(group[0].raw_data?.accounts_total),
+      accountsDifference: total - Number(group[0].raw_data?.accounts_total),
       values: Object.fromEntries(
         Object.keys(COFOG_FUNCTIONS).map((code) => [code, values.get(code)!]),
       ) as Record<CofogCode, number>,

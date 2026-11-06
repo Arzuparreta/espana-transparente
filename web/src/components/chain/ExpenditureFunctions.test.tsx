@@ -49,3 +49,16 @@ it("keeps errors, unavailable and zero states distinct", () => {
     ),
   ).toContain("Repartos excluidos")
 })
+
+it("discloses a provisional difference and keeps percentages on the COFOG total", () => {
+  const sample = rows()
+  sample[0].raw_data!.flags = ["p"]
+  for (const row of sample) Object.assign(row.raw_data!, {
+    accounts_total: "101", accounts_comparison: "provisional_difference", accounts_residual: "-1",
+  })
+  const html = renderToStaticMarkup(<ExpenditureFunctions data={{ ...cofogYears(sample), error: false }} />)
+  expect(html).toContain("total provisional de este reparto difiere")
+  expect(html).toContain("gov_10a_main")
+  expect(html).toContain("10 €")
+  expect(html).toContain("millones de euros")
+})
