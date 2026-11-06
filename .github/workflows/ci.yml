@@ -193,7 +193,8 @@ jobs:
         with:
           node-version-file: web/.node-version
       - name: Apply pending migrations
-        run: NPM_CONFIG_CACHE=${RUNNER_TEMP}/npm-cache npx supabase migration up --db-url "$DATABASE_URL" --include-all
+        # v3 rejects this project's v2 configuration (including [inbucket]).
+        run: NPM_CONFIG_CACHE=${RUNNER_TEMP}/npm-cache npx --yes supabase@2.121.0 migration up --db-url "$DATABASE_URL" --include-all
       - name: Close abandoned ETL runs
         run: |
           psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --command="
