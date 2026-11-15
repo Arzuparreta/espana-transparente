@@ -126,13 +126,15 @@ class SenateUnmatchedVote:
     source_url: str
 
 
-def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
+def _curl_text_once(url: str, delay: float) -> str:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "--connect-timeout", "10", "--max-time", "45",
+         *curl_header_args(), url],
         capture_output=True,
         timeout=60,
+        check=True,
     )
     raw = result.stdout
     text = None
@@ -153,21 +155,50 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     return text
 
 
-def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
+    for attempt in range(1, 4):
+        try:
+            return _curl_text_once(url, delay)
+        except (RuntimeError, subprocess.SubprocessError) as exc:
+            if attempt == 3:
+                raise
+            print(f"Senate request {attempt}/3 failed at {url}: {exc}; retrying this URL", flush=True)
+            time.sleep(5 * attempt)
+
+
+def _curl_status_once(url: str, delay: float) -> int:
     # GET, not HEAD: from the VPS runner Akamai answers HEAD on /legisNN/ with
     # 403 even when GET is served, and a 403 used to read as "no such session".
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "--connect-timeout", "10", "--max-time", "45",
+         "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=60,
+        check=True,
     )
     try:
         return int(result.stdout.strip()[-3:])
     except ValueError:
         return 0
+
+
+def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+    for attempt in range(1, 4):
+        try:
+            status = _curl_status_once(url, delay)
+            if status not in (0, 403, 429) and status < 500:
+                return status
+        except subprocess.SubprocessError:
+            if attempt == 3:
+                raise
+            status = 0
+        if attempt < 3:
+            print(f"Senate probe {attempt}/3 at {url}: HTTP {status}; retrying this URL", flush=True)
+            time.sleep(5 * attempt)
+    return status
 
 
 def parse_senate_date_label(label: str | None) -> str | None:

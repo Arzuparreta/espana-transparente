@@ -54,15 +54,7 @@ jobs:
         working-directory: etl
         env:
           PYTHONPATH: src
-        run: |
-          for attempt in 1 2 3; do
-            if python -m src.senado.votaciones --export-directory "${{ runner.temp }}/senate-votes"; then
-              exit 0
-            fi
-            echo "::warning::Senate export attempt ${attempt}/3 failed"
-            if (( attempt < 3 )); then sleep 30; fi
-          done
-          exit 1
+        run: python -m src.senado.votaciones --export-directory "${{ runner.temp }}/senate-votes"
       - uses: actions/upload-artifact@v4
         with:
           name: senate-votes-${{ github.run_id }}

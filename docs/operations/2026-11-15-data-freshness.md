@@ -29,10 +29,15 @@ versiones desconocidas, alteraciones y descargas de más de dos días o con fech
 futura; vuelve a ejecutar todas las conciliaciones antes de guardar. Las
 conexiones tienen dos reintentos y un tiempo de conexión de diez segundos.
 
-El exportador del Senado tiene tres intentos acotados. Cada exportación retira
-el manifiesto anterior antes de empezar, para que un fallo no parezca una
-descarga nueva completa. Un 403 persistente sigue siendo un fallo: no se
-interpreta como final del catálogo ni como ausencia de votos.
+El transporte del Senado tiene tres intentos por URL, con pausas de cinco y
+diez segundos para bloqueos intermitentes y errores de conexión. Sondeos y
+descargas vuelven a pedir únicamente el recurso que falló; los XML anteriores
+no se descargan de nuevo. CI reprodujo un bloqueo en las sesiones 24 y 28
+que desaparecía en la petición posterior, por lo que reiniciar todo el corpus
+no reparaba el mecanismo. Cada exportación retira el manifiesto anterior antes
+de empezar, para que un fallo no parezca una descarga nueva completa. Un 403
+persistente sigue siendo un fallo: no se interpreta como final del catálogo
+ni como ausencia de votos.
 
 El artefacto del Senado se descarga fuera del checkout, en el directorio
 temporal del runner. Hacienda se publica en generaciones bajo
@@ -88,7 +93,7 @@ con la fecha actual y conserva el caso explícito de caducidad.
 - `/api/data-health`: HTTP 200, `status=ok`, `monitored=56`, `issues=[]`.
 - `/financiacion-territorial` y `/senado`: HTTP 200.
 - [Nueva ejecución de Data freshness correcta](https://github.com/Arzuparreta/espana-transparente/actions/runs/43695075505).
-- Pruebas ETL con PostgreSQL desechable: 590 correctas, una integración opcional
+- Pruebas ETL con PostgreSQL desechable: 599 correctas, una integración opcional
   de búsqueda omitida. Actionlint valida los dos workflows, reconociendo la
   etiqueta personalizada del runner; `bash -n` y `git diff --check` correctos.
 
