@@ -156,7 +156,8 @@ def export_payload(directory):
 
 
 def load_payload(directory):
-    target = Path(directory)
+    # Pin the generation while the publisher atomically switches `current`.
+    target = Path(directory).resolve()
     manifest = json.loads((target / 'manifest.json').read_text(encoding='utf-8'))
     if manifest.get('version') != 1 or manifest.get('source_url') != SOURCE:
         raise ValueError('Unknown financing payload version or source')

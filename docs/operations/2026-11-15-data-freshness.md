@@ -19,9 +19,12 @@ Ejecución que permite reproducir el diagnóstico:
 
 ## Correcciones
 
-La descarga de Hacienda se hace en un job de GitHub sin acceso a la base de
-datos, antes del lote semanal de enlaces. Transfiere el Excel original,
-su SHA-256, URL oficial y fecha de descarga. El consumidor rechaza otro origen,
+Hacienda tampoco acepta la conexión del runner de GitHub (comprobado en la
+PR #99: `ConnectTimeout` tras tres intentos). La descarga se hace diariamente
+desde este equipo mediante `scripts/push-financing-payload.py`, siguiendo el
+transporte residencial que ya usa Kohesio. No necesita credenciales de base
+de datos. Transfiere el Excel original, su SHA-256, URL oficial y fecha de
+descarga al VPS mediante SSH. El consumidor rechaza otro origen,
 versiones desconocidas, alteraciones y descargas de más de dos días o con fecha
 futura; vuelve a ejecutar todas las conciliaciones antes de guardar. Las
 conexiones tienen dos reintentos y un tiempo de conexión de diez segundos.
@@ -31,8 +34,13 @@ el manifiesto anterior antes de empezar, para que un fallo no parezca una
 descarga nueva completa. Un 403 persistente sigue siendo un fallo: no se
 interpreta como final del catálogo ni como ausencia de votos.
 
-Ambos artefactos se descargan fuera del checkout, en el directorio temporal
-del runner. Si no hay manifiesto, el lote intenta la fuente directamente;
+El artefacto del Senado se descarga fuera del checkout, en el directorio
+temporal del runner. Hacienda se publica en generaciones bajo
+`/var/lib/espana-transparente/financing`, con un enlace `current` que se sustituye
+atómicamente solo al recibir ambos archivos y verificar el checksum. Se
+conservan tres días de generaciones para proteger las lecturas en curso.
+`FINANCING_PAYLOAD_PATH` señala el directorio `current` en las variables de
+Actions. Si no hay manifiesto, el lote intenta la fuente directamente;
 si el manifiesto existe pero es inválido, la validación falla. Los lotes siguen
 ejecutando las otras fuentes y devuelven error si alguna ingesta falla.
 El Senado abre su registro ETL antes de descubrir o cargar las fuentes;
@@ -80,12 +88,22 @@ con la fecha actual y conserva el caso explícito de caducidad.
 - `/api/data-health`: HTTP 200, `status=ok`, `monitored=56`, `issues=[]`.
 - `/financiacion-territorial` y `/senado`: HTTP 200.
 - [Nueva ejecución de Data freshness correcta](https://github.com/Arzuparreta/espana-transparente/actions/runs/43695075505).
-- Pruebas ETL con PostgreSQL desechable: 586 correctas, una integración opcional
+- Pruebas ETL con PostgreSQL desechable: 590 correctas, una integración opcional
   de búsqueda omitida. Actionlint valida los dos workflows, reconociendo la
   etiqueta personalizada del runner; `bash -n` y `git diff --check` correctos.
 
 La recuperación ya está aplicada. La validación local anterior precede a la
-publicación de los cambios preventivos. El nuevo job de descarga de Hacienda
-se ejecuta también en las PR para comprobar desde un runner de GitHub su acceso
-a la fuente antes de integrar la corrección. La verificación del despliegue y
-de las ingestas con el código integrado se realiza después de pasar CI.
+publicación de los cambios preventivos. La verificación del despliegue y de
+las ingestas con el código integrado se realiza después de pasar CI.
+
+## Temporizador residencial de Hacienda
+
+Las unidades versionadas están en `ops/systemd/user/`. Se instalan en
+`~/.config/systemd/user/` y se activa
+`espana-transparente-financing-push.timer` con `systemctl --user enable --now`.
+El servicio ejecuta el Python del entorno ETL del repositorio, con un límite
+de cinco minutos. El temporizador se ejecuta cada 24 horas y al iniciar la
+sesión si procede. Este equipo necesita estar disponible, igual que para
+Kohesio. Un fallo de descarga conserva la generación anterior sin renovar
+su fecha; si pasan dos días, el consumidor rechaza el payload y la alerta
+permanece activa. No se convierte la falta de acceso a la fuente en éxito.

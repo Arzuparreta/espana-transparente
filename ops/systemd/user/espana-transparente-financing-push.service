@@ -1,0 +1,10 @@
+[Unit]
+Description=Fetch official Hacienda financing originals and transfer them to the VPS
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/mnt/storage/Git-projects-storage/espana-transparente
+ExecStart=/mnt/storage/Git-projects-storage/espana-transparente/etl/.venv/bin/python scripts/push-financing-payload.py
+TimeoutStartSec=5min
+Nice=10
