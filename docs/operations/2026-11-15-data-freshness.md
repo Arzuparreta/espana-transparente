@@ -84,7 +84,8 @@ con la fecha actual y conserva el caso explícito de caducidad.
   de búsqueda omitida. Actionlint valida los dos workflows, reconociendo la
   etiqueta personalizada del runner; `bash -n` y `git diff --check` correctos.
 
-La recuperación ya está aplicada. Los cambios preventivos del código y los
-workflows se han validado localmente; aún requieren publicación e integración
-para que los use la siguiente ejecución programada. El nuevo job de descarga
-de Hacienda deberá verificarse también desde el runner de GitHub al publicarlo.
+La recuperación ya está aplicada. La validación local anterior precede a la
+publicación de los cambios preventivos. El nuevo job de descarga de Hacienda
+se ejecuta también en las PR para comprobar desde un runner de GitHub su acceso
+a la fuente antes de integrar la corrección. La verificación del despliegue y
+de las ingestas con el código integrado se realiza después de pasar CI.
