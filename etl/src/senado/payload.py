@@ -30,6 +30,8 @@ def export_payload(directory):
 
     target = Path(directory)
     target.mkdir(parents=True, exist_ok=True)
+    # A failed retry must never leave an earlier successful manifest visible.
+    (target / "manifest.json").unlink(missing_ok=True)
     urls = votes.discover_session_vote_urls()
     if not urls:
         raise RuntimeError("Senate discovery returned no sessions")

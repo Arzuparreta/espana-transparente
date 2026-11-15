@@ -795,27 +795,30 @@ def run(
 ) -> None:
     if resume:
         print("Senate --resume reconciles all published sessions to repair partial linkage.")
-    payload = None
-    if from_directory:
-        from .payload import load_payload
-        payload = load_payload(from_directory)
-        urls = [url for url in payload if _session_number(url) >= from_session
-                and (max_session is None or _session_number(url) <= max_session)]
-        if limit:
-            urls = urls[:limit]
-    else:
-        urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
-    print(f"Discovered {len(urls)} Senate session XML files")
+    def load_sources():
+        payload = None
+        if from_directory:
+            from .payload import load_payload
+            payload = load_payload(from_directory)
+            urls = [url for url in payload if _session_number(url) >= from_session
+                    and (max_session is None or _session_number(url) <= max_session)]
+            if limit:
+                urls = urls[:limit]
+        else:
+            urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
+        print(f"Discovered {len(urls)} Senate session XML files")
 
-    # Past sessions stay published, so an empty discovery is a blocked request
-    # or a moved catalog — not a legislature without votes.
-    if not urls:
-        raise RuntimeError(
-            "Senate open-data catalog returned 0 session files — refusing to "
-            "report success; the source is blocked or its catalog moved"
-        )
+        # Past sessions stay published, so an empty discovery is a blocked
+        # request or a moved catalog, never evidence of no votes.
+        if not urls:
+            raise RuntimeError(
+                "Senate open-data catalog returned 0 session files — refusing to "
+                "report success; the source is blocked or its catalog moved"
+            )
+        return payload, urls
 
     if dry_run:
+        payload, urls = load_sources()
         for url in urls[:5]:
             votations = payload[url] if payload is not None else fetch_senate_session_votations(url)
             vote_count = sum(len(v.votes) for v in votations)
@@ -835,6 +838,8 @@ def run(
             run_id = start_run(cur, pipeline="senado.votaciones", chunk_key="nominal")
             conn.commit()
 
+            # Record source/discovery failures too, before any vote is changed.
+            payload, urls = load_sources()
             senator_index = build_senator_index(cur)
             rows_read = 0
             rows_inserted = 0

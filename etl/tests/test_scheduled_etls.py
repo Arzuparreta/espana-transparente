@@ -152,7 +152,7 @@ def _fake_python_bin(tmp_path):
     return fake_bin
 
 
-def _run_weekly_core(tmp_path, extra_env):
+def _run_batch_calls(tmp_path, extra_env, batch='weekly-core'):
     fake_bin = _fake_python_bin(tmp_path)
     calls = tmp_path / "calls.txt"
     env = os.environ.copy()
@@ -161,14 +161,18 @@ def _run_weekly_core(tmp_path, extra_env):
     env.update(extra_env)
 
     subprocess.run(
-        ["bash", "scripts/run_scheduled_etls.sh", "weekly-core"],
+        ["bash", "scripts/run_scheduled_etls.sh", batch],
         cwd=Path(__file__).resolve().parents[1],
         env=env,
         capture_output=True,
         text=True,
         timeout=15,
     )
-    return [c for c in calls.read_text().splitlines() if "kohesio" in c]
+    return calls.read_text().splitlines()
+
+
+def _run_weekly_core(tmp_path, extra_env):
+    return [c for c in _run_batch_calls(tmp_path, extra_env) if 'kohesio' in c]
 
 
 def test_weekly_core_ingests_the_prefetched_kohesio_payload(tmp_path):
@@ -196,3 +200,23 @@ def test_weekly_core_ignores_an_empty_payload_file(tmp_path):
     kohesio_calls = _run_weekly_core(tmp_path, {"KOHESIO_PAYLOAD": str(payload)})
     assert len(kohesio_calls) == 1
     assert "--from-file" not in kohesio_calls[0]
+
+
+@pytest.mark.parametrize('batch,module,variable', [
+    ('weekly-core', 'src.senado.votaciones', 'SENATE_PAYLOAD_DIRECTORY'),
+    ('weekly-links', 'src.presupuestos.financiacion', 'FINANCING_PAYLOAD_DIRECTORY'),
+])
+@pytest.mark.parametrize('manifest', ['missing', 'empty', 'present'])
+def test_transferred_sources_require_a_manifest_before_offline_ingestion(
+    tmp_path, batch, module, variable, manifest
+):
+    directory = tmp_path / 'payload'
+    directory.mkdir()
+    if manifest != 'missing':
+        (directory / 'manifest.json').write_text('{}' if manifest == 'present' else '')
+    calls = _run_batch_calls(tmp_path, {variable: str(directory)}, batch)
+    source_calls = [c for c in calls if f'-m {module}' in c]
+    assert len(source_calls) == 1
+    assert ('--from-directory' in source_calls[0]) == (manifest == 'present')
+    if manifest == 'present':
+        assert source_calls[0].endswith(f'--from-directory {directory}')
