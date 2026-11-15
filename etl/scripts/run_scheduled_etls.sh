@@ -115,10 +115,11 @@ run_weekly_core() {
   run_pipeline "territorio.municipios" python -m src.territorio.municipios
   # senado.es (Akamai) re-blocks this IP for a while after the long member crawl;
   # the vote probe needs only a few requests, so it runs before that burst.
-  if [[ -n "${SENATE_PAYLOAD_DIRECTORY:-}" ]]; then
+  if [[ -n "${SENATE_PAYLOAD_DIRECTORY:-}" && -s "${SENATE_PAYLOAD_DIRECTORY}/manifest.json" ]]; then
     run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones \
       --from-directory "${SENATE_PAYLOAD_DIRECTORY}"
   else
+    echo "::warning title=Senate payload missing::Falling back to a direct fetch"
     run_self_tracked_pipeline "senado.votaciones" python -m src.senado.votaciones
   fi
   run_pipeline "senado.senadores" python -m src.senado.senadores
@@ -146,7 +147,13 @@ run_weekly_links() {
   run_self_tracked_pipeline "ine.cofog" python -m src.ine.cofog
   run_self_tracked_pipeline "presupuestos.ejecucion" python -m src.presupuestos.ejecucion
   run_self_tracked_pipeline "presupuestos.local" python -m src.presupuestos.local
-  run_self_tracked_pipeline "presupuestos.financiacion" python -m src.presupuestos.financiacion
+  if [[ -n "${FINANCING_PAYLOAD_DIRECTORY:-}" && -s "${FINANCING_PAYLOAD_DIRECTORY}/manifest.json" ]]; then
+    run_self_tracked_pipeline "presupuestos.financiacion" python -m src.presupuestos.financiacion \
+      --from-directory "${FINANCING_PAYLOAD_DIRECTORY}"
+  else
+    echo "::warning title=Financing payload missing::Falling back to a direct fetch"
+    run_self_tracked_pipeline "presupuestos.financiacion" python -m src.presupuestos.financiacion
+  fi
   run_self_tracked_pipeline "presupuestos.autonomico" python -m src.presupuestos.autonomico
   run_self_tracked_pipeline "congreso.publicacion" python -m src.congreso.publicacion
   run_self_tracked_pipeline "congreso.actividad" python -m src.congreso.actividad

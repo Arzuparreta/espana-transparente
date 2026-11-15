@@ -185,6 +185,31 @@ def test_run_fails_when_no_session_file_parses(monkeypatch):
         mod.run()
 
 
+def test_source_failures_are_recorded_before_any_votes_change(monkeypatch, tmp_path):
+    import pytest
+    from unittest.mock import Mock
+    from src.senado import votaciones as mod
+
+    finish = Mock()
+    upsert = Mock()
+    start = Mock(return_value='run-1')
+    monkeypatch.setattr(mod, 'get_pg_conn', lambda: _FakeVotesConn())
+    monkeypatch.setattr(mod, 'start_run', start)
+    monkeypatch.setattr(mod, 'finish_run', finish)
+    monkeypatch.setattr(mod, 'upsert_senate_votation', upsert)
+    monkeypatch.setattr(mod, 'discover_session_vote_urls', Mock(side_effect=RuntimeError('HTTP 403')))
+    with pytest.raises(RuntimeError, match='HTTP 403'):
+        mod.run()
+    assert finish.call_args.kwargs == dict(run_id='run-1', status='failed', error_summary='HTTP 403')
+
+    with pytest.raises(FileNotFoundError):
+        mod.run(from_directory=str(tmp_path))
+    assert finish.call_args.kwargs['status'] == 'failed'
+    assert 'manifest.json' in finish.call_args.kwargs['error_summary']
+    assert start.call_count == 2
+    upsert.assert_not_called()
+
+
 class _FakeVotesCursor:
     def execute(self, *args, **kwargs):
         return None

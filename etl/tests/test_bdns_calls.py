@@ -89,7 +89,9 @@ def test_migration_aggregation_idempotence_rollback_and_read_permissions(monkeyp
             cur.execute(migration.read_text())
             cur.execute("DROP TABLE IF EXISTS bdns_call_misses")
             cur.execute((migration.parent / "20261019150000_bdns_call_misses.sql").read_text())
-            raw = call(); row = parse_call(raw, "877378", "2026-10-11T00:00:00Z")
+            # This branch needs a fresh descriptor; a fixed date expires after
+            # 30 days and incorrectly turns the capacity check into a refresh.
+            raw = call(); row = parse_call(raw, "877378")
             store_calls(cur, [row, row])
             cur.execute("SELECT count(*) FROM bdns_calls")
             assert cur.fetchone()[0] == 2

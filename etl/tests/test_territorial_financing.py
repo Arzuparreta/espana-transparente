@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+from datetime import datetime, timezone, timedelta
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import Mock
@@ -8,6 +9,7 @@ from unittest.mock import Mock
 import openpyxl
 import pytest
 from presupuestos.financiacion import parse_workbook, save, SOURCE, VERSION
+from presupuestos import financiacion
 
 FIXTURE = Path(__file__).parent/'fixtures/financing-2024.xlsx'
 
@@ -48,6 +50,81 @@ def test_partial_selection_never_replaces_previous_snapshot():
     cur=Mock();s=parse_workbook(FIXTURE.read_bytes());s['records'].pop()
     with pytest.raises(ValueError):save(cur,s)
     cur.execute.assert_not_called()
+
+
+@pytest.fixture
+def financing_payload(tmp_path, monkeypatch):
+    monkeypatch.setattr(financiacion, 'fetch_workbook', lambda: FIXTURE.read_bytes())
+    financiacion.export_payload(tmp_path)
+    return tmp_path
+
+
+def test_offline_payload_revalidates_the_original_workbook(financing_payload, monkeypatch):
+    def forbidden():
+        pytest.fail('Offline financing payload attempted HTTP')
+    monkeypatch.setattr(financiacion, 'fetch_workbook', forbidden)
+    snapshot = financiacion.load_payload(financing_payload)
+    assert len(snapshot['records']) == 17
+    assert snapshot['source_url'] == SOURCE
+    manifest = json.loads((financing_payload / 'manifest.json').read_text())
+    assert snapshot['retrieved_at'] == manifest['fetched_at']
+    assert snapshot['workbook_sha256'] == manifest['sha256']
+    financiacion.run(dry_run=True, from_directory=financing_payload)
+
+
+@pytest.mark.parametrize('change', ['stale', 'future', 'source', 'checksum', 'version'])
+def test_financing_payload_rejects_untrusted_or_old_data(financing_payload, change):
+    manifest_path = financing_payload / 'manifest.json'
+    manifest = json.loads(manifest_path.read_text())
+    if change in ('stale', 'future'):
+        manifest['fetched_at'] = (datetime.now(timezone.utc) + timedelta(
+            days=-3 if change == 'stale' else 1)).isoformat()
+    elif change == 'source':
+        manifest['source_url'] = 'https://example.org/workbook.xlsx'
+    elif change == 'checksum':
+        (financing_payload / 'workbook.xlsx').write_bytes(b'changed')
+    else:
+        manifest['version'] = 2
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError):
+        financiacion.load_payload(financing_payload)
+
+
+def test_failed_financing_export_removes_the_previous_manifest(financing_payload, monkeypatch):
+    monkeypatch.setattr(financiacion, 'fetch_workbook', Mock(side_effect=TimeoutError('blocked')))
+    with pytest.raises(TimeoutError):
+        financiacion.export_payload(financing_payload)
+    assert not (financing_payload / 'manifest.json').exists()
+
+
+def test_financing_export_requires_reconciled_workbook(tmp_path, monkeypatch):
+    workbook = openpyxl.load_workbook(FIXTURE)
+    workbook['3. Liquidación definitiva']['B5'] = 999
+    data = BytesIO()
+    workbook.save(data)
+    monkeypatch.setattr(financiacion, 'fetch_workbook', lambda: data.getvalue())
+    with pytest.raises(ValueError, match='reconciliation'):
+        financiacion.export_payload(tmp_path)
+    assert not (tmp_path / 'manifest.json').exists()
+
+
+def test_financing_source_failure_is_recorded_without_replacing_snapshot(monkeypatch):
+    from common import db, etl_runs
+    conn = Mock()
+    conn.cursor.return_value.__enter__ = Mock(return_value=Mock())
+    conn.cursor.return_value.__exit__ = Mock(return_value=False)
+    finish = Mock()
+    save_snapshot = Mock()
+    monkeypatch.setattr(db, 'get_pg_conn', lambda: conn)
+    monkeypatch.setattr(etl_runs, 'start_run', Mock(return_value='run-1'))
+    monkeypatch.setattr(etl_runs, 'finish_run', finish)
+    monkeypatch.setattr(financiacion, 'save', save_snapshot)
+    monkeypatch.setattr(financiacion, 'fetch_snapshot', Mock(side_effect=TimeoutError('blocked')))
+    with pytest.raises(TimeoutError):
+        financiacion.run()
+    assert finish.call_args.kwargs == dict(run_id='run-1', status='failed', error_summary='blocked')
+    save_snapshot.assert_not_called()
+    conn.close.assert_called_once()
 
 
 def test_seed_atomic_recovery_and_public_permissions():

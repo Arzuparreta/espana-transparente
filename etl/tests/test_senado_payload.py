@@ -73,6 +73,14 @@ def test_export_does_not_publish_manifest_after_a_block(tmp_path, monkeypatch):
     assert not (tmp_path / "manifest.json").exists()
 
 
+def test_failed_reexport_cannot_reuse_an_earlier_manifest(exported, monkeypatch):
+    monkeypatch.setattr(votaciones, "discover_session_vote_urls",
+                        lambda: (_ for _ in ()).throw(RuntimeError('HTTP 403')))
+    with pytest.raises(RuntimeError, match='HTTP 403'):
+        payload.export_payload(exported)
+    assert not (exported / 'manifest.json').exists()
+
+
 def test_official_xml_can_have_whitespace_before_declaration():
     xml = "\ufeff\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + XML.format(number=61)
     parsed = votaciones.parse_senate_session_vote_xml(

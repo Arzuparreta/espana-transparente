@@ -126,13 +126,15 @@ class SenateUnmatchedVote:
     source_url: str
 
 
-def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
+def _curl_text_once(url: str, delay: float) -> str:
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "--connect-timeout", "10", "--max-time", "45",
+         *curl_header_args(), url],
         capture_output=True,
         timeout=60,
+        check=True,
     )
     raw = result.stdout
     text = None
@@ -153,21 +155,50 @@ def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
     return text
 
 
-def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+def curl_text(url: str, delay: float = REQUEST_DELAY) -> str:
+    for attempt in range(1, 4):
+        try:
+            return _curl_text_once(url, delay)
+        except (RuntimeError, subprocess.SubprocessError) as exc:
+            if attempt == 3:
+                raise
+            print(f"Senate request {attempt}/3 failed at {url}: {exc}; retrying this URL", flush=True)
+            time.sleep(5 * attempt)
+
+
+def _curl_status_once(url: str, delay: float) -> int:
     # GET, not HEAD: from the VPS runner Akamai answers HEAD on /legisNN/ with
     # 403 even when GET is served, and a 403 used to read as "no such session".
     if delay:
         time.sleep(delay)
     result = subprocess.run(
-        ["curl", "-sL", "--compressed", "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
+        ["curl", "-sL", "--compressed", "--connect-timeout", "10", "--max-time", "45",
+         "-o", "/dev/null", "-w", "%{http_code}", *curl_header_args(), url],
         capture_output=True,
         text=True,
         timeout=60,
+        check=True,
     )
     try:
         return int(result.stdout.strip()[-3:])
     except ValueError:
         return 0
+
+
+def curl_status(url: str, delay: float = REQUEST_DELAY) -> int:
+    for attempt in range(1, 4):
+        try:
+            status = _curl_status_once(url, delay)
+            if status not in (0, 403, 429) and status < 500:
+                return status
+        except subprocess.SubprocessError:
+            if attempt == 3:
+                raise
+            status = 0
+        if attempt < 3:
+            print(f"Senate probe {attempt}/3 at {url}: HTTP {status}; retrying this URL", flush=True)
+            time.sleep(5 * attempt)
+    return status
 
 
 def parse_senate_date_label(label: str | None) -> str | None:
@@ -795,27 +826,30 @@ def run(
 ) -> None:
     if resume:
         print("Senate --resume reconciles all published sessions to repair partial linkage.")
-    payload = None
-    if from_directory:
-        from .payload import load_payload
-        payload = load_payload(from_directory)
-        urls = [url for url in payload if _session_number(url) >= from_session
-                and (max_session is None or _session_number(url) <= max_session)]
-        if limit:
-            urls = urls[:limit]
-    else:
-        urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
-    print(f"Discovered {len(urls)} Senate session XML files")
+    def load_sources():
+        payload = None
+        if from_directory:
+            from .payload import load_payload
+            payload = load_payload(from_directory)
+            urls = [url for url in payload if _session_number(url) >= from_session
+                    and (max_session is None or _session_number(url) <= max_session)]
+            if limit:
+                urls = urls[:limit]
+        else:
+            urls = discover_session_vote_urls(from_session=from_session, max_session=max_session, limit=limit)
+        print(f"Discovered {len(urls)} Senate session XML files")
 
-    # Past sessions stay published, so an empty discovery is a blocked request
-    # or a moved catalog — not a legislature without votes.
-    if not urls:
-        raise RuntimeError(
-            "Senate open-data catalog returned 0 session files — refusing to "
-            "report success; the source is blocked or its catalog moved"
-        )
+        # Past sessions stay published, so an empty discovery is a blocked
+        # request or a moved catalog, never evidence of no votes.
+        if not urls:
+            raise RuntimeError(
+                "Senate open-data catalog returned 0 session files — refusing to "
+                "report success; the source is blocked or its catalog moved"
+            )
+        return payload, urls
 
     if dry_run:
+        payload, urls = load_sources()
         for url in urls[:5]:
             votations = payload[url] if payload is not None else fetch_senate_session_votations(url)
             vote_count = sum(len(v.votes) for v in votations)
@@ -835,6 +869,8 @@ def run(
             run_id = start_run(cur, pipeline="senado.votaciones", chunk_key="nominal")
             conn.commit()
 
+            # Record source/discovery failures too, before any vote is changed.
+            payload, urls = load_sources()
             senator_index = build_senator_index(cur)
             rows_read = 0
             rows_inserted = 0

@@ -2,9 +2,10 @@
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from io import BytesIO
+from pathlib import Path
 
 import httpx
 import openpyxl
@@ -128,10 +129,46 @@ def parse_workbook(payload, checked_at=None):
         wb.close()
 
 
-def fetch_snapshot():
-    with httpx.Client(timeout=60, follow_redirects=True) as client:
+def fetch_workbook():
+    # Hacienda can time out before the TLS connection is established.
+    with httpx.Client(timeout=httpx.Timeout(60, connect=10), follow_redirects=True,
+                      transport=httpx.HTTPTransport(retries=2)) as client:
         r = client.get(SOURCE); r.raise_for_status()
-    return parse_workbook(r.content)
+    return r.content
+
+
+def fetch_snapshot():
+    return parse_workbook(fetch_workbook())
+
+
+def export_payload(directory):
+    """Hand the original official workbook to a runner that cannot reach Hacienda."""
+    target = Path(directory)
+    target.mkdir(parents=True, exist_ok=True)
+    manifest = target / 'manifest.json'
+    manifest.unlink(missing_ok=True)
+    workbook = fetch_workbook()
+    snapshot = parse_workbook(workbook)
+    (target / 'workbook.xlsx').write_bytes(workbook)
+    manifest.write_text(json.dumps(dict(version=1, source_url=SOURCE,
+        fetched_at=snapshot['retrieved_at'], sha256=snapshot['workbook_sha256'])), encoding='utf-8')
+    print('Exported verified official financing workbook; no database writes')
+
+
+def load_payload(directory):
+    # Pin the generation while the publisher atomically switches `current`.
+    target = Path(directory).resolve()
+    manifest = json.loads((target / 'manifest.json').read_text(encoding='utf-8'))
+    if manifest.get('version') != 1 or manifest.get('source_url') != SOURCE:
+        raise ValueError('Unknown financing payload version or source')
+    fetched = datetime.fromisoformat(manifest['fetched_at'])
+    age = datetime.now(timezone.utc) - fetched
+    if age < timedelta(minutes=-5) or age > timedelta(days=2):
+        raise ValueError('Financing payload is stale or has a future timestamp')
+    workbook = (target / 'workbook.xlsx').read_bytes()
+    if hashlib.sha256(workbook).hexdigest() != manifest['sha256']:
+        raise ValueError('Financing payload checksum mismatch')
+    return parse_workbook(workbook, checked_at=manifest['fetched_at'])
 
 
 def save(cur, s):
@@ -140,15 +177,17 @@ def save(cur, s):
     cur.execute("INSERT INTO territorial_financing_snapshot(scope,metadata) VALUES('settlement-2024',%s) ON CONFLICT(scope) DO UPDATE SET metadata=EXCLUDED.metadata", (json.dumps(s, ensure_ascii=False),))
 
 
-def run(dry_run=False):
+def run(dry_run=False, from_directory=None):
+    def snapshot():
+        return load_payload(from_directory) if from_directory else fetch_snapshot()
     if dry_run:
-        s = fetch_snapshot(); print(f"Verified {len(s['records'])} territories; no writes"); return
+        s = snapshot(); print(f"Verified {len(s['records'])} territories; no writes"); return
     from common.db import get_pg_conn
     from common.etl_runs import start_run, finish_run
     conn, run_id = get_pg_conn(), None
     try:
         with conn.cursor() as cur: run_id = start_run(cur, pipeline='presupuestos.financiacion')
-        conn.commit(); s = fetch_snapshot()
+        conn.commit(); s = snapshot()
         with conn.cursor() as cur:
             save(cur, s); finish_run(cur, run_id=run_id, status='succeeded', rows_read=17, rows_inserted=1)
         conn.commit()
@@ -163,4 +202,13 @@ def run(dry_run=False):
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(); p.add_argument('--dry-run', action='store_true'); run(p.parse_args().dry_run)
+    p = argparse.ArgumentParser()
+    p.add_argument('--dry-run', action='store_true')
+    transfer = p.add_mutually_exclusive_group()
+    transfer.add_argument('--export-directory')
+    transfer.add_argument('--from-directory')
+    args = p.parse_args()
+    if args.export_directory:
+        export_payload(args.export_directory)
+    else:
+        run(args.dry_run, from_directory=args.from_directory)

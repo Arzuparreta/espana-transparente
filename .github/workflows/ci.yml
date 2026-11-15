@@ -260,7 +260,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PYTHONPATH: src
-      SENATE_PAYLOAD_DIRECTORY: ${{ github.workspace }}/.senate-votes-${{ github.run_id }}
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-etl
@@ -270,13 +269,14 @@ jobs:
         continue-on-error: true
         with:
           name: senate-votes-${{ github.run_id }}
-          path: ${{ env.SENATE_PAYLOAD_DIRECTORY }}
+          path: ${{ runner.temp }}/senate-votes-${{ github.run_id }}
       # KOHESIO_PAYLOAD lets an operator drop a payload fetched from an
       # unblocked network (see etl/src/kohesio/fondos_ue.py); unset, the
       # pipeline attempts a direct fetch and fails loudly when EC blocks it.
       - run: bash scripts/run_scheduled_etls.sh weekly-core
         env:
           KOHESIO_PAYLOAD: ${{ vars.KOHESIO_PAYLOAD_PATH }}
+          SENATE_PAYLOAD_DIRECTORY: ${{ runner.temp }}/senate-votes-${{ github.run_id }}
 
   etl-weekly-documents:
     name: ETL weekly documents
@@ -325,3 +325,5 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-etl
       - run: bash scripts/run_scheduled_etls.sh weekly-links
+        env:
+          FINANCING_PAYLOAD_DIRECTORY: ${{ vars.FINANCING_PAYLOAD_PATH }}
