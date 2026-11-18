@@ -2,10 +2,32 @@ import copy,gzip,json,os
 from pathlib import Path
 from unittest.mock import Mock
 import pytest
+import httpx
+from presupuestos import local
 from presupuestos.local import parse_snapshot,save
 FIXTURE=Path(__file__).parent/'fixtures/local-canarias-2024.json.gz'
 
 def source():return gzip.decompress(FIXTURE.read_bytes())
+
+
+@pytest.mark.parametrize("recovers", [True, False])
+def test_download_retries_connection_failure(monkeypatch, recovers):
+    outcomes = [httpx.ConnectError("TLS EOF") for _ in range(3)]
+    if recovers:
+        outcomes[-1] = source()
+    download = Mock(side_effect=outcomes)
+    delays = []
+    monkeypatch.setattr(local, "download_snapshot", download)
+    monkeypatch.setattr(local.time, "sleep", delays.append)
+
+    if recovers:
+        assert len(local.fetch_snapshot()["records"]) == 88
+    else:
+        with pytest.raises(httpx.ConnectError, match="TLS EOF"):
+            local.fetch_snapshot()
+
+    assert download.call_count == 3
+    assert delays == [5, 10]
 
 def test_official_scope_stages_units_and_unavailable_totals():
     s=parse_snapshot(source())

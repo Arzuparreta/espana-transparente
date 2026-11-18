@@ -403,20 +403,27 @@ def cross_reference_politicians(cur) -> int:
 
 def _api_health_check(client: httpx.Client) -> bool:
     """Quick preflight: test that the OpenMercantil API is reachable."""
-    try:
-        resp = client.get(f"{API_BASE}/search", params={"q": "test"}, timeout=15.0)
-        if resp.status_code == 429:
-            raise OpenMercantilRateLimited(
-                "OpenMercantil rate limit is already exhausted"
-            )
-        resp.raise_for_status()
-        data = resp.json()
-        return "items" in data
-    except OpenMercantilRateLimited:
-        raise
-    except Exception as exc:
-        print(f"OpenMercantil API unreachable: {exc}")
-        return False
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            resp = client.get(f"{API_BASE}/search", params={"q": "test"}, timeout=15.0)
+            if resp.status_code == 429:
+                raise OpenMercantilRateLimited(
+                    "OpenMercantil rate limit is already exhausted"
+                )
+            resp.raise_for_status()
+            return isinstance(resp.json().get("items"), list)
+        except httpx.HTTPStatusError as exc:
+            print(f"OpenMercantil API unreachable: {exc}")
+            if exc.response.status_code < 500:
+                return False
+        except httpx.TransportError as exc:
+            print(f"OpenMercantil API unreachable: {exc}")
+        except (ValueError, AttributeError) as exc:
+            print(f"OpenMercantil API returned an invalid response: {exc}")
+            return False
+        if attempt < MAX_RETRIES:
+            time.sleep(5 * attempt)
+    return False
 
 
 def run(dry_run: bool = False, limit: int | None = None, resume: bool = False) -> tuple[int, int]:

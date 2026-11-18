@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import httpx
 import pytest
 
 from src.borme import officers
@@ -41,6 +42,20 @@ def test_health_check_exposes_rate_limit() -> None:
 
     with pytest.raises(officers.OpenMercantilRateLimited):
         officers._api_health_check(client)
+
+
+@pytest.mark.parametrize("last_status", [200, 530])
+def test_health_check_retries_upstream_outage(monkeypatch, last_status):
+    statuses = iter([530, 530, last_status])
+    delays = []
+    monkeypatch.setattr(officers.time, "sleep", delays.append)
+
+    with httpx.Client(transport=httpx.MockTransport(
+        lambda request: httpx.Response(next(statuses), json={"items": []})
+    )) as client:
+        assert officers._api_health_check(client) is (last_status == 200)
+
+    assert delays == [5, 10]
 
 
 def test_run_fails_when_the_api_is_unreachable(monkeypatch):

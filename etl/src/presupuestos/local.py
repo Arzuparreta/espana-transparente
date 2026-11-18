@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import time
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -73,7 +74,7 @@ def parse_snapshot(payload, checked_at=None):
     return dict(version=VERSION,year=2024,unit='EUR',source_url=SOURCE,page_url=PAGE,source_version='1.0',source_updated_at=m['lastUpdate'],source_sha256=hashlib.sha256(payload).hexdigest(),retrieved_at=checked_at or datetime.now(timezone.utc).isoformat(),universe=218880,selected_cells=4224,missing_cells=missing,reconciled_checks=reconciled,complete_comparisons=sum(all(n is not None for n in r['rows']['NF']) for r in records),records=records)
 
 
-def fetch_snapshot():
+def download_snapshot():
     with httpx.Client(timeout=60,follow_redirects=True) as c:
         with c.stream('GET',SOURCE) as r:
             r.raise_for_status();chunks=[];size=0
@@ -81,7 +82,21 @@ def fetch_snapshot():
                 size+=len(chunk)
                 if size>10_000_000:raise ValueError('Local response exceeds bounds')
                 chunks.append(chunk)
-    return parse_snapshot(b''.join(chunks))
+    return b''.join(chunks)
+
+
+def fetch_snapshot():
+    for attempt in range(1, 4):
+        try:
+            payload = download_snapshot()
+        except (httpx.NetworkError, httpx.TimeoutException, httpx.RemoteProtocolError) as exc:
+            if attempt == 3:
+                raise
+            delay = 5 * attempt
+            print(f"ISTAC download failed: {exc}. Retrying in {delay}s.", flush=True)
+            time.sleep(delay)
+        else:
+            return parse_snapshot(payload)
 
 
 def save(cur,s):
